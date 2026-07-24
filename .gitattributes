@@ -1,0 +1,12 @@
+# Normaliza saltos de linea automaticamente
+* text=auto eol=lf
+
+# Scripts de Windows siempre CRLF
+*.bat text eol=crlf
+
+# El wrapper de Unix debe conservar LF para funcionar en Linux/macOS/CI
+gradlew text eol=lf
+
+# Archivos binarios
+*.jar binary
+*.png binary

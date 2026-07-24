@@ -1,0 +1,10 @@
+name: Atalaya
+version: '${version}'
+main: com.atalaya.Atalaya
+api-version: '26.2'
+description: Plugin base de Atalaya para Minecraft 26.2 (Paper).
+author: SiologoDr
+commands:
+  atalaya:
+    description: Comando principal del plugin Atalaya.
+    usage: /atalaya baston
