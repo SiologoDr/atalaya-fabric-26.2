@@ -3,6 +3,10 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
+# Servidor de pruebas (run-paper) y logs
+run/
+run_test.log
+
 # IntelliJ IDEA
 .idea/
 *.iml

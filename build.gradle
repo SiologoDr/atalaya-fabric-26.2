@@ -1,5 +1,8 @@
 plugins {
     id 'java'
+    // Crea la tarea 'runServer': descarga Paper y levanta un servidor de pruebas
+    // con este plugin ya cargado. Ideal para ver tus cambios rapido.
+    id 'xyz.jpenilla.run-paper' version '3.0.2'
 }
 
 group = project.group
@@ -41,4 +44,10 @@ processResources {
     filesMatching('plugin.yml') {
         expand props
     }
+}
+
+// Servidor de pruebas: ./gradlew runServer
+tasks.runServer {
+    // Version de Minecraft/Paper que se descargara para probar.
+    minecraftVersion('26.2')
 }
