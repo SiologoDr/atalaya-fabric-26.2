@@ -1,13 +1,14 @@
 package com.atalaya.radiation;
 
 import com.atalaya.Atalaya;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import com.atalaya.items.HazmatArmor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -94,27 +95,37 @@ public class RadiationManager {
     }
 
     private void aplicarRadiacion(Player player, int nivel) {
-        double dano = danoPorNivel.getOrDefault(nivel, (double) nivel);
-        player.damage(dano);
+        // Proteccion del traje Hazmat: cada pieza -25%, traje completo = inmune.
+        int piezas = HazmatArmor.piezasEquipadas(player);
+        if (piezas >= 4) {
+            return; // inmunidad total: ni dano ni efecto
+        }
+        double factor = 1.0 - 0.25 * piezas;
 
-        // Feedback 100% server-side (el jugador no descarga nada).
-        player.sendActionBar(
-                Component.text("☢ Radiacion - Nivel " + nivel, colorPorNivel(nivel))
-        );
+        double dano = danoPorNivel.getOrDefault(nivel, (double) nivel) * factor;
+        if (dano > 0) {
+            player.damage(dano);
+        }
+
+        // Efecto "disfrazado": aparece un icono en el HUD y su nivel cambia solo.
+        // El resource pack le pone tu imagen (radiacion.png) y el nombre "Radiacion".
+        // amplificador = nivel-1  ->  el juego muestra el numero romano del nivel.
+        int duracionTicks = (int) (intervaloTicks + 30L); // dura mas que el intervalo: no parpadea
+        player.addPotionEffect(new PotionEffect(
+                PotionEffectType.UNLUCK,
+                duracionTicks,
+                nivel - 1,
+                true,   // ambient: menos intrusivo
+                false,  // sin las particulas propias del efecto (usamos las nuestras)
+                true    // mostrar icono en el HUD
+        ));
+
+        // Feedback extra, 100% server-side.
         player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.6f, 0.5f);
         player.getWorld().spawnParticle(
                 Particle.HAPPY_VILLAGER,
                 player.getLocation().add(0, 1, 0),
                 nivel * 3, 0.4, 0.6, 0.4, 0.0
         );
-    }
-
-    private NamedTextColor colorPorNivel(int nivel) {
-        return switch (nivel) {
-            case 4 -> NamedTextColor.DARK_RED;
-            case 3 -> NamedTextColor.RED;
-            case 2 -> NamedTextColor.GOLD;
-            default -> NamedTextColor.YELLOW;
-        };
     }
 }

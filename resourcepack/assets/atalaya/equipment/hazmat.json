@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "atalaya:hazmat"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "atalaya:hazmat"
+      }
+    ]
+  }
+}

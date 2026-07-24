@@ -2,6 +2,7 @@ package com.atalaya.commands;
 
 import com.atalaya.Atalaya;
 import com.atalaya.items.CustomItems;
+import com.atalaya.items.HazmatArmor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -28,6 +29,17 @@ public class AtalayaCommand implements CommandExecutor {
             return true;
         }
 
+        if (args.length == 1 && args[0].equalsIgnoreCase("traje")) {
+            player.getInventory().addItem(
+                    HazmatArmor.casco(),
+                    HazmatArmor.pechera(),
+                    HazmatArmor.pantalon(),
+                    HazmatArmor.botas()
+            );
+            player.sendMessage(Component.text("Recibiste el traje Hazmat completo.", NamedTextColor.GREEN));
+            return true;
+        }
+
         if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             Atalaya plugin = Atalaya.getInstance();
             plugin.reloadConfig();
@@ -38,7 +50,7 @@ public class AtalayaCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(Component.text("Uso: /atalaya <baston|reload>", NamedTextColor.RED));
+        player.sendMessage(Component.text("Uso: /atalaya <baston|traje|reload>", NamedTextColor.RED));
         return true;
     }
 }
