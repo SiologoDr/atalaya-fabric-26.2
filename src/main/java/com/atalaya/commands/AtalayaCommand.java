@@ -31,6 +31,7 @@ public class AtalayaCommand implements CommandExecutor {
         if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             Atalaya plugin = Atalaya.getInstance();
             plugin.reloadConfig();
+            plugin.getGeodeIndex().loadConfig();
             plugin.getRadiationManager().loadConfig();
             plugin.getRadiationManager().start(); // reinicia con el nuevo intervalo
             player.sendMessage(Component.text("Configuracion de Atalaya recargada.", NamedTextColor.GREEN));

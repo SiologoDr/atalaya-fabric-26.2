@@ -5,42 +5,27 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Sistema de radiacion de las geodas.
  *
- * Cada cierto intervalo revisa, para cada jugador, cual es el bloque de amatista
- * mas cercano. Segun la distancia asigna un NIVEL (1 a 4) y le drena vida:
- * cuanto mas cerca de la amatista, mayor el nivel y mas dano. Pasada la
- * distancia maxima, no hay radiacion.
+ * Corre cada tick pero solo procesa una fraccion de los jugadores por tick
+ * (reparto/stagger), de modo que cada jugador se revisa una vez por intervalo.
+ * Para saber la fuente mas cercana consulta el {@link GeodeIndex} (barato),
+ * en vez de escanear el mundo.
  */
 public class RadiationManager {
 
     private static final int MAX_LEVEL = 4;
 
-    // Bloques que emiten radiacion (todo lo que forma la parte de amatista de una geoda).
-    private static final Set<Material> FUENTES = EnumSet.of(
-            Material.AMETHYST_BLOCK,
-            Material.BUDDING_AMETHYST,
-            Material.AMETHYST_CLUSTER,
-            Material.SMALL_AMETHYST_BUD,
-            Material.MEDIUM_AMETHYST_BUD,
-            Material.LARGE_AMETHYST_BUD
-    );
-
     private final Atalaya plugin;
+    private final GeodeIndex index;
 
     // Valores cargados desde config.yml
     private long intervaloTicks;
@@ -48,16 +33,17 @@ public class RadiationManager {
     private final Map<Integer, Double> danoPorNivel = new HashMap<>();
 
     private int taskId = -1;
+    private long contadorTicks = 0;
 
-    public RadiationManager(Atalaya plugin) {
+    public RadiationManager(Atalaya plugin, GeodeIndex index) {
         this.plugin = plugin;
+        this.index = index;
         loadConfig();
     }
 
-    /** Lee (o relee) los valores desde config.yml. */
     public void loadConfig() {
         var cfg = plugin.getConfig();
-        intervaloTicks = cfg.getLong("radiacion.intervalo-ticks", 20L);
+        intervaloTicks = Math.max(1L, cfg.getLong("radiacion.intervalo-ticks", 20L));
         distanciaMaxima = cfg.getDouble("radiacion.distancia-maxima", 12.0);
         danoPorNivel.clear();
         for (int nivel = 1; nivel <= MAX_LEVEL; nivel++) {
@@ -65,15 +51,14 @@ public class RadiationManager {
         }
     }
 
-    /** Arranca (o reinicia) la tarea periodica. */
+    /** Arranca (o reinicia) la tarea. Corre cada tick; el reparto lo hace tick(). */
     public void start() {
         stop();
         taskId = Bukkit.getScheduler()
-                .runTaskTimer(plugin, this::tick, 0L, intervaloTicks)
+                .runTaskTimer(plugin, this::tick, 1L, 1L)
                 .getTaskId();
     }
 
-    /** Detiene la tarea periodica. */
     public void stop() {
         if (taskId != -1) {
             Bukkit.getScheduler().cancelTask(taskId);
@@ -82,12 +67,19 @@ public class RadiationManager {
     }
 
     private void tick() {
+        long ranura = contadorTicks % intervaloTicks;
+        contadorTicks++;
+
         for (Player player : Bukkit.getOnlinePlayers()) {
-            // Creativo y espectador no reciben radiacion.
+            // Reparte los jugadores: cada uno cae en una ranura fija segun su id,
+            // asi se procesa una vez por intervalo y no todos en el mismo tick.
+            if (Math.floorMod(player.getEntityId(), intervaloTicks) != ranura) {
+                continue;
+            }
             if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                 continue;
             }
-            double distancia = distanciaFuenteMasCercana(player);
+            double distancia = index.distanciaMasCercana(player.getLocation(), distanciaMaxima);
             if (distancia < 0) {
                 continue; // no hay amatista dentro del alcance -> sin efecto
             }
@@ -95,7 +87,6 @@ public class RadiationManager {
         }
     }
 
-    /** Convierte una distancia (dentro del alcance) en un nivel 1..4. */
     private int nivelPorDistancia(double distancia) {
         double proporcion = 1.0 - (distancia / distanciaMaxima); // 1 = encima, 0 = al borde
         int nivel = (int) Math.ceil(proporcion * MAX_LEVEL);
@@ -125,49 +116,5 @@ public class RadiationManager {
             case 2 -> NamedTextColor.GOLD;
             default -> NamedTextColor.YELLOW;
         };
-    }
-
-    /**
-     * Busca el bloque de amatista mas cercano al jugador dentro de la distancia
-     * maxima. Devuelve la distancia (en bloques) o -1 si no hay ninguno cerca.
-     */
-    private double distanciaFuenteMasCercana(Player player) {
-        Location loc = player.getLocation();
-        World world = player.getWorld();
-
-        int radio = (int) Math.ceil(distanciaMaxima);
-        int bx = loc.getBlockX();
-        int by = loc.getBlockY();
-        int bz = loc.getBlockZ();
-
-        int minY = world.getMinHeight();
-        int maxY = world.getMaxHeight() - 1;
-
-        double mejorSq = Double.MAX_VALUE;
-        double maxSq = distanciaMaxima * distanciaMaxima;
-
-        for (int x = -radio; x <= radio; x++) {
-            for (int y = -radio; y <= radio; y++) {
-                int yy = by + y;
-                if (yy < minY || yy > maxY) {
-                    continue;
-                }
-                for (int z = -radio; z <= radio; z++) {
-                    Block block = world.getBlockAt(bx + x, yy, bz + z);
-                    if (!FUENTES.contains(block.getType())) {
-                        continue;
-                    }
-                    double dx = (bx + x + 0.5) - loc.getX();
-                    double dy = (yy + 0.5) - loc.getY();
-                    double dz = (bz + z + 0.5) - loc.getZ();
-                    double sq = dx * dx + dy * dy + dz * dz;
-                    if (sq < mejorSq) {
-                        mejorSq = sq;
-                    }
-                }
-            }
-        }
-
-        return (mejorSq <= maxSq) ? Math.sqrt(mejorSq) : -1;
     }
 }

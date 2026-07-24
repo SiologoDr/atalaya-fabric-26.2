@@ -4,6 +4,8 @@ import com.atalaya.commands.AtalayaCommand;
 import com.atalaya.items.CustomItems;
 import com.atalaya.listeners.ItemListener;
 import com.atalaya.listeners.PlayerJoinListener;
+import com.atalaya.radiation.GeodeIndex;
+import com.atalaya.radiation.GeodeListener;
 import com.atalaya.radiation.RadiationManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,6 +19,7 @@ public final class Atalaya extends JavaPlugin {
 
     // Acceso global a la instancia del plugin (util para NamespacedKey, tareas, etc.)
     private static Atalaya instance;
+    private GeodeIndex geodeIndex;
     private RadiationManager radiationManager;
 
     @Override
@@ -33,8 +36,14 @@ public final class Atalaya extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
         getServer().getPluginManager().registerEvents(new ItemListener(), this);
 
-        // Arranca el sistema de radiacion de las geodas.
-        radiationManager = new RadiationManager(this);
+        // Sistema de radiacion de las geodas.
+        // 1) Indice de amatistas (cache) + listener que lo mantiene al dia.
+        geodeIndex = new GeodeIndex(this);
+        getServer().getPluginManager().registerEvents(new GeodeListener(geodeIndex), this);
+        // 2) Escanea lo ya cargado al arrancar (los ChunkLoadEvent no disparan para eso).
+        geodeIndex.escanearMundosCargados();
+        // 3) Tarea que aplica la radiacion consultando el indice.
+        radiationManager = new RadiationManager(this, geodeIndex);
         radiationManager.start();
 
         // Enlaza el comando /atalaya (declarado en plugin.yml) con su ejecutor.
@@ -60,5 +69,9 @@ public final class Atalaya extends JavaPlugin {
 
     public RadiationManager getRadiationManager() {
         return radiationManager;
+    }
+
+    public GeodeIndex getGeodeIndex() {
+        return geodeIndex;
     }
 }

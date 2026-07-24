@@ -17,3 +17,10 @@ radiacion:
     2: 2.0
     3: 3.0
     4: 4.0
+
+  # --- Optimizacion del escaneo de geodas ---
+  # Rango de altura donde se buscan geodas al escanear cada chunk (una sola vez).
+  # Las geodas naturales generan aqui. La amatista que un jugador coloque fuera
+  # de este rango se detecta igual por evento mientras el chunk este cargado.
+  escaneo-y-min: -64
+  escaneo-y-max: 40
