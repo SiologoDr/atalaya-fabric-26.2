@@ -6,18 +6,18 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Define que bloques emiten radiacion (la parte de amatista de una geoda).
- * Centralizado aqui para que el indice, el listener y el manager usen lo mismo.
+ * Define que bloques emiten radiacion.
+ *
+ * Solo la AMATISTA EN GEMACION (budding_amethyst), el corazon de la geoda.
+ * La clave del lore: este bloque NO se puede obtener ni colocar en supervivencia
+ * (ni con Silk Touch suelta nada), asi que solo existe generado de forma natural.
+ * Usarlo como fuente garantiza "radiacion solo en geodas naturales" sin tener
+ * que rastrear que bloque coloco o movio un jugador.
  */
 public final class RadiationSources {
 
     private static final Set<Material> FUENTES = EnumSet.of(
-            Material.AMETHYST_BLOCK,
-            Material.BUDDING_AMETHYST,
-            Material.AMETHYST_CLUSTER,
-            Material.SMALL_AMETHYST_BUD,
-            Material.MEDIUM_AMETHYST_BUD,
-            Material.LARGE_AMETHYST_BUD
+            Material.BUDDING_AMETHYST
     );
 
     private RadiationSources() {

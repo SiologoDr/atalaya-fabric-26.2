@@ -6,15 +6,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 /**
  * Mantiene el GeodeIndex al dia sin escanear el mundo cada segundo:
- * - Al cargar un chunk overworld -> se escanea una vez (async).
+ * - Al cargar un chunk overworld -> se escanea una vez (async) buscando gemacion.
  * - Al descargarlo -> se olvida.
- * - Al colocar/romper amatista -> se actualiza el bloque puntual.
+ * - Al romper la gemacion (destruir la geoda) -> deja de radiar.
+ *
+ * No hay manejo de "colocar bloque" a proposito: la amatista en gemacion no se
+ * puede colocar en supervivencia, y solo queremos radiacion en geodas naturales.
  */
 public class GeodeListener implements Listener {
 
@@ -35,14 +37,6 @@ public class GeodeListener implements Listener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         index.quitarChunk(event.getWorld().getUID(), event.getChunk().getX(), event.getChunk().getZ());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        Block b = event.getBlock();
-        if (RadiationSources.esFuente(b.getType())) {
-            index.agregarBloque(b.getWorld().getUID(), b.getX(), b.getY(), b.getZ());
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
