@@ -7,4 +7,4 @@ author: SiologoDr
 commands:
   atalaya:
     description: Comando principal del plugin Atalaya.
-    usage: /atalaya baston
+    usage: /atalaya <baston|reload>

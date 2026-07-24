@@ -1,5 +1,6 @@
 package com.atalaya.commands;
 
+import com.atalaya.Atalaya;
 import com.atalaya.items.CustomItems;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -27,7 +28,16 @@ public class AtalayaCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(Component.text("Uso: /atalaya baston", NamedTextColor.RED));
+        if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+            Atalaya plugin = Atalaya.getInstance();
+            plugin.reloadConfig();
+            plugin.getRadiationManager().loadConfig();
+            plugin.getRadiationManager().start(); // reinicia con el nuevo intervalo
+            player.sendMessage(Component.text("Configuracion de Atalaya recargada.", NamedTextColor.GREEN));
+            return true;
+        }
+
+        player.sendMessage(Component.text("Uso: /atalaya <baston|reload>", NamedTextColor.RED));
         return true;
     }
 }
