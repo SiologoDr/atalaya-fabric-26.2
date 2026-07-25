@@ -1,5 +1,6 @@
 package com.atalaya.listeners;
 
+import com.atalaya.Atalaya;
 import com.atalaya.items.HazmatRecipes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -20,7 +21,9 @@ public class PlayerJoinListener implements Listener {
                         .append(Component.text(event.getPlayer().getName(), NamedTextColor.YELLOW))
         );
 
-        // Desbloquea las recetas del traje Hazmat en el libro de recetas.
-        HazmatRecipes.desbloquear(event.getPlayer());
+        // Desbloquea las recetas del traje Hazmat (solo si el crafteo esta activo).
+        if (Atalaya.getInstance().getSettings().isCrafteoActivo()) {
+            HazmatRecipes.desbloquear(event.getPlayer());
+        }
     }
 }

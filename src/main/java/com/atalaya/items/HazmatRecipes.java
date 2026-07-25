@@ -70,4 +70,24 @@ public final class HazmatRecipes {
     public static void desbloquear(Player player) {
         player.discoverRecipes(CLAVES);
     }
+
+    /** Activa el crafteo: registra las recetas y las desbloquea a los conectados. */
+    public static void activar(Atalaya plugin) {
+        registrar(plugin);
+        for (Player p : plugin.getServer().getOnlinePlayers()) {
+            p.discoverRecipes(CLAVES);
+        }
+    }
+
+    /** Desactiva el crafteo: quita las recetas del juego y del libro de recetas. */
+    public static void desactivar(Atalaya plugin) {
+        List<NamespacedKey> claves = new ArrayList<>(CLAVES);
+        for (Player p : plugin.getServer().getOnlinePlayers()) {
+            p.undiscoverRecipes(claves); // fuera del libro de cada jugador
+        }
+        for (NamespacedKey key : claves) {
+            Bukkit.removeRecipe(key);    // ya no se puede craftear
+        }
+        CLAVES.clear();
+    }
 }

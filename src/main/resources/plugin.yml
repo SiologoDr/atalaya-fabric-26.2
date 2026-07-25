@@ -7,4 +7,8 @@ author: SiologoDr
 commands:
   atalaya:
     description: Comando principal del plugin Atalaya.
-    usage: /atalaya <baston|traje|reload>
+    usage: /atalaya <traje|menu|reload>
+permissions:
+  atalaya.admin:
+    description: Acceso al menu de configuracion de Atalaya (/atalaya menu).
+    default: op
