@@ -25,10 +25,11 @@ import java.util.List;
  */
 public final class HazmatArmor {
 
-    private static final TextColor AMARILLO = TextColor.color(0xFCFC54);
-    private static final TextColor GRIS = TextColor.color(0xA8A8A8);
-    private static final TextColor VERDE_RAD = TextColor.color(0x8CE05A);
-    private static final TextColor LILA_GEODA = TextColor.color(0xE4A8FF);
+    // Tonos CLAROS para que el texto se lea sobre el fondo oscuro del tooltip.
+    private static final TextColor AMARILLO = TextColor.color(0xFCFC54);    // titulos
+    private static final TextColor GRIS = TextColor.color(0xA8A8A8);        // tipo de pieza
+    private static final TextColor VERDE_RAD = TextColor.color(0x8CE05A);   // verde
+    private static final TextColor LILA_GEODA = TextColor.color(0xE4A8FF);  // lila
 
     // Marca que identifica una pieza del traje. Se inicializa en init().
     public static NamespacedKey HAZMAT_KEY;

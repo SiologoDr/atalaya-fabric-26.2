@@ -1,5 +1,6 @@
 package com.atalaya.listeners;
 
+import com.atalaya.items.HazmatRecipes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.event.EventHandler;
@@ -18,5 +19,8 @@ public class PlayerJoinListener implements Listener {
                 Component.text("Bienvenido a la Atalaya, ", NamedTextColor.GOLD)
                         .append(Component.text(event.getPlayer().getName(), NamedTextColor.YELLOW))
         );
+
+        // Desbloquea las recetas del traje Hazmat en el libro de recetas.
+        HazmatRecipes.desbloquear(event.getPlayer());
     }
 }

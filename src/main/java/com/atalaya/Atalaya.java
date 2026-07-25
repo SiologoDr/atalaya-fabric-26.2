@@ -3,6 +3,7 @@ package com.atalaya;
 import com.atalaya.commands.AtalayaCommand;
 import com.atalaya.items.CustomItems;
 import com.atalaya.items.HazmatArmor;
+import com.atalaya.items.HazmatRecipes;
 import com.atalaya.listeners.ItemListener;
 import com.atalaya.listeners.PlayerJoinListener;
 import com.atalaya.radiation.GeodeIndex;
@@ -33,6 +34,11 @@ public final class Atalaya extends JavaPlugin {
         // Prepara los items custom (crea sus llaves a partir de este plugin).
         CustomItems.init(this);
         HazmatArmor.init(this);
+
+        // Registra las recetas de crafteo del traje Hazmat.
+        HazmatRecipes.registrar(this);
+        // Desbloquea las recetas para quien ya este conectado (al recargar el plugin).
+        getServer().getOnlinePlayers().forEach(HazmatRecipes::desbloquear);
 
         // Registra los listeners de eventos.
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
