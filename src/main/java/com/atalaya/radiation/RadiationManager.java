@@ -2,6 +2,11 @@ package com.atalaya.radiation;
 
 import com.atalaya.Atalaya;
 import com.atalaya.items.HazmatArmor;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.NamespacedKey;
@@ -11,11 +16,12 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Sistema de radiacion de las geodas.
@@ -32,6 +38,18 @@ public class RadiationManager {
     private static final int MAX_LEVEL = 4;
     // Lentitud por defecto por nivel (fraccion de velocidad restada). Acumulado.
     private static final double[] LENTITUD_DEFECTO = {0.10, 0.20, 0.30, 0.50};
+
+    // --- Indicador en pantalla -------------------------------------------
+    // No usamos un efecto de pocion: los efectos no se pueden registrar nuevos
+    // y secuestrar uno vanilla (antes usabamos UNLUCK) renombraba ese efecto en
+    // TODO el juego y ademas tocaba el atributo de suerte, que afecta al botin.
+    // En su lugar dibujamos nuestro propio icono con una fuente del resource pack.
+    private static final Key FUENTE_ICONOS = Key.key("atalaya", "iconos");
+    private static final String ICONO_RADIACION = ""; // ver assets/atalaya/font/iconos.json
+    private static final String[] ROMANOS = {"I", "II", "III", "IV"};
+
+    // Quien tiene el aviso puesto ahora mismo, para poder borrarlo al alejarse.
+    private final Set<UUID> avisados = new HashSet<>();
 
     private final Atalaya plugin;
     private final GeodeIndex index;
@@ -93,7 +111,7 @@ public class RadiationManager {
                 continue;
             }
             if (!activa) {
-                quitarLentitud(player); // si esta desactivada, aseguramos que no quede lentitud
+                limpiar(player); // desactivada: ni lentitud ni aviso pegados
                 continue;
             }
             procesarJugador(player);
@@ -103,20 +121,20 @@ public class RadiationManager {
     private void procesarJugador(Player player) {
         // Creativo/espectador: inmunes -> sin dano ni lentitud.
         if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
-            quitarLentitud(player);
+            limpiar(player);
             return;
         }
 
         // Traje Hazmat completo: inmune -> sin dano ni lentitud.
         int piezas = HazmatArmor.piezasEquipadas(player);
         if (piezas >= 4) {
-            quitarLentitud(player);
+            limpiar(player);
             return;
         }
 
         double distancia = index.distanciaMasCercana(player.getLocation(), distanciaMaxima);
         if (distancia < 0) {
-            quitarLentitud(player); // fuera de alcance -> se quita la lentitud
+            limpiar(player); // fuera de alcance -> se quita lentitud y aviso
             return;
         }
 
@@ -142,18 +160,22 @@ public class RadiationManager {
         return Math.max(1, Math.min(MAX_LEVEL, nivel));
     }
 
+    /**
+     * Dibuja el aviso de radiacion sobre la hotbar: nuestro icono (via la fuente
+     * atalaya:iconos del resource pack) mas el nivel en romanos, coloreado segun
+     * lo fuerte que sea.
+     */
     private void mostrarEfecto(Player player, int nivel) {
-        // Efecto "disfrazado": icono en el HUD cuyo nivel cambia solo.
-        // El resource pack le pone la imagen (radiacion.png) y el nombre "Radiacion".
-        int duracionTicks = (int) (intervaloTicks + 30L); // dura mas que el intervalo: no parpadea
-        player.addPotionEffect(new PotionEffect(
-                PotionEffectType.UNLUCK,
-                duracionTicks,
-                nivel - 1,
-                true,   // ambient
-                false,  // sin las particulas propias del efecto
-                true    // mostrar icono
-        ));
+        player.sendActionBar(
+                Component.text()
+                        // El icono lleva la fuente; el texto NO (si no, saldria
+                        // tambien mapeado a la imagen).
+                        .append(Component.text(ICONO_RADIACION).font(FUENTE_ICONOS))
+                        .append(Component.text("  RADIACION " + ROMANOS[nivel - 1],
+                                colorPorNivel(nivel)).decorate(TextDecoration.BOLD))
+                        .build()
+        );
+        avisados.add(player.getUniqueId());
 
         player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_HIT, 0.6f, 0.5f);
         player.getWorld().spawnParticle(
@@ -161,6 +183,25 @@ public class RadiationManager {
                 player.getLocation().add(0, 1, 0),
                 nivel * 3, 0.4, 0.6, 0.4, 0.0
         );
+    }
+
+    private static TextColor colorPorNivel(int nivel) {
+        return switch (nivel) {
+            case 1 -> NamedTextColor.YELLOW;
+            case 2 -> NamedTextColor.GOLD;
+            case 3 -> NamedTextColor.RED;
+            default -> NamedTextColor.DARK_RED;
+        };
+    }
+
+    /**
+     * Borra el aviso al salir del alcance. Sin esto la barra de accion se queda
+     * hasta que se desvanece sola (unos 3 segundos) diciendo que sigues irradiado.
+     */
+    private void quitarAviso(Player player) {
+        if (avisados.remove(player.getUniqueId())) {
+            player.sendActionBar(Component.empty());
+        }
     }
 
     // ------------------------------------------------------------------
@@ -195,10 +236,16 @@ public class RadiationManager {
         }
     }
 
-    /** Quita la lentitud a todos (al desactivar la radiacion o al apagar el plugin). */
+    /** Deja a un jugador sin rastro de radiacion (lentitud + aviso en pantalla). */
+    private void limpiar(Player player) {
+        quitarLentitud(player);
+        quitarAviso(player);
+    }
+
+    /** Limpia a todos (al desactivar la radiacion o al apagar el plugin). */
     public void limpiarLentitudTodos() {
         for (Player p : Bukkit.getOnlinePlayers()) {
-            quitarLentitud(p);
+            limpiar(p);
         }
     }
 }
