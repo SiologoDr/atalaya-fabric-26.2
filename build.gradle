@@ -1,53 +1,57 @@
 plugins {
-    id 'java'
-    // Crea la tarea 'runServer': descarga Paper y levanta un servidor de pruebas
-    // con este plugin ya cargado. Ideal para ver tus cambios rapido.
-    id 'xyz.jpenilla.run-paper' version '3.0.2'
+    // Loom descarga Minecraft, lo remapea y crea las tareas runClient / runServer.
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
 }
 
-group = project.group
-version = project.version
+version = project.mod_version
+group = project.maven_group
 
-repositories {
-    mavenCentral()
-    // Repositorio oficial de Paper (de aqui sale la API contra la que compilamos)
-    maven {
-        name = 'papermc'
-        url = 'https://repo.papermc.io/repository/maven-public/'
+base {
+    archivesName = project.archives_base_name
+}
+
+loom {
+    // Separa el codigo de cliente del comun: src/main (ambos) y src/client (solo cliente).
+    // Asi es imposible referenciar por error una clase de renderizado en el servidor.
+    splitEnvironmentSourceSets()
+
+    mods {
+        "atalaya" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
     }
 }
 
-dependencies {
-    // paper-api es 'compileOnly': el servidor Paper ya la trae en runtime,
-    // por eso NO se empaqueta dentro de nuestro .jar.
-    // El patron 26.2.build.+ resuelve automaticamente al ultimo build de la 26.2.
-    compileOnly 'io.papermc.paper:paper-api:26.2.build.+'
+repositories {
+    mavenCentral()
 }
 
-java {
-    // Minecraft/Paper 26.2 requiere Java 25.
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // Sin linea de 'mappings': este Loom usa los mappings oficiales de Mojang
+    // por defecto. Yarn no publica para la serie 26.x, asi que los nombres de
+    // clases seran los de Mojang y no coincidiran con los de la mayoria de tutoriales.
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filteringCharset = 'UTF-8'
+    // Sustituye ${version} dentro de fabric.mod.json por la version real.
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.release = 25
+    options.release = 25   // Minecraft 26.2 corre sobre Java 25
 }
 
-processResources {
-    def props = [version: version]
-    inputs.properties props
-    filteringCharset = 'UTF-8'
-    // Reemplaza ${version} dentro de plugin.yml por la version real del proyecto
-    filesMatching('plugin.yml') {
-        expand props
-    }
-}
-
-// Servidor de pruebas: ./gradlew runServer
-tasks.runServer {
-    // Version de Minecraft/Paper que se descargara para probar.
-    minecraftVersion('26.2')
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }

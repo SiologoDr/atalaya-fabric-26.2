@@ -3,9 +3,11 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
-# Servidor de pruebas (run-paper) y logs
+# Entorno de Loom (runClient / runServer: mundos, opciones, logs, eula)
 run/
-run_test.log
+
+# Salida de los generadores de datos
+src/main/generated/
 
 # IntelliJ IDEA
 .idea/
@@ -26,6 +28,3 @@ bin/
 # Sistema
 *.log
 *.DS_Store
-
-# Mod extraido (referencia local, no es nuestro codigo)
-/mod/

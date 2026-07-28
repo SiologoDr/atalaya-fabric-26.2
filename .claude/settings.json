@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\gradlew.bat build)",
+      "PowerShell(.\\\\gradlew.bat build --no-daemon)",
+      "PowerShell(.\\\\gradlew.bat clean build --no-daemon)",
+      "PowerShell(.\\\\gradlew.bat runClient)",
+      "PowerShell(.\\\\gradlew.bat runServer)"
+    ]
+  }
+}

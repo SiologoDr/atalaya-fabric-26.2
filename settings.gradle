@@ -1,1 +1,14 @@
+pluginManagement {
+    repositories {
+        // De aqui sale fabric-loom, el plugin de Gradle que prepara Minecraft
+        // para desarrollar contra el.
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'atalaya'

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "atalaya",
+  "version": "${version}",
+  "name": "Atalaya",
+  "description": "Radiacion de las geodas de amatista y traje Hazmat para protegerse de ella.",
+  "authors": [
+    "SiologoDr"
+  ],
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.atalaya.Atalaya"
+    ],
+    "client": [
+      "com.atalaya.AtalayaClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

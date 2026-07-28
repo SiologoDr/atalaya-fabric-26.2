@@ -1,30 +1,44 @@
 # Atalaya
 
-Plugin **server-side** para Minecraft **26.2** (servidor [Paper](https://papermc.io/)).
-Todo el contenido (items, mecánicas, efectos) corre en el servidor: los jugadores
-entran con su Minecraft normal, **sin instalar ningún mod**. Las texturas custom
-se envían con un **resource pack** automático.
+Mod de **Fabric** para Minecraft **26.2**.
 
-## Contenido
+> **Estado: base montada y validada. Todavía no hay contenido jugable.**
+> El mod compila, Fabric lo carga, sus dos puntos de entrada arrancan y sus
+> recursos se cargan dentro del juego. El traje Hazmat y la radiación aún no
+> están implementados.
 
-- **Radiación de geodas naturales:** al acercarte a la *amatista en gemación*
-  (solo generada por el mundo) recibes daño y **lentitud**, escalados por nivel
-  (más cerca = más fuerte). El efecto se muestra como un ícono en el HUD.
-- **Traje Hazmat:** armadura (base hierro) que **protege de la radiación**
-  (−25% por pieza, traje completo = inmune). Íconos y textura custom, recetas
-  de crafteo (hierro recubierto de oro) y **no se puede renombrar** en yunque.
-- **Menú de administración:** `/atalaya menu` para activar/desactivar mecánicas.
+## Qué será
+
+- **Radiación de geodas naturales:** acercarse a la *amatista en gemación* hace
+  daño y ralentiza, escalado por cercanía.
+- **Traje Hazmat:** armadura que protege de la radiación, con visor propio.
+- **Guardián de Amatista:** un boss que defiende las geodas.
 
 ## Requisitos
 
-- **JDK 25** (necesario para la 26.2)
+- **JDK 25** — obligatorio, ver el aviso de abajo
 - **Git**
-- **Python 3** (solo para servir el resource pack en desarrollo)
-- **Minecraft Java 26.2** (cliente, para probar)
-- No necesitas instalar Gradle: el proyecto trae el *Gradle Wrapper*.
+- No hace falta instalar Gradle: el proyecto trae el *Gradle Wrapper*.
+- No hace falta instalar Fabric para desarrollar: `runClient` levanta un cliente
+  con el mod ya cargado.
 
-> Nota: en Git viaja el **código** y la carpeta **`resourcepack/`**.
-> La carpeta **`run/`** (servidor de pruebas, EULA, ops, mundo) es local y NO se sube.
+### ⚠️ `JAVA_HOME` tiene que apuntar al JDK 25
+
+Loom ejecuta las herramientas de Minecraft en el mismo proceso que Gradle, así
+que **no basta con tener el JDK 25 instalado**: la propia JVM de Gradle tiene que
+ser la 25. Si `JAVA_HOME` apunta a otra, el build falla con:
+
+```
+Failed to setup Minecraft: Minecraft 26.2 requires Java 25 but Gradle is using 24
+```
+
+En Windows, para dejarlo fijo:
+
+```powershell
+[Environment]::SetEnvironmentVariable("JAVA_HOME","C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot","User")
+```
+
+(hay que reabrir la terminal después). Comprobar con `echo $env:JAVA_HOME`.
 
 ## Puesta en marcha (incluye otra máquina)
 
@@ -32,95 +46,99 @@ se envían con un **resource pack** automático.
 git clone https://github.com/SiologoDr/atalaya-plugin-26.2.git
 cd atalaya-plugin-26.2
 
-# 1) Compilar (baja Gradle + paper-api automáticamente)
+# Compilar. La primera vez descarga Minecraft y lo remapea: tarda varios minutos.
 ./gradlew build          # Windows: .\gradlew.bat build
-
-# 2) Primera vez: genera run/ y descarga Paper
-./gradlew runServer      # Windows: .\gradlew.bat runServer
-#    (deténlo con Ctrl+C tras el primer arranque)
 ```
 
-El `.jar` compilado queda en `build/libs/atalaya-1.0.0.jar` (para un servidor real,
-cópialo a la carpeta `plugins/`).
+El `.jar` queda en `build/libs/atalaya-1.0.0.jar`.
 
-## Flujo de desarrollo (con resource pack)
+## Desarrollo
 
-Necesitas **dos terminales**:
+Una sola terminal, sin resource pack que servir ni que aceptar:
 
 ```bash
-# Terminal 1 — empaqueta el pack, configura y lo sirve (dejar abierta)
-python dev.py
-
-# Terminal 2 — compila el plugin y arranca el servidor de pruebas
-./gradlew runServer      # Windows: .\gradlew.bat runServer
+./gradlew runClient      # cliente de desarrollo con el mod cargado
+./gradlew runServer      # servidor de desarrollo (para probar en red)
 ```
 
-Luego en Minecraft: **Multijugador → Conexión directa → `localhost`** y acepta el pack.
+Los mundos, opciones y logs de esas tareas viven en `run/`, que no se sube.
 
-- Para ser **admin**: en la consola del servidor escribe `op TU_USUARIO`
-  (o edita `run/ops.json`).
-- **Cada vez que cambies texturas** del `resourcepack/`: vuelve a correr
-  `python dev.py` (regenera el zip y el SHA1) y reinicia el servidor.
+Para comprobar que el mod carga, buscar estas líneas en el log:
 
-> `dev.py` acepta el EULA, empaqueta `resourcepack/` en `run/pack-host/atalaya.zip`,
-> configura `run/server.properties` y sirve el pack en `http://127.0.0.1:8765`.
-> Si aún no existe `run/server.properties`, corre `runServer` una vez primero.
-
-## Comandos
-
-| Comando | Descripción | Permiso |
-|---|---|---|
-| `/atalaya traje` | Te da el traje Hazmat completo | — |
-| `/atalaya menu` | Panel para activar/desactivar mecánicas | `atalaya.admin` (op) |
-| `/atalaya reload` | Recarga `config.yml` | — |
-
-## Configuración (`config.yml`)
-
-```yaml
-radiacion:
-  activa: true            # on/off de la radiación (también desde /atalaya menu)
-  intervalo-ticks: 20     # cada cuánto se revisa (20 = 1 s)
-  distancia-maxima: 12    # radio de la radiación
-  dano-por-nivel: {1:1.0, 2:2.0, 3:3.0, 4:4.0}       # daño (2 = 1 corazón)
-  lentitud-por-nivel: {1:0.10, 2:0.20, 3:0.30, 4:0.50}  # % de velocidad restada
-  escaneo-y-min: -64      # rango de altura donde se buscan geodas (optimización)
-  escaneo-y-max: 40
-hazmat:
-  crafteo-activo: true    # on/off del crafteo del traje (también desde el menú)
 ```
+Loading NN mods:
+	- atalaya 1.0.0
+(atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
+(atalaya) Atalaya (cliente) iniciado.
+```
+
+## ⚠️ Mappings de Mojang, no Yarn
+
+Yarn **no publica mappings para la serie 26.x** (el último es 1.21.11), así que
+este proyecto usa los **mappings oficiales de Mojang**, que es lo que aplica Loom
+por defecto.
+
+Consecuencia práctica: casi toda la documentación y los tutoriales de Fabric usan
+nombres de Yarn, que **no coinciden** con los de aquí.
+
+| Los tutoriales dicen (Yarn) | Aquí se llama (Mojang) |
+|---|---|
+| `Item.Settings` | `Item.Properties` |
+| `Identifier` | `ResourceLocation` |
+| `World` | `Level` |
+
+Para traducir nombres: **[linkie.shedaniel.dev/mappings](https://linkie.shedaniel.dev/mappings)**.
+
+**No añadir** `mappings loom.officialMojangMappings()` a `build.gradle`: este Loom
+ya los usa por defecto y declararlos explícitamente rompe el build con
+`Failed to find official mojang mappings for 26.2`.
+
+## Versiones
+
+Fijadas en `gradle.properties`:
+
+| Componente | Versión |
+|---|---|
+| Minecraft | 26.2 |
+| Fabric Loom | 1.17-SNAPSHOT |
+| Fabric Loader | 0.19.3 |
+| Fabric API | 0.156.0+26.2 |
+| Java | 25 |
 
 ## Estructura
 
 ```
-src/main/java/com/atalaya/
-├── Atalaya.java                  # Clase principal (onEnable / onDisable)
-├── Settings.java                 # Estado persistente (toggles)
-├── commands/AtalayaCommand       # Comando /atalaya (+ autocompletado)
-├── items/
-│   ├── HazmatArmor               # Piezas del traje (item + equipment + protección)
-│   └── HazmatRecipes             # Recetas + libro de recetas
-├── listeners/
-│   ├── PlayerJoinListener        # Bienvenida + desbloqueo de recetas
-│   └── AnvilListener             # Bloquea renombrar piezas Hazmat
-├── menu/                         # Menú GUI de configuración
-└── radiation/
-    ├── RadiationManager          # Daño + lentitud por nivel (consulta el índice)
-    ├── GeodeIndex                # Caché de geodas (escaneo async, escala a 100+)
-    ├── GeodeListener             # Mantiene el índice al día
-    └── RadiationSources          # Qué bloque emite radiación (budding_amethyst)
-resourcepack/                     # Texturas, modelos y equipment del pack
-dev.py                            # Empaqueta y sirve el resource pack (desarrollo)
+build.gradle            Loom + dependencias
+gradle.properties       versiones del toolchain y datos del mod
+src/
+├── main/               código común (servidor + cliente)
+│   ├── java/com/atalaya/Atalaya.java          entrada común
+│   └── resources/
+│       ├── fabric.mod.json                    manifiesto del mod
+│       └── assets/atalaya/                    texturas, modelos, fuente
+└── client/             código SOLO de cliente (render, HUD, modelos)
+    └── java/com/atalaya/AtalayaClient.java    entrada de cliente
+materiales/plantillas/  plantillas de diseño de las texturas (no van al jar)
 ```
 
-## Servidor real (producción)
+La separación `main` / `client` la impone `splitEnvironmentSourceSets()` en
+`build.gradle`, y evita referenciar por error una clase de renderizado desde el
+servidor.
 
-`dev.py` usa `localhost` solo para desarrollo. En un servidor público:
-sube el `atalaya.zip` a una **URL permanente** y pon `resource-pack` y
-`resource-pack-sha1` en tu `server.properties`.
+## Jugar de verdad (no desarrollo)
 
-## Nota sobre el "secreto" del contenido
+Cada jugador necesita las tres cosas, con versiones que cuadren:
 
-Cualquier item con **textura nueva** vive en el resource pack, que se cachea en
-el cliente y puede extraerse (dataminear). Para contenido que deba ser sorpresa,
-usa apariencia vanilla + comportamiento custom. La **radiación** en cambio es
-100% server-side (nada que espiar).
+1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
+2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
+3. **`atalaya-1.0.0.jar`** → carpeta `mods/`
+
+El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`.
+
+## Enlaces útiles
+
+- [Documentación de Fabric](https://docs.fabricmc.net/)
+- [Mod de ejemplo oficial](https://github.com/FabricMC/fabric-example-mod)
+- [Linkie (traductor de mappings)](https://linkie.shedaniel.dev/mappings)
+- [Fabric API en Modrinth](https://modrinth.com/mod/fabric-api)
+- [API de versiones de Fabric](https://meta.fabricmc.net/)
