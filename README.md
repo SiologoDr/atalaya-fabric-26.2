@@ -43,8 +43,8 @@ En Windows, para dejarlo fijo:
 ## Puesta en marcha (incluye otra máquina)
 
 ```bash
-git clone https://github.com/SiologoDr/atalaya-plugin-26.2.git
-cd atalaya-plugin-26.2
+git clone https://github.com/SiologoDr/atalaya-fabric-26.2.git
+cd atalaya-fabric-26.2
 
 # Compilar. La primera vez descarga Minecraft y lo remapea: tarda varios minutos.
 ./gradlew build          # Windows: .\gradlew.bat build
