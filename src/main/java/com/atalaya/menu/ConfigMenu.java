@@ -1,6 +1,8 @@
 package com.atalaya.menu;
 
 import com.atalaya.config.AtalayaConfig;
+import com.atalaya.config.LibroRecetas;
+import com.atalaya.item.AtalayaItems;
 import com.atalaya.item.HazmatArmor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -30,8 +32,9 @@ import java.util.List;
 public class ConfigMenu extends ChestMenu {
 
     /** Slot de cada interruptor dentro del cofre (fila de en medio). */
-    public static final int SLOT_RADIACION = 11;
-    public static final int SLOT_CRAFTEO = 15;
+    public static final int SLOT_RADIACION = 10;
+    public static final int SLOT_CRAFTEO = 13;
+    public static final int SLOT_FILTROS = 16;
 
     /** Se construye una vez: los rellenos son todos iguales. */
     private static final ItemStack RELLENO = crearRelleno();
@@ -65,7 +68,7 @@ public class ConfigMenu extends ChestMenu {
         // Fondo: cristal gris en todo lo que no sea un interruptor, para que se
         // vea como un panel y no como un cofre a medio llenar.
         for (int i = 0; i < contenedor.getContainerSize(); i++) {
-            if (i != SLOT_CRAFTEO && i != SLOT_RADIACION) {
+            if (i != SLOT_CRAFTEO && i != SLOT_RADIACION && i != SLOT_FILTROS) {
                 contenedor.setItem(i, RELLENO.copy());
             }
         }
@@ -82,6 +85,13 @@ public class ConfigMenu extends ChestMenu {
                 "Crafteo del traje Hazmat",
                 cfg.isCrafteoHazmat(),
                 "Permite fabricar el traje y verlo en el libro de recetas."
+        ));
+
+        contenedor.setItem(SLOT_FILTROS, interruptor(
+                new ItemStack(AtalayaItems.FILTRO_CARBON),
+                "Filtros de carbon",
+                cfg.isFiltrosActivos(),
+                "Cubre fundir carbon activado y fabricar el filtro."
         ));
 
         // Empuja el cambio al cliente ya, sin esperar al barrido del siguiente tick.
@@ -146,14 +156,31 @@ public class ConfigMenu extends ChestMenu {
             boolean nuevo = !cfg.isCrafteoHazmat();
             cfg.setCrafteoHazmat(nuevo);
             avisar(jugador, "Crafteo Hazmat", nuevo);
+            actualizarLibros(jugador);
             refrescar();
         } else if (slot == SLOT_RADIACION) {
             boolean nuevo = !cfg.isRadiacionActiva();
             cfg.setRadiacionActiva(nuevo);
             avisar(jugador, "Radiacion", nuevo);
             refrescar();
+        } else if (slot == SLOT_FILTROS) {
+            boolean nuevo = !cfg.isFiltrosActivos();
+            cfg.setFiltrosActivos(nuevo);
+            avisar(jugador, "Filtros de carbon", nuevo);
+            actualizarLibros(jugador);
+            refrescar();
         }
         // Cualquier otro click dentro del menu se ignora: los iconos no se sacan.
+    }
+
+    /**
+     * Rehace el libro de recetas de TODOS los conectados, no solo del que pulsa:
+     * el interruptor es del servidor, asi que el cambio les afecta a todos.
+     */
+    private static void actualizarLibros(Player quienPulsa) {
+        if (quienPulsa instanceof ServerPlayer sp && sp.level().getServer() != null) {
+            LibroRecetas.sincronizarTodos(sp.level().getServer());
+        }
     }
 
     private static void avisar(Player jugador, String que, boolean activo) {

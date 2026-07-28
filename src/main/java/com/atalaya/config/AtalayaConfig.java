@@ -4,6 +4,7 @@ import com.atalaya.Atalaya;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -30,6 +31,8 @@ public final class AtalayaConfig {
     // --- Interruptores ---
     private boolean crafteoHazmat = true;
     private boolean radiacionActiva = true;
+    /** Cubre las dos: fundir carbon activado y craftear el filtro. */
+    private boolean filtrosActivos = true;
 
     public static AtalayaConfig get() {
         if (instancia == null) {
@@ -84,5 +87,35 @@ public final class AtalayaConfig {
     public void setRadiacionActiva(boolean valor) {
         this.radiacionActiva = valor;
         guardar();
+    }
+
+    public boolean isFiltrosActivos() {
+        return filtrosActivos;
+    }
+
+    public void setFiltrosActivos(boolean valor) {
+        this.filtrosActivos = valor;
+        guardar();
+    }
+
+    /**
+     * Decide si una receta de este mod se puede usar ahora mismo.
+     *
+     * Es el unico sitio que ata recetas a interruptores; lo consulta el mixin de
+     * RecipeManager, que cubre por igual la mesa de crafteo y el horno.
+     * Las recetas de otros mods y las de vanilla nunca se tocan.
+     */
+    public boolean permiteReceta(Identifier id) {
+        if (!Atalaya.MOD_ID.equals(id.getNamespace())) {
+            return true;
+        }
+        String ruta = id.getPath();
+        if (ruta.startsWith("hazmat_")) {
+            return crafteoHazmat;
+        }
+        if (ruta.equals("carbon_activado") || ruta.equals("filtro_carbon")) {
+            return filtrosActivos;
+        }
+        return true;
     }
 }

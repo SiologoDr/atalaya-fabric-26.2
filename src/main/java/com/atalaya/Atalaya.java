@@ -1,7 +1,9 @@
 package com.atalaya;
 
 import com.atalaya.command.AtalayaCommand;
+import com.atalaya.config.LibroRecetas;
 import com.atalaya.effect.RadiacionEffect;
+import com.atalaya.item.AtalayaItems;
 import com.atalaya.item.HazmatArmor;
 import com.atalaya.radiation.GeodeIndex;
 import com.atalaya.radiation.RadiationManager;
@@ -11,6 +13,9 @@ import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -34,9 +39,13 @@ public class Atalaya implements ModInitializer {
     private static final ResourceKey<CreativeModeTab> PESTANA_COMBATE =
             ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("combat"));
 
+    private static final ResourceKey<CreativeModeTab> PESTANA_INGREDIENTES =
+            ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("ingredients"));
+
     @Override
     public void onInitialize() {
         HazmatArmor.registrar();
+        AtalayaItems.registrar();
         RadiacionEffect.registrar();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
@@ -47,12 +56,30 @@ public class Atalaya implements ModInitializer {
         ServerChunkEvents.CHUNK_UNLOAD.register(GeodeIndex::alDescargarChunk);
         ServerLifecycleEvents.SERVER_STOPPED.register(servidor -> GeodeIndex.limpiar());
 
+        // Al romper amatista en gemacion hay que sacarla del indice, o quedaria
+        // "radiacion fantasma" en un sitio donde ya no hay nada. La colocacion
+        // la cubre BlockItemMixin, porque Fabric no expone evento para eso.
+        PlayerBlockBreakEvents.AFTER.register((nivel, jugador, pos, estado, bloqueEntidad) -> {
+            if (nivel instanceof ServerLevel servidor && GeodeIndex.esFuenteDeRadiacion(estado)) {
+                GeodeIndex.quitar(servidor, pos);
+            }
+        });
+
         // La radiacion se aplica desde el tick del servidor.
         ServerTickEvents.END_SERVER_TICK.register(RadiationManager::tick);
+
+        // Al conectarse, el libro de recetas tiene que reflejar los interruptores
+        // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.
+        ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) ->
+                LibroRecetas.sincronizar(manejador.getPlayer()));
 
         // El traje aparece en la pestana de combate, justo detras de las botas de hierro.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(Items.IRON_BOOTS, HazmatArmor.todas()));
+
+        // Carbon activado y filtro van con los materiales, detras del carbon.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->
+                salida.insertAfter(Items.CHARCOAL, AtalayaItems.todos()));
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> AtalayaCommand.registrar(dispatcher));

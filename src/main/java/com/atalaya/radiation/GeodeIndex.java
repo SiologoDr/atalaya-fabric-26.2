@@ -69,6 +69,47 @@ public final class GeodeIndex {
         POR_MUNDO.clear();
     }
 
+    /**
+     * Da de alta una fuente colocada en caliente.
+     *
+     * Sin esto, colocar amatista en un chunk ya cargado no emitiria radiacion
+     * hasta que el chunk se descargara y volviera.
+     */
+    public static void agregar(ServerLevel nivel, BlockPos pos) {
+        long clave = ChunkPos.pack(pos.getX() >> 4, pos.getZ() >> 4);
+        POR_MUNDO.computeIfAbsent(nivel, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(clave, k -> new ArrayList<>())
+                .add(pos.immutable());
+    }
+
+    /**
+     * Da de baja una fuente que se ha roto.
+     *
+     * Sin esto quedaria "radiacion fantasma": el indice seguiria creyendo que
+     * hay amatista donde ya no la hay. Es el caso que si pasa en supervivencia,
+     * porque la amatista en gemacion se puede romper (aunque no suelte nada).
+     */
+    public static void quitar(ServerLevel nivel, BlockPos pos) {
+        Map<Long, List<BlockPos>> mapa = POR_MUNDO.get(nivel);
+        if (mapa == null) {
+            return;
+        }
+        long clave = ChunkPos.pack(pos.getX() >> 4, pos.getZ() >> 4);
+        List<BlockPos> lista = mapa.get(clave);
+        if (lista == null) {
+            return;
+        }
+        lista.removeIf(p -> p.equals(pos));
+        if (lista.isEmpty()) {
+            mapa.remove(clave);
+        }
+    }
+
+    /** true si el bloque es una fuente de radiacion. */
+    public static boolean esFuenteDeRadiacion(BlockState estado) {
+        return esFuente(estado);
+    }
+
     private static List<BlockPos> escanear(LevelChunk chunk) {
         List<BlockPos> encontradas = new ArrayList<>();
         LevelChunkSection[] secciones = chunk.getSections();

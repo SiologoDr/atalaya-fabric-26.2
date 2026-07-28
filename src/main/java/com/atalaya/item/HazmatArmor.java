@@ -8,6 +8,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -97,12 +98,18 @@ public final class HazmatArmor {
         return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, ruta);
     }
 
+    /** Solo los filtros de carbon reparan el traje. Ver data/atalaya/tags/item/. */
+    public static final TagKey<Item> REPARA_HAZMAT = TagKey.create(
+            Registries.ITEM, Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "repara_hazmat"));
+
     /**
      * Mismo material que el hierro (durabilidad 165/240/225/195, proteccion
-     * 2/6/5/2, reparable con lingotes...) pero con NUESTRO aspecto.
+     * 2/6/5/2...) pero con NUESTRO aspecto y NUESTRO material de reparacion.
      *
      * Los valores se leen del material vanilla en vez de copiarlos a mano: si
-     * Mojang los cambia en una actualizacion, el traje los sigue solo.
+     * Mojang los cambia en una actualizacion, el traje los sigue solo. Lo unico
+     * que se sustituye a proposito es el ingrediente de reparacion: el traje ya
+     * no se arregla con lingotes de hierro, solo con filtros de carbon.
      */
     private static ArmorMaterial materialComoElHierro() {
         ArmorMaterial hierro = ArmorMaterials.IRON;
@@ -113,7 +120,7 @@ public final class HazmatArmor {
                 hierro.equipSound(),
                 hierro.toughness(),
                 hierro.knockbackResistance(),
-                hierro.repairIngredient(),
+                REPARA_HAZMAT,
                 ASSET
         );
     }
