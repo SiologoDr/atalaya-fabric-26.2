@@ -8,6 +8,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 
+import java.util.function.Function;
+
 /**
  * Items del mod que no son armadura.
  *
@@ -30,16 +32,16 @@ public final class AtalayaItems {
     }
 
     public static void registrar() {
-        CARBON_ACTIVADO = simple("carbon_activado");
-        FILTRO_CARBON = simple("filtro_carbon");
+        CARBON_ACTIVADO = registrar("carbon_activado", Item::new);
+        FILTRO_CARBON = registrar("filtro_carbon", FiltroCarbonItem::new);
     }
 
-    private static Item simple(String nombre) {
+    private static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
         ResourceKey<Item> clave = ResourceKey.create(
                 Registries.ITEM,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, nombre));
         return Registry.register(BuiltInRegistries.ITEM, clave,
-                new Item(new Item.Properties().setId(clave)));
+                constructor.apply(new Item.Properties().setId(clave)));
     }
 
     public static Item[] todos() {

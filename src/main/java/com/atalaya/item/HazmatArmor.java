@@ -12,6 +12,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 
 import java.util.List;
@@ -98,18 +99,31 @@ public final class HazmatArmor {
         return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, ruta);
     }
 
-    /** Solo los filtros de carbon reparan el traje. Ver data/atalaya/tags/item/. */
+    /**
+     * Etiqueta VACIA a proposito: el traje no se repara en yunque.
+     *
+     * El cartucho se cambia con click derecho usando un filtro (ver
+     * FiltroCarbonItem). El yunque queda descartado porque encarece cada
+     * reparacion y a los 40 niveles se planta con "Demasiado caro", lo que
+     * dejaria inservible un traje pensado para repararse de continuo.
+     *
+     * La etiqueta existe porque ArmorMaterial exige una; si algun dia se quiere
+     * volver al yunque, basta con meter el filtro en el JSON.
+     */
     public static final TagKey<Item> REPARA_HAZMAT = TagKey.create(
             Registries.ITEM, Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "repara_hazmat"));
 
     /**
-     * Mismo material que el hierro (durabilidad 165/240/225/195, proteccion
-     * 2/6/5/2...) pero con NUESTRO aspecto y NUESTRO material de reparacion.
+     * Mismo material que el hierro (proteccion 2/6/5/2, dureza, encantabilidad)
+     * pero con NUESTRO aspecto y NUESTRO material de reparacion.
      *
      * Los valores se leen del material vanilla en vez de copiarlos a mano: si
-     * Mojang los cambia en una actualizacion, el traje los sigue solo. Lo unico
-     * que se sustituye a proposito es el ingrediente de reparacion: el traje ya
-     * no se arregla con lingotes de hierro, solo con filtros de carbon.
+     * Mojang los cambia en una actualizacion, el traje los sigue solo.
+     *
+     * Dos cosas se sustituyen a proposito:
+     *   - el ingrediente de reparacion (etiqueta vacia: no se repara en yunque)
+     *   - la durabilidad, que se iguala luego por pieza a {@link #DURABILIDAD};
+     *     el valor que va aqui deja de usarse.
      */
     private static ArmorMaterial materialComoElHierro() {
         ArmorMaterial hierro = ArmorMaterials.IRON;
@@ -138,6 +152,12 @@ public final class HazmatArmor {
         Item.Properties props = new Item.Properties()
                 .setId(clave)
                 .humanoidArmor(MATERIAL, tipo)
+                // humanoidArmor() reparte la durabilidad del material por ranura
+                // (x11 casco, x16 pechera, x15 pantalon, x13 botas), de ahi los
+                // 165/240/225/195 del hierro. Aqui la igualamos a proposito:
+                // asi un filtro vale lo mismo en cualquier pieza y las cuentas
+                // salen redondas. Va DESPUES para que gane sobre el material.
+                .durability(DURABILIDAD)
                 .component(DataComponents.LORE, LORE);
 
         if (conVisor) {
@@ -172,19 +192,71 @@ public final class HazmatArmor {
     }
 
     /**
-     * Cuantas piezas del traje lleva puestas la entidad (0 a 4).
+     * Durabilidad de CADA pieza, igual para las cuatro.
+     *
+     * Los umbrales caen en numeros limpios: 30% = 60, 21.5% = 43, 20% = 40.
+     */
+    public static final int DURABILIDAD = 200;
+
+    /** Por debajo de esta fraccion de durabilidad, la pieza deja de proteger. */
+    public static final float UMBRAL_PROTECCION = 0.20f;
+
+    /**
+     * Desde aqui el aviso pasa a ROJO: es el ultimo margen antes de que la
+     * pieza deje de filtrar. La banda 21.5% -> 20% son 3 puntos de durabilidad,
+     * o sea unos 6 segundos en el borde de la geoda y 1,5 pegado a la amatista.
+     * Es corto a proposito: avisa de que va a pasar YA, no de que pasara.
+     */
+    public static final float UMBRAL_CRITICO = 0.215f;
+
+    /** A partir de aqui el HUD empieza a avisar de que el filtro se agota. */
+    public static final float UMBRAL_AVISO = 0.30f;
+
+    /** Fraccion de durabilidad que le queda a una pieza (1.0 = intacta). */
+    public static float durabilidadRestante(ItemStack pieza) {
+        int max = pieza.getMaxDamage();
+        if (max <= 0) {
+            return 1f;
+        }
+        return (max - pieza.getDamageValue()) / (float) max;
+    }
+
+    /** true si la pieza es del traje y aun conserva su capacidad de filtrar. */
+    public static boolean protege(ItemStack pieza) {
+        return esPieza(pieza.getItem()) && durabilidadRestante(pieza) >= UMBRAL_PROTECCION;
+    }
+
+    /**
+     * Cuantas piezas del traje protegen ahora mismo (0 a 4).
      *
      * Se cuenta por SLOT, no por inventario: llevar cuatro cascos en la mochila
-     * no protege de nada.
+     * no protege de nada. Y una pieza por debajo del umbral no cuenta aunque
+     * siga puesta: es la "brecha" del traje.
      */
-    public static int piezasEquipadas(LivingEntity entidad) {
+    public static int piezasQueProtegen(LivingEntity entidad) {
         int n = 0;
         for (EquipmentSlot slot : RANURAS_ARMADURA) {
-            if (esPieza(entidad.getItemBySlot(slot).getItem())) {
+            if (protege(entidad.getItemBySlot(slot))) {
                 n++;
             }
         }
         return n;
+    }
+
+    /**
+     * Gasta durabilidad de todas las piezas del traje que lleve puestas.
+     *
+     * Se llama SIEMPRE que hay radiacion, aunque el traje completo te haga
+     * inmune: el traje se degrada precisamente por estar absorbiendola. Si no
+     * se gastara con el traje completo, los filtros no tendrian sentido.
+     */
+    public static void desgastarPorRadiacion(LivingEntity entidad, int cantidad) {
+        for (EquipmentSlot slot : RANURAS_ARMADURA) {
+            ItemStack pieza = entidad.getItemBySlot(slot);
+            if (esPieza(pieza.getItem())) {
+                pieza.hurtAndBreak(cantidad, entidad, slot);
+            }
+        }
     }
 
     private static final EquipmentSlot[] RANURAS_ARMADURA = {
