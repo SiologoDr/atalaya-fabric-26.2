@@ -41,23 +41,35 @@ public final class HazmatArmor {
         HAZMAT_KEY = new NamespacedKey(plugin, "hazmat");
     }
 
+    /**
+     * Textura que el cliente dibuja a pantalla completa mientras llevas el casco:
+     * el cristal ahumado del visor. Es el mismo mecanismo que usa la calabaza
+     * tallada (camera_overlay del componente equippable).
+     */
+    private static final NamespacedKey VISOR = new NamespacedKey("atalaya", "misc/hazmat_visor");
+
     public static ItemStack casco() {
-        return pieza(Material.IRON_HELMET, "hazmat_helmet", "Casco", EquipmentSlot.HEAD);
+        return pieza(Material.IRON_HELMET, "hazmat_helmet", "Casco", EquipmentSlot.HEAD, VISOR);
     }
 
     public static ItemStack pechera() {
-        return pieza(Material.IRON_CHESTPLATE, "hazmat_chestplate", "Pechera", EquipmentSlot.CHEST);
+        return pieza(Material.IRON_CHESTPLATE, "hazmat_chestplate", "Pechera", EquipmentSlot.CHEST, null);
     }
 
     public static ItemStack pantalon() {
-        return pieza(Material.IRON_LEGGINGS, "hazmat_leggings", "Pantalon", EquipmentSlot.LEGS);
+        return pieza(Material.IRON_LEGGINGS, "hazmat_leggings", "Pantalon", EquipmentSlot.LEGS, null);
     }
 
     public static ItemStack botas() {
-        return pieza(Material.IRON_BOOTS, "hazmat_boots", "Botas", EquipmentSlot.FEET);
+        return pieza(Material.IRON_BOOTS, "hazmat_boots", "Botas", EquipmentSlot.FEET, null);
     }
 
-    private static ItemStack pieza(Material base, String modelo, String tipo, EquipmentSlot slot) {
+    /**
+     * @param overlay textura a pantalla completa mientras la pieza esta puesta,
+     *                o null si la pieza no tapa la vista (todas menos el casco)
+     */
+    private static ItemStack pieza(Material base, String modelo, String tipo,
+                                   EquipmentSlot slot, NamespacedKey overlay) {
         ItemStack item = new ItemStack(base);
         ItemMeta meta = item.getItemMeta();
 
@@ -75,6 +87,9 @@ public final class HazmatArmor {
         EquippableComponent eq = meta.getEquippable();
         eq.setSlot(slot);
         eq.setModel(new NamespacedKey("atalaya", "hazmat"));
+        if (overlay != null) {
+            eq.setCameraOverlay(overlay);
+        }
         meta.setEquippable(eq);
 
         meta.getPersistentDataContainer().set(HAZMAT_KEY, PersistentDataType.BYTE, (byte) 1);
