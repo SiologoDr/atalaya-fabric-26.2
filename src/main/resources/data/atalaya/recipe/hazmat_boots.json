@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "X": "minecraft:iron_boots"
+  },
+  "pattern": [
+    "GGG",
+    "GXG"
+  ],
+  "result": {
+    "id": "atalaya:hazmat_boots"
+  }
+}

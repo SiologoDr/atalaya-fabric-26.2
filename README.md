@@ -84,8 +84,12 @@ nombres de Yarn, que **no coinciden** con los de aquí.
 | Los tutoriales dicen (Yarn) | Aquí se llama (Mojang) |
 |---|---|
 | `Item.Settings` | `Item.Properties` |
-| `Identifier` | `ResourceLocation` |
 | `World` | `Level` |
+| `Identifier` | `Identifier` (¡igual! en 26.2 ya no es `ResourceLocation`) |
+
+Ojo con la última: en versiones anteriores el nombre Mojang era `ResourceLocation`,
+y mucha documentación todavía lo dice. En 26.2 la clase es
+`net.minecraft.resources.Identifier`.
 
 Para traducir nombres: **[linkie.shedaniel.dev/mappings](https://linkie.shedaniel.dev/mappings)**.
 

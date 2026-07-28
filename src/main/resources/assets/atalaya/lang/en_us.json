@@ -1,0 +1,12 @@
+{
+  "item.atalaya.hazmat_helmet": "Hazmat Helmet",
+  "item.atalaya.hazmat_chestplate": "Hazmat Chestplate",
+  "item.atalaya.hazmat_leggings": "Hazmat Leggings",
+  "item.atalaya.hazmat_boots": "Hazmat Boots",
+
+  "effect.atalaya.radiacion": "Radiation",
+
+  "item.atalaya.hazmat.lore.titulo": "Features",
+  "item.atalaya.hazmat.lore.radiacion": "• Resists 25%% of %s radiation",
+  "item.atalaya.hazmat.lore.geoda": "Geode"
+}

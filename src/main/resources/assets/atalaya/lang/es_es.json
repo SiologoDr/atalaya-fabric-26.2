@@ -1,0 +1,12 @@
+{
+  "item.atalaya.hazmat_helmet": "Casco Hazmat",
+  "item.atalaya.hazmat_chestplate": "Pechera Hazmat",
+  "item.atalaya.hazmat_leggings": "Pantalón Hazmat",
+  "item.atalaya.hazmat_boots": "Botas Hazmat",
+
+  "effect.atalaya.radiacion": "Radiación",
+
+  "item.atalaya.hazmat.lore.titulo": "Características",
+  "item.atalaya.hazmat.lore.radiacion": "• Resiste un 25%% la radiación de la %s",
+  "item.atalaya.hazmat.lore.geoda": "Geoda"
+}

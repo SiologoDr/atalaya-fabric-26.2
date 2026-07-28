@@ -36,12 +36,31 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
+// Minecraft tiene siete variantes de espanol y NO hereda entre ellas: si el
+// cliente esta en es_mx y solo existe es_es, se va al ingles. Como el texto es
+// el mismo para todas, se generan desde es_es.json en vez de mantener copias.
+def variantesEspanol = ['es_mx', 'es_ar', 'es_cl', 'es_ec', 'es_uy', 'es_ve']
+
 processResources {
     inputs.property 'version', project.version
+    inputs.property 'variantesEspanol', variantesEspanol
     filteringCharset = 'UTF-8'
     // Sustituye ${version} dentro de fabric.mod.json por la version real.
     filesMatching('fabric.mod.json') {
         expand 'version': project.version
+    }
+
+    doLast {
+        def dirLang = new File(destinationDir, 'assets/atalaya/lang')
+        def origen = new File(dirLang, 'es_es.json')
+        if (!origen.exists()) {
+            throw new GradleException("Falta ${origen}: es la fuente de las variantes de espanol.")
+        }
+        def texto = origen.getText('UTF-8')
+        variantesEspanol.each { variante ->
+            new File(dirLang, "${variante}.json").write(texto, 'UTF-8')
+        }
+        logger.lifecycle("[atalaya] Generadas ${variantesEspanol.size()} variantes de espanol desde es_es.json")
     }
 }
 
