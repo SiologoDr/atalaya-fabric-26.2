@@ -37,6 +37,8 @@ public final class AtalayaConfig {
     private boolean colmilloActivo = true;
     /** Cubre craftear el cristal pulido Y su mejora en la herreria. */
     private boolean cristalActivo = true;
+    /** Cubre craftear la pata ligera Y su mejora en la herreria. */
+    private boolean pataActiva = true;
 
     public static AtalayaConfig get() {
         if (instancia == null) {
@@ -120,6 +122,15 @@ public final class AtalayaConfig {
         guardar();
     }
 
+    public boolean isPataActiva() {
+        return pataActiva;
+    }
+
+    public void setPataActiva(boolean valor) {
+        this.pataActiva = valor;
+        guardar();
+    }
+
 
     /**
      * Decide si una receta de este mod se puede usar ahora mismo.
@@ -140,6 +151,9 @@ public final class AtalayaConfig {
         }
         if (ruta.equals("cristal_pulido") || ruta.startsWith("visor_")) {
             return cristalActivo;
+        }
+        if (ruta.equals("pata_ligera") || ruta.startsWith("ligera_")) {
+            return pataActiva;
         }
         if (ruta.startsWith("hazmat_")) {
             return crafteoHazmat;

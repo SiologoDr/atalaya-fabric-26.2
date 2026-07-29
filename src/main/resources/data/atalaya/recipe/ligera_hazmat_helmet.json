@@ -1,0 +1,11 @@
+﻿{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:hazmat_helmet",
+  "addition": "atalaya:pata_ligera",
+  "result": {
+    "id": "atalaya:hazmat_helmet",
+    "components": {
+      "atalaya:amortiguacion": true
+    }
+  }
+}

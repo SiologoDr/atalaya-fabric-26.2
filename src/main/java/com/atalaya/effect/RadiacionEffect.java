@@ -60,6 +60,53 @@ public class RadiacionEffect extends MobEffect {
     }
 
     // ------------------------------------------------------------------
+    //  Amortiguacion (mejora "pata ligera")
+    // ------------------------------------------------------------------
+
+    /**
+     * Identificador del modificador que devuelve velocidad a quien lleva piezas
+     * amortiguadas. Lo pone y lo quita RadiationManager, jugador a jugador.
+     */
+    public static final Identifier ID_AMORTIGUACION =
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "amortiguacion");
+
+    /**
+     * Cuanta velocidad hay que devolver para recortar la lentitud en la
+     * fraccion indicada. Devuelve 0 si no hay nada que compensar.
+     *
+     * La lentitud NO se puede tocar por jugador: el efecto es un singleton del
+     * registro y su modificador es el mismo para todo el mundo. Asi que en vez
+     * de bajarla se anade un segundo modificador que tira en sentido contrario.
+     *
+     * Y no vale con "sumar un 25%": los modificadores de este tipo se
+     * MULTIPLICAN entre si (el juego hace {@code valor *= 1 + cantidad} por
+     * cada uno), no se suman. La lentitud deja la velocidad en (1 - L), y se
+     * busca que acabe en (1 - L(1-r)), asi que hay que multiplicar ademas por
+     * (1 + c) con:
+     *
+     * <pre>  c = L*r / (1 - L)</pre>
+     *
+     * Con las cuatro piezas y la radiacion al maximo sale 0.6 * 1.667 = 1.0: la
+     * lentitud se anula clavada, ni un poco de mas.
+     *
+     * @param amplificador nivel del efecto menos uno, tal cual lo guarda el juego
+     * @param piezas       cuantas piezas amortiguadas lleva puestas (0 a 4)
+     */
+    public static double compensacionPorAmortiguacion(int amplificador, int piezas) {
+        if (piezas <= 0) {
+            return 0;
+        }
+        double lentitud = -LENTITUD_POR_NIVEL * (amplificador + 1);
+        if (lentitud <= 0 || lentitud >= 1.0) {
+            // Con la lentitud actual no se llega ni de lejos, pero si algun dia
+            // se sube, aqui es donde se evitaria dividir por cero o por negativo.
+            return 0;
+        }
+        double recorte = Math.min(1.0, HazmatArmor.REDUCCION_LENTITUD * piezas);
+        return lentitud * recorte / (1.0 - lentitud);
+    }
+
+    // ------------------------------------------------------------------
     //  Dano
     // ------------------------------------------------------------------
 

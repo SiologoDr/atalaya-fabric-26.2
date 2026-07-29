@@ -1,0 +1,11 @@
+﻿{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:hazmat_chestplate",
+  "addition": "atalaya:pata_ligera",
+  "result": {
+    "id": "atalaya:hazmat_chestplate",
+    "components": {
+      "atalaya:amortiguacion": true
+    }
+  }
+}

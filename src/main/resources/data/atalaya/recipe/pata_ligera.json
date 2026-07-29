@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "P": "minecraft:feather",
+    "C": "minecraft:rabbit_foot",
+    "S": "minecraft:slime_ball"
+  },
+  "pattern": [
+    " P ",
+    "PCP",
+    " S "
+  ],
+  "result": {
+    "id": "atalaya:pata_ligera"
+  }
+}

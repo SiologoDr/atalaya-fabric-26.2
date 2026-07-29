@@ -46,6 +46,16 @@ public final class AtalayaItems {
      */
     public static Item CRISTAL_PULIDO;
 
+    /**
+     * Pata ligera: pata de conejo montada entre plumas y resina de slime.
+     *
+     * Se monta en una pieza del traje en la mesa de herreria y recorta la
+     * lentitud que impone la radiacion. Los tres ingredientes son los tres
+     * papeles de una junta amortiguada: el tendon que hace de muelle, la pluma
+     * que quita peso y la resina que absorbe el tiron.
+     */
+    public static Item PATA_LIGERA;
+
     private AtalayaItems() {
     }
 
@@ -54,6 +64,7 @@ public final class AtalayaItems {
         FILTRO_CARBON = registrar("filtro_carbon", FiltroCarbonItem::new);
         COLMILLO_VENENOSO = registrar("colmillo_venenoso", Item::new);
         CRISTAL_PULIDO = registrar("cristal_pulido", Item::new);
+        PATA_LIGERA = registrar("pata_ligera", Item::new);
     }
 
     private static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
@@ -65,6 +76,6 @@ public final class AtalayaItems {
     }
 
     public static Item[] todos() {
-        return new Item[]{CARBON_ACTIVADO, FILTRO_CARBON, COLMILLO_VENENOSO, CRISTAL_PULIDO};
+        return new Item[]{CARBON_ACTIVADO, FILTRO_CARBON, COLMILLO_VENENOSO, CRISTAL_PULIDO, PATA_LIGERA};
     }
 }

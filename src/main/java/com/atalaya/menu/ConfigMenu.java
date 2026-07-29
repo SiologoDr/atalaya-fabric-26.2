@@ -38,10 +38,12 @@ public class ConfigMenu extends ChestMenu {
     public static final int SLOT_RADIACION = 12;
     public static final int SLOT_CRAFTEO = 14;
 
-    // Fila de abajo: los ITEMS y sus recetas.
-    public static final int SLOT_FILTROS = 20;
-    public static final int SLOT_COLMILLO = 22;
-    public static final int SLOT_CRISTAL = 24;
+    // Fila de abajo: los ITEMS y sus recetas. Van de dos en dos para que queden
+    // centrados en la fila (slots 18 a 26).
+    public static final int SLOT_FILTROS = 19;
+    public static final int SLOT_COLMILLO = 21;
+    public static final int SLOT_CRISTAL = 23;
+    public static final int SLOT_PATA = 25;
 
 
     /** Se construye una vez: los rellenos son todos iguales. */
@@ -116,6 +118,13 @@ public class ConfigMenu extends ChestMenu {
                 "Cristal pulido",
                 cfg.isCristalActivo(),
                 "Cubre su crafteo y la mejora del visor en la herreria."
+        ));
+
+        contenedor.setItem(SLOT_PATA, interruptor(
+                new ItemStack(AtalayaItems.PATA_LIGERA),
+                "Pata ligera",
+                cfg.isPataActiva(),
+                "Cubre su crafteo y la mejora contra la lentitud."
         ));
 
         // Empuja el cambio al cliente ya, sin esperar al barrido del siguiente tick.
@@ -204,6 +213,11 @@ public class ConfigMenu extends ChestMenu {
             case SLOT_CRISTAL -> {
                 cfg.setCristalActivo(!cfg.isCristalActivo());
                 avisar(jugador, "Cristal pulido", cfg.isCristalActivo());
+                actualizarLibros(jugador);
+            }
+            case SLOT_PATA -> {
+                cfg.setPataActiva(!cfg.isPataActiva());
+                avisar(jugador, "Pata ligera", cfg.isPataActiva());
                 actualizarLibros(jugador);
             }
             default -> {

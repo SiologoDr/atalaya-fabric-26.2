@@ -184,6 +184,36 @@ public final class HazmatArmor {
         return Math.max(0f, 1f - REDUCCION_VENENO * piezasAntiveneno(entidad));
     }
 
+    // ------------------------------------------------------------------
+    //  Amortiguacion (pata ligera en la mesa de herreria)
+    // ------------------------------------------------------------------
+
+    /** Fraccion de la LENTITUD de la radiacion que anula CADA pieza montada. */
+    public static final float REDUCCION_LENTITUD = 0.25f;
+
+    public static boolean esAmortiguada(ItemStack pieza) {
+        return AtalayaComponents.AMORTIGUACION != null
+                && Boolean.TRUE.equals(pieza.get(AtalayaComponents.AMORTIGUACION));
+    }
+
+    /**
+     * Cuantas piezas con pata ligera lleva puestas (0 a 4).
+     *
+     * Se acumulan igual que el colmillo: cada una recorta un cuarto de la
+     * lentitud, asi que el traje entero te deja moverte a velocidad normal
+     * dentro de la geoda. No quita el dano: sigues necesitando el traje sano.
+     */
+    public static int piezasAmortiguadas(LivingEntity entidad) {
+        int n = 0;
+        for (EquipmentSlot slot : RANURAS_ARMADURA) {
+            ItemStack pieza = entidad.getItemBySlot(slot);
+            if (esPieza(pieza.getItem()) && esAmortiguada(pieza)) {
+                n++;
+            }
+        }
+        return n;
+    }
+
     /** Las cuatro piezas, en orden de cabeza a pies. */
     public static Item[] todas() {
         return new Item[]{CASCO, PECHERA, PANTALON, BOTAS};

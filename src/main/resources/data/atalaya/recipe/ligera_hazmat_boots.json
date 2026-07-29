@@ -1,0 +1,11 @@
+﻿{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:hazmat_boots",
+  "addition": "atalaya:pata_ligera",
+  "result": {
+    "id": "atalaya:hazmat_boots",
+    "components": {
+      "atalaya:amortiguacion": true
+    }
+  }
+}

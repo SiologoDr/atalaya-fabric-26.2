@@ -34,6 +34,14 @@ public final class AtalayaComponents {
     public static DataComponentType<Boolean> VISOR_EXCELENTE;
 
     /**
+     * Marca una pieza con la junta amortiguada de la pata ligera.
+     *
+     * Cada pieza asi recorta una parte de la lentitud que impone la radiacion.
+     * El traje no deja de pesar: lo que se amortigua es el agarrotamiento.
+     */
+    public static DataComponentType<Boolean> AMORTIGUACION;
+
+    /**
      * Marca una pieza usada como ICONO en el menu de configuracion.
      *
      * Sin esto, el icono del crafteo (que es un casco de verdad) arrastraria
@@ -48,6 +56,7 @@ public final class AtalayaComponents {
     public static void registrar() {
         ANTIVENENO = marcador("antiveneno");
         VISOR_EXCELENTE = marcador("visor_excelente");
+        AMORTIGUACION = marcador("amortiguacion");
         ICONO_MENU = marcador("icono_menu");
     }
 

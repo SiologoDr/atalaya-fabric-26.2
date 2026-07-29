@@ -2,10 +2,14 @@ package com.atalaya.radiation;
 
 import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.RadiacionEffect;
+import com.atalaya.item.HazmatArmor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 
 import java.util.List;
 
@@ -85,6 +89,50 @@ public final class RadiationManager {
     }
 
     private static void procesar(ServerPlayer jugador) {
+        aplicarRadiacion(jugador);
+        // Va DESPUES y siempre, incluso para quien esta fuera de alcance: el
+        // efecto dura mas que el intervalo, asi que sigue activo unos segundos
+        // despues de salir de la geoda y la compensacion tiene que acompanarlo
+        // hasta que se apague. Si se hiciera solo dentro del alcance, al salir
+        // te quedarias con la lentitud entera y sin la mejora.
+        ajustarAmortiguacion(jugador);
+    }
+
+    /**
+     * Devuelve velocidad a quien lleva piezas con pata ligera.
+     *
+     * Se cuelga del jugador como modificador TEMPORAL: no se guarda en disco,
+     * asi que no puede quedarse pegado si alguien se desconecta o muere dentro
+     * de una geoda. Si el jugador no tiene radiacion o no lleva la mejora, se
+     * retira.
+     */
+    private static void ajustarAmortiguacion(ServerPlayer jugador) {
+        AttributeInstance velocidad = jugador.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (velocidad == null) {
+            return;
+        }
+
+        MobEffectInstance radiacion = jugador.getEffect(RadiacionEffect.RADIACION);
+        double compensacion = radiacion == null ? 0 : RadiacionEffect.compensacionPorAmortiguacion(
+                radiacion.getAmplifier(), HazmatArmor.piezasAmortiguadas(jugador));
+
+        if (compensacion <= 0) {
+            // Se comprueba antes de quitar para no marcar el atributo como
+            // "recalculame" cada segundo a los jugadores que no llevan la mejora,
+            // que van a ser la mayoria.
+            if (velocidad.getModifier(RadiacionEffect.ID_AMORTIGUACION) != null) {
+                velocidad.removeModifier(RadiacionEffect.ID_AMORTIGUACION);
+            }
+            return;
+        }
+
+        velocidad.addOrUpdateTransientModifier(new AttributeModifier(
+                RadiacionEffect.ID_AMORTIGUACION,
+                compensacion,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+    }
+
+    private static void aplicarRadiacion(ServerPlayer jugador) {
         // Creativo y espectador son inmunes.
         if (jugador.isCreative() || jugador.isSpectator()) {
             return;
