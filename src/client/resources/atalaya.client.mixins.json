@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.atalaya.mixin.client",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "EquipmentLayerRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

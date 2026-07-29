@@ -18,7 +18,11 @@
     ]
   },
   "mixins": [
-    "atalaya.mixins.json"
+    "atalaya.mixins.json",
+    {
+      "config": "atalaya.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
