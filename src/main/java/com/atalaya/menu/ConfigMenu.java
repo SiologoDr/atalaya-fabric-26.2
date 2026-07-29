@@ -2,6 +2,7 @@ package com.atalaya.menu;
 
 import com.atalaya.config.AtalayaConfig;
 import com.atalaya.config.LibroRecetas;
+import com.atalaya.item.AtalayaComponents;
 import com.atalaya.item.AtalayaItems;
 import com.atalaya.item.HazmatArmor;
 import net.minecraft.ChatFormatting;
@@ -31,10 +32,17 @@ import java.util.List;
  */
 public class ConfigMenu extends ChestMenu {
 
-    /** Slot de cada interruptor dentro del cofre (fila de en medio). */
-    public static final int SLOT_RADIACION = 10;
-    public static final int SLOT_CRAFTEO = 13;
-    public static final int SLOT_FILTROS = 16;
+    // Fila de en medio: las MECANICAS del mundo.
+    // El desgaste del traje NO tiene interruptor propio: solo ocurre mientras
+    // hay radiacion, asi que apagar la radiacion ya lo apaga.
+    public static final int SLOT_RADIACION = 12;
+    public static final int SLOT_CRAFTEO = 14;
+
+    // Fila de abajo: los ITEMS y sus recetas.
+    public static final int SLOT_FILTROS = 20;
+    public static final int SLOT_COLMILLO = 22;
+    public static final int SLOT_CRISTAL = 24;
+
 
     /** Se construye una vez: los rellenos son todos iguales. */
     private static final ItemStack RELLENO = crearRelleno();
@@ -68,11 +76,10 @@ public class ConfigMenu extends ChestMenu {
         // Fondo: cristal gris en todo lo que no sea un interruptor, para que se
         // vea como un panel y no como un cofre a medio llenar.
         for (int i = 0; i < contenedor.getContainerSize(); i++) {
-            if (i != SLOT_CRAFTEO && i != SLOT_RADIACION && i != SLOT_FILTROS) {
-                contenedor.setItem(i, RELLENO.copy());
-            }
+            contenedor.setItem(i, RELLENO.copy());
         }
 
+        // --- Fila de en medio: mecanicas ---
         contenedor.setItem(SLOT_RADIACION, interruptor(
                 new ItemStack(Items.AMETHYST_CLUSTER),
                 "Radiacion de las geodas",
@@ -87,11 +94,26 @@ public class ConfigMenu extends ChestMenu {
                 "Permite fabricar el traje y verlo en el libro de recetas."
         ));
 
+        // --- Fila de abajo: items y sus recetas ---
         contenedor.setItem(SLOT_FILTROS, interruptor(
                 new ItemStack(AtalayaItems.FILTRO_CARBON),
                 "Filtros de carbon",
                 cfg.isFiltrosActivos(),
                 "Cubre fundir carbon activado y fabricar el filtro."
+        ));
+
+        contenedor.setItem(SLOT_COLMILLO, interruptor(
+                new ItemStack(AtalayaItems.COLMILLO_VENENOSO),
+                "Colmillo venenoso",
+                cfg.isColmilloActivo(),
+                "Cubre su drop en aranas y la mejora en la herreria."
+        ));
+
+        contenedor.setItem(SLOT_CRISTAL, interruptor(
+                new ItemStack(AtalayaItems.CRISTAL_PULIDO),
+                "Cristal pulido",
+                cfg.isCristalActivo(),
+                "Cubre su crafteo y la mejora del visor en la herreria."
         ));
 
         // Empuja el cambio al cliente ya, sin esperar al barrido del siguiente tick.
@@ -118,6 +140,11 @@ public class ConfigMenu extends ChestMenu {
      * brillo de encantamiento cuando esta activo.
      */
     private static ItemStack interruptor(ItemStack base, String nombre, boolean activo, String descripcion) {
+        // Marca de icono: las piezas del traje generan su propia descripcion al
+        // mostrarse, y sin esto el icono del crafteo arrastraria al menu la
+        // lista de caracteristicas mezclada con el texto del interruptor.
+        base.set(AtalayaComponents.ICONO_MENU, true);
+
         base.set(DataComponents.CUSTOM_NAME,
                 Component.literal(nombre)
                         .withStyle(activo ? ChatFormatting.GREEN : ChatFormatting.RED)
@@ -152,24 +179,36 @@ public class ConfigMenu extends ChestMenu {
         }
 
         AtalayaConfig cfg = AtalayaConfig.get();
-        if (slot == SLOT_CRAFTEO) {
-            boolean nuevo = !cfg.isCrafteoHazmat();
-            cfg.setCrafteoHazmat(nuevo);
-            avisar(jugador, "Crafteo Hazmat", nuevo);
-            actualizarLibros(jugador);
-            refrescar();
-        } else if (slot == SLOT_RADIACION) {
-            boolean nuevo = !cfg.isRadiacionActiva();
-            cfg.setRadiacionActiva(nuevo);
-            avisar(jugador, "Radiacion", nuevo);
-            refrescar();
-        } else if (slot == SLOT_FILTROS) {
-            boolean nuevo = !cfg.isFiltrosActivos();
-            cfg.setFiltrosActivos(nuevo);
-            avisar(jugador, "Filtros de carbon", nuevo);
-            actualizarLibros(jugador);
-            refrescar();
+        switch (slot) {
+            case SLOT_RADIACION -> {
+                cfg.setRadiacionActiva(!cfg.isRadiacionActiva());
+                avisar(jugador, "Radiacion", cfg.isRadiacionActiva());
+            }
+            case SLOT_CRAFTEO -> {
+                cfg.setCrafteoHazmat(!cfg.isCrafteoHazmat());
+                avisar(jugador, "Crafteo Hazmat", cfg.isCrafteoHazmat());
+                actualizarLibros(jugador);
+            }
+            case SLOT_FILTROS -> {
+                cfg.setFiltrosActivos(!cfg.isFiltrosActivos());
+                avisar(jugador, "Filtros de carbon", cfg.isFiltrosActivos());
+                actualizarLibros(jugador);
+            }
+            case SLOT_COLMILLO -> {
+                cfg.setColmilloActivo(!cfg.isColmilloActivo());
+                avisar(jugador, "Colmillo venenoso", cfg.isColmilloActivo());
+                actualizarLibros(jugador);
+            }
+            case SLOT_CRISTAL -> {
+                cfg.setCristalActivo(!cfg.isCristalActivo());
+                avisar(jugador, "Cristal pulido", cfg.isCristalActivo());
+                actualizarLibros(jugador);
+            }
+            default -> {
+                return; // click en el fondo: no hace nada
+            }
         }
+        refrescar();
         // Cualquier otro click dentro del menu se ignora: los iconos no se sacan.
     }
 

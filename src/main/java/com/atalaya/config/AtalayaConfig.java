@@ -33,6 +33,10 @@ public final class AtalayaConfig {
     private boolean radiacionActiva = true;
     /** Cubre las dos: fundir carbon activado y craftear el filtro. */
     private boolean filtrosActivos = true;
+    /** Cubre el drop del colmillo Y su mejora en la herreria. */
+    private boolean colmilloActivo = true;
+    /** Cubre craftear el cristal pulido Y su mejora en la herreria. */
+    private boolean cristalActivo = true;
 
     public static AtalayaConfig get() {
         if (instancia == null) {
@@ -98,6 +102,25 @@ public final class AtalayaConfig {
         guardar();
     }
 
+    public boolean isColmilloActivo() {
+        return colmilloActivo;
+    }
+
+    public void setColmilloActivo(boolean valor) {
+        this.colmilloActivo = valor;
+        guardar();
+    }
+
+    public boolean isCristalActivo() {
+        return cristalActivo;
+    }
+
+    public void setCristalActivo(boolean valor) {
+        this.cristalActivo = valor;
+        guardar();
+    }
+
+
     /**
      * Decide si una receta de este mod se puede usar ahora mismo.
      *
@@ -110,6 +133,14 @@ public final class AtalayaConfig {
             return true;
         }
         String ruta = id.getPath();
+        // Las mejoras de herreria van con su item, no con el traje: apagar el
+        // colmillo apaga tanto su drop como su mejora.
+        if (ruta.startsWith("antiveneno_")) {
+            return colmilloActivo;
+        }
+        if (ruta.equals("cristal_pulido") || ruta.startsWith("visor_")) {
+            return cristalActivo;
+        }
         if (ruta.startsWith("hazmat_")) {
             return crafteoHazmat;
         }

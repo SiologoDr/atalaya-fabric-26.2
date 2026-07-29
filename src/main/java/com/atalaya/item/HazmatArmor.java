@@ -5,7 +5,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
@@ -13,9 +12,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemLore;
-
-import java.util.List;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorMaterials;
 import net.minecraft.world.item.equipment.ArmorType;
@@ -44,48 +40,8 @@ public final class HazmatArmor {
 
     public static final ArmorMaterial MATERIAL = materialComoElHierro();
 
-    // Tonos claros, para que se lean sobre el fondo oscuro del tooltip.
-    private static final int AMARILLO = 0xFCFC54;
-    private static final int VERDE_RAD = 0x8CE05A;
-    private static final int LILA_GEODA = 0xE4A8FF;
-
-    /**
-     * Descripcion que sale en el tooltip. Vanilla pinta el lore en morado y en
-     * cursiva por defecto, asi que cada linea fija su color y desactiva la
-     * cursiva explicitamente.
-     */
-    private static final ItemLore LORE = new ItemLore(List.of(
-            Component.empty(),
-            tituloCaracteristicas(),
-            Component.empty(),
-            lineaRadiacion()
-    ));
-
-    /**
-     * "☢ Caracteristicas" con el subrayado SOLO en la palabra: el icono va en un
-     * trozo aparte sin subrayar, porque una linea bajo el simbolo queda sucia.
-     */
-    private static Component tituloCaracteristicas() {
-        return Component.literal("☢ ")
-                .withStyle(s -> s.withColor(AMARILLO).withItalic(false))
-                .append(Component.translatable("item.atalaya.hazmat.lore.titulo")
-                        .withStyle(s -> s.withColor(AMARILLO).withUnderlined(true).withItalic(false)));
-    }
-
-    /**
-     * "• Resiste un 25% la radiacion de la Geoda", con "Geoda" en lila.
-     *
-     * La palabra va como ARGUMENTO de la traduccion (%s) en vez de partir la
-     * frase en dos claves: asi cada idioma decide donde colocarla y no damos por
-     * hecho el orden de las palabras del espanol.
-     */
-    private static Component lineaRadiacion() {
-        Component geoda = Component.translatable("item.atalaya.hazmat.lore.geoda")
-                .withStyle(s -> s.withColor(LILA_GEODA).withItalic(false));
-
-        return Component.translatable("item.atalaya.hazmat.lore.radiacion", geoda)
-                .withStyle(s -> s.withColor(VERDE_RAD).withItalic(false));
-    }
+    // La descripcion ya no se guarda aqui: la genera HazmatArmorItem al
+    // mostrarla, leyendo los componentes de cada pieza.
 
     public static Item CASCO;
     public static Item PECHERA;
@@ -157,8 +113,7 @@ public final class HazmatArmor {
                 // 165/240/225/195 del hierro. Aqui la igualamos a proposito:
                 // asi un filtro vale lo mismo en cualquier pieza y las cuentas
                 // salen redondas. Va DESPUES para que gane sobre el material.
-                .durability(DURABILIDAD)
-                .component(DataComponents.LORE, LORE);
+                .durability(DURABILIDAD);
 
         if (conVisor) {
             // humanoidArmor() ya deja puesto un componente equippable; lo
@@ -172,7 +127,61 @@ public final class HazmatArmor {
                             .build());
         }
 
-        return Registry.register(BuiltInRegistries.ITEM, clave, new Item(props));
+        return Registry.register(BuiltInRegistries.ITEM, clave, new HazmatArmorItem(props));
+    }
+
+    // ------------------------------------------------------------------
+    //  Visor excelente (cristal pulido en la mesa de herreria)
+    // ------------------------------------------------------------------
+
+    /**
+     * El casco mejorado no lleva textura de visor en su componente equippable,
+     * asi que no oscurece la pantalla. Eso lo define la receta de herreria
+     * (data/atalaya/recipe/visor_hazmat_helmet.json), no el codigo: la
+     * herreria copia los componentes de la pieza base sobre el resultado, y ahi
+     * es donde se sustituye el equippable por uno sin camera_overlay.
+     *
+     * La linea de la descripcion la pone HazmatArmorItem al dibujar el
+     * tooltip, mirando este componente.
+     */
+    public static boolean tieneVisorExcelente(ItemStack casco) {
+        return AtalayaComponents.VISOR_EXCELENTE != null
+                && Boolean.TRUE.equals(casco.get(AtalayaComponents.VISOR_EXCELENTE));
+    }
+
+    // ------------------------------------------------------------------
+    //  Mejora antiveneno (colmillo venenoso en la mesa de herreria)
+    // ------------------------------------------------------------------
+
+    /** Fraccion del dano del veneno que anula CADA pieza mejorada. */
+    public static final float REDUCCION_VENENO = 0.25f;
+
+    public static boolean esAntiveneno(ItemStack pieza) {
+        return AtalayaComponents.ANTIVENENO != null
+                && Boolean.TRUE.equals(pieza.get(AtalayaComponents.ANTIVENENO));
+    }
+
+    /**
+     * Cuantas piezas con colmillo lleva puestas (0 a 4).
+     *
+     * Se acumulan: cada una quita un 25% del dano del veneno, asi que las
+     * cuatro lo dejan en cero. Como el colmillo cae al 5% y solo si mata un
+     * jugador, tener el traje entero mejorado es un objetivo de largo plazo.
+     */
+    public static int piezasAntiveneno(LivingEntity entidad) {
+        int n = 0;
+        for (EquipmentSlot slot : RANURAS_ARMADURA) {
+            ItemStack pieza = entidad.getItemBySlot(slot);
+            if (esPieza(pieza.getItem()) && esAntiveneno(pieza)) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    /** Factor por el que se multiplica el dano del veneno (0 = inmune). */
+    public static float factorVeneno(LivingEntity entidad) {
+        return Math.max(0f, 1f - REDUCCION_VENENO * piezasAntiveneno(entidad));
     }
 
     /** Las cuatro piezas, en orden de cabeza a pies. */

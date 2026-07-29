@@ -1,0 +1,11 @@
+﻿{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:hazmat_helmet",
+  "addition": "atalaya:colmillo_venenoso",
+  "result": {
+    "id": "atalaya:hazmat_helmet",
+    "components": {
+      "atalaya:antiveneno": true
+    }
+  }
+}

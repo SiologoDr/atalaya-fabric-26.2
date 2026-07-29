@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:hazmat_helmet",
+  "addition": "atalaya:cristal_pulido",
+  "result": {
+    "id": "atalaya:hazmat_helmet",
+    "components": {
+      "atalaya:visor_excelente": true,
+      "minecraft:equippable": {
+        "slot": "head",
+        "asset_id": "atalaya:hazmat",
+        "damage_on_hurt": true
+      }
+    }
+  }
+}

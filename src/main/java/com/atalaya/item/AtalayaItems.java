@@ -25,8 +25,26 @@ public final class AtalayaItems {
      */
     public static Item CARBON_ACTIVADO;
 
-    /** Cartucho filtrante. Repara el traje Hazmat en el yunque. */
+    /** Cartucho filtrante. Cambia el filtro del traje con click derecho. */
     public static Item FILTRO_CARBON;
+
+    /**
+     * Colmillo venenoso: lo sueltan las aranas de cueva, raramente.
+     *
+     * Se monta en una pieza del traje en la mesa de herreria para que filtre
+     * toxinas. Tiene sentido quimico: los antivenenos se fabrican A PARTIR del
+     * propio veneno, asi que el traje neutraliza la toxina usando la toxina.
+     */
+    public static Item COLMILLO_VENENOSO;
+
+    /**
+     * Cristal pulido: vidrio trabajado con pedernal hasta dejarlo transparente.
+     *
+     * Sustituye el visor ahumado del casco por uno claro, en la mesa de
+     * herreria. El nombre y la receta dicen lo mismo: el pedernal es el
+     * abrasivo con el que se pule.
+     */
+    public static Item CRISTAL_PULIDO;
 
     private AtalayaItems() {
     }
@@ -34,6 +52,8 @@ public final class AtalayaItems {
     public static void registrar() {
         CARBON_ACTIVADO = registrar("carbon_activado", Item::new);
         FILTRO_CARBON = registrar("filtro_carbon", FiltroCarbonItem::new);
+        COLMILLO_VENENOSO = registrar("colmillo_venenoso", Item::new);
+        CRISTAL_PULIDO = registrar("cristal_pulido", Item::new);
     }
 
     private static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
@@ -45,6 +65,6 @@ public final class AtalayaItems {
     }
 
     public static Item[] todos() {
-        return new Item[]{CARBON_ACTIVADO, FILTRO_CARBON};
+        return new Item[]{CARBON_ACTIVADO, FILTRO_CARBON, COLMILLO_VENENOSO, CRISTAL_PULIDO};
     }
 }

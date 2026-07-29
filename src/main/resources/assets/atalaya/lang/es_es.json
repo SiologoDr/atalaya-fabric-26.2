@@ -6,10 +6,16 @@
 
   "item.atalaya.carbon_activado": "Carbón activado",
   "item.atalaya.filtro_carbon": "Filtro de carbón",
+  "item.atalaya.colmillo_venenoso": "Colmillo venenoso",
+  "item.atalaya.cristal_pulido": "Cristal pulido",
 
   "effect.atalaya.radiacion": "Radiación",
 
   "item.atalaya.hazmat.lore.titulo": "Características",
   "item.atalaya.hazmat.lore.radiacion": "• Resiste un 25%% la radiación de la %s",
-  "item.atalaya.hazmat.lore.geoda": "Geoda"
+  "item.atalaya.hazmat.lore.geoda": "Geoda",
+  "item.atalaya.hazmat.lore.visor_excelente": "• %s la visión reducida del visor",
+  "item.atalaya.hazmat.lore.visor_excelente.palabra": "Elimina",
+  "item.atalaya.hazmat.lore.antiveneno": "• Reduce un 25%% el daño del %s",
+  "item.atalaya.hazmat.lore.antiveneno.palabra": "Veneno"
 }

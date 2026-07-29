@@ -6,10 +6,16 @@
 
   "item.atalaya.carbon_activado": "Activated Charcoal",
   "item.atalaya.filtro_carbon": "Carbon Filter",
+  "item.atalaya.colmillo_venenoso": "Venomous Fang",
+  "item.atalaya.cristal_pulido": "Polished Glass",
 
   "effect.atalaya.radiacion": "Radiation",
 
   "item.atalaya.hazmat.lore.titulo": "Features",
   "item.atalaya.hazmat.lore.radiacion": "• Resists 25%% of %s radiation",
-  "item.atalaya.hazmat.lore.geoda": "Geode"
+  "item.atalaya.hazmat.lore.geoda": "Geode",
+  "item.atalaya.hazmat.lore.visor_excelente": "• %s the visor's reduced vision",
+  "item.atalaya.hazmat.lore.visor_excelente.palabra": "Removes",
+  "item.atalaya.hazmat.lore.antiveneno": "• Reduces 25%% of %s damage",
+  "item.atalaya.hazmat.lore.antiveneno.palabra": "Poison"
 }
