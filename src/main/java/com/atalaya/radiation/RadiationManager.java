@@ -7,6 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import java.util.List;
+
 /**
  * Aplica el efecto de radiacion a quien se acerca a una geoda.
  *
@@ -19,6 +21,18 @@ public final class RadiationManager {
     private static final int NIVEL_MAX = 4;
     private static final double DISTANCIA_MAXIMA = 12.0;
     private static final int INTERVALO_TICKS = 20;
+
+    /**
+     * Por debajo de esta distancia el nivel ya es el maximo, asi que encontrar
+     * una amatista aun mas cerca no cambiaria el resultado: el indice puede
+     * dejar de buscar ahi.
+     *
+     * Sale de la propia formula de {@link #nivelPorDistancia}: el nivel 4 pide
+     * que la proporcion pase de 0.75, o sea distancia menor que un cuarto del
+     * alcance. Se calcula en vez de escribir "3.0" para que siga cuadrando si
+     * se tocan el alcance o el numero de niveles.
+     */
+    private static final double DISTANCIA_NIVEL_MAX = DISTANCIA_MAXIMA / NIVEL_MAX;
 
     /**
      * El efecto dura mas que el intervalo a proposito: asi no parpadea el icono
@@ -46,12 +60,27 @@ public final class RadiationManager {
             return;
         }
 
-        for (ServerPlayer jugador : servidor.getPlayerList().getPlayers()) {
-            // Reparto: cada jugador cae siempre en la misma ranura.
-            if (Math.floorMod(jugador.getId(), INTERVALO_TICKS) != ranura) {
-                continue;
-            }
-            procesar(jugador);
+        List<ServerPlayer> jugadores = servidor.getPlayerList().getPlayers();
+        int total = jugadores.size();
+        if (total == 0) {
+            return;
+        }
+
+        // Se recorre SOLO el tramo de esta ranura, no la lista entera.
+        //
+        // Antes se pasaba por los N jugadores cada tick para quedarse con los de
+        // una ranura: con 100 conectados son 2000 vueltas por segundo, 1900 de
+        // ellas para descartar. Repartiendo por indice se tocan 5 por tick y el
+        // coste deja de crecer con el aforo del servidor.
+        //
+        // Cada jugador se sigue revisando una vez por intervalo. Al entrar o
+        // salir alguien, la lista se desplaza y algun jugador puede repetir o
+        // saltarse una vuelta; es inofensivo, porque el efecto dura 60 ticks y
+        // se renueva en la siguiente.
+        int desde = (int) (total * ranura / INTERVALO_TICKS);
+        int hasta = (int) (total * (ranura + 1) / INTERVALO_TICKS);
+        for (int i = desde; i < hasta; i++) {
+            procesar(jugadores.get(i));
         }
     }
 
@@ -62,7 +91,8 @@ public final class RadiationManager {
         }
 
         ServerLevel nivel = jugador.level();
-        double distancia = GeodeIndex.distanciaMasCercana(nivel, jugador.position(), DISTANCIA_MAXIMA);
+        double distancia = GeodeIndex.distanciaMasCercana(
+                nivel, jugador.position(), DISTANCIA_MAXIMA, DISTANCIA_NIVEL_MAX);
         if (distancia < 0) {
             return; // fuera de alcance: el efecto se agota solo
         }

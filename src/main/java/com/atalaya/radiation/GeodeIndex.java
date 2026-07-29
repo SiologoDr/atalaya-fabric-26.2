@@ -49,12 +49,21 @@ public final class GeodeIndex {
 
     public static void alCargarChunk(ServerLevel nivel, LevelChunk chunk) {
         List<BlockPos> encontradas = escanear(chunk);
-        Map<Long, List<BlockPos>> mapa = POR_MUNDO.computeIfAbsent(nivel, k -> new ConcurrentHashMap<>());
-        if (encontradas.isEmpty()) {
-            mapa.remove(clave(chunk.getPos()));
-        } else {
-            mapa.put(clave(chunk.getPos()), encontradas);
+
+        if (encontradas == null) {
+            // Caso normal con muchisima diferencia: un chunk sin amatista no
+            // debe crear el mapa del mundo solo para borrar de el. Con 100
+            // jugadores explorando entran cientos de chunks por segundo y casi
+            // ninguno lleva geoda.
+            Map<Long, List<BlockPos>> mapa = POR_MUNDO.get(nivel);
+            if (mapa != null) {
+                mapa.remove(clave(chunk.getPos()));
+            }
+            return;
         }
+
+        POR_MUNDO.computeIfAbsent(nivel, k -> new ConcurrentHashMap<>())
+                .put(clave(chunk.getPos()), encontradas);
     }
 
     public static void alDescargarChunk(ServerLevel nivel, LevelChunk chunk) {
@@ -110,8 +119,13 @@ public final class GeodeIndex {
         return esFuente(estado);
     }
 
+    /**
+     * Busca las fuentes de un chunk. Devuelve null si no hay ninguna, que es lo
+     * que pasa en la practica totalidad de los chunks: asi no se crea una lista
+     * por cada chunk que entra solo para descubrir que esta vacia.
+     */
     private static List<BlockPos> escanear(LevelChunk chunk) {
-        List<BlockPos> encontradas = new ArrayList<>();
+        List<BlockPos> encontradas = null;
         LevelChunkSection[] secciones = chunk.getSections();
         int baseX = chunk.getPos().getMinBlockX();
         int baseZ = chunk.getPos().getMinBlockZ();
@@ -127,6 +141,9 @@ public final class GeodeIndex {
                 for (int z = 0; z < 16; z++) {
                     for (int x = 0; x < 16; x++) {
                         if (esFuente(seccion.getBlockState(x, y, z))) {
+                            if (encontradas == null) {
+                                encontradas = new ArrayList<>();
+                            }
                             encontradas.add(new BlockPos(baseX + x, baseY + y, baseZ + z));
                         }
                     }
@@ -143,8 +160,16 @@ public final class GeodeIndex {
     /**
      * Distancia a la amatista mas cercana dentro de maxDist, o -1 si no hay
      * ninguna. Solo mira los chunks vecinos, no el mundo entero.
+     *
+     * @param bastaCon distancia a partir de la cual al que pregunta ya le da
+     *                 igual si hay algo aun mas cerca: en cuanto se encuentra
+     *                 una fuente por debajo de este valor se deja de buscar.
+     *                 Un geoda tiene decenas de amatistas y el jugador que esta
+     *                 dentro las tiene TODAS a tiro, asi que sin este corte se
+     *                 recorren todas para acabar en el mismo resultado. Pasa 0
+     *                 (o negativo) para recorrerlas siempre.
      */
-    public static double distanciaMasCercana(ServerLevel nivel, Vec3 desde, double maxDist) {
+    public static double distanciaMasCercana(ServerLevel nivel, Vec3 desde, double maxDist, double bastaCon) {
         Map<Long, List<BlockPos>> mapa = POR_MUNDO.get(nivel);
         if (mapa == null || mapa.isEmpty()) {
             return -1; // salida instantanea: este mundo no tiene amatistas indexadas
@@ -155,20 +180,29 @@ public final class GeodeIndex {
         int radioChunks = (int) Math.ceil(maxDist / 16.0);
         double mejorSq = Double.MAX_VALUE;
         double maxSq = maxDist * maxDist;
+        double bastaSq = bastaCon * bastaCon;
 
+        busqueda:
         for (int dx = -radioChunks; dx <= radioChunks; dx++) {
             for (int dz = -radioChunks; dz <= radioChunks; dz++) {
                 List<BlockPos> lista = mapa.get(ChunkPos.pack(cx + dx, cz + dz));
                 if (lista == null) {
                     continue;
                 }
-                for (BlockPos p : lista) {
+                // Recorrido por indice: el for-each crearia un iterador por
+                // lista y por consulta, y esto se llama una vez por segundo y
+                // por jugador conectado.
+                for (int i = 0, n = lista.size(); i < n; i++) {
+                    BlockPos p = lista.get(i);
                     double ex = (p.getX() + 0.5) - desde.x;
                     double ey = (p.getY() + 0.5) - desde.y;
                     double ez = (p.getZ() + 0.5) - desde.z;
                     double sq = ex * ex + ey * ey + ez * ez;
                     if (sq < mejorSq) {
                         mejorSq = sq;
+                        if (sq < bastaSq) {
+                            break busqueda;
+                        }
                     }
                 }
             }
