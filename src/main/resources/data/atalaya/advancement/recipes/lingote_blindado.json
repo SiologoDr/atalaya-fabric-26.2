@@ -1,4 +1,4 @@
-﻿{
+{
   "parent": "minecraft:recipes/root",
   "criteria": {
     "tiene_ingrediente": {
@@ -13,7 +13,7 @@
     },
     "tiene_la_receta": {
       "conditions": {
-        "recipe": "atalaya:hazmat_helmet"
+        "recipe": "atalaya:lingote_blindado"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "atalaya:hazmat_helmet"
+      "atalaya:lingote_blindado"
     ]
   }
 }

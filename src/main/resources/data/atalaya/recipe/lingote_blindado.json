@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "H": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "GGG",
+    "GHG",
+    "HHH"
+  ],
+  "result": {
+    "id": "atalaya:lingote_blindado"
+  }
+}

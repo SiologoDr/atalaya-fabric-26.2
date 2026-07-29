@@ -155,7 +155,9 @@ public final class AtalayaConfig {
         if (ruta.equals("pata_ligera") || ruta.startsWith("ligera_")) {
             return pataActiva;
         }
-        if (ruta.startsWith("hazmat_")) {
+        // El lingote va con el traje: es su materia prima y no sirve para nada
+        // mas, asi que apagar el crafteo del traje tiene que apagarlo tambien.
+        if (ruta.startsWith("hazmat_") || ruta.equals("lingote_blindado")) {
             return crafteoHazmat;
         }
         if (ruta.equals("carbon_activado") || ruta.equals("filtro_carbon")) {

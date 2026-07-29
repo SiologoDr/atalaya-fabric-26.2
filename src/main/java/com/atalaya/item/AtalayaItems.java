@@ -56,6 +56,20 @@ public final class AtalayaItems {
      */
     public static Item PATA_LIGERA;
 
+    /**
+     * Lingote blindado: oro aleado con hierro. Lo que convierte una armadura de
+     * hierro corriente en una pieza del traje.
+     *
+     * Cuesta 5 de oro y 4 de hierro, y hace falta UNO por pieza: es caro a
+     * proposito porque cada uno mejora una pieza entera. La receta imita al
+     * propio lingote, con el oro arriba y el hierro debajo.
+     *
+     * La mejora se hace en la mesa de herreria, como las demas del traje. Eso
+     * trae de regalo que los encantamientos de la armadura de hierro se
+     * conservan al pasar a hazmat, igual que ocurre al subir a netherita.
+     */
+    public static Item LINGOTE_BLINDADO;
+
     private AtalayaItems() {
     }
 
@@ -65,6 +79,7 @@ public final class AtalayaItems {
         COLMILLO_VENENOSO = registrar("colmillo_venenoso", Item::new);
         CRISTAL_PULIDO = registrar("cristal_pulido", Item::new);
         PATA_LIGERA = registrar("pata_ligera", Item::new);
+        LINGOTE_BLINDADO = registrar("lingote_blindado", Item::new);
     }
 
     private static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
@@ -76,6 +91,9 @@ public final class AtalayaItems {
     }
 
     public static Item[] todos() {
-        return new Item[]{CARBON_ACTIVADO, FILTRO_CARBON, COLMILLO_VENENOSO, CRISTAL_PULIDO, PATA_LIGERA};
+        return new Item[]{
+                CARBON_ACTIVADO, FILTRO_CARBON, COLMILLO_VENENOSO,
+                CRISTAL_PULIDO, PATA_LIGERA, LINGOTE_BLINDADO
+        };
     }
 }

@@ -1,14 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "equipment",
-  "key": {
-    "G": "minecraft:gold_ingot",
-    "X": "minecraft:iron_helmet"
-  },
-  "pattern": [
-    "GGG",
-    "GXG"
-  ],
+  "type": "minecraft:smithing_transform",
+  "base": "minecraft:iron_helmet",
+  "addition": "atalaya:lingote_blindado",
   "result": {
     "id": "atalaya:hazmat_helmet"
   }

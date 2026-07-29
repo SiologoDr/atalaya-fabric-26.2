@@ -1,15 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "equipment",
-  "key": {
-    "G": "minecraft:gold_ingot",
-    "X": "minecraft:iron_leggings"
-  },
-  "pattern": [
-    "GGG",
-    "GXG",
-    "G G"
-  ],
+  "type": "minecraft:smithing_transform",
+  "base": "minecraft:iron_leggings",
+  "addition": "atalaya:lingote_blindado",
   "result": {
     "id": "atalaya:hazmat_leggings"
   }
