@@ -60,7 +60,9 @@ public class ConfigMenu extends ChestMenu {
         Container contenedor = new SimpleContainer(27);
         jugador.openMenu(new SimpleMenuProvider(
                 (id, inv, p) -> new ConfigMenu(id, inv, contenedor),
-                Component.literal("Atalaya - Configuracion").withStyle(ChatFormatting.DARK_AQUA)
+                // Sin color: el titulo de un contenedor va en el gris oscuro de
+                // vanilla, como el de un cofre. Coloreado desentona.
+                Component.literal("Atalaya - Configuracion")
         ));
     }
 

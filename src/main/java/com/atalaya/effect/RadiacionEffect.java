@@ -75,17 +75,14 @@ public class RadiacionEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(ServerLevel nivel, LivingEntity entidad, int amplificador) {
-        // Primero el desgaste, y aunque el traje te haga inmune: se degrada
-        // justamente al absorber la radiacion. Es lo que convierte el traje en
-        // un consumible y da sentido a los filtros.
+        // Desgastar y contar en un solo recorrido de las ranuras: siempre se
+        // necesitan juntos y esto corre hasta dos veces por segundo y jugador.
         //
-        // No lleva interruptor propio: este metodo solo corre mientras el
-        // efecto esta activo, asi que apagar la radiacion ya apaga el desgaste.
-        HazmatArmor.desgastarPorRadiacion(entidad, 1);
-
+        // El desgaste no lleva interruptor propio: este metodo solo corre
+        // mientras el efecto esta activo, asi que apagar la radiacion ya lo apaga.
         // Solo cuentan las piezas que aun filtran: una por debajo del umbral
         // sigue puesta pero ya no protege.
-        int piezas = HazmatArmor.piezasQueProtegen(entidad);
+        int piezas = HazmatArmor.desgastarYContarProtectoras(entidad, 1);
         if (piezas >= 4) {
             return true; // inmune, pero el efecto sigue vivo mientras estes cerca
         }

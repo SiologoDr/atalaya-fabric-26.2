@@ -1,21 +1,15 @@
 {
-  "item.atalaya.hazmat_helmet": "Casco Hazmat",
-  "item.atalaya.hazmat_chestplate": "Pechera Hazmat",
-  "item.atalaya.hazmat_leggings": "Pantalón Hazmat",
-  "item.atalaya.hazmat_boots": "Botas Hazmat",
+  "item.atalaya.hazmat_helmet": "Casco de hazmat",
+  "item.atalaya.hazmat_chestplate": "Pechera de hazmat",
+  "item.atalaya.hazmat_leggings": "Pantalón de hazmat",
+  "item.atalaya.hazmat_boots": "Botas de hazmat",
 
   "item.atalaya.carbon_activado": "Carbón activado",
   "item.atalaya.filtro_carbon": "Filtro de carbón",
-  "item.atalaya.colmillo_venenoso": "Colmillo venenoso",
-  "item.atalaya.cristal_pulido": "Cristal pulido",
+  "item.atalaya.colmillo_venenoso": "Colmillo Venenoso",
+  "item.atalaya.cristal_pulido": "Cristal Pulido",
 
   "effect.atalaya.radiacion": "Radiación",
 
-  "item.atalaya.hazmat.lore.titulo": "Características",
-  "item.atalaya.hazmat.lore.radiacion": "• Resiste un 25%% la radiación de la %s",
-  "item.atalaya.hazmat.lore.geoda": "Geoda",
-  "item.atalaya.hazmat.lore.visor_excelente": "• %s la visión reducida del visor",
-  "item.atalaya.hazmat.lore.visor_excelente.palabra": "Elimina",
-  "item.atalaya.hazmat.lore.antiveneno": "• Reduce un 25%% el daño del %s",
-  "item.atalaya.hazmat.lore.antiveneno.palabra": "Veneno"
+  "item.atalaya.hazmat.mejora": "Mejora de %s"
 }

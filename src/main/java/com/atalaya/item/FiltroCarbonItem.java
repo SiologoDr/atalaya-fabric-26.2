@@ -1,8 +1,5 @@
 package com.atalaya.item;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -45,9 +42,8 @@ public class FiltroCarbonItem extends Item {
 
         ItemStack objetivo = piezaMasDanada(jugador);
         if (objetivo == null) {
-            // Nada que rellenar: no gastamos el filtro.
-            avisar(jugador, Component.literal("El traje no necesita un filtro nuevo.")
-                    .withStyle(ChatFormatting.GRAY));
+            // Nada que rellenar: no gastamos el filtro y no molestamos con un
+            // mensaje. Que el filtro siga en la mano ya lo dice todo.
             return InteractionResult.FAIL;
         }
 
@@ -55,8 +51,7 @@ public class FiltroCarbonItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        int antes = objetivo.getDamageValue();
-        objetivo.setDamageValue(Math.max(0, antes - REPARACION));
+        objetivo.setDamageValue(Math.max(0, objetivo.getDamageValue() - REPARACION));
 
         if (!jugador.hasInfiniteMaterials()) {
             filtro.shrink(1);
@@ -68,21 +63,9 @@ public class FiltroCarbonItem extends Item {
         nivel.playSound(null, jugador.blockPosition(),
                 SoundEvents.BOTTLE_FILL_DRAGONBREATH, SoundSource.PLAYERS, 0.5f, 1.6f);
 
-        int recuperado = antes - objetivo.getDamageValue();
-        avisar(jugador, Component.literal("Filtro cambiado (+" + recuperado + ")")
-                .withStyle(ChatFormatting.GREEN));
-
+        // Sin mensaje en pantalla: el sonido, el filtro que desaparece y la
+        // barra de durabilidad ya cuentan lo que ha pasado.
         return InteractionResult.SUCCESS;
-    }
-
-    /**
-     * Mensaje sobre la hotbar. Solo el ServerPlayer sabe mandarlo ahi;
-     * displayClientMessage ya no existe en 26.2.
-     */
-    private static void avisar(Player jugador, Component texto) {
-        if (jugador instanceof ServerPlayer sp) {
-            sp.sendOverlayMessage(texto);
-        }
     }
 
     /**
@@ -92,11 +75,14 @@ public class FiltroCarbonItem extends Item {
      * no para el que tengas en un cofre. Devuelve null si no hay nada que
      * rellenar.
      */
+    private static final EquipmentSlot[] RANURAS = {
+            EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+    };
+
     private static ItemStack piezaMasDanada(Player jugador) {
         ItemStack peor = null;
         int masDano = 0;
-        for (EquipmentSlot slot : new EquipmentSlot[]{
-                EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+        for (EquipmentSlot slot : RANURAS) {
             ItemStack pieza = jugador.getItemBySlot(slot);
             if (!HazmatArmor.esPieza(pieza.getItem())) {
                 continue;

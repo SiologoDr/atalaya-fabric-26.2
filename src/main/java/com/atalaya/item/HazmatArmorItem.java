@@ -11,34 +11,30 @@ import java.util.function.Consumer;
 /**
  * Pieza del traje Hazmat.
  *
- * Su unica particularidad es que la descripcion se GENERA al mostrarla, leyendo
- * los componentes de la pieza, en vez de guardarse escrita dentro del item.
+ * La descripcion se GENERA al mostrarla leyendo los componentes de la pieza, no
+ * se guarda escrita dentro del item.
  *
- * Por que: las caracteristicas se anaden por caminos distintos (el visor sale
- * al fabricar, el antiveneno en la mesa de herreria) y cada uno escribiria su
+ * Por que: las mejoras se anaden por caminos distintos y cada una escribiria su
  * propia version del lore. La herreria ademas aplica los componentes de la
  * pieza base ENCIMA del resultado, asi que un lore escrito por la receta
  * quedaria pisado por el de la pieza original: funcionaria cada mejora por
  * separado y fallaria al combinarlas.
  *
- * Generandolo aqui, cualquier combinacion sale bien sola y anadir una
- * caracteristica nueva es una linea.
+ * Solo se listan las MEJORAS. La resistencia a la radiacion que da cada pieza
+ * de base no se menciona: es propia del traje, no algo que el jugador haya
+ * conseguido, y repetirla en las cuatro piezas solo ensucia el tooltip.
  */
 public class HazmatArmorItem extends Item {
 
-    // Tonos claros, para que se lean sobre el fondo oscuro del tooltip.
-    private static final int AMARILLO = 0xFCFC54;
+    /** Cada mejora se nombra con el color de su item, para reconocerla de un vistazo. */
+    private static final int VERDE_COLMILLO = 0x8CE05A;
+    private static final int AZUL_CRISTAL = 0x8CD8FF;
 
-    /**
-     * Color del texto corriente de las caracteristicas. Va en gris claro a
-     * proposito: asi las palabras destacadas de cada linea resaltan solas.
-     */
-    private static final int TEXTO = 0xC6C6C6;
+    /** Gris claro para el "Mejora de": lo que destaca es el nombre del item. */
+    private static final int GRIS = 0xAAAAAA;
 
-    // Una palabra destacada por caracteristica, con el color de su tema.
-    private static final int LILA_GEODA = 0xE4A8FF;
-    private static final int ROJO_SUAVE = 0xFF8A8A;
-    private static final int VERDE_SUAVE = 0x8CE05A;
+    /** Vineta al inicio de cada mejora. */
+    private static final String VINETA = "• ";
 
     public HazmatArmorItem(Properties propiedades) {
         super(propiedades);
@@ -51,63 +47,42 @@ public class HazmatArmorItem extends Item {
                                 Consumer<Component> salida,
                                 TooltipFlag bandera) {
         // Si la pieza esta haciendo de icono en el menu de configuracion, su
-        // tooltip lo escribe el menu: no le anadimos las caracteristicas.
+        // tooltip lo escribe el menu.
         if (AtalayaComponents.ICONO_MENU != null
                 && Boolean.TRUE.equals(pieza.get(AtalayaComponents.ICONO_MENU))) {
             return;
         }
 
-        salida.accept(Component.empty());
-        salida.accept(titulo());
-        salida.accept(Component.empty());
-        salida.accept(lineaRadiacion());
-
-        if (HazmatArmor.tieneVisorExcelente(pieza)) {
-            salida.accept(caracteristica(
-                    "item.atalaya.hazmat.lore.visor_excelente",
-                    "item.atalaya.hazmat.lore.visor_excelente.palabra",
-                    ROJO_SUAVE));
+        boolean colmillo = HazmatArmor.esAntiveneno(pieza);
+        boolean cristal = HazmatArmor.tieneVisorExcelente(pieza);
+        if (!colmillo && !cristal) {
+            return;
         }
-        if (HazmatArmor.esAntiveneno(pieza)) {
-            salida.accept(caracteristica(
-                    "item.atalaya.hazmat.lore.antiveneno",
-                    "item.atalaya.hazmat.lore.antiveneno.palabra",
-                    VERDE_SUAVE));
+
+        // Linea en blanco para separar las mejoras del nombre de la pieza.
+        salida.accept(Component.empty());
+
+        if (colmillo) {
+            salida.accept(mejora("item.atalaya.colmillo_venenoso", VERDE_COLMILLO));
+        }
+        if (cristal) {
+            salida.accept(mejora("item.atalaya.cristal_pulido", AZUL_CRISTAL));
         }
     }
 
     /**
-     * Una linea de caracteristica: texto en gris con UNA palabra destacada.
+     * "• Mejora de <item>", con el nombre del item en color y el resto en gris.
      *
-     * La palabra viaja como argumento (%s) de la traduccion en vez de partir la
-     * frase en dos claves, asi cada idioma decide donde colocarla.
+     * El nombre se toma de la clave de traduccion del propio item, asi que si
+     * se renombra el item la mejora lo sigue sola.
      */
-    private static Component caracteristica(String claveFrase, String clavePalabra, int colorPalabra) {
-        Component palabra = Component.translatable(clavePalabra)
-                .withStyle(s -> s.withColor(colorPalabra).withItalic(false));
-        return Component.translatable(claveFrase, palabra)
-                .withStyle(s -> s.withColor(TEXTO).withItalic(false));
-    }
+    private static Component mejora(String claveItem, int color) {
+        Component nombre = Component.translatable(claveItem)
+                .withStyle(s -> s.withColor(color).withItalic(false));
 
-    /**
-     * "☢ Caracteristicas" con el subrayado SOLO en la palabra: el icono va en
-     * un trozo aparte, porque una linea bajo el simbolo queda sucia.
-     */
-    private static Component titulo() {
-        return Component.literal("☢ ")
-                .withStyle(s -> s.withColor(AMARILLO).withItalic(false))
-                .append(Component.translatable("item.atalaya.hazmat.lore.titulo")
-                        .withStyle(s -> s.withColor(AMARILLO).withUnderlined(true).withItalic(false)));
-    }
-
-    /**
-     * "• Resiste un 25% la radiacion de la Geoda", con "Geoda" en lila.
-     *
-     * La palabra va como ARGUMENTO de la traduccion (%s) en vez de partir la
-     * frase en dos claves: asi cada idioma decide donde colocarla.
-     */
-    private static Component lineaRadiacion() {
-        return caracteristica("item.atalaya.hazmat.lore.radiacion",
-                "item.atalaya.hazmat.lore.geoda", LILA_GEODA);
+        return Component.literal(VINETA)
+                .withStyle(s -> s.withColor(GRIS).withItalic(false))
+                .append(Component.translatable("item.atalaya.hazmat.mejora", nombre)
+                        .withStyle(s -> s.withColor(GRIS).withItalic(false)));
     }
 }

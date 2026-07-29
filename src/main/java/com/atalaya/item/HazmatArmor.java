@@ -253,19 +253,30 @@ public final class HazmatArmor {
     }
 
     /**
-     * Gasta durabilidad de todas las piezas del traje que lleve puestas.
+     * Gasta durabilidad del traje y devuelve cuantas piezas siguen protegiendo.
      *
-     * Se llama SIEMPRE que hay radiacion, aunque el traje completo te haga
-     * inmune: el traje se degrada precisamente por estar absorbiendola. Si no
-     * se gastara con el traje completo, los filtros no tendrian sentido.
+     * Las dos cosas van en el MISMO recorrido de ranuras porque siempre se
+     * necesitan juntas, y este metodo corre con cada golpe de radiacion: hasta
+     * dos veces por segundo por jugador que este dentro de una geoda.
+     *
+     * El desgaste se aplica aunque el traje completo te haga inmune: se degrada
+     * precisamente por absorber la radiacion, y sin eso los filtros no tendrian
+     * sentido. Y se cuenta DESPUES de gastar, para que una pieza que caiga bajo
+     * el umbral con este mismo golpe deje de proteger ya.
      */
-    public static void desgastarPorRadiacion(LivingEntity entidad, int cantidad) {
+    public static int desgastarYContarProtectoras(LivingEntity entidad, int desgaste) {
+        int protegen = 0;
         for (EquipmentSlot slot : RANURAS_ARMADURA) {
             ItemStack pieza = entidad.getItemBySlot(slot);
-            if (esPieza(pieza.getItem())) {
-                pieza.hurtAndBreak(cantidad, entidad, slot);
+            if (!esPieza(pieza.getItem())) {
+                continue;
+            }
+            pieza.hurtAndBreak(desgaste, entidad, slot);
+            if (protege(pieza)) {
+                protegen++;
             }
         }
+        return protegen;
     }
 
     private static final EquipmentSlot[] RANURAS_ARMADURA = {
