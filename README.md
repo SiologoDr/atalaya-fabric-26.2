@@ -5,9 +5,15 @@ Mod de **Fabric** para Minecraft **26.2**.
 Las geodas de amatista emiten radiación. Sobrevivir cerca de ellas exige un traje
 Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 
+> **Esto es la primera fase, no el mod.** La idea es una dificultad que sube por
+> etapas: cada una vuelve invivible una parte del mundo y desbloquea a la vez lo
+> que hace falta para volver a entrar. La radiación y el traje son el patrón en
+> pequeño — aparece el peligro, aparece la herramienta. Las fases las abre un
+> operador desde el menú, así que se pueden anunciar como evento.
+
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
 > Traje Hazmat completo, radiación como efecto propio registrado, tres mejoras de
-> herrería y un menú de configuración con 13 interruptores.
+> herrería y un menú de configuración con 17 interruptores.
 
 ---
 
@@ -82,40 +88,97 @@ conserva la durabilidad y los encantamientos.
 | Mejora | Item | Efecto |
 |---|---|---|
 | **Antiveneno** | Colmillo Venenoso | −25 % de daño de veneno **por pieza** (las 4 = inmune) |
-| **Visor excelente** | Cristal Pulido | El casco deja de oscurecer la pantalla |
-| **Amortiguación** | Pata Ligera | −25 % de la lentitud de radiación **por pieza** (las 4 = velocidad normal) |
+| **Visor excelente** | Lente de Mar | El casco deja de oscurecer la pantalla |
+| **Amortiguación** | Pata Alada | −25 % de la lentitud de radiación **por pieza** (las 4 = velocidad normal) |
+
+Las tres se montan igual: **dos ingredientes en la mesa de herrería, sin
+plantilla**. Y las tres se fabrican antes juntando dos mitades que ninguna sirve
+suelta, así que cada mejora obliga a recorrer dos fuentes distintas.
 
 ### Drops
 
-Todos al **20 %** y **solo si mata un jugador**, para que las granjas automáticas
-no los produzcan en masa.
+Todos **solo si mata un jugador**, para que las granjas automáticas no los
+produzcan en masa. Con los pollos importa el doble: una granja los mata por
+caída o lava, así que **no da ni un alón**.
 
-| Mob | Suelta |
+| Mob | Suelta | Prob. |
+|---|---|---|
+| Araña común | Colmillo | 15 % |
+| Araña de cueva | Veneno | 15 % |
+| Abeja | Miel Cristalizada | 15 % |
+| Conejo | Pata Ligera | 20 % |
+| Pollo | Alón | 5 % |
+
+El conejo va más alto porque es escaso y huidizo: encontrarlo ya es medio
+trabajo. El pollo va más bajo justo por lo contrario — sobra por todas partes,
+así que el freno tiene que estar en el drop y no en buscarlo.
+
+### Pesca
+
+El **Espejo de Mar** es lo único del mod que no se fabrica ni lo suelta un mob
+al morir: sale pescando.
+
+| Caña | Prob. por picada |
 |---|---|
-| Araña común | Colmillo |
-| Araña de cueva | Veneno |
-| Abeja | Miel Cristalizada |
+| Sin encantar | 5 % |
+| Suerte del Mar I | 7,5 % |
+| Suerte del Mar II | 10 % |
+| Suerte del Mar III | 12,5 % |
+
+Es el mismo 5 % que vanilla le da a su categoría de tesoro, pero **sin exigir
+aguas abiertas**: también pica en una charca bajo tierra, donde el tesoro de
+vanilla no sale nunca.
+
+Va en una piscina propia enganchada a la tabla de pesca, así que sale *además*
+de lo que pique y no toca en nada las probabilidades de vanilla. Y no usa una
+probabilidad plana sino pesos con `quality`, que es la única vía por la que la
+suerte del jugador entra en el reparto.
 
 ### Recetas
 
+**El traje:**
+
 ```
-Carbón          --(horno)-->  Carbón Activado
-Carbón Activado + 2 Hierro    -->  Filtro de Carbón
-
-4 Cobre + 3 Panal             -->  Miel Cristalizada
-Miel + 8 Papel                -->  Plantilla de Sellado
-5 Oro + 4 Hierro              -->  Lingote Blindado
-
-Colmillo + Veneno             -->  Colmillo Venenoso
-4 Diamante + 1 Vidrio         -->  Cristal Pulido
-3 Pluma + 1 Pata de conejo + 1 Slime  -->  Pata Ligera
+4 Cobre + 3 Panal                    -->  Miel Cristalizada
+Miel Cristalizada + 8 Papel          -->  Plantilla de Sellado
+5 Oro + 4 Hierro                     -->  Lingote Blindado
 
 HERRERÍA:  Plantilla + Armadura de hierro + Lingote Blindado  -->  Pieza Hazmat
-HERRERÍA:  Pieza Hazmat + (Colmillo Venenoso | Cristal Pulido | Pata Ligera)
 ```
+
+**El cartucho:**
+
+```
+Carbón             --(horno)-->      Carbón Activado
+Carbón Activado + 2 Hierro           -->  Filtro de Carbón
+```
+
+**Las tres mejoras.** Cada una junta dos mitades en la herrería, y luego se monta
+en la pieza también en la herrería:
+
+```
+Colmillo (araña)  + Veneno (araña de cueva)   --(herrería)-->  Colmillo Venenoso
+Espejo de Mar (pesca) + Alga Vitrificada      --(herrería)-->  Lente de Mar
+Pata Ligera (conejo)  + Alón (pollo)          --(herrería)-->  Pata Alada
+
+Bloque de alga seca  --(horno)-->  Alga Vitrificada
+
+HERRERÍA:  Pieza Hazmat + (Colmillo Venenoso | Lente de Mar | Pata Alada)
+```
+
+> El alga parte del **bloque** y no del alga suelta por una razón técnica:
+> vanilla ya funde el alga suelta para secarla, y dos recetas de horno con la
+> misma entrada se pisan — solo una de las dos sería alcanzable.
+
+Las recetas de herrería a **dos ingredientes** (sin plantilla) son válidas
+porque en 26.2 el campo `template` es `Optional` en el códec.
 
 La plantilla **no se puede duplicar**: cada pieza consume la suya. Coste del traje
 completo: 40 hierro, 20 oro, 16 cobre, 12 panal, 32 papel.
+
+Y el coste del traje entero con las tres mejoras en las cuatro piezas, matando a
+mano: ~27 arañas, ~27 arañas de cueva, ~27 abejas, ~20 conejos, ~80 pollos y
+4 espejos pescados.
 
 ---
 
@@ -132,17 +195,27 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-El menú son 13 interruptores en tres filas, agrupados por lo que hacen:
+El menú son 17 interruptores en tres filas, agrupados por lo que hacen:
 
 ```
-[ ][Radiación][ ][Abejas][ ][Colmillo][ ][Veneno][ ]        lo que da el MUNDO
-[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]         fabricar el TRAJE
-[Carbón][ ][Filtro][ ][C.Venenoso][ ][Cristal][ ][Pata]     ITEMS y mejoras
+[Radiación][ ][ ][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]   lo que da el MUNDO
+[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]               fabricar el TRAJE
+[Carbón][Filtro][ ][Alga][Lente][ ][C.Venenoso][ ][P.Alada]       ITEMS y mejoras
 ```
+
+El reparto de cada fila dice algo:
+
+- **Arriba** el hueco doble separa la *mecánica* (radiación) de los *seis drops*,
+  que ya no caben espaciados.
+- **Abajo** los pares pegados son las dos cadenas de dos pasos —
+  carbón→filtro y alga→lente — y las sueltas son de un solo paso.
 
 Cada cadena está partida en sus pasos, así que puedes permitir el material y
 bloquear la herrería, o al contrario. Apagar una receta **también la quita del
 libro de recetas** de todos los jugadores conectados, al instante.
+
+Los drops no son recetas, así que no tocan el libro: se filtran sobre el botín ya
+generado y el cambio es inmediato, sin recargar datapacks.
 
 Los campos que falten en el JSON entran activados, así que añadir mecánicas no
 rompe una configuración existente.
@@ -263,15 +336,25 @@ forma fiable de comprobar una firma es `javap` sobre el jar remapeado, en
 | `ServerPlayer.getServer()` | `jugador.level().getServer()` |
 | `TooltipDisplay.DEFAULT.withHideTooltip()` | `new TooltipDisplay(true, new LinkedHashSet<>())` |
 
-Y dos cosas que solo se descubren mirando el bytecode:
+Y cuatro cosas que solo se descubren mirando el bytecode:
 
 - Los modificadores de atributo de tipo `ADD_MULTIPLIED_TOTAL` **se multiplican
   entre sí** (`valor *= 1 + cantidad`), no se suman. Por eso la compensación de la
-  Pata Ligera se despeja como `c = L·r / (1 − L)` y no como un simple +25 %.
+  Pata Alada se despeja como `c = L·r / (1 − L)` y no como un simple +25 %.
 - La herrería copia `getComponentsPatch()` de la pieza base, es decir **solo lo que
   se cambió en ese objeto concreto**, no los componentes por defecto. Por eso el
   casco Hazmat conserva su visor y sus 250 de durabilidad al mejorar un casco de
   hierro, en vez de heredar los 165 del hierro.
+- El contexto de botín de la **pesca no tiene `LAST_DAMAGE_PLAYER`**, porque ahí
+  no muere nadie. Pedir "matado por un jugador" en esa tabla no es que no filtre:
+  revienta al tirarla. Por lo mismo, la condición de probabilidad con bonus por
+  encantamiento tampoco sirve — lee `ATTACKING_ENTITY`, que la pesca tampoco
+  aporta, así que se quedaría en la base para siempre **y sin dar ningún error**.
+- El peso efectivo de una entrada de botín es
+  `max(floor(peso + calidad · suerte), 0)`. Dándole al hueco vacío la misma
+  calidad en negativo que al item, el total no se mueve y el porcentaje sube en
+  línea recta con la suerte, sin la deriva que saldría si el denominador
+  cambiara.
 
 ## Versiones
 
@@ -303,7 +386,7 @@ src/main/               código común (servidor + cliente)
 │   ├── item/HazmatArmor            las cuatro piezas y sus umbrales
 │   ├── item/HazmatArmorItem        tooltip generado al mostrarse
 │   ├── item/FiltroCarbonItem       recarga con clic derecho
-│   ├── loot/AtalayaLoot            los tres drops de mobs
+│   ├── loot/AtalayaLoot            los cinco drops de mobs y el de la pesca
 │   ├── menu/ConfigMenu             el panel de interruptores
 │   ├── mixin/                      BlockItem, PoisonMobEffect, RecipeManager
 │   └── radiation/                  GeodeIndex (índice) y RadiationManager (tick)
