@@ -13,7 +13,8 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
 > Traje Hazmat completo, radiación como efecto propio registrado, tres mejoras de
-> herrería y un menú de configuración con 17 interruptores.
+> herrería, hidratación en el desierto y un menú de configuración con 18
+> interruptores.
 
 ---
 
@@ -182,6 +183,60 @@ mano: ~27 arañas, ~27 arañas de cueva, ~27 abejas, ~20 conejos, ~80 pollos y
 
 ---
 
+## Hidratación
+
+La segunda mecánica, y la primera que no tiene nada que ver con la radiación:
+**el desierto deshidrata**.
+
+Cada jugador lleva **100 puntos** de hidratación. Dentro de un bioma de desierto
+pierde **uno cada 7 segundos**, así que el depósito lleno da para **11 min 40 s**
+de arena bajo los pies.
+
+Puesto al lado de lo que ya había:
+
+| | Aguanta |
+|---|---|
+| Traje Hazmat, geoda nivel 1 | 6,7 min |
+| Traje Hazmat, geoda nivel 3 y 4 | 1,7 min |
+| Hidratación en el desierto | 11,7 min |
+
+Es más largo a propósito: a una geoda entras a hacer algo y sales, pero un
+desierto se **atraviesa**.
+
+### No se reinicia
+
+Fuera del desierto el nivel **se congela**: ni baja ni se rellena. Si sales de la
+arena con 74, al volver sigues con 74, hayan pasado dos minutos o dos días. Se
+guarda pegado al jugador, así que aguanta desconexiones y reinicios del servidor.
+
+Al morir vuelve a 100, como la comida y la vida. Sin eso, reaparecer seco sería
+volver a morir.
+
+Quien no lo tenga aún entra con el depósito lleno, así que activar la mecánica en
+un mundo en marcha no deja a nadie tirado.
+
+### El medidor
+
+Una gota celeste centrada, encima del número de experiencia, que **solo aparece
+dentro del desierto** — fuera no se gasta, así que no ocupa pantalla.
+
+Se vacía de arriba abajo. Son 12 píxeles de alto para 100 puntos, o sea que cada
+píxel vale unos 8: informa de un vistazo, no al detalle.
+
+> El **degradado no lo pinta el código**. El relleno de la textura es una rampa
+> de gris, y como el tinte multiplica, pintarla de un solo celeste conserva la
+> rampa sola. Por lo mismo el contorno negro sigue negro con cualquier tinte, y
+> una sola imagen sirve para el agua y para el hueco vacío.
+
+Y **no choca con el triángulo del traje**: son dos elementos de HUD distintos,
+cada uno con su registro, y viven en sitios opuestos de la pantalla — el aviso
+pegado a la esquina inferior derecha y la gota centrada.
+
+> Falta lo que pase al llegar a cero, y el item que rellena. Ahora mismo se
+> queda en cero y ya.
+
+---
+
 ## Comandos
 
 | Comando | Permiso | Qué hace |
@@ -195,18 +250,18 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-El menú son 17 interruptores en tres filas, agrupados por lo que hacen:
+El menú son 18 interruptores en tres filas, agrupados por lo que hacen:
 
 ```
-[Radiación][ ][ ][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]   lo que da el MUNDO
-[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]               fabricar el TRAJE
-[Carbón][Filtro][ ][Alga][Lente][ ][C.Venenoso][ ][P.Alada]       ITEMS y mejoras
+[Radiación][Hidratación][ ][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]   el MUNDO
+[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]                         el TRAJE
+[Carbón][Filtro][ ][Alga][Lente][ ][C.Venenoso][ ][P.Alada]                 ITEMS
 ```
 
 El reparto de cada fila dice algo:
 
-- **Arriba** el hueco doble separa la *mecánica* (radiación) de los *seis drops*,
-  que ya no caben espaciados.
+- **Arriba** el hueco separa las dos *mecánicas* (radiación e hidratación) de los
+  *seis drops*, que ya no caben espaciados.
 - **Abajo** los pares pegados son las dos cadenas de dos pasos —
   carbón→filtro y alga→lente — y las sueltas son de un solo paso.
 
@@ -335,8 +390,10 @@ forma fiable de comprobar una firma es `javap` sobre el jar remapeado, en
 | `Items.GRAY_STAINED_GLASS_PANE` | `Items.STAINED_GLASS_PANE.gray()` |
 | `ServerPlayer.getServer()` | `jugador.level().getServer()` |
 | `TooltipDisplay.DEFAULT.withHideTooltip()` | `new TooltipDisplay(true, new LinkedHashSet<>())` |
+| `Options.hideGui` | ya no existe: el F1 lo lleva el propio pipeline del HUD |
+| `LevelReader.getBiome(pos)` | sigue ahí, pero **no** en `Level`: está en `LevelReader` |
 
-Y cuatro cosas que solo se descubren mirando el bytecode:
+Y cinco cosas que solo se descubren mirando el bytecode:
 
 - Los modificadores de atributo de tipo `ADD_MULTIPLIED_TOTAL` **se multiplican
   entre sí** (`valor *= 1 + cantidad`), no se suman. Por eso la compensación de la
@@ -355,6 +412,19 @@ Y cuatro cosas que solo se descubren mirando el bytecode:
   calidad en negativo que al item, el total no se mueve y el porcentaje sube en
   línea recta con la suerte, sin la deriva que saldría si el denominador
   cambiara.
+- **Dónde pinta vanilla el HUD de abajo**, que es lo que hay que esquivar para
+  colocar cualquier medidor propio. Sale de `ContextualBar` y del HUD:
+
+  | Y | Qué hay |
+  |---|---|
+  | `guiHeight - 29` | arriba de la barra de experiencia |
+  | `guiHeight - 35` | el número de nivel, centrado |
+  | `guiHeight - 39` | la fila de corazones y muslos |
+  | `guiHeight - 49` | armadura (izquierda) y burbujas (derecha) |
+
+  Los corazones acaban en `centerX - 11` y los muslos empiezan en `centerX + 10`,
+  así que en el centro queda un **pasillo de unos 21 píxeles** libre de barras.
+  Es donde va la gota.
 
 ## Versiones
 
@@ -381,6 +451,8 @@ src/main/               código común (servidor + cliente)
 │   ├── config/AtalayaConfig        interruptores, persistidos en JSON
 │   ├── config/LibroRecetas         sincroniza el libro con los interruptores
 │   ├── effect/RadiacionEffect      el efecto registrado y su lentitud
+│   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
+│   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
 │   ├── item/AtalayaItems           items que no son armadura
 │   ├── item/AtalayaComponents      componentes de datos propios
 │   ├── item/HazmatArmor            las cuatro piezas y sus umbrales
@@ -400,6 +472,7 @@ src/client/             código SOLO de cliente
 ├── java/com/atalaya/
 │   ├── AtalayaClient.java          entrada de cliente
 │   ├── client/AvisoTrajeHud        el triángulo de aviso
+│   ├── client/HidratacionHud       la gota del desierto
 │   └── mixin/client/               visor translúcido
 └── resources/atalaya.client.mixins.json
 
