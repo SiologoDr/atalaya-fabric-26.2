@@ -1,10 +1,7 @@
-﻿{
-  "type": "minecraft:crafting_shapeless",
-  "category": "equipment",
-  "ingredients": [
-    "atalaya:colmillo",
-    "atalaya:veneno"
-  ],
+{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:colmillo",
+  "addition": "atalaya:veneno",
   "result": {
     "id": "atalaya:colmillo_venenoso"
   }

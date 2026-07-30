@@ -1,7 +1,7 @@
 {
   "type": "minecraft:smithing_transform",
   "base": "atalaya:hazmat_helmet",
-  "addition": "atalaya:cristal_pulido",
+  "addition": "atalaya:lente_mar",
   "result": {
     "id": "atalaya:hazmat_helmet",
     "components": {

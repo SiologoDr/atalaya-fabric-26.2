@@ -28,7 +28,7 @@ public class HazmatArmorItem extends Item {
 
     /** Cada mejora se nombra con el color de su item, para reconocerla de un vistazo. */
     private static final int VERDE_COLMILLO = 0x8CE05A;
-    private static final int AZUL_CRISTAL = 0x8CD8FF;
+    private static final int AZUL_LENTE = 0x8CD8FF;
     private static final int CANELA_PATA = 0xD9A86C;
 
     /** Gris claro para el "Mejora de": lo que destaca es el nombre del item. */
@@ -55,9 +55,9 @@ public class HazmatArmorItem extends Item {
         }
 
         boolean colmillo = HazmatArmor.esAntiveneno(pieza);
-        boolean cristal = HazmatArmor.tieneVisorExcelente(pieza);
+        boolean lente = HazmatArmor.tieneVisorExcelente(pieza);
         boolean pata = HazmatArmor.esAmortiguada(pieza);
-        if (!colmillo && !cristal && !pata) {
+        if (!colmillo && !lente && !pata) {
             return;
         }
 
@@ -67,8 +67,8 @@ public class HazmatArmorItem extends Item {
         if (colmillo) {
             salida.accept(mejora("item.atalaya.colmillo_venenoso", VERDE_COLMILLO));
         }
-        if (cristal) {
-            salida.accept(mejora("item.atalaya.cristal_pulido", AZUL_CRISTAL));
+        if (lente) {
+            salida.accept(mejora("item.atalaya.lente_mar", AZUL_LENTE));
         }
         if (pata) {
             salida.accept(mejora("item.atalaya.pata_ligera", CANELA_PATA));

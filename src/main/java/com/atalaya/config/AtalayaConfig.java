@@ -48,10 +48,14 @@ public final class AtalayaConfig {
     private boolean dropColmilloActivo = true;
     /** Que la arana de cueva suelte el veneno al morir. */
     private boolean dropVenenoActivo = true;
+    /** Que salga el espejo de mar al pescar. */
+    private boolean dropEspejoActivo = true;
     /** Cubre juntar colmillo y veneno Y montar la mejora en la herreria. */
     private boolean colmilloActivo = true;
-    /** Cubre craftear el cristal pulido Y su mejora en la herreria. */
-    private boolean cristalActivo = true;
+    /** Vitrificar el bloque de alga seca en el horno: la mitad dura de la lente. */
+    private boolean algaActiva = true;
+    /** Cubre montar la lente de mar Y su mejora del visor en la herreria. */
+    private boolean lenteActiva = true;
     /** Cubre craftear la pata ligera Y su mejora en la herreria. */
     private boolean pataActiva = true;
 
@@ -182,6 +186,15 @@ public final class AtalayaConfig {
         guardar();
     }
 
+    public boolean isDropEspejoActivo() {
+        return dropEspejoActivo;
+    }
+
+    public void setDropEspejoActivo(boolean valor) {
+        this.dropEspejoActivo = valor;
+        guardar();
+    }
+
     public boolean isColmilloActivo() {
         return colmilloActivo;
     }
@@ -191,12 +204,21 @@ public final class AtalayaConfig {
         guardar();
     }
 
-    public boolean isCristalActivo() {
-        return cristalActivo;
+    public boolean isAlgaActiva() {
+        return algaActiva;
     }
 
-    public void setCristalActivo(boolean valor) {
-        this.cristalActivo = valor;
+    public void setAlgaActiva(boolean valor) {
+        this.algaActiva = valor;
+        guardar();
+    }
+
+    public boolean isLenteActiva() {
+        return lenteActiva;
+    }
+
+    public void setLenteActiva(boolean valor) {
+        this.lenteActiva = valor;
         guardar();
     }
 
@@ -228,8 +250,15 @@ public final class AtalayaConfig {
         if (ruta.startsWith("antiveneno_") || ruta.equals("colmillo_venenoso")) {
             return colmilloActivo;
         }
-        if (ruta.equals("cristal_pulido") || ruta.startsWith("visor_")) {
-            return cristalActivo;
+        // La cadena de la lente va partida en sus dos pasos, igual que la del
+        // cartucho: se puede permitir vitrificar el alga pero no montar la
+        // lente, o al reves. El espejo no aparece aqui porque no es una receta:
+        // sale pescando, y lo corta dropEspejoActivo desde AtalayaLoot.
+        if (ruta.equals("alga_vitrificada")) {
+            return algaActiva;
+        }
+        if (ruta.equals("lente_mar") || ruta.startsWith("visor_")) {
+            return lenteActiva;
         }
         if (ruta.equals("pata_ligera") || ruta.startsWith("ligera_")) {
             return pataActiva;

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": "minecraft:dried_kelp_block",
+  "result": {
+    "id": "atalaya:alga_vitrificada"
+  },
+  "experience": 0.1,
+  "cookingtime": 200
+}

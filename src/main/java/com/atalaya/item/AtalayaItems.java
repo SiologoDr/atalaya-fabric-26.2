@@ -53,13 +53,36 @@ public final class AtalayaItems {
     public static Item COLMILLO_VENENOSO;
 
     /**
-     * Cristal pulido: vidrio trabajado con pedernal hasta dejarlo transparente.
+     * Espejo de mar: lo saca el jugador pescando.
      *
-     * Sustituye el visor ahumado del casco por uno claro, en la mesa de
-     * herreria. El nombre y la receta dicen lo mismo: el pedernal es el
-     * abrasivo con el que se pule.
+     * Es lo unico del mod que ni se fabrica ni lo suelta un mob al morir: hay
+     * que ir a buscarlo al agua. Ya viene con la superficie lisa; lo que le
+     * falta es aguante, y eso lo pone la alga vitrificada.
      */
-    public static Item CRISTAL_PULIDO;
+    public static Item ESPEJO_MAR;
+
+    /**
+     * Alga vitrificada: un bloque de alga seca llevado al horno hasta que
+     * vitrifica, que es lo que le pasa de verdad a la silice del alga cuando se
+     * calienta lo suficiente.
+     *
+     * Parte del BLOQUE y no del alga suelta por dos razones. La primera es
+     * tecnica: vanilla ya funde el alga suelta para secarla, y dos recetas de
+     * horno con la misma entrada se pisan, asi que solo una de las dos seria
+     * alcanzable. La segunda es de coste: nueve algas secas por unidad es lo
+     * que hace que valga algo al lado de un espejo que sale pescando.
+     */
+    public static Item ALGA_VITRIFICADA;
+
+    /**
+     * Lente de mar: el espejo templado con la alga vitrificada en la mesa de
+     * herreria.
+     *
+     * Sustituye el visor ahumado del casco por uno claro. Ninguna de las dos
+     * mitades sirve sola, igual que pasa con el colmillo venenoso: el espejo
+     * pone la superficie y el alga la dureza para aguantar montada en un casco.
+     */
+    public static Item LENTE_MAR;
 
     /**
      * Pata ligera: pata de conejo montada entre plumas y resina de slime.
@@ -144,7 +167,9 @@ public final class AtalayaItems {
         COLMILLO = registrar("colmillo", Item::new);
         VENENO = registrar("veneno", Item::new);
         COLMILLO_VENENOSO = registrar("colmillo_venenoso", Item::new);
-        CRISTAL_PULIDO = registrar("cristal_pulido", Item::new);
+        ESPEJO_MAR = registrar("espejo_mar", Item::new);
+        ALGA_VITRIFICADA = registrar("alga_vitrificada", Item::new);
+        LENTE_MAR = registrar("lente_mar", Item::new);
         PATA_LIGERA = registrar("pata_ligera", Item::new);
         LINGOTE_BLINDADO = registrar("lingote_blindado", Item::new);
         MIEL_CRISTALIZADA = registrar("miel_cristalizada", Item::new);
@@ -173,7 +198,8 @@ public final class AtalayaItems {
         return new Item[]{
                 CARBON_ACTIVADO, FILTRO_CARBON,
                 COLMILLO, VENENO, COLMILLO_VENENOSO,
-                CRISTAL_PULIDO, PATA_LIGERA, LINGOTE_BLINDADO,
+                ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
+                PATA_LIGERA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO
         };
     }

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:espejo_mar",
+  "addition": "atalaya:alga_vitrificada",
+  "result": {
+    "id": "atalaya:lente_mar"
+  }
+}

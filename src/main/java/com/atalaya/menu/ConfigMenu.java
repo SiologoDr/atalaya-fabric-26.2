@@ -35,11 +35,17 @@ public class ConfigMenu extends ChestMenu {
     // Fila de arriba: las MECANICAS del mundo.
     // El desgaste del traje NO tiene interruptor propio: solo ocurre mientras
     // hay radiacion, asi que apagar la radiacion ya lo apaga.
-    // La radiacion y los tres drops de mobs: todo lo que el MUNDO te da.
-    public static final int SLOT_RADIACION = 1;
-    public static final int SLOT_DROP_MIEL = 3;
-    public static final int SLOT_DROP_COLMILLO = 5;
-    public static final int SLOT_DROP_VENENO = 7;
+    // La radiacion, los tres drops de mobs y el espejo que sale pescando: todo
+    // lo que el MUNDO te da sin pasar por una receta.
+    //
+    // Van de dos en dos ocupando la fila entera (0 a 8). Antes eran cuatro en
+    // 1,3,5,7; al entrar el espejo, correrlos un hueco a la izquierda deja los
+    // cinco repartidos por igual en vez de dejar un cabo suelto al final.
+    public static final int SLOT_RADIACION = 0;
+    public static final int SLOT_DROP_MIEL = 2;
+    public static final int SLOT_DROP_COLMILLO = 4;
+    public static final int SLOT_DROP_VENENO = 6;
+    public static final int SLOT_DROP_ESPEJO = 8;
 
     // Fila de en medio: la CADENA DE FABRICACION del traje, en el mismo orden en
     // que la recorre el jugador. Cada paso tiene su interruptor, asi que se
@@ -50,15 +56,21 @@ public class ConfigMenu extends ChestMenu {
     public static final int SLOT_PLANTILLA = 14;
     public static final int SLOT_CRAFTEO = 16;
 
-    // Fila de abajo: los ITEMS y sus recetas. Van de dos en dos para que queden
-    // repartidos por toda la fila (slots 18 a 26).
+    // Fila de abajo: los ITEMS y sus recetas (slots 18 a 26).
     //
-    // Los dos primeros son la cadena del cartucho, separada en sus dos pasos:
-    // fundir el carbon y montar el filtro.
+    // Aqui NO van a huecos iguales como las otras dos filas: se agrupan por
+    // cadena, pegadas dentro del grupo y con un hueco entre grupos. Las dos
+    // cadenas de dos pasos quedan juntas (carbon -> filtro y alga -> lente) y
+    // las de un paso van sueltas, asi que el reparto ya cuenta que el segundo
+    // interruptor depende del primero sin tener que abrir el tooltip.
+    //
+    // Con seis interruptores ya no caben de dos en dos: la fila tiene nueve
+    // huecos y harian falta once.
     public static final int SLOT_CARBON = 18;
-    public static final int SLOT_FILTROS = 20;
-    public static final int SLOT_COLMILLO = 22;
-    public static final int SLOT_CRISTAL = 24;
+    public static final int SLOT_FILTROS = 19;
+    public static final int SLOT_ALGA = 21;
+    public static final int SLOT_LENTE = 22;
+    public static final int SLOT_COLMILLO = 24;
     public static final int SLOT_PATA = 26;
 
 
@@ -128,6 +140,13 @@ public class ConfigMenu extends ChestMenu {
                 "Solo la de cueva lo suelta: es la que envenena."
         ));
 
+        contenedor.setItem(SLOT_DROP_ESPEJO, interruptor(
+                new ItemStack(AtalayaItems.ESPEJO_MAR),
+                "Espejo de mar",
+                cfg.isDropEspejoActivo(),
+                "Sale al pescar, en cualquier agua."
+        ));
+
         // --- Fila de en medio: la cadena de fabricacion, en orden ---
         contenedor.setItem(SLOT_LINGOTE, interruptor(
                 new ItemStack(AtalayaItems.LINGOTE_BLINDADO),
@@ -172,18 +191,25 @@ public class ConfigMenu extends ChestMenu {
                 "Montar el cartucho que recarga el traje."
         ));
 
+        contenedor.setItem(SLOT_ALGA, interruptor(
+                new ItemStack(AtalayaItems.ALGA_VITRIFICADA),
+                "Alga vitrificada",
+                cfg.isAlgaActiva(),
+                "Fundir un bloque de alga seca hasta que vitrifica."
+        ));
+
+        contenedor.setItem(SLOT_LENTE, interruptor(
+                new ItemStack(AtalayaItems.LENTE_MAR),
+                "Lente de mar",
+                cfg.isLenteActiva(),
+                "Montar la lente y aplicarla al visor del casco."
+        ));
+
         contenedor.setItem(SLOT_COLMILLO, interruptor(
                 new ItemStack(AtalayaItems.COLMILLO_VENENOSO),
                 "Colmillo venenoso",
                 cfg.isColmilloActivo(),
                 "Juntar colmillo con veneno y montarlo en el traje."
-        ));
-
-        contenedor.setItem(SLOT_CRISTAL, interruptor(
-                new ItemStack(AtalayaItems.CRISTAL_PULIDO),
-                "Cristal pulido",
-                cfg.isCristalActivo(),
-                "Cubre su crafteo y la mejora del visor en la herreria."
         ));
 
         contenedor.setItem(SLOT_PATA, interruptor(
@@ -274,6 +300,10 @@ public class ConfigMenu extends ChestMenu {
                 cfg.setDropVenenoActivo(!cfg.isDropVenenoActivo());
                 avisar(jugador, "Veneno de arana de cueva", cfg.isDropVenenoActivo());
             }
+            case SLOT_DROP_ESPEJO -> {
+                cfg.setDropEspejoActivo(!cfg.isDropEspejoActivo());
+                avisar(jugador, "Espejo de mar", cfg.isDropEspejoActivo());
+            }
             case SLOT_LINGOTE -> {
                 cfg.setLingoteActivo(!cfg.isLingoteActivo());
                 avisar(jugador, "Lingote blindado", cfg.isLingoteActivo());
@@ -309,9 +339,14 @@ public class ConfigMenu extends ChestMenu {
                 avisar(jugador, "Colmillo venenoso", cfg.isColmilloActivo());
                 actualizarLibros(jugador);
             }
-            case SLOT_CRISTAL -> {
-                cfg.setCristalActivo(!cfg.isCristalActivo());
-                avisar(jugador, "Cristal pulido", cfg.isCristalActivo());
+            case SLOT_ALGA -> {
+                cfg.setAlgaActiva(!cfg.isAlgaActiva());
+                avisar(jugador, "Alga vitrificada", cfg.isAlgaActiva());
+                actualizarLibros(jugador);
+            }
+            case SLOT_LENTE -> {
+                cfg.setLenteActiva(!cfg.isLenteActiva());
+                avisar(jugador, "Lente de mar", cfg.isLenteActiva());
                 actualizarLibros(jugador);
             }
             case SLOT_PATA -> {
