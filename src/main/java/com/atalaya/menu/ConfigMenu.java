@@ -37,10 +37,11 @@ public class ConfigMenu extends ChestMenu {
     // hay radiacion, asi que apagar la radiacion ya lo apaga.
     //
     // Con seis drops ya no caben separados de dos en dos, asi que se apinan a
-    // la derecha y la radiacion se queda sola en el extremo izquierdo. El hueco
-    // doble del medio no es decorativo: separa la MECANICA de los DROPS, que es
-    // la unica division que de verdad hay en esta fila.
+    // la derecha y las MECANICAS se quedan juntas en el extremo izquierdo. El
+    // hueco del medio no es decorativo: separa las mecanicas de los drops, que
+    // es la unica division que de verdad hay en esta fila.
     public static final int SLOT_RADIACION = 0;
+    public static final int SLOT_HIDRATACION = 1;
     public static final int SLOT_DROP_MIEL = 3;
     public static final int SLOT_DROP_COLMILLO = 4;
     public static final int SLOT_DROP_VENENO = 5;
@@ -118,6 +119,13 @@ public class ConfigMenu extends ChestMenu {
                 "Radiacion de las geodas",
                 cfg.isRadiacionActiva(),
                 "Dana a quien se acerca a una amatista en gemacion."
+        ));
+
+        contenedor.setItem(SLOT_HIDRATACION, interruptor(
+                new ItemStack(Items.WATER_BUCKET),
+                "Hidratacion en el desierto",
+                cfg.isHidratacionActiva(),
+                "Gasta un punto cada 7 s dentro del desierto."
         ));
 
         contenedor.setItem(SLOT_DROP_MIEL, interruptor(
@@ -303,6 +311,10 @@ public class ConfigMenu extends ChestMenu {
                 avisar(jugador, "Radiacion", cfg.isRadiacionActiva());
             }
             // Los tres drops no tocan el libro de recetas: no son recetas.
+            case SLOT_HIDRATACION -> {
+                cfg.setHidratacionActiva(!cfg.isHidratacionActiva());
+                avisar(jugador, "Hidratacion", cfg.isHidratacionActiva());
+            }
             case SLOT_DROP_MIEL -> {
                 cfg.setDropMielActivo(!cfg.isDropMielActivo());
                 avisar(jugador, "Miel de las abejas", cfg.isDropMielActivo());

@@ -40,6 +40,8 @@ public final class AtalayaConfig {
     /** Cubre fabricar la plantilla de sellado Y duplicarla. */
     private boolean plantillaActiva = true;
     private boolean radiacionActiva = true;
+    /** Que la hidratacion baje en el desierto. Apagada, el nivel se congela. */
+    private boolean hidratacionActiva = true;
     /** Fundir carbon para obtener carbon activado, el relleno del cartucho. */
     private boolean carbonActivo = true;
     /** Montar el cartucho: carbon activado entre dos placas de hierro. */
@@ -151,6 +153,15 @@ public final class AtalayaConfig {
 
     public void setRadiacionActiva(boolean valor) {
         this.radiacionActiva = valor;
+        guardar();
+    }
+
+    public boolean isHidratacionActiva() {
+        return hidratacionActiva;
+    }
+
+    public void setHidratacionActiva(boolean valor) {
+        this.hidratacionActiva = valor;
         guardar();
     }
 

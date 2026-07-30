@@ -3,6 +3,8 @@ package com.atalaya;
 import com.atalaya.command.AtalayaCommand;
 import com.atalaya.config.LibroRecetas;
 import com.atalaya.effect.RadiacionEffect;
+import com.atalaya.hidratacion.Hidratacion;
+import com.atalaya.hidratacion.HidratacionManager;
 import com.atalaya.item.AtalayaComponents;
 import com.atalaya.item.AtalayaItems;
 import com.atalaya.item.HazmatArmor;
@@ -52,6 +54,7 @@ public class Atalaya implements ModInitializer {
         AtalayaItems.registrar();
         RadiacionEffect.registrar();
         AtalayaLoot.registrar();
+        Hidratacion.registrar();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
         // El tercer parametro de CHUNK_LOAD (recien generado o no) no nos importa:
@@ -70,8 +73,9 @@ public class Atalaya implements ModInitializer {
             }
         });
 
-        // La radiacion se aplica desde el tick del servidor.
+        // La radiacion y la hidratacion se aplican desde el tick del servidor.
         ServerTickEvents.END_SERVER_TICK.register(RadiationManager::tick);
+        ServerTickEvents.END_SERVER_TICK.register(HidratacionManager::tick);
 
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.
