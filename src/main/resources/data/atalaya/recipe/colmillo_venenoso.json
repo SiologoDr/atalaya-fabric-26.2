@@ -1,0 +1,11 @@
+﻿{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "atalaya:colmillo",
+    "atalaya:veneno"
+  ],
+  "result": {
+    "id": "atalaya:colmillo_venenoso"
+  }
+}

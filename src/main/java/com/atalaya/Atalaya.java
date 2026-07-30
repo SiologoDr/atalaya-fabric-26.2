@@ -6,7 +6,7 @@ import com.atalaya.effect.RadiacionEffect;
 import com.atalaya.item.AtalayaComponents;
 import com.atalaya.item.AtalayaItems;
 import com.atalaya.item.HazmatArmor;
-import com.atalaya.loot.ColmilloLoot;
+import com.atalaya.loot.AtalayaLoot;
 import com.atalaya.radiation.GeodeIndex;
 import com.atalaya.radiation.RadiationManager;
 import net.fabricmc.api.ModInitializer;
@@ -51,7 +51,7 @@ public class Atalaya implements ModInitializer {
         HazmatArmor.registrar();
         AtalayaItems.registrar();
         RadiacionEffect.registrar();
-        ColmilloLoot.registrar();
+        AtalayaLoot.registrar();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
         // El tercer parametro de CHUNK_LOAD (recien generado o no) no nos importa:

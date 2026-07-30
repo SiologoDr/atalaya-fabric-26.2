@@ -19,6 +19,9 @@ import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * Traje anti-radiacion (Hazmat): las cuatro piezas de armadura.
  *
@@ -38,7 +41,7 @@ public final class HazmatArmor {
     /** textures/misc/hazmat_visor.png */
     private static final Identifier VISOR = id("misc/hazmat_visor");
 
-    public static final ArmorMaterial MATERIAL = materialComoElHierro();
+    public static final ArmorMaterial MATERIAL = materialDelTraje();
 
     // La descripcion ya no se guarda aqui: la genera HazmatArmorItem al
     // mostrarla, leyendo los componentes de cada pieza.
@@ -70,22 +73,43 @@ public final class HazmatArmor {
             Registries.ITEM, Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "repara_hazmat"));
 
     /**
-     * Mismo material que el hierro (proteccion 2/6/5/2, dureza, encantabilidad)
-     * pero con NUESTRO aspecto y NUESTRO material de reparacion.
+     * Parte del hierro y sube la proteccion a 17 puntos.
      *
-     * Los valores se leen del material vanilla en vez de copiarlos a mano: si
-     * Mojang los cambia en una actualizacion, el traje los sigue solo.
+     * Se arranca del material vanilla en vez de escribir todos los valores a
+     * mano: asi la dureza, la encantabilidad y el sonido siguen a Mojang si los
+     * cambia, y solo queda explicito lo que de verdad decidimos nosotros.
      *
-     * Dos cosas se sustituyen a proposito:
+     * El reparto de los 17 puntos sube el torso y las piernas y deja casco y
+     * botas como el hierro. Es donde un traje sellado lleva mas material, y de
+     * paso el pantalon queda igual que el de diamante (6) y la pechera a medio
+     * camino entre hierro (6) y diamante (8).
+     *
+     * OJO: estos puntos NO protegen de la radiacion. El dano de radiacion es de
+     * tipo magico, que en vanilla esta en la etiqueta bypasses_armor, asi que
+     * ignora la armadura entera. Contra la radiacion solo cuenta cuantas piezas
+     * llevas puestas (ver REDUCCION por pieza en RadiacionEffect). Esta
+     * proteccion es para los golpes normales.
+     *
+     * Tres cosas se sustituyen a proposito:
      *   - el ingrediente de reparacion (etiqueta vacia: no se repara en yunque)
+     *   - la proteccion, repartida arriba
      *   - la durabilidad, que se iguala luego por pieza a {@link #DURABILIDAD};
      *     el valor que va aqui deja de usarse.
      */
-    private static ArmorMaterial materialComoElHierro() {
+    private static ArmorMaterial materialDelTraje() {
         ArmorMaterial hierro = ArmorMaterials.IRON;
+
+        // Copia del reparto del hierro (2/6/5/2 y el valor de montura) y se
+        // retocan solo las dos ranuras que suben. Copiar en vez de construir de
+        // cero deja intactas las ranuras que no nos interesan, y si Mojang anade
+        // alguna nueva la heredamos sola.
+        Map<ArmorType, Integer> defensa = new EnumMap<>(hierro.defense());
+        defensa.put(ArmorType.CHESTPLATE, 7);
+        defensa.put(ArmorType.LEGGINGS, 6);
+
         return new ArmorMaterial(
                 hierro.durability(),
-                hierro.defense(),
+                Map.copyOf(defensa),
                 hierro.enchantmentValue(),
                 hierro.equipSound(),
                 hierro.toughness(),
@@ -233,9 +257,15 @@ public final class HazmatArmor {
     /**
      * Durabilidad de CADA pieza, igual para las cuatro.
      *
-     * Los umbrales caen en numeros limpios: 30% = 60, 21.5% = 43, 20% = 40.
+     * Queda entre el casco de hierro (165) y la pechera (240), y bien por debajo
+     * del diamante (363 a 528): el traje clona casi la proteccion del hierro, no
+     * tendria sentido que aguantase mas que el diamante.
+     *
+     * Y cuadra con el filtro: desde el umbral en que la pieza deja de proteger
+     * lleva 200 puntos de dano encima, asi que DOS filtros de 100 la dejan
+     * exactamente nueva sin desperdiciar nada.
      */
-    public static final int DURABILIDAD = 200;
+    public static final int DURABILIDAD = 250;
 
     /** Por debajo de esta fraccion de durabilidad, la pieza deja de proteger. */
     public static final float UMBRAL_PROTECCION = 0.20f;

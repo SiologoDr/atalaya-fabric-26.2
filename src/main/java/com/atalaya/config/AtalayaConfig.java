@@ -29,11 +29,26 @@ public final class AtalayaConfig {
     private static AtalayaConfig instancia;
 
     // --- Interruptores ---
+    /** Solo la mejora en la mesa de herreria: hierro + lingote -> pieza hazmat. */
     private boolean crafteoHazmat = true;
+    /** Cubre craftear el lingote blindado, el material del traje. */
+    private boolean lingoteActivo = true;
+    /** Cubre craftear la miel cristalizada. */
+    private boolean mielActiva = true;
+    /** Cubre que las abejas suelten miel cristalizada al morir. */
+    private boolean dropMielActivo = true;
+    /** Cubre fabricar la plantilla de sellado Y duplicarla. */
+    private boolean plantillaActiva = true;
     private boolean radiacionActiva = true;
-    /** Cubre las dos: fundir carbon activado y craftear el filtro. */
+    /** Fundir carbon para obtener carbon activado, el relleno del cartucho. */
+    private boolean carbonActivo = true;
+    /** Montar el cartucho: carbon activado entre dos placas de hierro. */
     private boolean filtrosActivos = true;
-    /** Cubre el drop del colmillo Y su mejora en la herreria. */
+    /** Que la arana comun suelte el colmillo seco al morir. */
+    private boolean dropColmilloActivo = true;
+    /** Que la arana de cueva suelte el veneno al morir. */
+    private boolean dropVenenoActivo = true;
+    /** Cubre juntar colmillo y veneno Y montar la mejora en la herreria. */
     private boolean colmilloActivo = true;
     /** Cubre craftear el cristal pulido Y su mejora en la herreria. */
     private boolean cristalActivo = true;
@@ -86,6 +101,42 @@ public final class AtalayaConfig {
         guardar();
     }
 
+    public boolean isLingoteActivo() {
+        return lingoteActivo;
+    }
+
+    public void setLingoteActivo(boolean valor) {
+        this.lingoteActivo = valor;
+        guardar();
+    }
+
+    public boolean isMielActiva() {
+        return mielActiva;
+    }
+
+    public void setMielActiva(boolean valor) {
+        this.mielActiva = valor;
+        guardar();
+    }
+
+    public boolean isDropMielActivo() {
+        return dropMielActivo;
+    }
+
+    public void setDropMielActivo(boolean valor) {
+        this.dropMielActivo = valor;
+        guardar();
+    }
+
+    public boolean isPlantillaActiva() {
+        return plantillaActiva;
+    }
+
+    public void setPlantillaActiva(boolean valor) {
+        this.plantillaActiva = valor;
+        guardar();
+    }
+
     public boolean isRadiacionActiva() {
         return radiacionActiva;
     }
@@ -95,12 +146,39 @@ public final class AtalayaConfig {
         guardar();
     }
 
+    public boolean isCarbonActivo() {
+        return carbonActivo;
+    }
+
+    public void setCarbonActivo(boolean valor) {
+        this.carbonActivo = valor;
+        guardar();
+    }
+
     public boolean isFiltrosActivos() {
         return filtrosActivos;
     }
 
     public void setFiltrosActivos(boolean valor) {
         this.filtrosActivos = valor;
+        guardar();
+    }
+
+    public boolean isDropColmilloActivo() {
+        return dropColmilloActivo;
+    }
+
+    public void setDropColmilloActivo(boolean valor) {
+        this.dropColmilloActivo = valor;
+        guardar();
+    }
+
+    public boolean isDropVenenoActivo() {
+        return dropVenenoActivo;
+    }
+
+    public void setDropVenenoActivo(boolean valor) {
+        this.dropVenenoActivo = valor;
         guardar();
     }
 
@@ -144,9 +222,10 @@ public final class AtalayaConfig {
             return true;
         }
         String ruta = id.getPath();
-        // Las mejoras de herreria van con su item, no con el traje: apagar el
-        // colmillo apaga tanto su drop como su mejora.
-        if (ruta.startsWith("antiveneno_")) {
+        // Las mejoras de herreria van con su item, no con el traje. El colmillo
+        // venenoso cubre las dos cosas: juntar sus dos mitades y montarlo en la
+        // pieza. Los drops de la arana comun y la de cueva van aparte.
+        if (ruta.startsWith("antiveneno_") || ruta.equals("colmillo_venenoso")) {
             return colmilloActivo;
         }
         if (ruta.equals("cristal_pulido") || ruta.startsWith("visor_")) {
@@ -155,12 +234,29 @@ public final class AtalayaConfig {
         if (ruta.equals("pata_ligera") || ruta.startsWith("ligera_")) {
             return pataActiva;
         }
-        // El lingote va con el traje: es su materia prima y no sirve para nada
-        // mas, asi que apagar el crafteo del traje tiene que apagarlo tambien.
-        if (ruta.startsWith("hazmat_") || ruta.equals("lingote_blindado")) {
+        // Cada paso de la cadena del traje tiene su propio interruptor, asi que
+        // se puede cortar por donde interese: permitir los materiales pero
+        // bloquear la herreria, o al contrario.
+        if (ruta.equals("lingote_blindado")) {
+            return lingoteActivo;
+        }
+        if (ruta.equals("miel_cristalizada")) {
+            return mielActiva;
+        }
+        // Cubre la plantilla y su copia, que comparten prefijo.
+        if (ruta.startsWith("plantilla_sellado")) {
+            return plantillaActiva;
+        }
+        // Ya solo las cuatro recetas de herreria de las piezas.
+        if (ruta.startsWith("hazmat_")) {
             return crafteoHazmat;
         }
-        if (ruta.equals("carbon_activado") || ruta.equals("filtro_carbon")) {
+        // La cadena del cartucho va separada en sus dos pasos, igual que la del
+        // traje: se puede permitir fundir el carbon pero no montar el filtro.
+        if (ruta.equals("carbon_activado")) {
+            return carbonActivo;
+        }
+        if (ruta.equals("filtro_carbon")) {
             return filtrosActivos;
         }
         return true;

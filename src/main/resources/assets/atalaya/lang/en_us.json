@@ -5,9 +5,18 @@
   "item.atalaya.hazmat_boots": "Hazmat Boots",
 
   "item.atalaya.lingote_blindado": "Shielded Ingot",
+  "item.atalaya.miel_cristalizada": "Crystallized Honey",
+  "item.atalaya.plantilla_sellado": "Sealing Template",
+
+  "item.atalaya.plantilla_sellado.aplica_a": "Iron Armor",
+  "item.atalaya.plantilla_sellado.ingredientes": "Shielded Ingot",
+  "item.atalaya.plantilla_sellado.hueco_base": "Add iron armor piece",
+  "item.atalaya.plantilla_sellado.hueco_adicion": "Add shielded ingot",
 
   "item.atalaya.carbon_activado": "Activated Charcoal",
   "item.atalaya.filtro_carbon": "Carbon Filter",
+  "item.atalaya.colmillo": "Spider Fang",
+  "item.atalaya.veneno": "Spider Venom",
   "item.atalaya.colmillo_venenoso": "Venomous Fang",
   "item.atalaya.cristal_pulido": "Polished Glass",
   "item.atalaya.pata_ligera": "Nimble Paw",

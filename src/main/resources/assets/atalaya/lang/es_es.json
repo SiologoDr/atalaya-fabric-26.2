@@ -5,9 +5,18 @@
   "item.atalaya.hazmat_boots": "Botas de hazmat",
 
   "item.atalaya.lingote_blindado": "Lingote Blindado",
+  "item.atalaya.miel_cristalizada": "Miel Cristalizada",
+  "item.atalaya.plantilla_sellado": "Plantilla de Sellado",
+
+  "item.atalaya.plantilla_sellado.aplica_a": "Armadura de hierro",
+  "item.atalaya.plantilla_sellado.ingredientes": "Lingote Blindado",
+  "item.atalaya.plantilla_sellado.hueco_base": "Añade una pieza de armadura de hierro",
+  "item.atalaya.plantilla_sellado.hueco_adicion": "Añade un lingote blindado",
 
   "item.atalaya.carbon_activado": "Carbón activado",
   "item.atalaya.filtro_carbon": "Filtro de carbón",
+  "item.atalaya.colmillo": "Colmillo de Araña",
+  "item.atalaya.veneno": "Veneno de Araña",
   "item.atalaya.colmillo_venenoso": "Colmillo Venenoso",
   "item.atalaya.cristal_pulido": "Cristal Pulido",
   "item.atalaya.pata_ligera": "Pata Ligera",

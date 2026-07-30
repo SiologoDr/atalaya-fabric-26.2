@@ -1,0 +1,32 @@
+﻿{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "tiene_ingrediente": {
+      "conditions": {
+        "items": [
+          {
+            "items": "atalaya:miel_cristalizada"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "tiene_la_receta": {
+      "conditions": {
+        "recipe": "atalaya:plantilla_sellado"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "tiene_la_receta",
+      "tiene_ingrediente"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "atalaya:plantilla_sellado"
+    ]
+  }
+}

@@ -27,8 +27,9 @@ public class FiltroCarbonItem extends Item {
     /**
      * Durabilidad que devuelve un filtro. Un cartucho = una carga fija.
      *
-     * Es la mitad de la durabilidad de una pieza (200), asi que dos filtros la
-     * dejan como nueva sin desperdiciar nada.
+     * Cuadra con la pieza: cuando cae al umbral en que deja de proteger (20% de
+     * 250) lleva 200 puntos de dano, asi que DOS filtros la dejan exactamente
+     * nueva sin desperdiciar nada.
      */
     private static final int REPARACION = 100;
 

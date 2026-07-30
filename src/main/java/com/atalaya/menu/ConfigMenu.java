@@ -32,18 +32,34 @@ import java.util.List;
  */
 public class ConfigMenu extends ChestMenu {
 
-    // Fila de en medio: las MECANICAS del mundo.
+    // Fila de arriba: las MECANICAS del mundo.
     // El desgaste del traje NO tiene interruptor propio: solo ocurre mientras
     // hay radiacion, asi que apagar la radiacion ya lo apaga.
-    public static final int SLOT_RADIACION = 12;
-    public static final int SLOT_CRAFTEO = 14;
+    // La radiacion y los tres drops de mobs: todo lo que el MUNDO te da.
+    public static final int SLOT_RADIACION = 1;
+    public static final int SLOT_DROP_MIEL = 3;
+    public static final int SLOT_DROP_COLMILLO = 5;
+    public static final int SLOT_DROP_VENENO = 7;
+
+    // Fila de en medio: la CADENA DE FABRICACION del traje, en el mismo orden en
+    // que la recorre el jugador. Cada paso tiene su interruptor, asi que se
+    // puede cortar la cadena por donde se quiera: dejar la miel pero no la
+    // plantilla, o permitir los materiales pero bloquear la mesa de herreria.
+    public static final int SLOT_LINGOTE = 10;
+    public static final int SLOT_MIEL = 12;
+    public static final int SLOT_PLANTILLA = 14;
+    public static final int SLOT_CRAFTEO = 16;
 
     // Fila de abajo: los ITEMS y sus recetas. Van de dos en dos para que queden
-    // centrados en la fila (slots 18 a 26).
-    public static final int SLOT_FILTROS = 19;
-    public static final int SLOT_COLMILLO = 21;
-    public static final int SLOT_CRISTAL = 23;
-    public static final int SLOT_PATA = 25;
+    // repartidos por toda la fila (slots 18 a 26).
+    //
+    // Los dos primeros son la cadena del cartucho, separada en sus dos pasos:
+    // fundir el carbon y montar el filtro.
+    public static final int SLOT_CARBON = 18;
+    public static final int SLOT_FILTROS = 20;
+    public static final int SLOT_COLMILLO = 22;
+    public static final int SLOT_CRISTAL = 24;
+    public static final int SLOT_PATA = 26;
 
 
     /** Se construye una vez: los rellenos son todos iguales. */
@@ -83,7 +99,7 @@ public class ConfigMenu extends ChestMenu {
             contenedor.setItem(i, RELLENO.copy());
         }
 
-        // --- Fila de en medio: mecanicas ---
+        // --- Fila de arriba: mecanicas del mundo ---
         contenedor.setItem(SLOT_RADIACION, interruptor(
                 new ItemStack(Items.AMETHYST_CLUSTER),
                 "Radiacion de las geodas",
@@ -91,26 +107,76 @@ public class ConfigMenu extends ChestMenu {
                 "Dana a quien se acerca a una amatista en gemacion."
         ));
 
+        contenedor.setItem(SLOT_DROP_MIEL, interruptor(
+                new ItemStack(Items.BEE_SPAWN_EGG),
+                "Miel de las abejas",
+                cfg.isDropMielActivo(),
+                "Las abejas sueltan miel cristalizada al matarlas."
+        ));
+
+        contenedor.setItem(SLOT_DROP_COLMILLO, interruptor(
+                new ItemStack(AtalayaItems.COLMILLO),
+                "Colmillo de arana",
+                cfg.isDropColmilloActivo(),
+                "Las aranas comunes sueltan el colmillo seco."
+        ));
+
+        contenedor.setItem(SLOT_DROP_VENENO, interruptor(
+                new ItemStack(AtalayaItems.VENENO),
+                "Veneno de arana de cueva",
+                cfg.isDropVenenoActivo(),
+                "Solo la de cueva lo suelta: es la que envenena."
+        ));
+
+        // --- Fila de en medio: la cadena de fabricacion, en orden ---
+        contenedor.setItem(SLOT_LINGOTE, interruptor(
+                new ItemStack(AtalayaItems.LINGOTE_BLINDADO),
+                "Lingote blindado",
+                cfg.isLingoteActivo(),
+                "El material del traje: oro aleado con hierro."
+        ));
+
+        contenedor.setItem(SLOT_MIEL, interruptor(
+                new ItemStack(AtalayaItems.MIEL_CRISTALIZADA),
+                "Miel cristalizada",
+                cfg.isMielActiva(),
+                "La resina con la que se marcan las juntas."
+        ));
+
+        contenedor.setItem(SLOT_PLANTILLA, interruptor(
+                new ItemStack(AtalayaItems.PLANTILLA_SELLADO),
+                "Plantilla de sellado",
+                cfg.isPlantillaActiva(),
+                "Cubre fabricarla y duplicarla."
+        ));
+
         contenedor.setItem(SLOT_CRAFTEO, interruptor(
                 new ItemStack(HazmatArmor.CASCO),
-                "Crafteo del traje Hazmat",
+                "Traje en la mesa de herreria",
                 cfg.isCrafteoHazmat(),
-                "Permite fabricar el traje y verlo en el libro de recetas."
+                "Mejorar armadura de hierro para obtener el traje."
         ));
 
         // --- Fila de abajo: items y sus recetas ---
+        contenedor.setItem(SLOT_CARBON, interruptor(
+                new ItemStack(AtalayaItems.CARBON_ACTIVADO),
+                "Carbon activado",
+                cfg.isCarbonActivo(),
+                "Fundir carbon para obtener el relleno del cartucho."
+        ));
+
         contenedor.setItem(SLOT_FILTROS, interruptor(
                 new ItemStack(AtalayaItems.FILTRO_CARBON),
-                "Filtros de carbon",
+                "Filtro de carbon",
                 cfg.isFiltrosActivos(),
-                "Cubre fundir carbon activado y fabricar el filtro."
+                "Montar el cartucho que recarga el traje."
         ));
 
         contenedor.setItem(SLOT_COLMILLO, interruptor(
                 new ItemStack(AtalayaItems.COLMILLO_VENENOSO),
                 "Colmillo venenoso",
                 cfg.isColmilloActivo(),
-                "Cubre su drop en aranas y la mejora en la herreria."
+                "Juntar colmillo con veneno y montarlo en el traje."
         ));
 
         contenedor.setItem(SLOT_CRISTAL, interruptor(
@@ -195,14 +261,47 @@ public class ConfigMenu extends ChestMenu {
                 cfg.setRadiacionActiva(!cfg.isRadiacionActiva());
                 avisar(jugador, "Radiacion", cfg.isRadiacionActiva());
             }
+            // Los tres drops no tocan el libro de recetas: no son recetas.
+            case SLOT_DROP_MIEL -> {
+                cfg.setDropMielActivo(!cfg.isDropMielActivo());
+                avisar(jugador, "Miel de las abejas", cfg.isDropMielActivo());
+            }
+            case SLOT_DROP_COLMILLO -> {
+                cfg.setDropColmilloActivo(!cfg.isDropColmilloActivo());
+                avisar(jugador, "Colmillo de arana", cfg.isDropColmilloActivo());
+            }
+            case SLOT_DROP_VENENO -> {
+                cfg.setDropVenenoActivo(!cfg.isDropVenenoActivo());
+                avisar(jugador, "Veneno de arana de cueva", cfg.isDropVenenoActivo());
+            }
+            case SLOT_LINGOTE -> {
+                cfg.setLingoteActivo(!cfg.isLingoteActivo());
+                avisar(jugador, "Lingote blindado", cfg.isLingoteActivo());
+                actualizarLibros(jugador);
+            }
+            case SLOT_MIEL -> {
+                cfg.setMielActiva(!cfg.isMielActiva());
+                avisar(jugador, "Miel cristalizada", cfg.isMielActiva());
+                actualizarLibros(jugador);
+            }
+            case SLOT_PLANTILLA -> {
+                cfg.setPlantillaActiva(!cfg.isPlantillaActiva());
+                avisar(jugador, "Plantilla de sellado", cfg.isPlantillaActiva());
+                actualizarLibros(jugador);
+            }
             case SLOT_CRAFTEO -> {
                 cfg.setCrafteoHazmat(!cfg.isCrafteoHazmat());
-                avisar(jugador, "Crafteo Hazmat", cfg.isCrafteoHazmat());
+                avisar(jugador, "Traje en la herreria", cfg.isCrafteoHazmat());
+                actualizarLibros(jugador);
+            }
+            case SLOT_CARBON -> {
+                cfg.setCarbonActivo(!cfg.isCarbonActivo());
+                avisar(jugador, "Carbon activado", cfg.isCarbonActivo());
                 actualizarLibros(jugador);
             }
             case SLOT_FILTROS -> {
                 cfg.setFiltrosActivos(!cfg.isFiltrosActivos());
-                avisar(jugador, "Filtros de carbon", cfg.isFiltrosActivos());
+                avisar(jugador, "Filtro de carbon", cfg.isFiltrosActivos());
                 actualizarLibros(jugador);
             }
             case SLOT_COLMILLO -> {

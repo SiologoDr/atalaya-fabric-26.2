@@ -35,8 +35,15 @@ public class RadiacionEffect extends MobEffect {
     /** Color de las particulas y de la barra del efecto: lila amatista. */
     private static final int COLOR = 0xB980FF;
 
-    /** Fraccion de velocidad que resta cada nivel (nivel 1 = 10%). */
-    private static final double LENTITUD_POR_NIVEL = -0.10;
+    /**
+     * Fraccion de velocidad que resta cada nivel (nivel 1 = 15%).
+     *
+     * Al nivel 4 son 60 puntos, o sea tanto como una Lentitud IV de vanilla.
+     * Con el maximo de niveles no llega a 100, que es lo que importa: si algun
+     * dia se subiera hasta ahi, la compensacion de la pata ligera dividiria por
+     * cero. Por eso {@link #compensacionPorAmortiguacion} lo comprueba.
+     */
+    private static final double LENTITUD_POR_NIVEL = -0.15;
 
     public static final ResourceKey<MobEffect> CLAVE = ResourceKey.create(
             Registries.MOB_EFFECT,

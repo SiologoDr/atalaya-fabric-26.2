@@ -1,13 +1,17 @@
 package com.atalaya.item;
 
 import com.atalaya.Atalaya;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SmithingTemplateItem;
 
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -28,8 +32,19 @@ public final class AtalayaItems {
     /** Cartucho filtrante. Cambia el filtro del traje con click derecho. */
     public static Item FILTRO_CARBON;
 
+    /** Colmillo seco: lo suelta la arana comun. Por si solo no hace nada. */
+    public static Item COLMILLO;
+
+    /** Veneno: lo suelta la arana de cueva, la que si envenena al morder. */
+    public static Item VENENO;
+
     /**
-     * Colmillo venenoso: lo sueltan las aranas de cueva, raramente.
+     * Colmillo venenoso: el colmillo de una arana comun impregnado con el veneno
+     * de una de cueva.
+     *
+     * Hacen falta las dos aranas, que es lo que le da sentido: la comun tiene el
+     * colmillo pero no envenena, y la de cueva tiene la toxina. Ninguna de las
+     * dos por separado sirve.
      *
      * Se monta en una pieza del traje en la mesa de herreria para que filtre
      * toxinas. Tiene sentido quimico: los antivenenos se fabrican A PARTIR del
@@ -70,16 +85,80 @@ public final class AtalayaItems {
      */
     public static Item LINGOTE_BLINDADO;
 
+    /**
+     * Miel cristalizada: panal horneado hasta que la cera se vuelve resina dura.
+     *
+     * Sale del horno, que es justo lo que le pasa a la cera al calentarla: deja
+     * de ser blanda y queda un ambar que sella. Es el material con el que se
+     * marcan las juntas del traje.
+     */
+    public static Item MIEL_CRISTALIZADA;
+
+    /**
+     * Plantilla de sellado: la plantilla de herreria del traje.
+     *
+     * Lo dificil de un traje anti-radiacion no es el metal, son las juntas. El
+     * lingote blindado para la radiacion y la plantilla para todo lo demas; sin
+     * ella, el traje seria una armadura pesada con agujeros.
+     *
+     * Va sobre papel con respaldo de cuero, porque entra en la forja una y otra
+     * vez y el papel solo no aguantaria.
+     *
+     * Al ser un SmithingTemplateItem, la mesa de herreria dibuja las siluetas de
+     * lo que va en cada hueco y el tooltip explica a que se aplica. Eso resuelve
+     * un problema que el mod tenia: las recetas de herreria no salen en el libro
+     * de recetas, asi que nada le decia al jugador donde usar el lingote.
+     */
+    public static Item PLANTILLA_SELLADO;
+
     private AtalayaItems() {
+    }
+
+    // ------------------------------------------------------------------
+    //  Textos del patron en la mesa de herreria
+    // ------------------------------------------------------------------
+
+    /**
+     * Las etiquetas ("Se aplica a:", "Ingredientes:") las pone vanilla y vienen
+     * ya traducidas a todos los idiomas. Aqui solo van los valores.
+     *
+     * Los colores imitan a las plantillas de vanilla: azul en la ficha de
+     * arriba, gris en la explicacion de cada hueco.
+     */
+    private static Component azul(String clave) {
+        return Component.translatable(clave).withStyle(ChatFormatting.BLUE);
+    }
+
+    private static Component gris(String clave) {
+        return Component.translatable(clave).withStyle(ChatFormatting.GRAY);
+    }
+
+    /** Siluetas de los huecos vacios. Son sprites de vanilla: no hay que dibujar nada. */
+    private static Identifier sprite(String nombre) {
+        return Identifier.withDefaultNamespace("container/slot/" + nombre);
     }
 
     public static void registrar() {
         CARBON_ACTIVADO = registrar("carbon_activado", Item::new);
         FILTRO_CARBON = registrar("filtro_carbon", FiltroCarbonItem::new);
+        COLMILLO = registrar("colmillo", Item::new);
+        VENENO = registrar("veneno", Item::new);
         COLMILLO_VENENOSO = registrar("colmillo_venenoso", Item::new);
         CRISTAL_PULIDO = registrar("cristal_pulido", Item::new);
         PATA_LIGERA = registrar("pata_ligera", Item::new);
         LINGOTE_BLINDADO = registrar("lingote_blindado", Item::new);
+        MIEL_CRISTALIZADA = registrar("miel_cristalizada", Item::new);
+
+        PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
+                azul("item.atalaya.plantilla_sellado.aplica_a"),
+                azul("item.atalaya.plantilla_sellado.ingredientes"),
+                gris("item.atalaya.plantilla_sellado.hueco_base"),
+                gris("item.atalaya.plantilla_sellado.hueco_adicion"),
+                // Hueco de la izquierda: cualquier pieza de armadura de hierro.
+                List.of(sprite("helmet"), sprite("chestplate"), sprite("leggings"), sprite("boots")),
+                // Hueco de la derecha: el lingote.
+                List.of(sprite("ingot")),
+                props));
     }
 
     private static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
@@ -92,8 +171,10 @@ public final class AtalayaItems {
 
     public static Item[] todos() {
         return new Item[]{
-                CARBON_ACTIVADO, FILTRO_CARBON, COLMILLO_VENENOSO,
-                CRISTAL_PULIDO, PATA_LIGERA, LINGOTE_BLINDADO
+                CARBON_ACTIVADO, FILTRO_CARBON,
+                COLMILLO, VENENO, COLMILLO_VENENOSO,
+                CRISTAL_PULIDO, PATA_LIGERA, LINGOTE_BLINDADO,
+                MIEL_CRISTALIZADA, PLANTILLA_SELLADO
         };
     }
 }
