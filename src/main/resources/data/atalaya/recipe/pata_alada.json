@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": "atalaya:pata_ligera",
+  "addition": "atalaya:alon",
+  "result": {
+    "id": "atalaya:pata_alada"
+  }
+}

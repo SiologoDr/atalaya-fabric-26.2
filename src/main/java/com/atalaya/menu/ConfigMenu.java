@@ -32,20 +32,21 @@ import java.util.List;
  */
 public class ConfigMenu extends ChestMenu {
 
-    // Fila de arriba: las MECANICAS del mundo.
+    // Fila de arriba: todo lo que el MUNDO te da sin pasar por una receta.
     // El desgaste del traje NO tiene interruptor propio: solo ocurre mientras
     // hay radiacion, asi que apagar la radiacion ya lo apaga.
-    // La radiacion, los tres drops de mobs y el espejo que sale pescando: todo
-    // lo que el MUNDO te da sin pasar por una receta.
     //
-    // Van de dos en dos ocupando la fila entera (0 a 8). Antes eran cuatro en
-    // 1,3,5,7; al entrar el espejo, correrlos un hueco a la izquierda deja los
-    // cinco repartidos por igual en vez de dejar un cabo suelto al final.
+    // Con seis drops ya no caben separados de dos en dos, asi que se apinan a
+    // la derecha y la radiacion se queda sola en el extremo izquierdo. El hueco
+    // doble del medio no es decorativo: separa la MECANICA de los DROPS, que es
+    // la unica division que de verdad hay en esta fila.
     public static final int SLOT_RADIACION = 0;
-    public static final int SLOT_DROP_MIEL = 2;
+    public static final int SLOT_DROP_MIEL = 3;
     public static final int SLOT_DROP_COLMILLO = 4;
-    public static final int SLOT_DROP_VENENO = 6;
-    public static final int SLOT_DROP_ESPEJO = 8;
+    public static final int SLOT_DROP_VENENO = 5;
+    public static final int SLOT_DROP_ESPEJO = 6;
+    public static final int SLOT_DROP_PATA = 7;
+    public static final int SLOT_DROP_ALON = 8;
 
     // Fila de en medio: la CADENA DE FABRICACION del traje, en el mismo orden en
     // que la recorre el jugador. Cada paso tiene su interruptor, asi que se
@@ -71,7 +72,7 @@ public class ConfigMenu extends ChestMenu {
     public static final int SLOT_ALGA = 21;
     public static final int SLOT_LENTE = 22;
     public static final int SLOT_COLMILLO = 24;
-    public static final int SLOT_PATA = 26;
+    public static final int SLOT_PATA_ALADA = 26;
 
 
     /** Se construye una vez: los rellenos son todos iguales. */
@@ -147,6 +148,20 @@ public class ConfigMenu extends ChestMenu {
                 "Sale al pescar, en cualquier agua."
         ));
 
+        contenedor.setItem(SLOT_DROP_PATA, interruptor(
+                new ItemStack(AtalayaItems.PATA_LIGERA),
+                "Pata ligera",
+                cfg.isDropPataActivo(),
+                "Los conejos la sueltan al matarlos."
+        ));
+
+        contenedor.setItem(SLOT_DROP_ALON, interruptor(
+                new ItemStack(AtalayaItems.ALON),
+                "Alon",
+                cfg.isDropAlonActivo(),
+                "Los pollos lo sueltan al matarlos."
+        ));
+
         // --- Fila de en medio: la cadena de fabricacion, en orden ---
         contenedor.setItem(SLOT_LINGOTE, interruptor(
                 new ItemStack(AtalayaItems.LINGOTE_BLINDADO),
@@ -212,11 +227,11 @@ public class ConfigMenu extends ChestMenu {
                 "Juntar colmillo con veneno y montarlo en el traje."
         ));
 
-        contenedor.setItem(SLOT_PATA, interruptor(
-                new ItemStack(AtalayaItems.PATA_LIGERA),
-                "Pata ligera",
-                cfg.isPataActiva(),
-                "Cubre su crafteo y la mejora contra la lentitud."
+        contenedor.setItem(SLOT_PATA_ALADA, interruptor(
+                new ItemStack(AtalayaItems.PATA_ALADA),
+                "Pata alada",
+                cfg.isPataAladaActiva(),
+                "Juntar pata y alon, y montarlo contra la lentitud."
         ));
 
         // Empuja el cambio al cliente ya, sin esperar al barrido del siguiente tick.
@@ -304,6 +319,14 @@ public class ConfigMenu extends ChestMenu {
                 cfg.setDropEspejoActivo(!cfg.isDropEspejoActivo());
                 avisar(jugador, "Espejo de mar", cfg.isDropEspejoActivo());
             }
+            case SLOT_DROP_PATA -> {
+                cfg.setDropPataActivo(!cfg.isDropPataActivo());
+                avisar(jugador, "Pata ligera", cfg.isDropPataActivo());
+            }
+            case SLOT_DROP_ALON -> {
+                cfg.setDropAlonActivo(!cfg.isDropAlonActivo());
+                avisar(jugador, "Alon", cfg.isDropAlonActivo());
+            }
             case SLOT_LINGOTE -> {
                 cfg.setLingoteActivo(!cfg.isLingoteActivo());
                 avisar(jugador, "Lingote blindado", cfg.isLingoteActivo());
@@ -349,9 +372,9 @@ public class ConfigMenu extends ChestMenu {
                 avisar(jugador, "Lente de mar", cfg.isLenteActiva());
                 actualizarLibros(jugador);
             }
-            case SLOT_PATA -> {
-                cfg.setPataActiva(!cfg.isPataActiva());
-                avisar(jugador, "Pata ligera", cfg.isPataActiva());
+            case SLOT_PATA_ALADA -> {
+                cfg.setPataAladaActiva(!cfg.isPataAladaActiva());
+                avisar(jugador, "Pata alada", cfg.isPataAladaActiva());
                 actualizarLibros(jugador);
             }
             default -> {

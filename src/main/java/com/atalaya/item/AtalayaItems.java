@@ -85,14 +85,34 @@ public final class AtalayaItems {
     public static Item LENTE_MAR;
 
     /**
-     * Pata ligera: pata de conejo montada entre plumas y resina de slime.
+     * Pata ligera: la suelta el conejo al morir.
      *
-     * Se monta en una pieza del traje en la mesa de herreria y recorta la
-     * lentitud que impone la radiacion. Los tres ingredientes son los tres
-     * papeles de una junta amortiguada: el tendon que hace de muelle, la pluma
-     * que quita peso y la resina que absorbe el tiron.
+     * Es el muelle de la junta amortiguada: el tendon de un bicho que se pasa
+     * la vida saltando. Por si sola no hace nada, igual que el colmillo seco de
+     * la arana; hace falta juntarla con un {@link #ALON} en la herreria.
      */
     public static Item PATA_LIGERA;
+
+    /**
+     * Alon: el ala entera de un ave de corral. La suelta el pollo al morir.
+     *
+     * La otra mitad de la junta. Si la pata pone el muelle, el alon pone lo que
+     * al muelle le falta: una superficie que frene la caida en vez de
+     * devolverla entera.
+     */
+    public static Item ALON;
+
+    /**
+     * Pata alada: la pata ligera y el alon montados juntos en la herreria.
+     *
+     * Se monta en una pieza del traje y recorta la lentitud que impone la
+     * radiacion. Ninguna de las dos mitades sirve suelta, que es el mismo trato
+     * que tiene el colmillo venenoso: cada bicho aporta lo que de verdad tiene
+     * y hay que matar a los dos.
+     *
+     * El traje no deja de pesar: lo que se amortigua es el agarrotamiento.
+     */
+    public static Item PATA_ALADA;
 
     /**
      * Lingote blindado: oro aleado con hierro. Lo que convierte una armadura de
@@ -171,6 +191,8 @@ public final class AtalayaItems {
         ALGA_VITRIFICADA = registrar("alga_vitrificada", Item::new);
         LENTE_MAR = registrar("lente_mar", Item::new);
         PATA_LIGERA = registrar("pata_ligera", Item::new);
+        ALON = registrar("alon", Item::new);
+        PATA_ALADA = registrar("pata_alada", Item::new);
         LINGOTE_BLINDADO = registrar("lingote_blindado", Item::new);
         MIEL_CRISTALIZADA = registrar("miel_cristalizada", Item::new);
 
@@ -199,7 +221,7 @@ public final class AtalayaItems {
                 CARBON_ACTIVADO, FILTRO_CARBON,
                 COLMILLO, VENENO, COLMILLO_VENENOSO,
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
-                PATA_LIGERA, LINGOTE_BLINDADO,
+                PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO
         };
     }

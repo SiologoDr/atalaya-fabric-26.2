@@ -13,7 +13,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCon
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 /**
- * Los drops que el mod anade al botin de vanilla: tres mobs y la pesca.
+ * Los drops que el mod anade al botin de vanilla: cinco mobs y la pesca.
  *
  * No se reescribe ninguna tabla: a cada una se le engancha una piscina propia,
  * asi que siguen soltando lo suyo con normalidad y otros mods pueden anadir lo
@@ -34,6 +34,12 @@ public final class AtalayaLoot {
     private static final Identifier ABEJA =
             Identifier.withDefaultNamespace("entities/bee");
 
+    private static final Identifier CONEJO =
+            Identifier.withDefaultNamespace("entities/rabbit");
+
+    private static final Identifier POLLO =
+            Identifier.withDefaultNamespace("entities/chicken");
+
     /**
      * Tabla RAIZ de la pesca, no la de tesoro ni la de basura.
      *
@@ -51,9 +57,9 @@ public final class AtalayaLoot {
      * Probabilidad del colmillo en la arana comun.
      *
      * De referencia: el ojo de arana cae un 33% del tiempo, asi que el colmillo
-     * es notablemente mas raro (1 de cada 5 frente a 1 de cada 3).
+     * es bastante mas raro (algo menos de 1 de cada 6 frente a 1 de cada 3).
      */
-    private static final float PROB_COLMILLO = 0.20f;
+    private static final float PROB_COLMILLO = 0.15f;
 
     /**
      * Probabilidad del veneno en la arana de cueva.
@@ -61,11 +67,37 @@ public final class AtalayaLoot {
      * Va en la de cueva y no en la comun porque es la unica de las dos que
      * envenena al morder. El colmillo venenoso necesita las dos aranas, asi que
      * cada una aporta lo que de verdad tiene.
+     *
+     * Va igualada al colmillo a proposito: hacen falta los dos en la misma
+     * cantidad, asi que ninguno debe ser el cuello de botella del otro.
      */
-    private static final float PROB_VENENO = 0.20f;
+    private static final float PROB_VENENO = 0.15f;
 
     /** Probabilidad de la miel cristalizada en la abeja. */
-    private static final float PROB_MIEL = 0.20f;
+    private static final float PROB_MIEL = 0.15f;
+
+    /**
+     * Probabilidad de la pata ligera en el conejo.
+     *
+     * Por encima del alon porque el conejo es de lo mas escaso que hay: sale en
+     * desierto, pradera y nieve, en grupos pequenos, y huye en cuanto te ve.
+     * Encontrarlo ya es medio trabajo, asi que el drop no vuelve a cobrarte
+     * tanto por lo mismo.
+     *
+     * De referencia, vanilla le da un 10% a su pata de conejo. Esta es otra
+     * pieza y no la sustituye: el conejo puede soltar las dos.
+     */
+    private static final float PROB_PATA = 0.20f;
+
+    /**
+     * Probabilidad del alon en el pollo.
+     *
+     * La mas baja de todos los mobs, y justo al reves que el conejo: el pollo
+     * esta en todas partes y se cria solo, asi que aqui el freno tiene que
+     * estar en el drop y no en encontrarlo. Es el paso caro de la cadena de la
+     * amortiguacion, a proposito.
+     */
+    private static final float PROB_ALON = 0.05f;
 
     /**
      * Peso total de la piscina de la pesca.
@@ -123,6 +155,10 @@ public final class AtalayaLoot {
                 constructor.pool(piscina(AtalayaItems.VENENO, PROB_VENENO));
             } else if (ABEJA.equals(id)) {
                 constructor.pool(piscina(AtalayaItems.MIEL_CRISTALIZADA, PROB_MIEL));
+            } else if (CONEJO.equals(id)) {
+                constructor.pool(piscina(AtalayaItems.PATA_LIGERA, PROB_PATA));
+            } else if (POLLO.equals(id)) {
+                constructor.pool(piscina(AtalayaItems.ALON, PROB_ALON));
             } else if (PESCA.equals(id)) {
                 constructor.pool(piscinaDePesca());
             }
@@ -148,6 +184,12 @@ public final class AtalayaLoot {
             }
             if (!cfg.isDropEspejoActivo()) {
                 drops.removeIf(pila -> pila.is(AtalayaItems.ESPEJO_MAR));
+            }
+            if (!cfg.isDropPataActivo()) {
+                drops.removeIf(pila -> pila.is(AtalayaItems.PATA_LIGERA));
+            }
+            if (!cfg.isDropAlonActivo()) {
+                drops.removeIf(pila -> pila.is(AtalayaItems.ALON));
             }
         });
     }

@@ -1,7 +1,7 @@
 ﻿{
   "type": "minecraft:smithing_transform",
   "base": "atalaya:hazmat_leggings",
-  "addition": "atalaya:pata_ligera",
+  "addition": "atalaya:pata_alada",
   "result": {
     "id": "atalaya:hazmat_leggings",
     "components": {

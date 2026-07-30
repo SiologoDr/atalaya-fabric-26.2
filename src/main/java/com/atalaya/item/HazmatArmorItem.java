@@ -71,7 +71,7 @@ public class HazmatArmorItem extends Item {
             salida.accept(mejora("item.atalaya.lente_mar", AZUL_LENTE));
         }
         if (pata) {
-            salida.accept(mejora("item.atalaya.pata_ligera", CANELA_PATA));
+            salida.accept(mejora("item.atalaya.pata_alada", CANELA_PATA));
         }
     }
 

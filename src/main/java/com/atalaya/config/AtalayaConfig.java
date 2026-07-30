@@ -50,14 +50,18 @@ public final class AtalayaConfig {
     private boolean dropVenenoActivo = true;
     /** Que salga el espejo de mar al pescar. */
     private boolean dropEspejoActivo = true;
+    /** Que el conejo suelte la pata ligera al morir. */
+    private boolean dropPataActivo = true;
+    /** Que el pollo suelte el alon al morir. */
+    private boolean dropAlonActivo = true;
     /** Cubre juntar colmillo y veneno Y montar la mejora en la herreria. */
     private boolean colmilloActivo = true;
     /** Vitrificar el bloque de alga seca en el horno: la mitad dura de la lente. */
     private boolean algaActiva = true;
     /** Cubre montar la lente de mar Y su mejora del visor en la herreria. */
     private boolean lenteActiva = true;
-    /** Cubre craftear la pata ligera Y su mejora en la herreria. */
-    private boolean pataActiva = true;
+    /** Cubre montar la pata alada Y aplicarla al traje en la herreria. */
+    private boolean pataAladaActiva = true;
 
     public static AtalayaConfig get() {
         if (instancia == null) {
@@ -222,12 +226,30 @@ public final class AtalayaConfig {
         guardar();
     }
 
-    public boolean isPataActiva() {
-        return pataActiva;
+    public boolean isDropPataActivo() {
+        return dropPataActivo;
     }
 
-    public void setPataActiva(boolean valor) {
-        this.pataActiva = valor;
+    public void setDropPataActivo(boolean valor) {
+        this.dropPataActivo = valor;
+        guardar();
+    }
+
+    public boolean isDropAlonActivo() {
+        return dropAlonActivo;
+    }
+
+    public void setDropAlonActivo(boolean valor) {
+        this.dropAlonActivo = valor;
+        guardar();
+    }
+
+    public boolean isPataAladaActiva() {
+        return pataAladaActiva;
+    }
+
+    public void setPataAladaActiva(boolean valor) {
+        this.pataAladaActiva = valor;
         guardar();
     }
 
@@ -260,8 +282,11 @@ public final class AtalayaConfig {
         if (ruta.equals("lente_mar") || ruta.startsWith("visor_")) {
             return lenteActiva;
         }
-        if (ruta.equals("pata_ligera") || ruta.startsWith("ligera_")) {
-            return pataActiva;
+        // La pata ligera y el alon ya no se craftean: los sueltan el conejo y el
+        // pollo, y los cortan sus interruptores de drop desde AtalayaLoot. Aqui
+        // solo queda montar la pata alada y aplicarla a las piezas.
+        if (ruta.equals("pata_alada") || ruta.startsWith("ligera_")) {
+            return pataAladaActiva;
         }
         // Cada paso de la cadena del traje tiene su propio interruptor, asi que
         // se puede cortar por donde interese: permitir los materiales pero
