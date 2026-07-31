@@ -3,13 +3,18 @@ package com.atalaya.item;
 import com.atalaya.Atalaya;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SmithingTemplateItem;
+import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.component.UseRemainder;
 
 import java.util.List;
 import java.util.function.Function;
@@ -31,6 +36,15 @@ public final class AtalayaItems {
 
     /** Cartucho filtrante. Cambia el filtro del traje con click derecho. */
     public static Item FILTRO_CARBON;
+
+    /**
+     * Agua purificada: una botella de agua hervida, al fuego o al horno.
+     *
+     * Es la unica cura de la sed del desierto. Hervirla es literalmente como se
+     * potabiliza el agua de verdad, asi que la receta vuelve a ser el proceso y
+     * no hay nada que memorizar, igual que pasa con el carbon activado.
+     */
+    public static Item AGUA_PURIFICADA;
 
     /** Colmillo seco: lo suelta la arana comun. Por si solo no hace nada. */
     public static Item COLMILLO;
@@ -184,6 +198,17 @@ public final class AtalayaItems {
     public static void registrar() {
         CARBON_ACTIVADO = registrar("carbon_activado", Item::new);
         FILTRO_CARBON = registrar("filtro_carbon", FiltroCarbonItem::new);
+        // Todo lo de beber va aqui, en los componentes, y no dentro del item:
+        // asi es como lo monta vanilla con la miel y las pociones.
+        //   stacksTo(1)     como la botella de agua de la que sale. Cargar
+        //                   agua ocupa sitio, que es parte de la mecanica.
+        //   CONSUMABLE      animacion de beber, sonido de trago y particulas.
+        //   USE_REMAINDER   devuelve la botella vacia al terminar.
+        AGUA_PURIFICADA = registrar("agua_purificada", props -> new AguaPurificadaItem(
+                props.stacksTo(1)
+                        .component(DataComponents.CONSUMABLE, Consumables.DEFAULT_DRINK)
+                        .component(DataComponents.USE_REMAINDER,
+                                new UseRemainder(new ItemStackTemplate(Items.GLASS_BOTTLE)))));
         COLMILLO = registrar("colmillo", Item::new);
         VENENO = registrar("veneno", Item::new);
         COLMILLO_VENENOSO = registrar("colmillo_venenoso", Item::new);
@@ -218,7 +243,7 @@ public final class AtalayaItems {
 
     public static Item[] todos() {
         return new Item[]{
-                CARBON_ACTIVADO, FILTRO_CARBON,
+                CARBON_ACTIVADO, FILTRO_CARBON, AGUA_PURIFICADA,
                 COLMILLO, VENENO, COLMILLO_VENENOSO,
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,

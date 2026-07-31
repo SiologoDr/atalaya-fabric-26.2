@@ -66,14 +66,17 @@ public class ConfigMenu extends ChestMenu {
     // las de un paso van sueltas, asi que el reparto ya cuenta que el segundo
     // interruptor depende del primero sin tener que abrir el tooltip.
     //
-    // Con seis interruptores ya no caben de dos en dos: la fila tiene nueve
-    // huecos y harian falta once.
+    // Con SIETE ya no hay huecos para aislar los cuatro grupos: nueve ranuras
+    // solo dan para dos separadores. Se gastan en apartar el agua purificada,
+    // que es de otra mecanica (la sed) y no pinta nada con el traje, y en
+    // dejar sola la cadena del cartucho. Los cuatro del medio se juntan.
     public static final int SLOT_CARBON = 18;
     public static final int SLOT_FILTROS = 19;
     public static final int SLOT_ALGA = 21;
     public static final int SLOT_LENTE = 22;
-    public static final int SLOT_COLMILLO = 24;
-    public static final int SLOT_PATA_ALADA = 26;
+    public static final int SLOT_COLMILLO = 23;
+    public static final int SLOT_PATA_ALADA = 24;
+    public static final int SLOT_AGUA = 26;
 
 
     /** Se construye una vez: los rellenos son todos iguales. */
@@ -242,6 +245,13 @@ public class ConfigMenu extends ChestMenu {
                 "Juntar pata y alon, y montarlo contra la lentitud."
         ));
 
+        contenedor.setItem(SLOT_AGUA, interruptor(
+                new ItemStack(AtalayaItems.AGUA_PURIFICADA),
+                "Agua purificada",
+                cfg.isAguaActiva(),
+                "Hervir una botella de agua, al horno o a la fogata."
+        ));
+
         // Empuja el cambio al cliente ya, sin esperar al barrido del siguiente tick.
         broadcastChanges();
     }
@@ -387,6 +397,11 @@ public class ConfigMenu extends ChestMenu {
             case SLOT_PATA_ALADA -> {
                 cfg.setPataAladaActiva(!cfg.isPataAladaActiva());
                 avisar(jugador, "Pata alada", cfg.isPataAladaActiva());
+                actualizarLibros(jugador);
+            }
+            case SLOT_AGUA -> {
+                cfg.setAguaActiva(!cfg.isAguaActiva());
+                avisar(jugador, "Agua purificada", cfg.isAguaActiva());
                 actualizarLibros(jugador);
             }
             default -> {

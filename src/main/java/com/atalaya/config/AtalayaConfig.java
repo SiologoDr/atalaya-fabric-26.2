@@ -42,6 +42,8 @@ public final class AtalayaConfig {
     private boolean radiacionActiva = true;
     /** Que la hidratacion baje en el desierto. Apagada, el nivel se congela. */
     private boolean hidratacionActiva = true;
+    /** Hervir la botella de agua, tanto al horno como a la fogata. */
+    private boolean aguaActiva = true;
     /** Fundir carbon para obtener carbon activado, el relleno del cartucho. */
     private boolean carbonActivo = true;
     /** Montar el cartucho: carbon activado entre dos placas de hierro. */
@@ -162,6 +164,15 @@ public final class AtalayaConfig {
 
     public void setHidratacionActiva(boolean valor) {
         this.hidratacionActiva = valor;
+        guardar();
+    }
+
+    public boolean isAguaActiva() {
+        return aguaActiva;
+    }
+
+    public void setAguaActiva(boolean valor) {
+        this.aguaActiva = valor;
         guardar();
     }
 
@@ -315,6 +326,12 @@ public final class AtalayaConfig {
         // Ya solo las cuatro recetas de herreria de las piezas.
         if (ruta.startsWith("hazmat_")) {
             return crafteoHazmat;
+        }
+        // El agua purificada va aparte de la sed que cura, asi que se puede
+        // abrir el desierto antes que su remedio, o al reves. Cubre las dos
+        // recetas, horno y fogata, que comparten prefijo.
+        if (ruta.startsWith("agua_purificada")) {
+            return aguaActiva;
         }
         // La cadena del cartucho va separada en sus dos pasos, igual que la del
         // traje: se puede permitir fundir el carbon pero no montar el filtro.
