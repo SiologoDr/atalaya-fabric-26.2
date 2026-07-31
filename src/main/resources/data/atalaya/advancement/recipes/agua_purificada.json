@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "tiene_ingrediente": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:potion"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "tiene_la_receta": {
+      "conditions": {
+        "recipe": "atalaya:agua_purificada"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "tiene_la_receta",
+      "tiene_ingrediente"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "atalaya:agua_purificada",
+      "atalaya:agua_purificada_fogata"
+    ]
+  }
+}
