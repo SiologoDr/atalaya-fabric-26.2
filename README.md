@@ -13,8 +13,8 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
 > Traje Hazmat completo, radiación como efecto propio registrado, tres mejoras de
-> herrería, hidratación en el desierto y un menú de configuración con 18
-> interruptores.
+> herrería, hidratación en el desierto con su agua purificada, y un menú de
+> configuración con 19 interruptores.
 
 ---
 
@@ -232,8 +232,32 @@ Y **no choca con el triángulo del traje**: son dos elementos de HUD distintos,
 cada uno con su registro, y viven en sitios opuestos de la pantalla — el aviso
 pegado a la esquina inferior derecha y la gota centrada.
 
-> Falta lo que pase al llegar a cero, y el item que rellena. Ahora mismo se
-> queda en cero y ya.
+### Agua Purificada
+
+Lo que rellena el depósito. Se hace **hirviendo una botella de agua**, en horno o
+en fogata:
+
+```
+Botella de agua  --(horno o fogata)-->  Agua Purificada
+```
+
+Cada botella devuelve **20 puntos**, así que cinco llenan el depósito vacío y
+cada una son **2 min 20 s** más de desierto.
+
+Se bebe con la animación de siempre y deja la botella vacía, porque el item lleva
+los componentes `CONSUMABLE` y `USE_REMAINDER` de vanilla: el trago, el sonido,
+las partículas y el vidrio devuelto salen solos.
+
+A diferencia del filtro —que se usa de golpe, porque hay que poder cambiarlo con
+la radiación encima— esta **sí hace esperar**: beber en mitad del desierto no es
+una urgencia. Y con el depósito lleno no se bebe siquiera: el uso se corta antes
+de empezar la animación, para no tirar una botella a la basura.
+
+> La receta acepta **solo la botella de agua**, no cualquier poción. Distinguirlas
+> exige un ingrediente por componentes (`fabric:components`), porque todas las
+> pociones son el mismo item y solo se diferencian en su contenido.
+
+> Falta lo que pase al llegar a cero. Ahora mismo se queda en cero y ya.
 
 ---
 
@@ -250,12 +274,12 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-El menú son 18 interruptores en tres filas, agrupados por lo que hacen:
+El menú son 19 interruptores en tres filas, agrupados por lo que hacen:
 
 ```
 [Radiación][Hidratación][ ][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]   el MUNDO
 [ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]                         el TRAJE
-[Carbón][Filtro][ ][Alga][Lente][ ][C.Venenoso][ ][P.Alada]                 ITEMS
+[Carbón][Filtro][ ][Alga][Lente][C.Venenoso][P.Alada][ ][Agua]              ITEMS
 ```
 
 El reparto de cada fila dice algo:
@@ -263,7 +287,9 @@ El reparto de cada fila dice algo:
 - **Arriba** el hueco separa las dos *mecánicas* (radiación e hidratación) de los
   *seis drops*, que ya no caben espaciados.
 - **Abajo** los pares pegados son las dos cadenas de dos pasos —
-  carbón→filtro y alga→lente — y las sueltas son de un solo paso.
+  carbón→filtro y alga→lente — y las sueltas son de un solo paso. Con siete
+  interruptores solo quedan dos separadores, y se gastan en aislar la cadena del
+  cartucho y en apartar el agua purificada, que es de la sed y no del traje.
 
 Cada cadena está partida en sus pasos, así que puedes permitir el material y
 bloquear la herrería, o al contrario. Apagar una receta **también la quita del
@@ -393,6 +419,18 @@ forma fiable de comprobar una firma es `javap` sobre el jar remapeado, en
 | `Options.hideGui` | ya no existe: el F1 lo lleva el propio pipeline del HUD |
 | `LevelReader.getBiome(pos)` | sigue ahí, pero **no** en `Level`: está en `LevelReader` |
 
+Aparte, **una receta no puede pedir "una botella de agua" sin más**: todas las
+pociones son el mismo item y solo se distinguen por su componente de contenido.
+Hay que usar un ingrediente por componentes, que aporta Fabric:
+
+```json
+"ingredient": {
+  "fabric:type": "fabric:components",
+  "base": "minecraft:potion",
+  "components": { "minecraft:potion_contents": { "potion": "minecraft:water" } }
+}
+```
+
 Y cinco cosas que solo se descubren mirando el bytecode:
 
 - Los modificadores de atributo de tipo `ADD_MULTIPLIED_TOTAL` **se multiplican
@@ -457,7 +495,8 @@ src/main/               código común (servidor + cliente)
 │   ├── item/AtalayaComponents      componentes de datos propios
 │   ├── item/HazmatArmor            las cuatro piezas y sus umbrales
 │   ├── item/HazmatArmorItem        tooltip generado al mostrarse
-│   ├── item/FiltroCarbonItem       recarga con clic derecho
+│   ├── item/FiltroCarbonItem       recarga el traje con clic derecho
+│   ├── item/AguaPurificadaItem     se bebe y devuelve hidratación
 │   ├── loot/AtalayaLoot            los cinco drops de mobs y el de la pesca
 │   ├── menu/ConfigMenu             el panel de interruptores
 │   ├── mixin/                      BlockItem, PoisonMobEffect, RecipeManager
@@ -503,7 +542,11 @@ Pensado para un servidor con aforo alto (~100 jugadores):
   corta en cuanto encuentra algo lo bastante próximo.
 - **El efecto solo se reenvía** cuando cambia de nivel o va a caducar, no cada
   segundo.
-- **El aviso del HUD es del cliente**: al servidor no le cuesta nada.
+- **La hidratación reparte igual**, y ahí el reparto sale gratis: como cada
+  jugador debe perder un punto cada 140 ticks, el intervalo del reparto *es* ese
+  mismo número. Una vuelta por jugador, un punto, sin contadores propios ni un
+  pico con todo el servidor a la vez.
+- **Los dos medidores del HUD son del cliente**: al servidor no le cuestan nada.
 
 ## Jugar de verdad (no desarrollo)
 
