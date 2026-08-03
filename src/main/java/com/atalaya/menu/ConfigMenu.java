@@ -124,11 +124,14 @@ public class ConfigMenu extends ChestMenu {
                 "Dana a quien se acerca a una amatista en gemacion."
         ));
 
+        // Arbusto muerto: dice "aqui no hay agua" mejor que un cubo lleno, y va
+        // en la misma linea que la amatista de la radiacion, que tambien es la
+        // causa y no el remedio.
         contenedor.setItem(SLOT_HIDRATACION, interruptor(
-                new ItemStack(Items.WATER_BUCKET),
+                new ItemStack(Items.DEAD_BUSH),
                 "Hidratacion en el desierto",
                 cfg.isHidratacionActiva(),
-                "Gasta un punto cada 7 s dentro del desierto."
+                "Gasta un punto al sol, e insola al quedarte seco."
         ));
 
         contenedor.setItem(SLOT_DROP_MIEL, interruptor(

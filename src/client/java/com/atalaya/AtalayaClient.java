@@ -2,6 +2,7 @@ package com.atalaya;
 
 import com.atalaya.client.AvisoTrajeHud;
 import com.atalaya.client.HidratacionHud;
+import com.atalaya.client.InsolacionHud;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -35,6 +36,15 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.EXPERIENCE_LEVEL,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "hidratacion"),
                 new HidratacionHud());
+
+        // El halo de calor va ANTES de la hotbar, al contrario que los otros
+        // dos: es un velo a pantalla completa, asi que tiene que quedar por
+        // DEBAJO de todo lo demas del HUD. Si no, teniria los corazones y la
+        // barra de experiencia de naranja.
+        HudElementRegistry.attachElementBefore(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "insolacion"),
+                new InsolacionHud());
 
         Atalaya.LOGGER.info("Atalaya (cliente) iniciado.");
     }

@@ -1,6 +1,7 @@
 package com.atalaya.client;
 
 import com.atalaya.Atalaya;
+import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.hidratacion.Hidratacion;
 import com.atalaya.hidratacion.HidratacionManager;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
@@ -47,7 +48,21 @@ public class HidratacionHud implements HudElement {
     private static final Identifier TEXTURA =
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/hidratacion.png");
 
+    /**
+     * Flecha que avisa de que el nivel esta cayendo ahora mismo.
+     *
+     * Lleva el borde negro dibujado en la propia textura. Como el tinte
+     * MULTIPLICA, el negro se queda negro con cualquier color: la misma imagen
+     * sirve para el rojo y para lo que se le quiera poner luego.
+     */
+    private static final Identifier FLECHA =
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/flecha_baja.png");
+
     private static final int TAM = 16;
+    private static final int TAM_FLECHA = 10;
+
+    /** Rojo de aviso, el mismo tono que usa el traje cuando va critico. */
+    private static final int ROJO = 0xFFFF5555;
 
     /**
      * La gota NO llena el lienzo: mide 9x12 y ocupa de la fila 2 a la 13, con
@@ -95,8 +110,29 @@ public class HidratacionHud implements HudElement {
         if (jugador == null) {
             return;
         }
-        if (!HidratacionManager.enDesierto(jugador)) {
-            return; // fuera del desierto no se gasta, asi que no se ensena
+        // Con la mecanica apagada no se dibuja nada, aunque el jugador conserve
+        // puntos de una partida anterior. El dato lo manda el servidor, porque
+        // en red el cliente no ve su configuracion.
+        if (!Hidratacion.activa(jugador)) {
+            return;
+        }
+
+        // Se ensena en dos casos: dentro del desierto, donde el nivel puede
+        // bajar, y con la insolacion encima, donde te esta afectando aunque
+        // estes fuera.
+        //
+        // Lo segundo hace falta porque la insolacion depende de los puntos y no
+        // del bioma: quien sale de la arena seco se la lleva puesta, y ocultarle
+        // el medidor seria dejarlo a ciegas justo cuando mas le importa.
+        //
+        // Y NO basta con "has perdido algo de agua". Entre 100 y 50 puntos no
+        // hay ningun castigo, asi que fuera del desierto ese medidor solo seria
+        // un adorno ocupando pantalla. Aparece cuando empieza a importar.
+        boolean interesa = HidratacionManager.enDesierto(jugador)
+                || (InsolacionEffect.INSOLACION != null
+                    && jugador.hasEffect(InsolacionEffect.INSOLACION));
+        if (!interesa) {
+            return;
         }
 
         float fraccion = Hidratacion.fraccion(jugador);
@@ -116,6 +152,21 @@ public class HidratacionHud implements HudElement {
             int desde = GOTA_ARRIBA + (GOTA_ALTO - lleno);
             grafico.blit(RenderPipelines.GUI_TEXTURED, TEXTURA,
                     x, y + desde, 0f, desde, TAM, lleno, TAM, TAM, AGUA);
+        }
+
+        // Flecha roja mientras el nivel esta CAYENDO de verdad.
+        //
+        // Distingue lo que la gota sola no puede: que estes seco no es lo mismo
+        // que estar secandote. A la sombra o de noche el medidor se queda
+        // quieto, y sin este aviso el jugador no sabria si le vale con esperar
+        // o tiene que buscar agua ya.
+        //
+        // La condicion se calcula aqui en el cliente: bioma, cielo y hora son
+        // datos que ya tiene, asi que no hay que mandarle nada.
+        if (HidratacionManager.bajoElSol(jugador)) {
+            grafico.blit(RenderPipelines.GUI_TEXTURED, FLECHA,
+                    x + TAM - 2, y + GOTA_ARRIBA, 0f, 0f,
+                    TAM_FLECHA, TAM_FLECHA, TAM_FLECHA, TAM_FLECHA, ROJO);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.atalaya;
 
 import com.atalaya.command.AtalayaCommand;
 import com.atalaya.config.LibroRecetas;
+import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.effect.RadiacionEffect;
 import com.atalaya.hidratacion.Hidratacion;
 import com.atalaya.hidratacion.HidratacionManager;
@@ -53,6 +54,7 @@ public class Atalaya implements ModInitializer {
         HazmatArmor.registrar();
         AtalayaItems.registrar();
         RadiacionEffect.registrar();
+        InsolacionEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
 
@@ -76,6 +78,10 @@ public class Atalaya implements ModInitializer {
         // La radiacion y la hidratacion se aplican desde el tick del servidor.
         ServerTickEvents.END_SERVER_TICK.register(RadiationManager::tick);
         ServerTickEvents.END_SERVER_TICK.register(HidratacionManager::tick);
+        // La insolacion va en su propio bucle: se revisa mucho mas seguido que
+        // el gasto de agua, porque de ella dependen el dano y el alivio al
+        // salir del desierto.
+        ServerTickEvents.END_SERVER_TICK.register(HidratacionManager::tickInsolacion);
 
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.
