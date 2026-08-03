@@ -12,9 +12,10 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 > operador desde el menú, así que se pueden anunciar como evento.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
-> Traje Hazmat completo, radiación como efecto propio registrado, tres mejoras de
-> herrería, hidratación en el desierto con su agua purificada, y un menú de
-> configuración con 19 interruptores.
+> Traje Hazmat completo, tres mejoras de herrería, y **dos efectos propios
+> registrados**: radiación en las geodas e insolación en el desierto, esta última
+> con su hidratación y su agua purificada. Todo bajo un menú de configuración con
+> 19 interruptores.
 
 ---
 
@@ -188,40 +189,70 @@ mano: ~27 arañas, ~27 arañas de cueva, ~27 abejas, ~20 conejos, ~80 pollos y
 La segunda mecánica, y la primera que no tiene nada que ver con la radiación:
 **el desierto deshidrata**.
 
-Cada jugador lleva **100 puntos** de hidratación. Dentro de un bioma de desierto
-pierde **uno cada 7 segundos**, así que el depósito lleno da para **11 min 40 s**
-de arena bajo los pies.
+Cada jugador lleva **50 puntos** de hidratación y pierde **uno cada 7 segundos**,
+así que el depósito lleno da para **5 min 50 s** de sol seguido.
 
-Puesto al lado de lo que ya había:
+### Solo baja al sol
+
+Hacen falta **tres condiciones a la vez** para que el nivel caiga:
+
+1. Estar en un bioma de **desierto**
+2. Tener el **cielo despejado** encima
+3. Que sea **de día** y no esté lloviendo
+
+El cielo se mira **desde los ojos y no desde los pies**, así que un bloque a la
+altura de la cabeza ya da sombra: es lo que espera quien se cobija.
+
+Lo de "de día" cubre también la lluvia y la tormenta, con dos comprobaciones
+separadas — la precipitación por un lado y la oscuridad del cielo por otro,
+porque la lluvia normal no oscurece lo suficiente para detectarla solo por brillo.
+
+De aquí sale gratis una consecuencia que vale la pena: **cruzar el desierto de
+noche o por la sombra pasa a ser la forma correcta de hacerlo**, que es lo que se
+hace en un desierto real. El juego lo premia sin explicarlo en ningún sitio.
+
+Comparado con lo que ya había:
 
 | | Aguanta |
 |---|---|
 | Traje Hazmat, geoda nivel 1 | 6,7 min |
 | Traje Hazmat, geoda nivel 3 y 4 | 1,7 min |
-| Hidratación en el desierto | 11,7 min |
-
-Es más largo a propósito: a una geoda entras a hacer algo y sales, pero un
-desierto se **atraviesa**.
+| Hidratación al sol | 5,8 min |
 
 ### No se reinicia
 
-Fuera del desierto el nivel **se congela**: ni baja ni se rellena. Si sales de la
-arena con 74, al volver sigues con 74, hayan pasado dos minutos o dos días. Se
+Fuera del sol el nivel **se congela**: ni baja ni se rellena. Si te metes a la
+sombra con 37, al salir sigues con 37, hayan pasado dos minutos o dos días. Se
 guarda pegado al jugador, así que aguanta desconexiones y reinicios del servidor.
 
-Al morir vuelve a 100, como la comida y la vida. Sin eso, reaparecer seco sería
-volver a morir.
+Al morir vuelve al máximo, como la comida y la vida. Sin eso, reaparecer seco
+sería volver a morir.
 
 Quien no lo tenga aún entra con el depósito lleno, así que activar la mecánica en
 un mundo en marcha no deja a nadie tirado.
 
 ### El medidor
 
-Una gota celeste centrada, encima del número de experiencia, que **solo aparece
-dentro del desierto** — fuera no se gasta, así que no ocupa pantalla.
+Una gota celeste centrada, encima del número de experiencia, con una **flecha roja
+al lado mientras el nivel está cayendo**.
 
-Se vacía de arriba abajo. Son 12 píxeles de alto para 100 puntos, o sea que cada
-píxel vale unos 8: informa de un vistazo, no al detalle.
+La flecha distingue lo que la gota sola no puede: **estar seco no es lo mismo que
+estarse secando**. A la sombra el medidor se queda quieto, y sin ese aviso el
+jugador no sabría si le vale con esperar o tiene que buscar agua ya.
+
+Se ve en dos casos: **dentro del desierto**, donde puede bajar, y **con la
+insolación encima**, donde afecta aunque estés fuera. No basta con "has perdido
+algo de agua": por encima de la mitad del depósito no hay castigo, así que fuera
+del desierto ese medidor solo sería un adorno.
+
+Con la mecánica apagada no se dibuja nada.
+
+> El cliente **no ve la configuración del servidor**: si el HUD la leyera por su
+> cuenta, en una partida en red cada jugador leería la suya propia. Por eso el
+> interruptor viaja al cliente como dato del jugador, y solo cuando cambia.
+
+Se vacía de arriba abajo. Son 12 píxeles de alto para 50 puntos, o sea que cada
+píxel vale unos 4: informa de un vistazo, no al detalle.
 
 > El **degradado no lo pinta el código**. El relleno de la textura es una rampa
 > de gris, y como el tinte multiplica, pintarla de un solo celeste conserva la
@@ -241,8 +272,8 @@ en fogata:
 Botella de agua  --(horno o fogata)-->  Agua Purificada
 ```
 
-Cada botella devuelve **20 puntos**, así que cinco llenan el depósito vacío y
-cada una son **2 min 20 s** más de desierto.
+Cada botella devuelve **10 puntos**, así que cinco llenan el depósito vacío y
+cada una son **1 min 10 s** más de sol.
 
 Se bebe con la animación de siempre y deja la botella vacía, porque el item lleva
 los componentes `CONSUMABLE` y `USE_REMAINDER` de vanilla: el trago, el sonido,
@@ -257,7 +288,76 @@ de empezar la animación, para no tirar una botella a la basura.
 > exige un ingrediente por componentes (`fabric:components`), porque todas las
 > pociones son el mismo item y solo se diferencian en su contenido.
 
-> Falta lo que pase al llegar a cero. Ahora mismo se queda en cero y ya.
+---
+
+## Insolación
+
+Lo que pasa cuando el depósito baja. Es un efecto registrado propio
+(`atalaya:insolacion`), con su icono y su color.
+
+Solo tiene **dos escalones**: uno que avisa y otro que mata. Con un depósito de 50
+puntos, más tramos habrían quedado tan cortos que no se distinguirían.
+
+| Nivel | Puntos | Llega a los | Qué hace |
+|---|---|---|---|
+| **I** | 25 o menos | 2 min 55 s | minería, ataque, movimiento y fuerza **−25 %**; hambre al doble; la vista falla |
+| **II** | 0 | 5 min 50 s | lo mismo **+ 1 corazón cada 2 s** |
+
+En el nivel II se muere en **20 segundos** desde vida llena. El daño va como
+inanición y no como sequedad porque `starve` está en la etiqueta
+`bypasses_armor` y `dry_out` no: morirse de sed con la armadura puesta tiene que
+doler igual.
+
+### Depende de los puntos, no del sol
+
+Esta es la diferencia importante con la hidratación. **El sol decide si pierdes
+agua; los puntos deciden lo mal que estás.** Meterte a la sombra deja de secarte,
+pero no te rehidrata, así que la insolación sigue ahí —de noche, bajo techo y
+fuera del desierto— hasta que bebas.
+
+### La vista
+
+Dos cosas a la vez, gobernadas por un solo número de la tabla:
+
+- Un **halo naranja** que cierra la pantalla por los bordes
+- Un **mareo suave**, al 35 % del de vanilla
+
+Lo segundo tiene truco. La náusea de vanilla tiene **una sola intensidad**: el
+amplificador no la toca, o la pones entera o no la pones, y entera marea de verdad
+a bastante gente. Pero esa intensidad no la decide el efecto sino
+`getEffectBlendFactor`, que devuelve un 0 a 1 y es lo que consultan el
+renderizador y el propio efecto.
+
+Así que la insolación **no aplica la náusea de vanilla**: un mixin de cliente
+intercepta ese número y le dice al renderizador que hay un mareo leve. Ventajas:
+se gradúa a voluntad, no aparece un icono de Náusea que no viene a cuento, y si el
+jugador tiene un mareo auténtico se queda el más fuerte de los dos.
+
+### La tabla
+
+Todos los castigos viven en un bloque, en `InsolacionEffect`:
+
+```
+              minería  ataque  movim.  fuerza  hambre  visión  daño
+  nivel 0:      0.00    0.00    0.00    0.00    0.0f    0.0f   0.0f
+  nivel 1:     -0.25   -0.25   -0.25   -0.25    0.1f    0.5f   0.0f
+  nivel 2:     -0.25   -0.25   -0.25   -0.25    0.1f    0.5f   2.0f
+```
+
+Cada fila es **el total del nivel**, no lo que añade sobre el anterior. Sale más
+largo, pero deja ver la progresión entera de un vistazo y permite aflojar un
+castigo en un escalón concreto sin arrastrar a los demás. No cuesta más: el
+manager toca los mismos atributos en todos los niveles, poniendo cero donde no hay
+castigo.
+
+La fuerza va en **fracción** y no en valor absoluto como la Debilidad de vanilla,
+para que el castigo pese lo mismo con la mano vacía que con una espada de
+netherita.
+
+> Los castigos no van dentro del efecto. Los modificadores de un `MobEffect`
+> escalan de forma lineal sobre *un mismo* atributo, y aquí cada escalón toca
+> atributos distintos. El registro sirve para el icono, el nombre y la barra; el
+> reparto lo hace quien conoce los puntos exactos.
 
 ---
 
@@ -266,6 +366,7 @@ de empezar la animación, para no tirar una botella a la basura.
 | Comando | Permiso | Qué hace |
 |---|---|---|
 | `/atalaya menu` | Operador | Abre el panel de configuración |
+| `/atalaya hidratacion <0-50>` | Operador | Fija tu hidratación. Para probar: llegar al nivel 2 esperando al sol son casi seis minutos |
 
 El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña de
 **Combate** en creativo. Los materiales están en **Ingredientes**.
@@ -431,6 +532,19 @@ Hay que usar un ingrediente por componentes, que aporta Fabric:
 }
 ```
 
+Y tres trampas de dibujado que costaron una sesión cada una:
+
+- **`blit` corto repite la textura en mosaico.** La firma corta usa el ancho de
+  dibujo *también* como región de origen, así que pedir 850 píxeles de una textura
+  de 256 la repite en vez de agrandarla. Para estirar hace falta la variante que
+  separa el tamaño de dibujo de la región de origen.
+- **El HUD estira con vecino más cercano**, así que una textura pequeña a pantalla
+  completa se ve a bloques. La viñeta es de 256 por eso.
+- **Vanilla hace parpadear el icono de todo efecto a punto de caducar.** Un efecto
+  que se renueva cada dos segundos con poca cuerda parpadea sin parar aunque nunca
+  se vaya. Hay que darle duración de sobra y renovarlo antes de entrar en esa
+  franja.
+
 Y cinco cosas que solo se descubren mirando el bytecode:
 
 - Los modificadores de atributo de tipo `ADD_MULTIPLIED_TOTAL` **se multiplican
@@ -489,6 +603,7 @@ src/main/               código común (servidor + cliente)
 │   ├── config/AtalayaConfig        interruptores, persistidos en JSON
 │   ├── config/LibroRecetas         sincroniza el libro con los interruptores
 │   ├── effect/RadiacionEffect      el efecto registrado y su lentitud
+│   ├── effect/InsolacionEffect     el efecto y su tabla de escalones
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
 │   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
 │   ├── item/AtalayaItems           items que no son armadura
@@ -511,8 +626,9 @@ src/client/             código SOLO de cliente
 ├── java/com/atalaya/
 │   ├── AtalayaClient.java          entrada de cliente
 │   ├── client/AvisoTrajeHud        el triángulo de aviso
-│   ├── client/HidratacionHud       la gota del desierto
-│   └── mixin/client/               visor translúcido
+│   ├── client/HidratacionHud       la gota y la flecha
+│   ├── client/InsolacionHud        el halo de calor
+│   └── mixin/client/               visor translúcido y mareo suave
 └── resources/atalaya.client.mixins.json
 
 materiales/             plantillas de diseño de texturas (no van al jar)
@@ -546,6 +662,11 @@ Pensado para un servidor con aforo alto (~100 jugadores):
   jugador debe perder un punto cada 140 ticks, el intervalo del reparto *es* ese
   mismo número. Una vuelta por jugador, un punto, sin contadores propios ni un
   pico con todo el servidor a la vez.
+- **La insolación lleva su propio bucle**, más rápido (40 ticks), porque de ella
+  dependen cosas que se tienen que notar al momento. Y ese intervalo *es* el del
+  daño: como cada jugador se procesa una vez por vuelta, el golpe cae solo cada
+  2 s sin llevar ningún contador.
+- **El interruptor solo se manda al cliente cuando cambia**, no cada vuelta.
 - **Los dos medidores del HUD son del cliente**: al servidor no le cuestan nada.
 
 ## Jugar de verdad (no desarrollo)

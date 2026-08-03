@@ -29,11 +29,11 @@ public class AguaPurificadaItem extends Item {
     /**
      * Puntos que devuelve cada botella.
      *
-     * Veinte de cien, o sea que cinco botellas llenan el deposito vacio. Y como
-     * se pierde un punto cada siete segundos, cada botella son 2 min 20 s mas
-     * de desierto.
+     * Diez de cincuenta, o sea que cinco botellas llenan el deposito vacio. Y
+     * como se pierde un punto cada siete segundos, cada botella son 1 min 10 s
+     * mas de sol.
      */
-    private static final int RESTAURA = 20;
+    private static final int RESTAURA = 10;
 
     public AguaPurificadaItem(Properties propiedades) {
         super(propiedades);

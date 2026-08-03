@@ -34,13 +34,14 @@ import net.minecraft.world.entity.player.Player;
 public final class Hidratacion {
 
     /** Deposito lleno. Tambien es con lo que entra quien no la tenga aun. */
-    public static final int MAXIMO = 100;
+    public static final int MAXIMO = 50;
 
     /**
      * Cada cuantos ticks se pierde un punto dentro del desierto.
      *
-     * 140 ticks son 7 segundos, asi que el deposito lleno da para 700 segundos
-     * de desierto: unos 11 minutos y medio de exposicion continua.
+     * 140 ticks son 7 segundos, asi que el deposito lleno da para 350 segundos
+     * de sol: unos 5 minutos y 50 segundos de exposicion continua. La mitad
+     * llega a los 2:55, que es cuando empieza a doler.
      */
     public static final int TICKS_POR_PUNTO = 140;
 
@@ -49,6 +50,18 @@ public final class Hidratacion {
      * {@link com.atalaya.Atalaya#onInitialize()}.
      */
     public static AttachmentType<Integer> NIVEL;
+
+    /**
+     * Si la mecanica esta encendida en la configuracion.
+     *
+     * Existe SOLO para que el cliente pueda decidir si dibuja el medidor. La
+     * configuracion vive en el servidor, y en una partida en red el cliente no
+     * la ve: leerla por su cuenta le daria la suya propia, que no tiene nada que
+     * ver. Asi que el servidor se la cuenta.
+     *
+     * No es persistente: sale de la configuracion, que ya se guarda por su lado.
+     */
+    public static AttachmentType<Boolean> ACTIVA;
 
     private Hidratacion() {
     }
@@ -62,6 +75,17 @@ public final class Hidratacion {
                 // vida, y evita el bucle de reaparecer seco y volver a morir.
                 .syncWith(ByteBufCodecs.VAR_INT, AttachmentSyncPredicate.targetOnly())
                 .buildAndRegister(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "hidratacion"));
+
+        ACTIVA = AttachmentRegistry.<Boolean>builder()
+                // Sin persistent: se recalcula desde la configuracion al vuelo.
+                .initializer(() -> Boolean.TRUE)
+                .syncWith(ByteBufCodecs.BOOL, AttachmentSyncPredicate.targetOnly())
+                .buildAndRegister(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "hidratacion_activa"));
+    }
+
+    /** Si la mecanica esta encendida. Lo pone el servidor, lo lee el HUD. */
+    public static boolean activa(Player jugador) {
+        return jugador.getAttachedOrCreate(ACTIVA);
     }
 
     /** Cuanta hidratacion le queda, de 0 a {@link #MAXIMO}. */
