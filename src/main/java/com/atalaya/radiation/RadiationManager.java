@@ -42,7 +42,22 @@ public final class RadiationManager {
      * El efecto dura mas que el intervalo a proposito: asi no parpadea el icono
      * entre una comprobacion y la siguiente.
      */
-    private static final int DURACION_TICKS = INTERVALO_TICKS + 40;
+    private static final int DURACION_TICKS = 600;
+
+    /**
+     * Por debajo de esta cuerda se renueva.
+     *
+     * Los dos numeros salen de un detalle de vanilla: el HUD desvanece el icono
+     * de cualquier efecto al que le queden 200 ticks o menos
+     * ({@code Hud} llama a {@code endsWithin(200)}). Antes la cuerda era de 60
+     * ticks, o sea que estaba SIEMPRE por debajo del umbral y el icono no paraba
+     * de parpadear aunque el efecto se renovara sin cortes.
+     *
+     * Renovando en 400 sobre una cuerda de 600, el efecto nunca baja de 400 y
+     * quedan 200 ticks de margen: aunque el reparto por ranuras se salte varias
+     * vueltas seguidas, no llega a parpadear.
+     */
+    private static final int RENOVAR_BAJO = 400;
 
     /**
      * false = marco normal de efecto (como Absorcion). true = marco "ambient",
@@ -90,11 +105,10 @@ public final class RadiationManager {
 
     private static void procesar(ServerPlayer jugador) {
         aplicarRadiacion(jugador);
-        // Va DESPUES y siempre, incluso para quien esta fuera de alcance: el
-        // efecto dura mas que el intervalo, asi que sigue activo unos segundos
-        // despues de salir de la geoda y la compensacion tiene que acompanarlo
-        // hasta que se apague. Si se hiciera solo dentro del alcance, al salir
-        // te quedarias con la lentitud entera y sin la mejora.
+        // Va DESPUES y siempre, incluso para quien esta fuera de alcance: es lo
+        // que RETIRA la compensacion a quien acaba de salir de la geoda. Si solo
+        // se llamara dentro del alcance, el modificador de velocidad se quedaria
+        // colgado para siempre al salir.
         ajustarAmortiguacion(jugador);
     }
 
@@ -135,6 +149,7 @@ public final class RadiationManager {
     private static void aplicarRadiacion(ServerPlayer jugador) {
         // Creativo y espectador son inmunes.
         if (jugador.isCreative() || jugador.isSpectator()) {
+            jugador.removeEffect(RadiacionEffect.RADIACION);
             return;
         }
 
@@ -142,7 +157,12 @@ public final class RadiationManager {
         double distancia = GeodeIndex.distanciaMasCercana(
                 nivel, jugador.position(), DISTANCIA_MAXIMA, DISTANCIA_NIVEL_MAX);
         if (distancia < 0) {
-            return; // fuera de alcance: el efecto se agota solo
+            // Fuera de alcance se retira A MANO, no se deja caducar. La cuerda
+            // es larga a proposito para que el icono no parpadee, asi que
+            // esperar a que se agote dejaria la radiacion puesta medio minuto
+            // despues de haber salido de la geoda.
+            jugador.removeEffect(RadiacionEffect.RADIACION);
+            return;
         }
 
         int amplificador = nivelPorDistancia(distancia) - 1;
@@ -153,7 +173,7 @@ public final class RadiationManager {
         MobEffectInstance actual = jugador.getEffect(RadiacionEffect.RADIACION);
         if (actual != null
                 && actual.getAmplifier() == amplificador
-                && actual.getDuration() > INTERVALO_TICKS + 10) {
+                && actual.getDuration() > RENOVAR_BAJO) {
             return;
         }
 

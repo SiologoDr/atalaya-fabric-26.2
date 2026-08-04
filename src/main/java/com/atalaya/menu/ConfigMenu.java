@@ -36,12 +36,13 @@ public class ConfigMenu extends ChestMenu {
     // El desgaste del traje NO tiene interruptor propio: solo ocurre mientras
     // hay radiacion, asi que apagar la radiacion ya lo apaga.
     //
-    // Con seis drops ya no caben separados de dos en dos, asi que se apinan a
-    // la derecha y las MECANICAS se quedan juntas en el extremo izquierdo. El
-    // hueco del medio no es decorativo: separa las mecanicas de los drops, que
-    // es la unica division que de verdad hay en esta fila.
+    // Con TRES mecanicas y seis drops la fila queda justa: nueve interruptores
+    // en nueve ranuras, sin hueco separador. La division se sigue leyendo
+    // igual porque las mecanicas van juntas a la izquierda y los drops juntos a
+    // la derecha, y sus iconos no se parecen en nada.
     public static final int SLOT_RADIACION = 0;
     public static final int SLOT_HIDRATACION = 1;
+    public static final int SLOT_CORROSION = 2;
     public static final int SLOT_DROP_MIEL = 3;
     public static final int SLOT_DROP_COLMILLO = 4;
     public static final int SLOT_DROP_VENENO = 5;
@@ -132,6 +133,18 @@ public class ConfigMenu extends ChestMenu {
                 "Hidratacion en el desierto",
                 cfg.isHidratacionActiva(),
                 "Gasta un punto al sol, e insola al quedarte seco."
+        ));
+
+        // Cobre oxidado: metal ya comido, y del mismo verde que el icono del
+        // efecto. Como la amatista y el arbusto, ensena la CAUSA y no el remedio.
+        //
+        // En 26.2 el cobre ya no tiene una constante por estado: los cuatro
+        // viven en una WeatheringCopperCollection y se piden por su nombre.
+        contenedor.setItem(SLOT_CORROSION, interruptor(
+                new ItemStack(Items.COPPER_BLOCK.weathering().oxidized()),
+                "Lluvia corrosiva",
+                cfg.isCorrosionActiva(),
+                "Funde cualquier armadura en 15 s a la intemperie."
         ));
 
         contenedor.setItem(SLOT_DROP_MIEL, interruptor(
@@ -327,6 +340,10 @@ public class ConfigMenu extends ChestMenu {
             case SLOT_HIDRATACION -> {
                 cfg.setHidratacionActiva(!cfg.isHidratacionActiva());
                 avisar(jugador, "Hidratacion", cfg.isHidratacionActiva());
+            }
+            case SLOT_CORROSION -> {
+                cfg.setCorrosionActiva(!cfg.isCorrosionActiva());
+                avisar(jugador, "Lluvia corrosiva", cfg.isCorrosionActiva());
             }
             case SLOT_DROP_MIEL -> {
                 cfg.setDropMielActivo(!cfg.isDropMielActivo());

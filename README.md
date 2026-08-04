@@ -11,11 +11,14 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 > pequeño — aparece el peligro, aparece la herramienta. Las fases las abre un
 > operador desde el menú, así que se pueden anunciar como evento.
 
+> ¿Vas a dibujar una textura? Empieza por **[DISEÑO.md](DISEÑO.md)**: proporciones,
+> rampas de color y sombreado, para que lo nuevo parezca del mismo mod.
+
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
-> Traje Hazmat completo, tres mejoras de herrería, y **dos efectos propios
-> registrados**: radiación en las geodas e insolación en el desierto, esta última
-> con su hidratación y su agua purificada. Todo bajo un menú de configuración con
-> 19 interruptores.
+> Traje Hazmat completo, tres mejoras de herrería, y **tres efectos propios
+> registrados**: radiación en las geodas, insolación en el desierto —con su
+> hidratación y su agua purificada— y corrosión bajo la lluvia. Todo bajo un menú
+> de configuración con 20 interruptores.
 
 ---
 
@@ -361,6 +364,58 @@ netherita.
 
 ---
 
+## Lluvia corrosiva
+
+La tercera mecánica: **mojarse cuesta la armadura**. Un efecto propio registrado
+(`atalaya:corrosion`) que se come cualquier pieza puesta.
+
+### Funde igual el cuero que la netherita
+
+Quince segundos a la intemperie **derriten una pieza entera**, sin importar de
+qué esté hecha:
+
+| Pieza | Durabilidad | Pierde por segundo | Aguanta |
+|---|---|---|---|
+| Botas de cuero | 65 | 5 | 13 s |
+| Casco de oro | 77 | 6 | 13 s |
+| Pechera de hierro | 240 | 16 | 15 s |
+| Pieza Hazmat | 250 | 17 | 15 s |
+| Pechera de diamante | 528 | 36 | 15 s |
+| Pechera de netherita | 592 | 40 | 15 s |
+
+El desgaste es **proporcional al máximo de cada pieza**, no una cantidad fija, y
+ahí está toda la idea. Con un desgaste plano la netherita aguantaría nueve veces
+más que unas botas de cuero, y la lluvia dejaría de dar miedo en cuanto tuvieras
+buen equipo. Así **la amenaza no se compra con material**.
+
+Se redondea hacia arriba, así que las piezas baratas caen algo *antes* de los
+quince segundos, nunca después.
+
+> ⚠️ El traje Hazmat **no es inmune**. Son 250 de durabilidad, y como no se
+> repara en yunque hacen falta **10 filtros de carbón** para recuperar el traje
+> entero después de una lluvia. Refugiarse deja de ser opcional.
+
+### Cubrirse basta
+
+Igual que la sombra protege de la insolación: un techo, una cueva o un alero y la
+lluvia deja de tocarte.
+
+Se resuelve con `isRainingAt(pos)` de vanilla, que comprueba tres cosas de una
+vez: que esté lloviendo, que el jugador vea el cielo desde donde está, y que su
+bioma reciba **lluvia**. Ese último detalle sale gratis y viene muy bien: en el
+desierto no llueve y en los biomas helados cae nieve, así que **ninguno de los dos
+corroe** sin tener que nombrarlos en el código.
+
+### Sin niveles
+
+La radiación mide *lo cerca* que estás y la insolación *lo seco*. Aquí no hay
+grados: o te cae encima o no. Un solo escalón dice exactamente eso.
+
+El efecto se pone **aunque no lleves armadura**, para que el aviso llegue antes de
+que te juegues nada.
+
+---
+
 ## Comandos
 
 | Comando | Permiso | Qué hace |
@@ -375,18 +430,19 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-El menú son 19 interruptores en tres filas, agrupados por lo que hacen:
+El menú son 20 interruptores en tres filas, agrupados por lo que hacen:
 
 ```
-[Radiación][Hidratación][ ][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]   el MUNDO
-[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]                         el TRAJE
-[Carbón][Filtro][ ][Alga][Lente][C.Venenoso][P.Alada][ ][Agua]              ITEMS
+[Radiación][Hidratación][Corrosión][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]  el MUNDO
+[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]                                el TRAJE
+[Carbón][Filtro][ ][Alga][Lente][C.Venenoso][P.Alada][ ][Agua]                     ITEMS
 ```
 
 El reparto de cada fila dice algo:
 
-- **Arriba** el hueco separa las dos *mecánicas* (radiación e hidratación) de los
-  *seis drops*, que ya no caben espaciados.
+- **Arriba** ya no queda hueco: tres *mecánicas* y seis *drops* llenan las nueve
+  ranuras justas. La división se sigue leyendo porque las mecánicas van juntas a
+  la izquierda y los drops juntos a la derecha, y sus iconos no se parecen en nada.
 - **Abajo** los pares pegados son las dos cadenas de dos pasos —
   carbón→filtro y alga→lente — y las sueltas son de un solo paso. Con siete
   interruptores solo quedan dos separadores, y se gastan en aislar la cadena del
@@ -545,7 +601,7 @@ Y tres trampas de dibujado que costaron una sesión cada una:
   se vaya. Hay que darle duración de sobra y renovarlo antes de entrar en esa
   franja.
 
-Y cinco cosas que solo se descubren mirando el bytecode:
+Y seis cosas que solo se descubren mirando el bytecode:
 
 - Los modificadores de atributo de tipo `ADD_MULTIPLIED_TOTAL` **se multiplican
   entre sí** (`valor *= 1 + cantidad`), no se suman. Por eso la compensación de la
@@ -577,6 +633,18 @@ Y cinco cosas que solo se descubren mirando el bytecode:
   Los corazones acaban en `centerX - 11` y los muslos empiezan en `centerX + 10`,
   así que en el centro queda un **pasillo de unos 21 píxeles** libre de barras.
   Es donde va la gota.
+- **Por qué parpadea el icono de un efecto.** `Hud` llama a `endsWithin(200)`: a
+  todo efecto al que le queden 200 ticks o menos le desvanece el icono. Un efecto
+  que se renueva sin cortes pero con cuerda corta **parpadea igualmente**, porque
+  lo que mira vanilla es la cuerda que le queda, no si va a renovarse.
+
+  De ahí salen los dos números que comparten los tres efectos del mod: cuerda de
+  **600** y renovación al bajar de **400**, que deja 200 ticks de margen aunque el
+  reparto por ranuras se salte varias vueltas.
+
+  La contrapartida es que ninguno puede dejarse caducar solo: con esa cuerda, la
+  radiación seguiría puesta medio minuto después de salir de la geoda. Los tres
+  se **retiran a mano** en cuanto dejan de tocar.
 
 ## Versiones
 
@@ -604,6 +672,8 @@ src/main/               código común (servidor + cliente)
 │   ├── config/LibroRecetas         sincroniza el libro con los interruptores
 │   ├── effect/RadiacionEffect      el efecto registrado y su lentitud
 │   ├── effect/InsolacionEffect     el efecto y su tabla de escalones
+│   ├── effect/CorrosionEffect      el efecto y el desgaste proporcional
+│   ├── corrosion/CorrosionManager  come la armadura bajo la lluvia, por ranuras
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
 │   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
 │   ├── item/AtalayaItems           items que no son armadura
