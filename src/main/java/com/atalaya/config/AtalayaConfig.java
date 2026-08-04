@@ -42,6 +42,8 @@ public final class AtalayaConfig {
     private boolean radiacionActiva = true;
     /** Que la hidratacion baje en el desierto. Apagada, el nivel se congela. */
     private boolean hidratacionActiva = true;
+    /** Que la lluvia coma la armadura de quien se moja. */
+    private boolean corrosionActiva = true;
     /** Hervir la botella de agua, tanto al horno como a la fogata. */
     private boolean aguaActiva = true;
     /** Fundir carbon para obtener carbon activado, el relleno del cartucho. */
@@ -164,6 +166,15 @@ public final class AtalayaConfig {
 
     public void setHidratacionActiva(boolean valor) {
         this.hidratacionActiva = valor;
+        guardar();
+    }
+
+    public boolean isCorrosionActiva() {
+        return corrosionActiva;
+    }
+
+    public void setCorrosionActiva(boolean valor) {
+        this.corrosionActiva = valor;
         guardar();
     }
 

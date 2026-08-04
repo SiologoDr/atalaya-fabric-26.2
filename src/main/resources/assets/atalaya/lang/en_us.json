@@ -28,6 +28,7 @@
 
   "effect.atalaya.radiacion": "Radiation",
   "effect.atalaya.insolacion": "Heatstroke",
+  "effect.atalaya.corrosion": "Corrosion",
 
   "item.atalaya.hazmat.mejora": "%s Upgrade"
 }

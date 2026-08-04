@@ -149,20 +149,22 @@ public final class HidratacionManager {
     private static final int INTERVALO_INSOLACION = 40;
 
     /**
-     * Cuerda que se le da al efecto al ponerlo.
+     * Cuerda que se le da al efecto al ponerlo, y cuando se renueva.
      *
-     * MUY por encima del intervalo a proposito. Vanilla hace parpadear el icono
-     * de todo efecto que esta a punto de caducar, asi que con una duracion corta
-     * el icono parpadeaba sin parar aunque el efecto no se fuera nunca. Con 20
-     * segundos de cuerda y renovandolo a los 15, no llega jamas a la franja del
-     * parpadeo.
+     * MUY por encima del intervalo a proposito. El HUD de vanilla desvanece el
+     * icono de todo efecto al que le queden 200 ticks o menos ({@code Hud} llama
+     * a {@code endsWithin(200)}), asi que con una cuerda corta el icono parpadea
+     * sin parar aunque el efecto no se vaya nunca.
+     *
+     * Renovando en 400 sobre 600, nunca baja de 400 y quedan 200 ticks de
+     * margen: aunque el reparto por ranuras se salte varias vueltas seguidas, no
+     * llega a la franja del parpadeo. Son los mismos numeros que usan la
+     * radiacion y la corrosion, por el mismo motivo.
      *
      * No alarga el efecto de mas: cuando deja de tocar se retira a mano.
      */
-    private static final int DURACION_EFECTO = 400;
-
-    /** Por debajo de esta cuerda se renueva, antes de entrar en el parpadeo. */
-    private static final int RENOVAR_BAJO = 300;
+    private static final int DURACION_EFECTO = 600;
+    private static final int RENOVAR_BAJO = 400;
 
     private static long contadorInsolacion = 0;
 
