@@ -736,7 +736,13 @@ Pensado para un servidor con aforo alto (~100 jugadores):
   dependen cosas que se tienen que notar al momento. Y ese intervalo *es* el del
   daño: como cada jugador se procesa una vez por vuelta, el golpe cae solo cada
   2 s sin llevar ningún contador.
+- **La corrosión hace lo mismo** con un intervalo de 20 ticks, que es a la vez su
+  ritmo de mordisco: una vuelta por jugador y por segundo, una mordida por vuelta.
 - **El interruptor solo se manda al cliente cuando cambia**, no cada vuelta.
+
+Las tres mecánicas comparten la misma forma: **el intervalo del reparto ES el
+ritmo del efecto**, así que ninguna necesita un contador por jugador. Al añadir la
+siguiente, conviene seguir el patrón.
 - **Los dos medidores del HUD son del cliente**: al servidor no le cuestan nada.
 
 ## Jugar de verdad (no desarrollo)
