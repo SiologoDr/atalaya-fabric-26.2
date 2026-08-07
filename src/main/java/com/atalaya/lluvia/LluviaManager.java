@@ -1,9 +1,12 @@
-package com.atalaya.corrosion;
+package com.atalaya.lluvia;
 
 import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.CorrosionEffect;
+import com.atalaya.effect.EmpapadoEffect;
+import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -12,20 +15,29 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 /**
- * Come la armadura de quien se moja bajo la lluvia corrosiva.
+ * Lo que le hace la lluvia a quien se moja.
+ *
+ * Son DOS mecanicas con el mismo disparador y cada una con su interruptor:
+ *
+ *   - Corrosion: se come la armadura
+ *   - Empapado:  te deja a la mitad de velocidad
+ *
+ * Van juntas aqui porque comparten la condicion —te esta lloviendo encima— y una
+ * sola vuelta por jugador resuelve las dos. Separarlas en dos bucles seria pagar
+ * dos veces por la misma pregunta.
  *
  * Reparte a los jugadores en tramos igual que el resto de bucles del mod, y el
  * intervalo del reparto ES el ritmo del desgaste: como cada jugador se procesa
  * una vez por vuelta y la vuelta dura un segundo, cada pasada quita justo el
  * desgaste de un segundo sin llevar ningun contador aparte.
  */
-public final class CorrosionManager {
+public final class LluviaManager {
 
     /** Una vuelta = un segundo = una mordida a la armadura. */
     private static final int INTERVALO = 20;
 
     /**
-     * Cuerda del efecto, y cuando se renueva.
+     * Cuerda de los efectos, y cuando se renuevan.
      *
      * Los dos numeros salen de un detalle de vanilla: el HUD desvanece el icono
      * de cualquier efecto al que le queden 200 ticks o menos ({@code Hud} llama
@@ -45,7 +57,7 @@ public final class CorrosionManager {
 
     private static long contador = 0;
 
-    private CorrosionManager() {
+    private LluviaManager() {
     }
 
     public static void tick(MinecraftServer servidor) {
@@ -58,37 +70,51 @@ public final class CorrosionManager {
             return;
         }
 
-        // El bucle corre AUNQUE la mecanica este apagada: hay que retirar el
-        // efecto que quedara puesto a quien lo llevara al apagarla.
-        boolean activa = AtalayaConfig.get().isCorrosionActiva();
+        // El bucle corre AUNQUE las mecanicas esten apagadas: hay que retirar el
+        // efecto que quedara puesto a quien lo llevara al apagarlas.
+        AtalayaConfig cfg = AtalayaConfig.get();
+        boolean corroe = cfg.isCorrosionActiva();
+        boolean empapa = cfg.isEmpapadoActivo();
 
         int desde = (int) (total * ranura / INTERVALO);
         int hasta = (int) (total * (ranura + 1) / INTERVALO);
         for (int i = desde; i < hasta; i++) {
-            revisar(jugadores.get(i), activa);
+            revisar(jugadores.get(i), corroe, empapa);
         }
     }
 
-    private static void revisar(ServerPlayer jugador, boolean activa) {
-        boolean expuesto = activa
-                && !jugador.isCreative() && !jugador.isSpectator()
+    private static void revisar(ServerPlayer jugador, boolean corroe, boolean empapa) {
+        boolean mojado = !jugador.isCreative()
+                && !jugador.isSpectator()
                 && bajoLluvia(jugador);
 
-        if (!expuesto) {
-            jugador.removeEffect(CorrosionEffect.CORROSION);
+        // Los efectos se ponen aunque no lleve armadura: son el aviso de que
+        // esta lluvia muerde, y llegan ANTES de que el jugador se juegue nada.
+        efecto(jugador, CorrosionEffect.CORROSION, mojado && corroe);
+        efecto(jugador, EmpapadoEffect.EMPAPADO, mojado && empapa);
+
+        if (mojado && corroe) {
+            corroer(jugador);
+        }
+    }
+
+    /**
+     * Pone o quita un efecto, renovandolo antes de que entre en la franja del
+     * parpadeo.
+     *
+     * El de empapado no necesita nada mas: su lentitud va como modificador del
+     * propio efecto, asi que se aplica y se retira sola con el.
+     */
+    private static void efecto(ServerPlayer jugador, Holder<MobEffect> cual, boolean debe) {
+        if (!debe) {
+            jugador.removeEffect(cual);
             return;
         }
-
-        // El efecto se pone aunque no lleve armadura puesta: es el aviso de que
-        // esta lluvia muerde, y llega ANTES de que el jugador se juegue nada.
-        MobEffectInstance actual = jugador.getEffect(CorrosionEffect.CORROSION);
+        MobEffectInstance actual = jugador.getEffect(cual);
         if (actual == null || actual.getDuration() <= RENOVAR_BAJO) {
             jugador.addEffect(new MobEffectInstance(
-                    CorrosionEffect.CORROSION, DURACION_EFECTO, 0,
-                    false, false, true));
+                    cual, DURACION_EFECTO, 0, false, false, true));
         }
-
-        corroer(jugador);
     }
 
     /**
@@ -98,7 +124,7 @@ public final class CorrosionManager {
      * lloviendo, que el jugador vea el cielo desde donde esta, y que su bioma
      * reciba LLUVIA. Ese ultimo detalle sale gratis y viene muy bien: en el
      * desierto no llueve y en los biomas helados cae nieve, asi que ninguno de
-     * los dos corroe sin tener que nombrarlos aqui.
+     * los dos moja sin tener que nombrarlos aqui.
      *
      * Y como mira el cielo, cubrirse ya protege — igual que la sombra protege de
      * la insolacion. Un alero, una cueva o un techo bastan.

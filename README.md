@@ -15,10 +15,13 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 > rampas de color y sombreado, para que lo nuevo parezca del mismo mod.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
-> Traje Hazmat completo, tres mejoras de herrería, y **tres efectos propios
+> Traje Hazmat completo, tres mejoras de herrería, y **cuatro efectos propios
 > registrados**: radiación en las geodas, insolación en el desierto —con su
-> hidratación y su agua purificada— y corrosión bajo la lluvia. Todo bajo un menú
-> de configuración con 20 interruptores.
+> hidratación y su agua purificada— y corrosión y empapado bajo la lluvia. Todo
+> bajo un panel de configuración con 21 interruptores.
+>
+> **Nada está encendido de fábrica.** Un mundo recién puesto se comporta como
+> vanilla hasta que un operador abre cada mecánica.
 
 ---
 
@@ -416,6 +419,29 @@ que te juegues nada.
 
 ---
 
+## Empapado
+
+La misma lluvia, otro castigo: **la ropa calada pesa**. Un efecto propio
+(`atalaya:empapado`) que deja al **50 % de velocidad** mientras te está lloviendo
+encima, tanto como una Lentitud IV.
+
+Sin niveles y con el mismo remedio que la corrosión: **cubrirse**.
+
+Va con **interruptor propio** aunque comparta disparador con la corrosión, porque
+son mecánicas distintas: una come armadura y la otra frena. Se pueden encender por
+separado, y con las dos activas una tormenta hace las dos cosas a la vez.
+
+> Aquí **sí** se usa el modificador del propio efecto, al contrario que en la
+> insolación. Esta tiene una sola penalización sobre un solo atributo, que es
+> justo para lo que sirve el mecanismo de vanilla; la insolación suma castigos
+> distintos en cada escalón y eso el efecto no lo sabe expresar. Además se retira
+> sola al quitar el efecto, sin que nadie tenga que acordarse.
+
+Las dos mecánicas de lluvia comparten un solo bucle (`LluviaManager`): la
+pregunta *¿te está lloviendo?* se hace una vez por jugador y sirve para ambas.
+
+---
+
 ## Comandos
 
 | Comando | Permiso | Qué hace |
@@ -430,23 +456,35 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-El menú son 20 interruptores en tres filas, agrupados por lo que hacen:
+Son **21 interruptores** en cuatro grupos, cada uno en su propia fila:
 
 ```
-[Radiación][Hidratación][Corrosión][Abejas][Colmillo][Veneno][Espejo][Pata][Alón]  el MUNDO
-[ ][Lingote][ ][Miel][ ][Plantilla][ ][Herrería][ ]                                el TRAJE
-[Carbón][Filtro][ ][Alga][Lente][C.Venenoso][P.Alada][ ][Agua]                     ITEMS
+[Radiación][Hidratación][Corrosión][Empapado]                 lo que hace el MUNDO
+[Miel][Colmillo][Veneno][Espejo][Pata][Alón]                  lo que sueltan los MOBS
+[Lingote][Miel cr.][Plantilla][Herrería]                      la cadena del TRAJE
+[Carbón][Filtro][Alga][Lente][C.Venenoso][P.Alada][Agua]      ITEMS y mejoras
 ```
 
-El reparto de cada fila dice algo:
+### Nada se coloca a mano
 
-- **Arriba** ya no queda hueco: tres *mecánicas* y seis *drops* llenan las nueve
-  ranuras justas. La división se sigue leyendo porque las mecánicas van juntas a
-  la izquierda y los drops juntos a la derecha, y sus iconos no se parecen en nada.
-- **Abajo** los pares pegados son las dos cadenas de dos pasos —
-  carbón→filtro y alga→lente — y las sueltas son de un solo paso. Con siete
-  interruptores solo quedan dos separadores, y se gastan en aislar la cadena del
-  cartucho y en apartar el agua purificada, que es de la sed y no del traje.
+Los interruptores se **declaran como datos** y la posición se calcula. Antes cada
+uno tenía su constante de ranura y añadir uno obligaba a recolocar los demás:
+eso es lo que no escalaba.
+
+Ahora **añadir una mecánica es escribir una línea** al final de su grupo. Cada
+grupo empieza en fila nueva por su cuenta, y si alguno pasa de nueve se parte
+solo a la siguiente.
+
+El panel tiene **seis filas: cinco de contenido y una de navegación**. Cuando el
+contenido no cabe se abre una página nueva, y las flechas solo aparecen si hay
+adónde ir. Con 21 interruptores caben en cuatro filas, así que ahora mismo es una
+sola página con una fila de margen.
+
+Los huecos van **vacíos, sin cristal de relleno**: los clics en la zona del panel
+nunca mueven items y el shift-clic está desactivado, así que el relleno solo era
+decoración.
+
+### Se corta por donde interese
 
 Cada cadena está partida en sus pasos, así que puedes permitir el material y
 bloquear la herrería, o al contrario. Apagar una receta **también la quita del
@@ -455,8 +493,18 @@ libro de recetas** de todos los jugadores conectados, al instante.
 Los drops no son recetas, así que no tocan el libro: se filtran sobre el botín ya
 generado y el cambio es inmediato, sin recargar datapacks.
 
-Los campos que falten en el JSON entran activados, así que añadir mecánicas no
-rompe una configuración existente.
+### Todo arranca apagado
+
+Un mundo o servidor recién puesto **se comporta como vanilla**. Ninguna mecánica
+está activa hasta que un operador la enciende desde el panel.
+
+Es lo que permite **anunciarlas como evento** en vez de que aparezcan solas, y
+evita que nadie se encuentre con la lluvia comiéndole la armadura sin haberlo
+pedido.
+
+Vale también para lo que se añada más adelante: un campo nuevo entra en `false`
+aunque el fichero de configuración sea viejo y no lo mencione, así que actualizar
+el mod nunca enciende nada por su cuenta.
 
 ---
 
@@ -673,7 +721,8 @@ src/main/               código común (servidor + cliente)
 │   ├── effect/RadiacionEffect      el efecto registrado y su lentitud
 │   ├── effect/InsolacionEffect     el efecto y su tabla de escalones
 │   ├── effect/CorrosionEffect      el efecto y el desgaste proporcional
-│   ├── corrosion/CorrosionManager  come la armadura bajo la lluvia, por ranuras
+│   ├── effect/EmpapadoEffect       el efecto y su lentitud
+│   ├── lluvia/LluviaManager        las DOS mecánicas de lluvia, en un bucle
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
 │   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
 │   ├── item/AtalayaItems           items que no son armadura
@@ -736,8 +785,11 @@ Pensado para un servidor con aforo alto (~100 jugadores):
   dependen cosas que se tienen que notar al momento. Y ese intervalo *es* el del
   daño: como cada jugador se procesa una vez por vuelta, el golpe cae solo cada
   2 s sin llevar ningún contador.
-- **La corrosión hace lo mismo** con un intervalo de 20 ticks, que es a la vez su
+- **La lluvia hace lo mismo** con un intervalo de 20 ticks, que es a la vez su
   ritmo de mordisco: una vuelta por jugador y por segundo, una mordida por vuelta.
+- **Corrosión y empapado comparten bucle.** La pregunta *¿te está lloviendo?* se
+  hace una vez por jugador y sirve para las dos: separarlas sería pagar dos veces
+  por lo mismo.
 - **El interruptor solo se manda al cliente cuando cambia**, no cada vuelta.
 
 Las tres mecánicas comparten la misma forma: **el intervalo del reparto ES el

@@ -19,7 +19,8 @@ import net.minecraft.world.effect.MobEffectCategory;
  *
  * Como la insolacion, el efecto es solo la cara visible — icono, nombre y color
  * de la barra. Quien desgasta las piezas es
- * {@link com.atalaya.corrosion.CorrosionManager}.
+ * {@link com.atalaya.lluvia.LluviaManager}, que lleva las dos mecanicas de
+ * lluvia porque comparten disparador.
  */
 public class CorrosionEffect extends MobEffect {
 

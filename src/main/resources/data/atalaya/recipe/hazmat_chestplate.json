@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "minecraft:smithing_transform",
   "template": "atalaya:plantilla_sellado",
   "base": "minecraft:iron_chestplate",
