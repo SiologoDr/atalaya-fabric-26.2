@@ -95,6 +95,10 @@ Dos reglas que hacen que la rampa funcione:
 - **El borde no es negro puro**: lleva el tinte del color. Negro puro ensucia.
 - **El núcleo no es blanco puro**: tira hacia el color. Blanco puro apaga el tono.
 
+> Ojo: esta rampa vale para un **item**, que se ve sobre el gris claro del
+> inventario. Para un **efecto de estado** el fondo es casi negro y hay que
+> subirla entera — ver el punto siguiente.
+
 Y lo que de verdad decide el diseño de un efecto:
 
 > **El matiz es la única información que se lee rápido.** Morado la radiación,
@@ -103,6 +107,43 @@ Y lo que de verdad decide el diseño de un efecto:
 > forma se mira después, si acaso.
 
 Antes de elegir un color, comprobar que no choque con los que ya existen.
+
+---
+
+## 4-bis. El fondo es oscuro: la rampa entera va por encima
+
+Lo anterior vale para un item sobre el inventario. Para un **efecto de estado**
+hay que corregirlo, porque su marco es un gris casi negro y eso cambia las reglas.
+
+Un tono oscuro sobre fondo oscuro **no dibuja un borde: desaparece**. En vez de
+recortar la silueta, se funde con el marco y el icono pierde forma justo por
+donde debería definirse.
+
+La solución es subir **toda la rampa**, no solo el núcleo. Comparando los cuatro
+iconos del mod por luminancia (0 = negro, 255 = blanco):
+
+| Icono | Tono más oscuro | Media |
+|---|---|---|
+| **insolación** | **153** | **198** |
+| corrosión | 45 | 128 |
+| radiación | 15 | 88 |
+| empapado | 33 | 100 |
+
+La insolación no baja de 153 en ningún píxel, así que la silueta entera flota
+sobre el marco. Las otras tres tienen tonos tan oscuros como el propio fondo y se
+comen su contorno.
+
+Dos consecuencias prácticas:
+
+- **Nada de borde casi negro** en un efecto. Si se quiere contorno, que sea un
+  tono medio del propio color, no un oscuro.
+- **El degradado sustituye al contorno.** Con toda la rampa clara, lo que separa
+  el icono del fondo es el salto de luminancia contra el marco, y lo que le da
+  volumen es el degradado interno. No hacen falta las dos cosas.
+
+Y ahí se puede gastar el presupuesto de tonos: la insolación usa nueve porque
+todos caben en la franja clara. Cinco eran pocos para un degradado suave cuando
+el rango útil se ha reducido a la mitad de arriba.
 
 ---
 
@@ -225,3 +266,52 @@ y cada una arregló algo que solo se veía al verlo.
 
 Y antes de tocar una textura que no hiciste tú, **copiarla al scratchpad**. Las
 que aporta el usuario no siempre están en git todavía.
+
+---
+
+## 12. Recolorear no es rediseñar
+
+Reducir tonos, subir la rampa o añadir un contorno son operaciones **automáticas**:
+mejoran una textura, pero no la rediseñan. Si lo que se pide es un rediseño, hay
+que **volver a dibujar la silueta** respetando la idea; retocar los píxeles
+existentes da otra versión del mismo dibujo, no una propuesta nueva.
+
+Y al revés: cuando el original ya tiene una silueta buena, retocarla es
+justamente lo correcto y **cambiarla es empeorarla**. La esquirla irregular de la
+miel cristalizada dice "trozo roto de resina"; sustituirla por un rombo la
+convierte en una gema genérica.
+
+Antes de empezar, decidir cuál de las dos cosas se está haciendo.
+
+---
+
+## 13. Trampas de PowerShell al generar texturas
+
+Tres que cuestan tiempo y no dan un error que apunte a la causa:
+
+**`@()` aplana los arrays anidados.** Escribir las motas en línea da escalares:
+
+```powershell
+foreach ($m in @(@(3,3,2), @(14,5,3))) { ... }   # $m vale 3, luego 3, luego 2...
+```
+
+Funciona si se pasan como **parámetro de función**, donde el array de arrays
+sobrevive. Si no, hay que escribir las llamadas sueltas.
+
+**Las variables no distinguen mayúsculas.** Un `$n = $orden.Count` machaca un
+`$N = 18` de arriba, y los bitmaps salen del tamaño equivocado. El síntoma
+—"x debe ser menor que el ancho", con x=16 en un lienzo de 18— no apunta a nada.
+
+**`Set-Content -Encoding utf8` mete BOM** en PowerShell 5.1. En un `.json` el
+juego lo tolera, pero en un `.java` `javac` lo rechaza con
+`illegal character: '﻿'`. Para escribir sin BOM:
+
+```powershell
+[System.IO.File]::WriteAllText($ruta, $texto, (New-Object System.Text.UTF8Encoding($false)))
+```
+
+Y un cuarto detalle, de nombres: los identificadores de recursos de Minecraft solo
+aceptan `[a-z0-9_.-]`, así que **nada de eñes ni tildes** en un fichero que vaya a
+`assets/`. Además, PowerShell 5.1 lee los `.ps1` sin BOM como ANSI, y una ruta con
+eñe escrita literalmente en el script no encuentra el fichero: hay que buscarlo
+con `Get-ChildItem -Filter`.

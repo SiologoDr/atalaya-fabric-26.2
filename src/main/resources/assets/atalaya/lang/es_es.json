@@ -29,6 +29,7 @@
   "effect.atalaya.radiacion": "Radiación",
   "effect.atalaya.insolacion": "Insolación",
   "effect.atalaya.corrosion": "Corrosión",
+  "effect.atalaya.empapado": "Empapado",
 
   "item.atalaya.hazmat.mejora": "Mejora de %s"
 }

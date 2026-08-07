@@ -2,8 +2,9 @@ package com.atalaya;
 
 import com.atalaya.command.AtalayaCommand;
 import com.atalaya.config.LibroRecetas;
-import com.atalaya.corrosion.CorrosionManager;
+import com.atalaya.lluvia.LluviaManager;
 import com.atalaya.effect.CorrosionEffect;
+import com.atalaya.effect.EmpapadoEffect;
 import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.effect.RadiacionEffect;
 import com.atalaya.hidratacion.Hidratacion;
@@ -58,6 +59,7 @@ public class Atalaya implements ModInitializer {
         RadiacionEffect.registrar();
         InsolacionEffect.registrar();
         CorrosionEffect.registrar();
+        EmpapadoEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
 
@@ -88,7 +90,8 @@ public class Atalaya implements ModInitializer {
 
         // La lluvia corrosiva va en su propio bucle: su intervalo (1 s) ES el
         // ritmo al que muerde la armadura.
-        ServerTickEvents.END_SERVER_TICK.register(CorrosionManager::tick);
+        // Un solo bucle para las dos mecanicas de lluvia: comparten condicion.
+        ServerTickEvents.END_SERVER_TICK.register(LluviaManager::tick);
 
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.

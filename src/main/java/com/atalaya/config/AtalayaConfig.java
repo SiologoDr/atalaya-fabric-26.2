@@ -17,8 +17,18 @@ import java.nio.file.Path;
  * Interruptores de las mecanicas del mod, persistidos en
  * config/atalaya.json.
  *
- * Para anadir una mecanica nueva basta con meter aqui un campo y darle un slot
- * en {@link com.atalaya.menu.ConfigMenu}.
+ * TODO arranca APAGADO. Un mundo o servidor recien puesto se comporta como
+ * vanilla, y es un operador quien va abriendo cada mecanica desde el panel
+ * cuando toca. Eso es lo que permite anunciarlas como evento en vez de que
+ * aparezcan solas, y evita que nadie se encuentre con la lluvia comiendole la
+ * armadura sin haberlo pedido.
+ *
+ * Vale tambien para lo que se anada mas adelante: un campo nuevo entra en false
+ * aunque el fichero de configuracion sea viejo y no lo mencione, asi que
+ * actualizar el mod nunca enciende nada por su cuenta.
+ *
+ * Para anadir una mecanica basta con meter aqui un campo y una linea en
+ * {@link com.atalaya.menu.ConfigMenu}.
  */
 public final class AtalayaConfig {
 
@@ -30,44 +40,46 @@ public final class AtalayaConfig {
 
     // --- Interruptores ---
     /** Solo la mejora en la mesa de herreria: hierro + lingote -> pieza hazmat. */
-    private boolean crafteoHazmat = true;
+    private boolean crafteoHazmat = false;
     /** Cubre craftear el lingote blindado, el material del traje. */
-    private boolean lingoteActivo = true;
+    private boolean lingoteActivo = false;
     /** Cubre craftear la miel cristalizada. */
-    private boolean mielActiva = true;
+    private boolean mielActiva = false;
     /** Cubre que las abejas suelten miel cristalizada al morir. */
-    private boolean dropMielActivo = true;
+    private boolean dropMielActivo = false;
     /** Cubre fabricar la plantilla de sellado Y duplicarla. */
-    private boolean plantillaActiva = true;
-    private boolean radiacionActiva = true;
+    private boolean plantillaActiva = false;
+    private boolean radiacionActiva = false;
     /** Que la hidratacion baje en el desierto. Apagada, el nivel se congela. */
-    private boolean hidratacionActiva = true;
+    private boolean hidratacionActiva = false;
     /** Que la lluvia coma la armadura de quien se moja. */
-    private boolean corrosionActiva = true;
+    private boolean corrosionActiva = false;
+    /** Que la lluvia deje empapado y a media velocidad. */
+    private boolean empapadoActivo = false;
     /** Hervir la botella de agua, tanto al horno como a la fogata. */
-    private boolean aguaActiva = true;
+    private boolean aguaActiva = false;
     /** Fundir carbon para obtener carbon activado, el relleno del cartucho. */
-    private boolean carbonActivo = true;
+    private boolean carbonActivo = false;
     /** Montar el cartucho: carbon activado entre dos placas de hierro. */
-    private boolean filtrosActivos = true;
+    private boolean filtrosActivos = false;
     /** Que la arana comun suelte el colmillo seco al morir. */
-    private boolean dropColmilloActivo = true;
+    private boolean dropColmilloActivo = false;
     /** Que la arana de cueva suelte el veneno al morir. */
-    private boolean dropVenenoActivo = true;
+    private boolean dropVenenoActivo = false;
     /** Que salga el espejo de mar al pescar. */
-    private boolean dropEspejoActivo = true;
+    private boolean dropEspejoActivo = false;
     /** Que el conejo suelte la pata ligera al morir. */
-    private boolean dropPataActivo = true;
+    private boolean dropPataActivo = false;
     /** Que el pollo suelte el alon al morir. */
-    private boolean dropAlonActivo = true;
+    private boolean dropAlonActivo = false;
     /** Cubre juntar colmillo y veneno Y montar la mejora en la herreria. */
-    private boolean colmilloActivo = true;
+    private boolean colmilloActivo = false;
     /** Vitrificar el bloque de alga seca en el horno: la mitad dura de la lente. */
-    private boolean algaActiva = true;
+    private boolean algaActiva = false;
     /** Cubre montar la lente de mar Y su mejora del visor en la herreria. */
-    private boolean lenteActiva = true;
+    private boolean lenteActiva = false;
     /** Cubre montar la pata alada Y aplicarla al traje en la herreria. */
-    private boolean pataAladaActiva = true;
+    private boolean pataAladaActiva = false;
 
     public static AtalayaConfig get() {
         if (instancia == null) {
@@ -171,6 +183,15 @@ public final class AtalayaConfig {
 
     public boolean isCorrosionActiva() {
         return corrosionActiva;
+    }
+
+    public boolean isEmpapadoActivo() {
+        return empapadoActivo;
+    }
+
+    public void setEmpapadoActivo(boolean valor) {
+        this.empapadoActivo = valor;
+        guardar();
     }
 
     public void setCorrosionActiva(boolean valor) {

@@ -78,7 +78,10 @@ public final class Hidratacion {
 
         ACTIVA = AttachmentRegistry.<Boolean>builder()
                 // Sin persistent: se recalcula desde la configuracion al vuelo.
-                .initializer(() -> Boolean.TRUE)
+                // Arranca APAGADO como la configuracion, para que en el par de
+                // segundos que tarda el servidor en decir la suya el cliente no
+                // dibuje un medidor de una mecanica que quiza no esta puesta.
+                .initializer(() -> Boolean.FALSE)
                 .syncWith(ByteBufCodecs.BOOL, AttachmentSyncPredicate.targetOnly())
                 .buildAndRegister(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "hidratacion_activa"));
     }
