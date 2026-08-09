@@ -1,8 +1,9 @@
 package com.atalaya;
 
 import com.atalaya.client.AvisoTrajeHud;
+import com.atalaya.client.FrioHud;
 import com.atalaya.client.HidratacionHud;
-import com.atalaya.client.InsolacionHud;
+import com.atalaya.client.VinetaHud;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -37,14 +38,24 @@ public class AtalayaClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "hidratacion"),
                 new HidratacionHud());
 
-        // El halo de calor va ANTES de la hotbar, al contrario que los otros
-        // dos: es un velo a pantalla completa, asi que tiene que quedar por
-        // DEBAJO de todo lo demas del HUD. Si no, teniria los corazones y la
-        // barra de experiencia de naranja.
+        // El copo de frio, encima de la gota. Se engancha al mismo sitio y por
+        // las mismas razones; la separacion la pone el propio elemento.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.EXPERIENCE_LEVEL,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "frio"),
+                new FrioHud());
+
+        // El halo va ANTES de la hotbar, al contrario que los otros: es un velo
+        // a pantalla completa, asi que tiene que quedar por DEBAJO de todo lo
+        // demas del HUD. Si no, tenirria los corazones y la barra de
+        // experiencia de naranja o de azul.
+        //
+        // Uno solo para el calor y el frio, para que no se sumen las opacidades
+        // si algun dia coinciden los dos efectos.
         HudElementRegistry.attachElementBefore(
                 VanillaHudElements.HOTBAR,
-                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "insolacion"),
-                new InsolacionHud());
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "vineta"),
+                new VinetaHud());
 
         Atalaya.LOGGER.info("Atalaya (cliente) iniciado.");
     }

@@ -1,6 +1,8 @@
 package com.atalaya.command;
 
+import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.effect.InsolacionEffect;
+import com.atalaya.frio.Frio;
 import com.atalaya.hidratacion.Hidratacion;
 import com.atalaya.menu.ConfigMenu;
 import com.mojang.brigadier.CommandDispatcher;
@@ -16,8 +18,9 @@ import net.minecraft.server.level.ServerPlayer;
  * Subcomandos:
  *   /atalaya menu                 -> panel de interruptores
  *   /atalaya hidratacion &lt;0-100&gt;  -> fija tu hidratacion, para probar
+ *   /atalaya frio &lt;0-50&gt;          -> fija tu frio, para probar
  *
- * Los dos piden permiso de operador.
+ * Todos piden permiso de operador.
  *
  * El traje se consigue crafteandolo o desde la pestana de Combate en creativo,
  * asi que no hace falta un comando para darlo.
@@ -39,7 +42,31 @@ public final class AtalayaCommand {
                                                 IntegerArgumentType.integer(0, Hidratacion.MAXIMO))
                                         .executes(ctx -> fijarHidratacion(ctx.getSource(),
                                                 IntegerArgumentType.getInteger(ctx, "puntos")))))
+                        .then(Commands.literal("frio")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("puntos",
+                                                IntegerArgumentType.integer(0, Frio.MAXIMO))
+                                        .executes(ctx -> fijarFrio(ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "puntos")))))
         );
+    }
+
+    /**
+     * Fija el frio del que lo escribe. Misma razon que el de hidratacion:
+     * helarse del todo a la intemperie son casi seis minutos de espera.
+     */
+    private static int fijarFrio(CommandSourceStack fuente, int puntos) {
+        ServerPlayer jugador = fuente.getPlayer();
+        if (jugador == null) {
+            fuente.sendFailure(Component.literal("Solo un jugador pasa frio."));
+            return 0;
+        }
+        Frio.poner(jugador, puntos);
+        int nivel = HipotermiaEffect.nivelPorFrio(puntos);
+        fuente.sendSuccess(() -> Component.literal(
+                "Frio: " + puntos + " / " + Frio.MAXIMO
+                        + (nivel > 0 ? "  (hipotermia nivel " + nivel + ")" : "  (sin hipotermia)")), false);
+        return puntos;
     }
 
     /**

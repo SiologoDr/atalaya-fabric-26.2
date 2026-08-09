@@ -1,5 +1,6 @@
 package com.atalaya.mixin.client;
 
+import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.effect.InsolacionEffect;
 import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
@@ -12,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mareo suave para la insolacion.
+ * Mareo suave para los efectos que enturbian la vista: insolacion e hipotermia.
  *
  * La nausea de vanilla tiene UNA sola intensidad: el amplificador no la toca, o
  * la pones entera o no la pones. Y entera marea de verdad a bastante gente.
@@ -22,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * tanto GameRenderer para poner a girar la pantalla como el render para saber
  * cuanto deforma. Interceptando ese numero se gradua el mareo a voluntad.
  *
- * Asi que la insolacion NO aplica la nausea de vanilla: este mixin le dice al
+ * Asi que estos efectos NO aplican la nausea de vanilla: este mixin le dice al
  * renderizador que hay un mareo leve, y el renderizador se lo cree. Ventajas
  * sobre aplicar el efecto de verdad:
  *
@@ -34,7 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Solo de cliente: es puro renderizado, al servidor no le consta nada de esto.
  */
 @Mixin(LivingEntity.class)
-public abstract class MareoInsolacionMixin {
+public abstract class MareoMixin {
 
     /**
      * Cuanto mareo produce la vision al maximo.
@@ -45,32 +46,46 @@ public abstract class MareoInsolacionMixin {
     private static final float MAREO_MAXIMO = 0.35f;
 
     @Inject(method = "getEffectBlendFactor", at = @At("RETURN"), cancellable = true)
-    private void atalaya$mareoPorInsolacion(Holder<MobEffect> efecto,
-                                            float parcial,
-                                            CallbackInfoReturnable<Float> cir) {
+    private void atalaya$mareoPorClima(Holder<MobEffect> efecto,
+                                       float parcial,
+                                       CallbackInfoReturnable<Float> cir) {
         // Se comparan los MobEffect y no los Holder: los del registro son
         // singletons, y Holder.is(Holder) esta marcado como obsoleto.
         if (efecto.value() != MobEffects.NAUSEA.value()) {
             return;
         }
-        if (InsolacionEffect.INSOLACION == null) {
-            return; // todavia no se ha registrado
-        }
 
         LivingEntity entidad = (LivingEntity) (Object) this;
-        MobEffectInstance insolacion = entidad.getEffect(InsolacionEffect.INSOLACION);
-        if (insolacion == null) {
-            return;
-        }
 
-        // El amplificador es el nivel menos uno, tal como lo guarda el juego.
-        float vision = InsolacionEffect.escalon(insolacion.getAmplifier() + 1).vision();
+        // El que mas enturbie de los dos. No se suman: pasar calor y frio a la
+        // vez es una rareza de frontera entre biomas, y sumarlo dejaria un mareo
+        // que ninguno de los dos efectos justifica por si solo.
+        float vision = Math.max(
+                vision(entidad, InsolacionEffect.INSOLACION, true),
+                vision(entidad, HipotermiaEffect.HIPOTERMIA, false));
         if (vision <= 0) {
             return;
         }
 
         // Se queda el mayor de los dos: un mareo de verdad nunca se suaviza por
-        // estar ademas insolado.
+        // estar ademas insolado o helado.
         cir.setReturnValue(Math.max(cir.getReturnValue(), vision * MAREO_MAXIMO));
+    }
+
+    private static float vision(LivingEntity entidad,
+                                Holder<MobEffect> efecto,
+                                boolean esInsolacion) {
+        if (efecto == null) {
+            return 0f; // todavia no se ha registrado
+        }
+        MobEffectInstance instancia = entidad.getEffect(efecto);
+        if (instancia == null) {
+            return 0f;
+        }
+        // El amplificador es el nivel menos uno, tal como lo guarda el juego.
+        int nivel = instancia.getAmplifier() + 1;
+        return esInsolacion
+                ? InsolacionEffect.escalon(nivel).vision()
+                : HipotermiaEffect.escalon(nivel).vision();
     }
 }
