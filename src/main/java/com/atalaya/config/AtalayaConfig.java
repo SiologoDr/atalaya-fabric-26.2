@@ -52,6 +52,8 @@ public final class AtalayaConfig {
     private boolean radiacionActiva = false;
     /** Que la hidratacion baje en el desierto. Apagada, el nivel se congela. */
     private boolean hidratacionActiva = false;
+    /** Que el frio suba en los biomas nevados y acabe en hipotermia. */
+    private boolean frioActivo = false;
     /** Que la lluvia coma la armadura de quien se moja. */
     private boolean corrosionActiva = false;
     /** Que la lluvia deje empapado y a media velocidad. */
@@ -178,6 +180,15 @@ public final class AtalayaConfig {
 
     public void setHidratacionActiva(boolean valor) {
         this.hidratacionActiva = valor;
+        guardar();
+    }
+
+    public boolean isFrioActivo() {
+        return frioActivo;
+    }
+
+    public void setFrioActivo(boolean valor) {
+        this.frioActivo = valor;
         guardar();
     }
 

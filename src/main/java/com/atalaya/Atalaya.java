@@ -5,8 +5,11 @@ import com.atalaya.config.LibroRecetas;
 import com.atalaya.lluvia.LluviaManager;
 import com.atalaya.effect.CorrosionEffect;
 import com.atalaya.effect.EmpapadoEffect;
+import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.effect.RadiacionEffect;
+import com.atalaya.frio.Frio;
+import com.atalaya.frio.FrioManager;
 import com.atalaya.hidratacion.Hidratacion;
 import com.atalaya.hidratacion.HidratacionManager;
 import com.atalaya.item.AtalayaComponents;
@@ -60,8 +63,10 @@ public class Atalaya implements ModInitializer {
         InsolacionEffect.registrar();
         CorrosionEffect.registrar();
         EmpapadoEffect.registrar();
+        HipotermiaEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
+        Frio.registrar();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
         // El tercer parametro de CHUNK_LOAD (recien generado o no) no nos importa:
@@ -92,6 +97,11 @@ public class Atalaya implements ModInitializer {
         // ritmo al que muerde la armadura.
         // Un solo bucle para las dos mecanicas de lluvia: comparten condicion.
         ServerTickEvents.END_SERVER_TICK.register(LluviaManager::tick);
+
+        // El frio lleva las dos cosas en un solo bucle: subir, bajar y repartir
+        // los castigos. Puede porque su intervalo (1 s) es el ritmo de
+        // calentarse, y el de enfriarse sale contando vueltas.
+        ServerTickEvents.END_SERVER_TICK.register(FrioManager::tick);
 
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.

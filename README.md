@@ -15,10 +15,11 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 > rampas de color y sombreado, para que lo nuevo parezca del mismo mod.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
-> Traje Hazmat completo, tres mejoras de herrería, y **cuatro efectos propios
+> Traje Hazmat completo, tres mejoras de herrería, y **cinco efectos propios
 > registrados**: radiación en las geodas, insolación en el desierto —con su
-> hidratación y su agua purificada— y corrosión y empapado bajo la lluvia. Todo
-> bajo un panel de configuración con 21 interruptores.
+> hidratación y su agua purificada—, corrosión y empapado bajo la lluvia, y frío
+> con hipotermia en la nieve. Todo bajo un panel de configuración con 22
+> interruptores.
 >
 > **Nada está encendido de fábrica.** Un mundo recién puesto se comporta como
 > vanilla hasta que un operador abre cada mecánica.
@@ -442,12 +443,172 @@ pregunta *¿te está lloviendo?* se hace una vez por jugador y sirve para ambas.
 
 ---
 
+## Frío e hipotermia
+
+La contraparte del desierto. Un **copo de nieve** que se **llena** según te
+enfrías, de 0 a **50 puntos**, y a mitad de camino empieza a doler.
+
+Se lee al revés que la gota a propósito: aquella vacía avisa de que falta algo,
+este lleno avisa de que sobra. En los dos casos **mucho color es peligro**.
+
+Ocupa **la misma ranura que la gota**, justo encima de los corazones. Los dos
+medidores pueden coincidir —se sale de la nieve todavía helado y se entra en un
+desierto—, pero eso es la rareza: por cubrirla, el copo estaba antes veinte
+píxeles más arriba y quedaba flotando lejos del resto del HUD el resto del
+tiempo. Ahora ocupa el sitio bueno y **solo se aparta si la gota está puesta**.
+
+### El frío es el sitio, no el cielo
+
+Aquí está la diferencia de fondo con la hidratación. El desierto solo seca **con
+sol**: una sombra, un bloque encima o que se haga de noche te salvan. La nieve no
+perdona nada de eso. Da igual que sea de noche, que estés bajo tierra o metido en
+una cueva.
+
+La pregunta que se hace no es *"¿en qué bioma estás?"* sino **"¿aquí cuaja la
+nieve?"**, que es la que el juego ya sabe responder mirando la temperatura real
+del punto.
+
+> Las etiquetas de bioma se probaron primero y dejaban huecos absurdos: un **río
+> helado** —con el hielo bajo los pies— no entraba en `IS_SNOWY`, así que se podía
+> cruzar a pie sin pasar frío.
+
+Preguntar por la temperatura lo arregla de una vez y cubre el río helado, los
+picos, las laderas, la arboleda y el océano congelado, sin ir apuntando biomas a
+mano ni volver a esto cada vez que Mojang añada uno.
+
+Y trae dos cosas de propina que encajan justo con la idea:
+
+- **La altura cuenta.** Arriba de una montaña hace frío aunque abajo no.
+- **Bajo tierra también.** La temperatura solo baja con la altura, nunca sube al
+  enterrarse.
+
+Lo único que lo para es el **calor de verdad**. Se lleva en una **etiqueta de datos**
+(`atalaya:fuentes_de_calor`), no escrita en el código, así que un servidor puede
+añadir las suyas sin tocar el mod:
+
+> hoguera y hoguera de almas · antorcha y antorcha de almas (también en pared) ·
+> farol y farol de almas · fuego y fuego de almas · lava y caldero de lava ·
+> bloque de magma · horno, alto horno y ahumador · calabaza iluminada · vela
+
+Y tienen que estar **encendidas**. La etiqueta no sabe expresar eso, así que la
+regla va en código y es genérica: cualquier bloque de la lista con estado de
+encendido tiene que estarlo. Una hoguera apagada no calienta a nadie, y lo que
+añada un servidor mañana se comportará igual sin tocar nada.
+
+Hay que **arrimarse**: cuatro bloques. No basta con tenerla en la misma habitación.
+
+### Los tres ritmos
+
+| | Cada cuánto | De 0 al tope |
+|---|---|---|
+| Enfriarse a la intemperie | 7 s por punto | 5 min 50 s |
+| Deshelarse **solo por irte** | 3 s por punto | 2 min 30 s |
+| Deshelarse **junto al fuego** | 1 s por punto | 50 s |
+
+Enfriarse cuesta **lo mismo que secarse en el desierto**: aguantar fuera vale igual
+en los dos sitios.
+
+Los otros dos son la parte interesante. Salir de la nieve **tiene** que servir, o
+el jugador se sentiría atrapado. Pero si sirviera igual que una hoguera, encenderla
+no valdría para nada: **la recompensa de pararse a hacer fuego es justo que va tres
+veces más rápido que largarse.**
+
+### Dos niveles
+
+| Puntos | Nivel | Qué pasa |
+|---|---|---|
+| 0 – 24 | — | Nada |
+| 25 – 49 | **1 · aterido** | −25 % a minería, ataque, movimiento y fuerza · hambre doble · la vista falla |
+| 50 | **2 · congelándose** | Lo anterior **y 1 corazón cada 2 s** |
+
+Son los **mismos números que la insolación**, y no por pereza: el cuerpo agarrotado
+de frío y el cocido por el sol fallan igual.
+
+El daño va como **congelación**, que además de ser lo suyo está en `bypasses_armor`:
+morirse de frío con la armadura puesta duele igual.
+
+### La flecha, en los dos sentidos
+
+La hidratación solo necesita una flecha: el nivel baja o se queda quieto. Aquí se
+mueve **solo en ambos sentidos**, así que hay dos, y son la misma imagen y su
+reflejo para que las dos mecánicas hablen el mismo idioma:
+
+- **Roja hacia arriba** — te estás helando ahora mismo
+- **Verde hacia abajo** — estás entrando en calor
+
+Distingue lo que el copo solo no puede: **estar helado no es lo mismo que estarse
+helando**. Junto a una hoguera el medidor baja, y sin el aviso no sabrías si te vale
+con quedarte quieto o tienes que encender algo ya.
+
+### El medidor no se esconde hasta llegar a 0
+
+Al contrario que la gota, que desaparece al salir del desierto. Allí tiene sentido
+—la hidratación se queda quieta fuera, no hay nada que mirar—, pero aquí el frío
+**se está yendo solo mientras andas**.
+
+Esconderlo al cruzar la frontera del bioma se leía como que te lo habían quitado de
+golpe, cuando en realidad quedaban dos minutos y medio de deshielo. **Ver la cuenta
+atrás es la información**: te dice si ya puedes darte la vuelta o todavía no.
+
+### Los dos dibujos
+
+Son distintos a propósito, para que el medidor y el efecto no se confundan:
+
+- **El medidor** es un copo de reja fina con contorno negro, a **17 × 17**. Se
+  dibuja al mismo tamaño que su textura, así que cada téxel cae en un píxel de
+  interfaz y no hay reescalado.
+- **El efecto** es una **estrella maciza de seis puntas**, con el núcleo casi
+  blanco y seis tonos escalonados. Va a 18 × 18 y no más: el juego pinta los
+  iconos de efecto en un cuadro de ese tamaño, así que una textura mayor se
+  remuestrea y sale peor.
+
+Mismo motivo, distinto peso: uno es el indicador y el otro el estado.
+
+### El color va en la textura, no en el tinte
+
+Los dos medidores —la gota y el copo— se pintan dos veces: una con el depósito
+entero apagado y otra con la parte llena. El color lo ponía el tinte, que
+*multiplica*, y eso ahorra una imagen pero **encierra el degradado en un solo
+matiz**: solo puede ir de claro a oscuro del mismo tono. Con un celeste pálido
+encima, la diferencia entre la punta y la base no se veía.
+
+Ahora el degradado vive dentro de la imagen y el relleno se tiñe de **blanco**,
+que la deja tal cual:
+
+| | Arriba | Abajo |
+|---|---|---|
+| Gota | `#D6F4FF` | `#2E9CED` — azul de agua |
+| Copo | `#F3FDFF` | `#3FC2FF` — cian de hielo |
+
+Los matices se separan a propósito: los dos ocupan **la misma ranura del HUD**,
+así que tienen que distinguirse aunque solo se vea uno.
+
+El truco de las dos pasadas sigue en pie, porque el hueco se tiñe de un gris
+oscuro que apaga la imagen entera, y el contorno se queda negro —negro por
+cualquier tinte sigue siendo negro—.
+
+### La viñeta
+
+El mismo halo de la insolación teñido de **azul hielo** en vez de naranja. La
+textura es blanca y el color lo pone el tinte, así que una sola imagen sirve para
+los dos. Se llama `vineta.png` a secas: nació como `insolacion_vineta` y ese
+nombre decía **para qué** se hizo en vez de **qué** es, así que en cuanto la
+hipotermia empezó a usarla se volvió engañoso.
+
+Y es **un solo elemento de HUD** para calor y frío. Los dos efectos pueden coincidir
+—se sale de la nieve todavía helado y se entra en un desierto— y pintar los dos
+encima sumaría las opacidades hasta cerrar la pantalla. Se dibuja el que más
+aprieta.
+
+---
+
 ## Comandos
 
 | Comando | Permiso | Qué hace |
 |---|---|---|
 | `/atalaya menu` | Operador | Abre el panel de configuración |
 | `/atalaya hidratacion <0-50>` | Operador | Fija tu hidratación. Para probar: llegar al nivel 2 esperando al sol son casi seis minutos |
+| `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 
 El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña de
 **Combate** en creativo. Los materiales están en **Ingredientes**.
@@ -456,10 +617,10 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-Son **21 interruptores** en cuatro grupos, cada uno en su propia fila:
+Son **22 interruptores** en cuatro grupos, cada uno en su propia fila:
 
 ```
-[Radiación][Hidratación][Corrosión][Empapado]                 lo que hace el MUNDO
+[Radiación][Hidratación][Frío][Corrosión][Empapado]           lo que hace el MUNDO
 [Miel][Colmillo][Veneno][Espejo][Pata][Alón]                  lo que sueltan los MOBS
 [Lingote][Miel cr.][Plantilla][Herrería]                      la cadena del TRAJE
 [Carbón][Filtro][Alga][Lente][C.Venenoso][P.Alada][Agua]      ITEMS y mejoras
@@ -477,7 +638,7 @@ solo a la siguiente.
 
 El panel tiene **seis filas: cinco de contenido y una de navegación**. Cuando el
 contenido no cabe se abre una página nueva, y las flechas solo aparecen si hay
-adónde ir. Con 21 interruptores caben en cuatro filas, así que ahora mismo es una
+adónde ir. Con 22 interruptores caben en cuatro filas, así que ahora mismo es una
 sola página con una fila de margen.
 
 Los huecos van **vacíos, sin cristal de relleno**: los clics en la zona del panel
@@ -722,9 +883,12 @@ src/main/               código común (servidor + cliente)
 │   ├── effect/InsolacionEffect     el efecto y su tabla de escalones
 │   ├── effect/CorrosionEffect      el efecto y el desgaste proporcional
 │   ├── effect/EmpapadoEffect       el efecto y su lentitud
+│   ├── effect/HipotermiaEffect     el efecto y su tabla de escalones
 │   ├── lluvia/LluviaManager        las DOS mecánicas de lluvia, en un bucle
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
 │   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
+│   ├── frio/Frio                   el dato pegado al jugador, al revés que la gota
+│   ├── frio/FrioManager            lo sube en la nieve y lo baja junto al fuego
 │   ├── item/AtalayaItems           items que no son armadura
 │   ├── item/AtalayaComponents      componentes de datos propios
 │   ├── item/HazmatArmor            las cuatro piezas y sus umbrales
@@ -746,7 +910,8 @@ src/client/             código SOLO de cliente
 │   ├── AtalayaClient.java          entrada de cliente
 │   ├── client/AvisoTrajeHud        el triángulo de aviso
 │   ├── client/HidratacionHud       la gota y la flecha
-│   ├── client/InsolacionHud        el halo de calor
+│   ├── client/FrioHud              el copo y las dos flechas
+│   ├── client/VinetaHud            el halo, de calor o de frío
 │   └── mixin/client/               visor translúcido y mareo suave
 └── resources/atalaya.client.mixins.json
 
@@ -790,12 +955,26 @@ Pensado para un servidor con aforo alto (~100 jugadores):
 - **Corrosión y empapado comparten bucle.** La pregunta *¿te está lloviendo?* se
   hace una vez por jugador y sirve para las dos: separarlas sería pagar dos veces
   por lo mismo.
+- **El frío lo hace todo en un bucle**, subir, bajar y repartir castigos. Puede
+  porque tiene **dos ritmos**: se toma el rápido (1 s, entrar en calor) como
+  intervalo y el lento (7 s, enfriarse) sale **contando vueltas**, una de cada
+  siete. Sigue sin haber contadores por jugador.
+- **Buscar una hoguera se descarta por la luz.** El barrido son casi mil bloques,
+  así que antes se mira la luz de bloque, que es **una** consulta: si está oscuro
+  no puede haber nada que caliente y se acaba ahí, que es el caso normal de
+  alguien perdido en la nieve. Es la misma idea que el descarte por paleta del
+  índice de geodas.
+- **Los topes se comprueban antes de escribir.** El nivel se sincroniza, así que
+  reescribir el mismo número sería un paquete por jugador y segundo para todo el
+  que no pase frío, que van a ser casi todos.
 - **El interruptor solo se manda al cliente cuando cambia**, no cada vuelta.
 
-Las tres mecánicas comparten la misma forma: **el intervalo del reparto ES el
+Las cuatro mecánicas comparten la misma forma: **el intervalo del reparto ES el
 ritmo del efecto**, así que ninguna necesita un contador por jugador. Al añadir la
 siguiente, conviene seguir el patrón.
-- **Los dos medidores del HUD son del cliente**: al servidor no le cuestan nada.
+- **Los medidores del HUD son del cliente**: al servidor no le cuestan nada. El
+  del frío **cachea medio segundo** lo que le cuesta caro, porque se dibuja en cada
+  fotograma y la respuesta solo puede cambiar una vez por segundo.
 
 ## Jugar de verdad (no desarrollo)
 

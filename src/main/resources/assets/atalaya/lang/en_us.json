@@ -30,6 +30,7 @@
   "effect.atalaya.insolacion": "Heatstroke",
   "effect.atalaya.corrosion": "Corrosion",
   "effect.atalaya.empapado": "Drenched",
+  "effect.atalaya.hipotermia": "Hypothermia",
 
   "item.atalaya.hazmat.mejora": "%s Upgrade"
 }

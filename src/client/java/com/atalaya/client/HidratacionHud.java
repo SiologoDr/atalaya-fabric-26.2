@@ -59,7 +59,7 @@ public class HidratacionHud implements HudElement {
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/flecha_baja.png");
 
     private static final int TAM = 16;
-    private static final int TAM_FLECHA = 10;
+    private static final int TAM_FLECHA = 11;
 
     /** Rojo de aviso, el mismo tono que usa el traje cuando va critico. */
     private static final int ROJO = 0xFFFF5555;
@@ -81,14 +81,18 @@ public class HidratacionHud implements HudElement {
     private static final int ALTURA_GOTA = 55;
 
     /**
-     * Lo que queda por beber: celeste.
+     * Lo que queda por beber: blanco, o sea SIN tenir.
      *
-     * El degradado NO se hace aqui. El relleno de la textura ya es una rampa de
-     * gris, clara arriba y oscura abajo, y como el tinte MULTIPLICA, pintarla
-     * de un solo celeste conserva la rampa: sale celeste claro arriba y hondo
-     * abajo sin dibujar el medidor por franjas.
+     * El color vive en la textura, igual que en el copo del frio. Antes era al
+     * reves —grises en la imagen y el color aqui— y eso encerraba el degradado
+     * en un solo matiz: solo podia ir de claro a oscuro del mismo tono, y con
+     * un celeste palido encima la diferencia no se veia.
+     *
+     * Ahora la gota va de cian palido a azul de agua honda. El matiz se separa
+     * a proposito del copo, que tira a cian de hielo: los dos medidores ocupan
+     * la misma ranura del HUD y tienen que distinguirse aunque solo se vea uno.
      */
-    private static final int AGUA = 0xFF6FD9FF;
+    private static final int AGUA = 0xFFFFFFFF;
 
     /**
      * El hueco vacio. Es el mismo dibujo en un azul casi negro, no un agujero:
@@ -99,6 +103,23 @@ public class HidratacionHud implements HudElement {
      * siendo negro, asi que la misma imagen vale para los dos estados.
      */
     private static final int VACIO = 0xFF33444C;
+
+    /**
+     * Si la gota se esta dibujando ahora mismo.
+     *
+     * Publico porque {@link FrioHud} lo necesita: el copo vive en el mismo
+     * sitio que la gota y solo se aparta si la gota esta puesta. Se pregunta
+     * aqui en vez de repetir la condicion alli, que es como se acaba con dos
+     * reglas que se separan sin que nadie se entere.
+     */
+    public static boolean visible(LocalPlayer jugador) {
+        if (jugador == null || !Hidratacion.activa(jugador)) {
+            return false;
+        }
+        return HidratacionManager.enDesierto(jugador)
+                || (InsolacionEffect.INSOLACION != null
+                    && jugador.hasEffect(InsolacionEffect.INSOLACION));
+    }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor grafico, DeltaTracker delta) {
@@ -128,10 +149,7 @@ public class HidratacionHud implements HudElement {
         // Y NO basta con "has perdido algo de agua". Entre 100 y 50 puntos no
         // hay ningun castigo, asi que fuera del desierto ese medidor solo seria
         // un adorno ocupando pantalla. Aparece cuando empieza a importar.
-        boolean interesa = HidratacionManager.enDesierto(jugador)
-                || (InsolacionEffect.INSOLACION != null
-                    && jugador.hasEffect(InsolacionEffect.INSOLACION));
-        if (!interesa) {
+        if (!visible(jugador)) {
             return;
         }
 
