@@ -54,6 +54,10 @@ public final class AtalayaConfig {
     private boolean hidratacionActiva = false;
     /** Que el frio suba en los biomas nevados y acabe en hipotermia. */
     private boolean frioActivo = false;
+    /** Que el fulminante aparezca por su cuenta en el desierto. */
+    private boolean fulminanteActivo = false;
+    /** Que la arena del crater pueda soltar fulgurita al cepillarla. */
+    private boolean fulguritaActiva = false;
     /** Que la lluvia coma la armadura de quien se moja. */
     private boolean corrosionActiva = false;
     /** Que la lluvia deje empapado y a media velocidad. */
@@ -189,6 +193,24 @@ public final class AtalayaConfig {
 
     public void setFrioActivo(boolean valor) {
         this.frioActivo = valor;
+        guardar();
+    }
+
+    public boolean isFulminanteActivo() {
+        return fulminanteActivo;
+    }
+
+    public void setFulminanteActivo(boolean valor) {
+        this.fulminanteActivo = valor;
+        guardar();
+    }
+
+    public boolean isFulguritaActiva() {
+        return fulguritaActiva;
+    }
+
+    public void setFulguritaActiva(boolean valor) {
+        this.fulguritaActiva = valor;
         guardar();
     }
 

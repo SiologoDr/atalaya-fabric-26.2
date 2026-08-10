@@ -116,6 +116,12 @@ public class HidratacionHud implements HudElement {
         if (jugador == null || !Hidratacion.activa(jugador)) {
             return false;
         }
+        // En creativo y espectador el servidor no gasta agua ni aplica nada, asi
+        // que el medidor solo seria un adorno que no se mueve nunca. Lo mismo
+        // vale para el copo del frio.
+        if (jugador.isCreative() || jugador.isSpectator()) {
+            return false;
+        }
         return HidratacionManager.enDesierto(jugador)
                 || (InsolacionEffect.INSOLACION != null
                     && jugador.hasEffect(InsolacionEffect.INSOLACION));

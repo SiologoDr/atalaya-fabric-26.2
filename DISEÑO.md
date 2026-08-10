@@ -376,6 +376,12 @@ pintado**. La coma lo evita:
 return , $m
 ```
 
+Y no es solo con arrays: **una hashtable devuelta se convierte en su lista de
+claves**. Comparar dos paletas así falla con
+`[System.String] no contiene ningún método llamado 'ContainsKey'`, que suena a
+error de tipos cuando en realidad la función nunca devolvió la tabla. Misma coma,
+o no devolver nada y trabajar sobre una variable del ámbito de arriba.
+
 **GDI+ bloquea el fichero de origen.** Mientras el `Bitmap` siga abierto no se
 puede guardar encima, y recolorear una textura es justo eso: leer y escribir el
 mismo PNG. Falla con "Error genérico en GDI+", que no dice nada. Hay que guardar
@@ -609,3 +615,117 @@ vale: por debajo de 0,8 px de grosor los brazos se parten antes de reflejarse.
 Para 4 u 8 brazos exactos hay una salida mejor: **plegar el píxel al primer
 octante** y evaluar un solo brazo. Sale simétrico por construcción y sin engordar.
 Con seis brazos no se puede —60° no cae en la rejilla— y ahí toca reflejar.
+
+---
+
+## 18. No encojas el dibujo para que quepa en el generador
+
+El §14-bis dice que cuando peleas con los parámetros y ninguno vale, el problema
+es la parametrización. Hay un caso peor y más tonto: **cambiar la forma para que
+el generador la sepa hacer.**
+
+La estrella del aturdimiento pasó por tres versiones, todas generadas:
+
+| Tamaño | Qué salía |
+|---|---|
+| 8 px, polígono | Un **muñequito con las piernas abiertas** — las dos puntas de abajo leían como piernas y los brazos no se veían |
+| 12 px, a mano | Ya leía, pero forzada |
+| 18 px, dibujada | Una estrella |
+
+Lo que falló no fue el tamaño: fue **elegir el tamaño según lo que el script
+sabía hacer**. Ocho píxeles se eligieron porque "una partícula es pequeña", no
+porque la forma cupiera. Y una estrella de cinco puntas en ocho píxeles no cabe:
+necesita punta arriba, dos brazos, dos piernas y un centro, y eso son seis rasgos
+en ocho filas.
+
+> La forma manda sobre el tamaño, y el tamaño sobre el método. En ese orden.
+> Si la forma pide 18 píxeles, son 18 — y si a 18 el generador no la saca, se
+> dibuja a mano.
+
+### Y una vez dibujada, el color se calcula
+
+Lo que sí conviene generar es el sombreado, y hay una manera que respeta
+cualquier silueta: medir, para cada píxel, **cuántos pasos hay hasta el aire más
+cercano**. Los del borde valen 0, sus vecinos 1, y así hacia dentro. Ese número
+mapeado sobre la rampa da volumen sin inventarse ninguna geometría.
+
+```powershell
+# anillos hacia dentro, sin saber nada de la forma
+if ($paso -eq 0) { if (-not $solido[$rr,$cc]) { $toca = $true } }
+else             { if ($dentro[$rr,$cc] -eq ($paso-1)) { $toca = $true } }
+```
+
+Sirve igual para una estrella, un copo o un carámbano, y permite **recolorear un
+dibujo ajeno sin tocarle un píxel** — que es exactamente lo que hay que hacer
+cuando el dibujo lo trae otro (§10).
+
+---
+
+## 19. Camuflar es copiar la paleta, no aproximarla
+
+El fulminante tiene que confundirse con el desierto. La tentación es dibujar una
+piel "color arena" a ojo. No sirve: a diez bloques, lo que delata a un bicho no
+son sus colores sino que **sus colores no son los de al lado**. Basta un tono de
+diferencia para que la silueta se recorte contra el suelo.
+
+Lo que sí sirve es **leer el `sand.png` de vanilla y copiarlo píxel a píxel**,
+repitiendo cada 16 para que el grano tampoco corte entre piezas del modelo.
+
+| | Colores | Luminancia |
+|---|---|---|
+| `block/sand.png` | 6 | 187–232 |
+| Torso del fulminante | 6 | 187–232 |
+
+Idénticos, no parecidos — los seis valores RGB son los mismos seis.
+
+Y la comprobación se extiende a lo que le cuelga. La hierba seca de la cabeza
+saca su paleta de `tall_dry_grass.png`, y ahí está el hallazgo: de sus **cuatro**
+tonos, **dos son literalmente colores del bloque de arena**
+(`209,186,138` y `218,207,163`). No hacía falta inventar nada; vanilla ya había
+hecho el trabajo de que la hierba del desierto pegue con la arena del desierto.
+
+> Antes de dibujar un camuflaje, mide la paleta del sitio donde se va a esconder.
+> Muchas veces el trabajo ya está hecho y solo hay que copiarlo.
+
+### El corolario: si todo camufla, no se lee nada
+
+Aplicar la paleta de la arena a *toda* la textura borró la cara y las pezuñas. Y
+con razón: son los rasgos que separan un creeper de un montón de arena, y su
+lectura depende de tener **tonos muy por debajo del fondo**, no de encajar en él.
+
+Así que el camuflaje tiene una excepción deliberada: **la cara se queda oscura**.
+Es lo único que lo delata cuando está quieto, y esa es exactamente la ventana
+que el jugador tiene para reaccionar. Un camuflaje del 100 % no sería un
+enemigo, sería una trampa.
+
+Vale como regla general y enlaza con el §3: **lo que es dato no se somete a la
+paleta ambiental.** El fondo se funde; la información contrasta.
+
+---
+
+## 20. Antes de dibujar una malla, mira si te la puede prestar vanilla
+
+El fulminante no tiene modelo propio en el sentido de haberlo diseñado: es la
+malla del creeper transcrita — mismas cajas, mismos `texOffs`, mismas poses. Lo
+único añadido son dos planos para la hierba.
+
+Eso da dos cosas gratis. Los **UV siguen valiendo**, así que cualquier textura de
+creeper del mundo funciona de partida y solo hay que repintarla. Y las
+**animaciones también**, porque el renderer del creeper anima buscando piezas con
+esos nombres.
+
+Dos detalles que sí hay que saber al añadir algo encima:
+
+**Los planos cruzados llevan grosor cero.** Es lo que hace vanilla con las alas
+de la abeja. Una caja de profundidad 0 no desaparece: se despliega como **dos
+caras pegadas** en el atlas —la de delante en su `texOffs`, la de detrás
+desplazada justo el ancho—, así que se ve por los dos lados sin duplicar nada.
+
+**Colgar de la cabeza sale gratis.** Si la hierba es hija del hueso `head`, gira
+con él sin escribir una línea de animación. Colgarla del cuerpo obligaría a
+copiar a mano la rotación de la cabeza cada tick, y a que se desincronizara.
+
+Y una decisión que no es de dibujo pero se decide aquí: **la caja de colisión no
+crece con el adorno.** La mata asoma por encima de la cabeza y la caja sigue
+siendo la del creeper. Si creciera, el bicho chocaría con techos por los que un
+creeper pasa, y el jugador no tiene forma de intuir eso mirando.

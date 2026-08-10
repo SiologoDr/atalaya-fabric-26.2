@@ -4,8 +4,14 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "BlockItemMixin",
+    "BotinSecretoMixin",
+    "CreeperAccessor",
+    "DanoFulminanteMixin",
     "PoisonMobEffectMixin",
-    "RecipeManagerMixin"
+    "RanuraAturdidoMixin",
+    "RecipeManagerMixin",
+    "SpawnPlacementsInvoker",
+    "VitrificarMixin"
   ],
   "injectors": {
     "defaultRequire": 1

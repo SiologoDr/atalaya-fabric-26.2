@@ -3,16 +3,13 @@
   "item.atalaya.hazmat_chestplate": "Pechera de hazmat",
   "item.atalaya.hazmat_leggings": "Pantalón de hazmat",
   "item.atalaya.hazmat_boots": "Botas de hazmat",
-
   "item.atalaya.lingote_blindado": "Lingote Blindado",
   "item.atalaya.miel_cristalizada": "Miel Cristalizada",
   "item.atalaya.plantilla_sellado": "Plantilla de Sellado",
-
   "item.atalaya.plantilla_sellado.aplica_a": "Armadura de hierro",
   "item.atalaya.plantilla_sellado.ingredientes": "Lingote Blindado",
   "item.atalaya.plantilla_sellado.hueco_base": "Añade una pieza de armadura de hierro",
   "item.atalaya.plantilla_sellado.hueco_adicion": "Añade un lingote blindado",
-
   "item.atalaya.carbon_activado": "Carbón activado",
   "item.atalaya.filtro_carbon": "Filtro de carbón",
   "item.atalaya.agua_purificada": "Agua Purificada",
@@ -25,12 +22,15 @@
   "item.atalaya.pata_ligera": "Pata Ligera",
   "item.atalaya.alon": "Alón",
   "item.atalaya.pata_alada": "Pata Alada",
-
   "effect.atalaya.radiacion": "Radiación",
   "effect.atalaya.insolacion": "Insolación",
   "effect.atalaya.corrosion": "Corrosión",
   "effect.atalaya.empapado": "Empapado",
   "effect.atalaya.hipotermia": "Hipotermia",
-
-  "item.atalaya.hazmat.mejora": "Mejora de %s"
+  "effect.atalaya.aturdimiento": "Aturdimiento",
+  "hud.atalaya.aturdimiento": "Pulsa la tecla espacio",
+  "entity.atalaya.fulminante": "Fulminante",
+  "item.atalaya.huevo_fulminante": "Huevo generador de fulminante",
+  "item.atalaya.hazmat.mejora": "Mejora de %s",
+  "item.atalaya.fulgurita": "Fulgurita"
 }
