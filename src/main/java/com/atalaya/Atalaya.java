@@ -1,13 +1,20 @@
 package com.atalaya;
 
+import com.atalaya.aturdimiento.Aturdimiento;
+import com.atalaya.particula.AtalayaParticulas;
+import com.atalaya.aturdimiento.AturdimientoManager;
 import com.atalaya.command.AtalayaCommand;
 import com.atalaya.config.LibroRecetas;
+import com.atalaya.effect.AturdimientoEffect;
+import com.atalaya.net.AtalayaRed;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import com.atalaya.lluvia.LluviaManager;
 import com.atalaya.effect.CorrosionEffect;
 import com.atalaya.effect.EmpapadoEffect;
 import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.effect.RadiacionEffect;
+import com.atalaya.entity.AtalayaEntities;
 import com.atalaya.frio.Frio;
 import com.atalaya.frio.FrioManager;
 import com.atalaya.hidratacion.Hidratacion;
@@ -53,20 +60,32 @@ public class Atalaya implements ModInitializer {
     private static final ResourceKey<CreativeModeTab> PESTANA_INGREDIENTES =
             ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("ingredients"));
 
+    private static final ResourceKey<CreativeModeTab> PESTANA_HUEVOS =
+            ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("spawn_eggs"));
+
+
     @Override
     public void onInitialize() {
         // Los componentes van primero: los items los usan al construirse.
         AtalayaComponents.registrar();
         HazmatArmor.registrar();
+        AtalayaParticulas.registrar();
+        // Las entidades van ANTES que los items: el huevo generador necesita
+        // que su tipo de entidad exista cuando se construye.
+        AtalayaEntities.registrar();
         AtalayaItems.registrar();
         RadiacionEffect.registrar();
         InsolacionEffect.registrar();
         CorrosionEffect.registrar();
         EmpapadoEffect.registrar();
         HipotermiaEffect.registrar();
+        AturdimientoEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
         Frio.registrar();
+        Aturdimiento.registrar();
+        AtalayaRed.registrarTipos();
+        AtalayaRed.registrarServidor();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
         // El tercer parametro de CHUNK_LOAD (recien generado o no) no nos importa:
@@ -103,6 +122,20 @@ public class Atalaya implements ModInitializer {
         // calentarse, y el de enfriarse sale contando vueltas.
         ServerTickEvents.END_SERVER_TICK.register(FrioManager::tick);
 
+        // El aturdimiento se descuenta en su propio bucle, mas rapido que los
+        // demas (5 ticks) porque la cuenta atras tiene que ir fina.
+        ServerTickEvents.END_SERVER_TICK.register(AturdimientoManager::tick);
+
+        // Y se pone cuando la explosion de un fulminante hace dano de verdad.
+        // Se engancha DESPUES del dano, no antes: asi cubrirse o llevar buena
+        // armadura tambien libra de quedarse clavado.
+        ServerLivingEntityEvents.AFTER_DAMAGE.register(
+                (entidad, fuente, repartido, recibido, bloqueado) ->
+                        AturdimientoManager.alRecibirDano(entidad, fuente, recibido));
+
+        // Y lo que no puede hacer mientras dura: usar, pegar, colocar.
+        AturdimientoManager.registrarBloqueos();
+
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.
         ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) ->
@@ -115,6 +148,11 @@ public class Atalaya implements ModInitializer {
         // Carbon activado y filtro van con los materiales, detras del carbon.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->
                 salida.insertAfter(Items.CHARCOAL, AtalayaItems.todos()));
+
+        // El huevo del fulminante va con los demas huevos, detras del de creeper.
+        // No cabe en Ingredientes: alli no lo buscaria nadie.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(Items.CREEPER_SPAWN_EGG, AtalayaItems.HUEVO_FULMINANTE));
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> AtalayaCommand.registrar(dispatcher));

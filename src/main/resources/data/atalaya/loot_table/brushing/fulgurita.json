@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:generic",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "atalaya:fulgurita", "weight": 20 },
+        { "type": "minecraft:empty", "weight": 80 }
+      ]
+    }
+  ]
+}

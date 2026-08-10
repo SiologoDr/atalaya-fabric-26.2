@@ -144,6 +144,11 @@ public class FrioHud implements HudElement {
         if (!Frio.activa(jugador)) {
             return;
         }
+        // En creativo y espectador el servidor ni sube ni baja el frio, asi que
+        // el medidor se quedaria clavado. Mismo criterio que la gota.
+        if (jugador.isCreative() || jugador.isSpectator()) {
+            return;
+        }
 
         refrescar(jugador);
 

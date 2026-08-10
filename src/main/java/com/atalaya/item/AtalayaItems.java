@@ -1,6 +1,7 @@
 package com.atalaya.item;
 
 import com.atalaya.Atalaya;
+import com.atalaya.entity.AtalayaEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SmithingTemplateItem;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.component.UseRemainder;
 
@@ -36,6 +38,20 @@ public final class AtalayaItems {
 
     /** Cartucho filtrante. Cambia el filtro del traje con click derecho. */
     public static Item FILTRO_CARBON;
+
+    /** Huevo generador del fulminante, el creeper del desierto. */
+    public static Item HUEVO_FULMINANTE;
+
+    /**
+     * Fulgurita en bruto: la arena que un rayo fundio de golpe.
+     *
+     * Sale de cepillar la arena sospechosa que deja el fulminante, y solo una de
+     * cada cinco veces. Las otras cuatro no dan NADA, asi que es el unico sitio
+     * de donde sale y encima no siempre: quien la quiera tiene que buscar
+     * fulminantes y aguantarles la explosion.
+     */
+    public static Item FULGURITA;
+
 
     /**
      * Agua purificada: una botella de agua hervida, al fuego o al horno.
@@ -221,6 +237,14 @@ public final class AtalayaItems {
         LINGOTE_BLINDADO = registrar("lingote_blindado", Item::new);
         MIEL_CRISTALIZADA = registrar("miel_cristalizada", Item::new);
 
+        // El huevo del fulminante. En 26.2 los huevos generadores ya no llevan
+        // el tipo en el constructor ni se tinen por codigo: el tipo va en las
+        // propiedades y el color, en su propio PNG.
+        HUEVO_FULMINANTE = registrar("huevo_fulminante",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.FULMINANTE)));
+
+        FULGURITA = registrar("fulgurita", Item::new);
+
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),
                 azul("item.atalaya.plantilla_sellado.ingredientes"),
@@ -247,7 +271,8 @@ public final class AtalayaItems {
                 COLMILLO, VENENO, COLMILLO_VENENOSO,
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
-                MIEL_CRISTALIZADA, PLANTILLA_SELLADO
+                MIEL_CRISTALIZADA, PLANTILLA_SELLADO,
+                FULGURITA
         };
     }
 }

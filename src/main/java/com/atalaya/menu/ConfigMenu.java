@@ -103,6 +103,10 @@ public class ConfigMenu extends ChestMenu {
                             "Gasta un punto al sol, e insola al quedarte seco.",
                             () -> AtalayaConfig.get().isHidratacionActiva(),
                             v -> AtalayaConfig.get().setHidratacionActiva(v)),
+                    mecanica(pila(() -> Items.TNT), "Fulminante en el desierto",
+                            "El creeper que revienta en medio segundo y te deja clavado.",
+                            () -> AtalayaConfig.get().isFulminanteActivo(),
+                            v -> AtalayaConfig.get().setFulminanteActivo(v)),
                     mecanica(pila(() -> Items.POWDER_SNOW_BUCKET), "Frio en la nieve",
                             "Te hiela en el bioma helado hasta que te arrimes al fuego.",
                             () -> AtalayaConfig.get().isFrioActivo(),
@@ -142,7 +146,11 @@ public class ConfigMenu extends ChestMenu {
                     mecanica(pila(() -> AtalayaItems.ALON), "Alon",
                             "Los pollos lo sueltan al matarlos.",
                             () -> AtalayaConfig.get().isDropAlonActivo(),
-                            v -> AtalayaConfig.get().setDropAlonActivo(v))
+                            v -> AtalayaConfig.get().setDropAlonActivo(v)),
+                    mecanica(pila(() -> AtalayaItems.FULGURITA), "Fulgurita del crater",
+                            "El fulminante deja arena que cepillar. Una de cada cinco da.",
+                            () -> AtalayaConfig.get().isFulguritaActiva(),
+                            v -> AtalayaConfig.get().setFulguritaActiva(v))
             ),
             // --- La cadena del traje, en el orden en que la recorre el jugador ---
             List.of(

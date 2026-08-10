@@ -15,11 +15,11 @@ Hazmat que se desgasta con la exposición y hay que mantener con filtros.
 > rampas de color y sombreado, para que lo nuevo parezca del mismo mod.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
-> Traje Hazmat completo, tres mejoras de herrería, y **cinco efectos propios
-> registrados**: radiación en las geodas, insolación en el desierto —con su
-> hidratación y su agua purificada—, corrosión y empapado bajo la lluvia, y frío
-> con hipotermia en la nieve. Todo bajo un panel de configuración con 22
-> interruptores.
+> Traje Hazmat completo, tres mejoras de herrería, un creeper propio, y **seis
+> efectos propios registrados**: radiación en las geodas, insolación en el
+> desierto —con su hidratación y su agua purificada—, corrosión y empapado bajo
+> la lluvia, frío con hipotermia en la nieve, y aturdimiento al reventar un
+> fulminante. Todo bajo un panel de configuración con 24 interruptores.
 >
 > **Nada está encendido de fábrica.** Un mundo recién puesto se comporta como
 > vanilla hasta que un operador abre cada mecánica.
@@ -602,6 +602,194 @@ aprieta.
 
 ---
 
+---
+
+## Fulminante
+
+El creeper del desierto, y la primera **entidad** propia del mod. Hereda de
+`Creeper` entera —IA, acercarse en silencio, silbido, hincharse, explotar— y solo
+cambia cómo se ve y tres números.
+
+Heredar en vez de copiar es deliberado: un creeper lleva media docena de
+comportamientos atados entre sí, y reescribirlos para cambiar la piel sería
+garantizar que el día que Mojang toque uno, el nuestro se quede atrás.
+
+### El nombre
+
+Un **fulminante** es el pistón detonador, la carga pequeña que enciende la
+grande. Y viene del latín *fulmen*, rayo — la misma familia que *fulgur* y de ahí
+**fulgurita**, la arena que un rayo funde en vidrio.
+
+> El bicho y lo que deja comparten raíz en el idioma, no porque se haya forzado.
+
+### Los tres números
+
+| | Vanilla | Fulminante |
+|---|---|---|
+| Mecha | 30 ticks (1,5 s) | **8 ticks (0,4 s)** |
+| Velocidad | 0,25 | **0,375** |
+| Daño de explosión | — | **×1,25** |
+
+Dos apuntes sobre por qué son esos y no otros:
+
+**La mecha no puede ser 7,5.** Un 75 % más rápido salen 7,5 ticks y el campo es
+entero, así que se queda en 8. Es el paso más cercano que existe.
+
+**El +25 % va al golpe, no al radio.** El radio también es entero: de 3 solo se
+puede pasar a 4, y eso es un tercio más de radio y bastante más de un cuarto de
+daño, porque el daño de una explosión no crece en línea recta con el radio.
+Tocando el número del golpe sale el 25 % clavado **y la explosión sigue rompiendo
+los mismos bloques** — sube lo que duele, no lo que destroza.
+
+`maxSwell` y `explosionRadius` son privados en `Creeper`; los abre un accesor.
+
+### Cómo se ve
+
+**La piel es el bloque de arena, literalmente.** No es una paleta parecida: se
+muestrea el `sand.png` de vanilla y se copia píxel a píxel, repitiendo cada 16
+para que el grano sea el mismo y no se note corte entre piezas.
+
+| | Colores | Luminancia |
+|---|---|---|
+| Bloque de arena | 6 | 187–232 |
+| Cuerpo del fulminante | 6 | 187–232 |
+
+Idénticos. **La cara es lo único que no se camufla** — sin ella no sería un
+creeper, y es lo único que lo delata cuando está quieto.
+
+Encima lleva **hierba seca**, dos planos cruzados de grosor cero colgados de la
+cabeza, así que giran con ella sin escribir una línea. La paleta sale del
+`tall_dry_grass.png` de vanilla, y ahí está la gracia: **dos de sus cuatro tonos
+son colores del bloque de arena**. Camufla de verdad, no de nombre.
+
+La caja de colisión es la del creeper clavada aunque la mata asome. Si creciera
+con ella, chocaría con techos por los que un creeper pasa.
+
+---
+
+## Aturdimiento
+
+Lo que deja la explosión del fulminante a quien alcanza. **30 segundos clavado.**
+
+Se pone cuando la explosión **hace daño de verdad**, no por estar cerca:
+cubrirse tras un bloque o llevar buena armadura también libra.
+
+### Qué bloquea
+
+Moverse, saltar, **usar objetos, colocar bloques, pegar, abrir el inventario,
+cambiar de ranura, tirar el objeto y cambiar de mano.**
+
+Y dónde se corta cada cosa importa:
+
+- **Usar, colocar y pegar → en el servidor**, con los eventos de interacción de
+  Fabric. Bloquear una tecla solo esconde el botón; bloquear la acción la impide.
+  Un cliente modificado no se libra.
+- **Cambiar de ranura → en `Inventory.setSelectedSlot`.** A la ranura se llega
+  por tres caminos —rueda, teclas 1-9 y coger bloque— y los tres acaban ahí.
+- **Abrir el inventario → en el cliente**, y ahí no hay alternativa: el
+  inventario propio se abre sin preguntarle nada al servidor.
+
+**Escape y el chat siguen funcionando.** Quien está clavado medio minuto tiene
+que poder pausar, salir o pedir ayuda.
+
+### Soltarse a pulsaciones
+
+Cada toque de **espacio** descuenta medio segundo. Sin tocar nada son 30 s;
+aporreando, unos sesenta toques.
+
+Se cuentan **flancos**, no ticks con la tecla abajo: si valiera tenerla apretada,
+bastaría con dejar algo encima del teclado.
+
+La cuenta vive en un dato propio, no en la duración del efecto. La duración de un
+`MobEffect` no se puede recortar sin quitarlo y volverlo a poner, y eso
+reiniciaría parpadeos y sonidos cada medio segundo.
+
+Y hace falta **un paquete del cliente al servidor**, porque al anular el salto no
+hay movimiento que delate la tecla. Solo se manda si de verdad estás aturdido.
+
+### Lo que se ve
+
+Un dibujo de la **barra espaciadora** con dos fotogramas apilados en la misma
+imagen —suelta y pulsada—, así que cambiar de uno a otro es mover la V del blit
+dieciséis píxeles. Responde en el mismo fotograma en que aprietas. Debajo, el
+texto *"Pulsa la tecla espacio"*.
+
+Y **tres estrellas girando** sobre la cabeza. Se mandan desde el servidor, así
+que **también las ven los demás**: que se note desde fuera quién está aturdido es
+parte de la gracia en un servidor con gente.
+
+---
+
+## Fulgurita
+
+```
+Fulminante explota
+      ↓  funde la arena del cráter
+Arena sospechosa
+      ↓  pincel
+20 % Fulgurita  /  80 % nada
+```
+
+**Es arena sospechosa de vanilla**, no un bloque propio. Lo único que hacía falta
+era colgarle otra tabla de botín, y eso se le puede hacer igual al de vanilla —
+es exactamente como reparten los pozos del desierto y las pirámides.
+
+### Se siembra después de estallar
+
+Lo natural parecía lo contrario, pero sembrar antes no servía: **la explosión
+alcanza lo mismo que el corro donde se ponen los bloques**, así que se los
+llevaba casi todos al instante. Y un cráter deja más arena a la vista, no menos —
+el suelo y las paredes del hoyo quedan al descubierto.
+
+Solo la superficie con el cielo despejado encima, y **una de cada tres**: una
+placa perfecta se leería como algo puesto a mano; un reguero irregular parece un
+impacto.
+
+### No sabes si te toca hasta la última pasada
+
+Vanilla enseña el objeto asomando desde el primer cepillazo, y en la arqueología
+eso *es* la gracia. Con un botín del 20 % lo estropea: en cuanto asoma ya sabes
+si has ganado, y las otras cuatro veces ni te molestas en terminar. La tirada
+deja de costar nada.
+
+El cliente lo dibuja porque **le llega en el paquete de sincronización**. Si el
+objeto no viaja, no hay nada que enseñar; en el servidor sigue estando y al
+acabar cae igual.
+
+**Solo afecta a los bloques que deja el fulminante.** La arqueología de vanilla
+se queda tal cual.
+
+### Si la picas, no sale nada
+
+La arena sospechosa de vanilla tiene la tabla de botín vacía. Ese es el castigo
+por no traer el pincel.
+
+---
+
+## Criolita — item suelto, sin conectar
+
+En `materiales/criolita.png` queda el dibujo de un mineral que **no está
+registrado en el mod**: ni item, ni bloque, ni receta, ni interruptor.
+
+**Qué era.** El material del frío, pensado como pareja de la fulgurita para un
+*forro aislante* que frenara la insolación y la hipotermia a la vez. La criolita
+es real —del griego *piedra de hielo*, explotada solo en Ivigtut, Groenlandia— y
+su papel encajaba solo: es un **fundente**, baja el punto de fusión y hace que el
+vidrio fluya. Sin ella la fulgurita no se puede hilar; sin fulgurita ella no
+funde nada. Ninguna de las dos sobraba, y eso obligaba a pisar los dos biomas.
+
+**Por qué se quitó.** Se llegó a construir entera —bloque con dos caras según el
+interruptor, geoda de hielo con la veta en el suelo, generación por bioma— y se
+retiró: el cliente empezó a caerse con crashes nativos sin informe al generar
+terreno, y no se pudo descartar la característica de generación.
+
+**Qué se piensa hacer.** Que la suelte una **entidad al morir**, en vez de
+generarse en el mundo. Eso evita de raíz el problema —no hay generación que
+falle— y encaja mejor con cómo consigue el mod casi todo lo demás: la miel, el
+colmillo, el veneno, la pata y el alón salen de matar algo.
+
+Hasta entonces el PNG se queda guardado y nada más.
+
 ## Comandos
 
 | Comando | Permiso | Qué hace |
@@ -609,6 +797,7 @@ aprieta.
 | `/atalaya menu` | Operador | Abre el panel de configuración |
 | `/atalaya hidratacion <0-50>` | Operador | Fija tu hidratación. Para probar: llegar al nivel 2 esperando al sol son casi seis minutos |
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
+| `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 
 El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña de
 **Combate** en creativo. Los materiales están en **Ingredientes**.
@@ -617,11 +806,11 @@ El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-Son **22 interruptores** en cuatro grupos, cada uno en su propia fila:
+Son **24 interruptores** en cuatro grupos, cada uno en su propia fila:
 
 ```
-[Radiación][Hidratación][Frío][Corrosión][Empapado]           lo que hace el MUNDO
-[Miel][Colmillo][Veneno][Espejo][Pata][Alón]                  lo que sueltan los MOBS
+[Radiación][Hidratación][Fulminante][Frío][Corrosión][Empapado] lo que hace el MUNDO
+[Miel][Colmillo][Veneno][Espejo][Pata][Alón][Fulgurita]       lo que sueltan los MOBS
 [Lingote][Miel cr.][Plantilla][Herrería]                      la cadena del TRAJE
 [Carbón][Filtro][Alga][Lente][C.Venenoso][P.Alada][Agua]      ITEMS y mejoras
 ```
@@ -638,7 +827,7 @@ solo a la siguiente.
 
 El panel tiene **seis filas: cinco de contenido y una de navegación**. Cuando el
 contenido no cabe se abre una página nueva, y las flechas solo aparecen si hay
-adónde ir. Con 22 interruptores caben en cuatro filas, así que ahora mismo es una
+adónde ir. Con 24 interruptores caben en cuatro filas, así que ahora mismo es una
 sola página con una fila de margen.
 
 Los huecos van **vacíos, sin cristal de relleno**: los clics en la zona del panel
@@ -884,11 +1073,19 @@ src/main/               código común (servidor + cliente)
 │   ├── effect/CorrosionEffect      el efecto y el desgaste proporcional
 │   ├── effect/EmpapadoEffect       el efecto y su lentitud
 │   ├── effect/HipotermiaEffect     el efecto y su tabla de escalones
+│   ├── effect/AturdimientoEffect   la cara visible de estar clavado
 │   ├── lluvia/LluviaManager        las DOS mecánicas de lluvia, en un bucle
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
 │   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
 │   ├── frio/Frio                   el dato pegado al jugador, al revés que la gota
 │   ├── frio/FrioManager            lo sube en la nieve y lo baja junto al fuego
+│   ├── aturdimiento/Aturdimiento   los ticks que quedan, pegados al jugador
+│   ├── aturdimiento/AturdimientoManager  los descuenta, clava y bloquea
+│   ├── entity/FulminanteEntity     el creeper del desierto y su vitrificado
+│   ├── entity/AtalayaEntities      tipo, atributos, aparición y bioma
+│   ├── net/AtalayaRed              el paquete de espacio, cliente → servidor
+│   ├── particula/AtalayaParticulas la estrella de aturdido
+│   ├── util/BotinSecreto           marca la arena que no enseña su premio
 │   ├── item/AtalayaItems           items que no son armadura
 │   ├── item/AtalayaComponents      componentes de datos propios
 │   ├── item/HazmatArmor            las cuatro piezas y sus umbrales
@@ -897,7 +1094,9 @@ src/main/               código común (servidor + cliente)
 │   ├── item/AguaPurificadaItem     se bebe y devuelve hidratación
 │   ├── loot/AtalayaLoot            los cinco drops de mobs y el de la pesca
 │   ├── menu/ConfigMenu             el panel de interruptores
-│   ├── mixin/                      BlockItem, PoisonMobEffect, RecipeManager
+│   ├── mixin/                      BlockItem, PoisonMobEffect, RecipeManager,
+│   │                               Creeper, daño, vitrificado, ranura, botín,
+│   │                               SpawnPlacements
 │   └── radiation/                  GeodeIndex (índice) y RadiationManager (tick)
 └── resources/
     ├── fabric.mod.json             manifiesto
@@ -912,10 +1111,16 @@ src/client/             código SOLO de cliente
 │   ├── client/HidratacionHud       la gota y la flecha
 │   ├── client/FrioHud              el copo y las dos flechas
 │   ├── client/VinetaHud            el halo, de calor o de frío
+│   ├── client/AturdimientoHud      la barra espaciadora y su texto
+│   ├── client/AturdimientoTeclado  cuenta flancos y se traga las teclas
+│   ├── client/FulminanteModel      la malla del creeper más la hierba seca
+│   ├── client/FulminanteRenderer   reusa el render del creeper con otra malla
+│   ├── client/EstrellaParticula    la estrella que gira sobre la cabeza
 │   └── mixin/client/               visor translúcido y mareo suave
 └── resources/atalaya.client.mixins.json
 
 materiales/             plantillas de diseño de texturas (no van al jar)
+                        y criolita.png, guardada sin conectar a nada
 ```
 
 La separación `main` / `client` la impone `splitEnvironmentSourceSets()` en
