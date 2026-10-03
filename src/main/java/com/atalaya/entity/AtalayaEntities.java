@@ -35,6 +35,19 @@ public final class AtalayaEntities {
 
     public static EntityType<FulminanteEntity> FULMINANTE;
 
+    public static final ResourceKey<EntityType<?>> CLAVE_VIGIA = ResourceKey.create(
+            Registries.ENTITY_TYPE,
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "vigia"));
+
+    public static EntityType<VigiaEntity> VIGIA;
+
+    public static final ResourceKey<EntityType<?>> CLAVE_RAYO_VIGIA = ResourceKey.create(
+            Registries.ENTITY_TYPE,
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "rayo_vigia"));
+
+    /** El proyectil de la mirada. */
+    public static EntityType<RayoVigiaEntity> RAYO_VIGIA;
+
     private AtalayaEntities() {
     }
 
@@ -80,5 +93,48 @@ public final class AtalayaEntities {
         BiomeModifications.addSpawn(
                 BiomeSelectors.tag(ConventionalBiomeTags.IS_DESERT),
                 MobCategory.MONSTER, FULMINANTE, 12, 1, 2);
+
+        registrarVigia();
+    }
+
+    private static void registrarVigia() {
+        // 2,9 de alto, como el enderman: NO cabe por un tunel de dos bloques.
+        // Es a proposito y es la otra salida contra el, ademas de cortarle la
+        // vista: meterse bajo techo bajo.
+        VIGIA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_VIGIA,
+                EntityType.Builder.of(VigiaEntity::new, MobCategory.MONSTER)
+                        .sized(0.9F, 2.9F)
+                        .eyeHeight(2.45F)
+                        .clientTrackingRange(10)
+                        .build(CLAVE_VIGIA));
+
+        FabricDefaultAttributeRegistry.register(VIGIA, VigiaEntity.crearAtributos());
+
+        // El rayo: caja pequena para que acertar dependa de apuntar, y
+        // actualizacion cada tick, que a 25 bloques por segundo cualquier
+        // otra cosa se veria a saltos.
+        RAYO_VIGIA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_RAYO_VIGIA,
+                EntityType.Builder.<RayoVigiaEntity>of(RayoVigiaEntity::new, MobCategory.MISC)
+                        .sized(0.4F, 0.4F)
+                        .clientTrackingRange(8)
+                        .updateInterval(1)
+                        .build(CLAVE_RAYO_VIGIA));
+
+        // Igual que el fulminante: el interruptor se mira en cada intento de
+        // aparicion, asi que apagarlo corta al momento sin reiniciar.
+        SpawnPlacementsInvoker.atalaya$registrar(
+                VIGIA,
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                (tipo, nivel, motivo, pos, azar) ->
+                        AtalayaConfig.get().isVigiaActivo()
+                                && Monster.checkMonsterSpawnRules(tipo, nivel, motivo, pos, azar));
+
+        // Todo el mundo normal, pero raro y de uno en uno: es un minijefe, no
+        // un monstruo de relleno. Con peso 3 frente a los 100 del zombi sale
+        // alguno por noche en una zona grande, no uno en cada colina.
+        BiomeModifications.addSpawn(
+                BiomeSelectors.foundInOverworld(),
+                MobCategory.MONSTER, VIGIA, 3, 1, 1);
     }
 }

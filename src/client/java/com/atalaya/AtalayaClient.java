@@ -10,6 +10,12 @@ import com.atalaya.client.FrioHud;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import com.atalaya.client.FulminanteModel;
 import com.atalaya.client.FulminanteRenderer;
+import com.atalaya.client.VigiaModel;
+import com.atalaya.client.RayoVigiaModel;
+import com.atalaya.client.RayoVigiaRenderer;
+import com.atalaya.client.VigiaParticula;
+import net.minecraft.core.particles.SimpleParticleType;
+import com.atalaya.client.VigiaRenderer;
 import com.atalaya.entity.AtalayaEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -77,6 +83,13 @@ public class AtalayaClient implements ClientModInitializer {
         ModelLayerRegistry.registerModelLayer(FulminanteModel.CAPA, FulminanteModel::crear);
         EntityRendererRegistry.register(AtalayaEntities.FULMINANTE, FulminanteRenderer::new);
 
+        // El Vigia: malla y animaciones propias, nada heredado.
+        ModelLayerRegistry.registerModelLayer(VigiaModel.CAPA, VigiaModel::crear);
+        EntityRendererRegistry.register(AtalayaEntities.VIGIA, VigiaRenderer::new);
+        // Y su rayo: malla propia apuntada al vuelo, como una flecha de luz.
+        ModelLayerRegistry.registerModelLayer(RayoVigiaModel.CAPA, RayoVigiaModel::crear);
+        EntityRendererRegistry.register(AtalayaEntities.RAYO_VIGIA, RayoVigiaRenderer::new);
+
         // El aviso de la tecla va DESPUES de la hotbar para quedar por encima:
         // es una instruccion, y taparla con cualquier cosa la haria inutil.
         HudElementRegistry.attachElementAfter(
@@ -94,6 +107,21 @@ public class AtalayaClient implements ClientModInitializer {
         ParticleProviderRegistry.getInstance().register(
                 AtalayaParticulas.ESTRELLA, EstrellaParticula.Fabrica::new);
 
+        // Las ocho del Vigia: una clase, un comportamiento por tipo.
+        particula(AtalayaParticulas.VIGIA_CHISPA, VigiaParticula.Tipo.CHISPA);
+        particula(AtalayaParticulas.VIGIA_RAYO, VigiaParticula.Tipo.RAYO);
+        particula(AtalayaParticulas.VIGIA_MALDICION, VigiaParticula.Tipo.MALDICION);
+        particula(AtalayaParticulas.VIGIA_MARCA, VigiaParticula.Tipo.MARCA);
+        particula(AtalayaParticulas.VIGIA_ZARPA, VigiaParticula.Tipo.ZARPA);
+        particula(AtalayaParticulas.VIGIA_ESQUIRLA, VigiaParticula.Tipo.ESQUIRLA);
+        particula(AtalayaParticulas.VIGIA_HUMO, VigiaParticula.Tipo.HUMO);
+        particula(AtalayaParticulas.VIGIA_ALMA, VigiaParticula.Tipo.ALMA);
+
         Atalaya.LOGGER.info("Atalaya (cliente) iniciado.");
+    }
+
+    private static void particula(SimpleParticleType tipo, VigiaParticula.Tipo comportamiento) {
+        ParticleProviderRegistry.getInstance().register(tipo,
+                sprites -> new VigiaParticula.Fabrica(sprites, comportamiento));
     }
 }

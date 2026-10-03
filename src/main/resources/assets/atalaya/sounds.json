@@ -1,0 +1,124 @@
+{
+  "vigia.ambiente": {
+    "subtitle": "subtitles.atalaya.vigia.ambiente",
+    "sounds": [
+      "atalaya:vigia/ambiente1",
+      "atalaya:vigia/ambiente2",
+      "atalaya:vigia/ambiente3"
+    ]
+  },
+  "vigia.acecho": {
+    "subtitle": "subtitles.atalaya.vigia.acecho",
+    "sounds": [
+      "atalaya:vigia/acecho1",
+      "atalaya:vigia/acecho2"
+    ]
+  },
+  "vigia.paso": {
+    "subtitle": "subtitles.atalaya.vigia.paso",
+    "sounds": [
+      "atalaya:vigia/paso1",
+      "atalaya:vigia/paso2",
+      "atalaya:vigia/paso3",
+      "atalaya:vigia/paso4"
+    ]
+  },
+  "vigia.herido": {
+    "subtitle": "subtitles.atalaya.vigia.herido",
+    "sounds": [
+      "atalaya:vigia/herido1",
+      "atalaya:vigia/herido2",
+      "atalaya:vigia/herido3"
+    ]
+  },
+  "vigia.muerte": {
+    "subtitle": "subtitles.atalaya.vigia.muerte",
+    "sounds": [
+      "atalaya:vigia/muerte"
+    ]
+  },
+  "vigia.apagarse": {
+    "subtitle": "subtitles.atalaya.vigia.apagarse",
+    "sounds": [
+      "atalaya:vigia/apagarse"
+    ]
+  },
+  "vigia.farol_cae": {
+    "subtitle": "subtitles.atalaya.vigia.farol_cae",
+    "sounds": [
+      "atalaya:vigia/farol_cae"
+    ]
+  },
+  "vigia.alerta": {
+    "subtitle": "subtitles.atalaya.vigia.alerta",
+    "sounds": [
+      "atalaya:vigia/alerta"
+    ]
+  },
+  "vigia.cepo_abrir": {
+    "subtitle": "subtitles.atalaya.vigia.cepo_abrir",
+    "sounds": [
+      "atalaya:vigia/cepo_abrir"
+    ]
+  },
+  "vigia.cepo_cerrar": {
+    "subtitle": "subtitles.atalaya.vigia.cepo_cerrar",
+    "sounds": [
+      "atalaya:vigia/cepo_cerrar"
+    ]
+  },
+  "vigia.cepo_fallo": {
+    "subtitle": "subtitles.atalaya.vigia.cepo_fallo",
+    "sounds": [
+      "atalaya:vigia/cepo_fallo"
+    ]
+  },
+  "vigia.mirada_carga": {
+    "subtitle": "subtitles.atalaya.vigia.mirada_carga",
+    "sounds": [
+      "atalaya:vigia/mirada_carga"
+    ]
+  },
+  "vigia.mirada_disparo": {
+    "subtitle": "subtitles.atalaya.vigia.mirada_disparo",
+    "sounds": [
+      "atalaya:vigia/mirada_disparo"
+    ]
+  },
+  "vigia.mirada_corte": {
+    "subtitle": "subtitles.atalaya.vigia.mirada_corte",
+    "sounds": [
+      "atalaya:vigia/mirada_corte"
+    ]
+  },
+  "vigia.tambaleo": {
+    "subtitle": "subtitles.atalaya.vigia.tambaleo",
+    "sounds": [
+      "atalaya:vigia/tambaleo"
+    ]
+  },
+  "vigia.buscar": {
+    "subtitle": "subtitles.atalaya.vigia.buscar",
+    "sounds": [
+      "atalaya:vigia/buscar"
+    ]
+  },
+  "ojo_vigia.usar": {
+    "subtitle": "subtitles.atalaya.ojo_vigia.usar",
+    "sounds": [
+      "atalaya:vigia/ojo_usar"
+    ]
+  },
+  "vigia.rayo_vuelo": {
+    "subtitle": "subtitles.atalaya.vigia.rayo_vuelo",
+    "sounds": [
+      "atalaya:vigia/rayo_vuelo"
+    ]
+  },
+  "vigia.rayo_impacto": {
+    "subtitle": "subtitles.atalaya.vigia.rayo_impacto",
+    "sounds": [
+      "atalaya:vigia/rayo_impacto"
+    ]
+  }
+}

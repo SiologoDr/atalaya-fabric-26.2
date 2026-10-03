@@ -56,6 +56,8 @@ public final class AtalayaConfig {
     private boolean frioActivo = false;
     /** Que el fulminante aparezca por su cuenta en el desierto. */
     private boolean fulminanteActivo = false;
+    /** Que el Vigia aparezca de noche por el mundo normal. */
+    private boolean vigiaActivo = false;
     /** Que la arena del crater pueda soltar fulgurita al cepillarla. */
     private boolean fulguritaActiva = false;
     /** Que la lluvia coma la armadura de quien se moja. */
@@ -202,6 +204,15 @@ public final class AtalayaConfig {
 
     public void setFulminanteActivo(boolean valor) {
         this.fulminanteActivo = valor;
+        guardar();
+    }
+
+    public boolean isVigiaActivo() {
+        return vigiaActivo;
+    }
+
+    public void setVigiaActivo(boolean valor) {
+        this.vigiaActivo = valor;
         guardar();
     }
 

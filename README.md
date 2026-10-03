@@ -790,6 +790,86 @@ colmillo, el veneno, la pata y el alón salen de matar algo.
 
 Hasta entonces el PNG se queda guardado y nada más.
 
+## El Vigía
+
+El centinela de la atalaya, y el primer bicho del mod **hecho entero a mano**:
+malla, textura, animaciones, sonidos y partículas propias. No hereda de ningún
+mob de vanilla ni usa nada suyo para verse u oírse.
+
+Alto (2,9 bloques), encorvado, sobre zancos, con brazos que le llegan a las
+rodillas y un **farol con un solo ojo** por cabeza. El ojo va en **ámbar** mientras
+vigila y en **rojo** en cuanto te tiene.
+
+| | |
+|---|---|
+| Vida | 60 (30 corazones) |
+| Armadura | 8 |
+| Daño del cepo | 9 |
+| Velocidad | 0,24 patrullando a 0,6 · persiguiendo a ×1,35 |
+| Aparece | de noche, en todo el mundo normal, raro y de uno en uno |
+
+### Cómo pelea
+
+| Estado | Qué hace | La salida |
+|---|---|---|
+| **Vigilar** | Barre el horizonte con el farol, se para a escuchar, mira al cielo | Que no te vea |
+| **Alerta** | Al verte se yergue y ruge (1,2 s) | Es el aviso: decide si huir |
+| **Persecución** | Bajo, zancadas largas, los brazos estirados agarrando el aire | Corriendo se le saca distancia |
+| **Cepo** | Abre los brazos en cruz y los cierra delante: 9 de daño y 1 s atrapado | Medio segundo de anticipación: retroceder dos pasos |
+| **Mirada** | De 5 a 24 bloques: carga 2 s y **dispara un rayo** que te marca | Romper la línea de visión al cargar, o apartarse cuando sale |
+| **Tambaleo** | Por la espalda recibe +50 % y pierde el turno; corta la mirada | Rodearlo, en equipo |
+| **Buscar** | Si te pierde, escudriña a los lados 2,5 s antes de rendirse | Quedarse escondido |
+
+**Marcado** es la maldición: 30 s en los que brillas a través de las paredes y
+cada monstruo libre a 24 bloques va a por ti. No tiene niveles ni daño propio —
+lo que duele es lo que atrae.
+
+No cabe por un túnel de dos bloques: meterse bajo techo bajo también salva.
+
+### La muerte
+
+Tres segundos propios en vez del tumbado de vanilla: acusa el golpe, cae de
+rodillas, alza el farol en una **última mirada** con la garra tendida, el ojo se
+encoge y **se apaga**, se desploma y **el farol se le desprende y rueda**. Vanilla
+retira el cuerpo a los 20 ticks; aquí se retiene hasta los 60.
+
+Suelta el **Ojo del Vigía** (solo si lo mata un jugador): 8 usos, un minuto de
+espera, y hace brillar 10 s a los monstruos a 32 bloques.
+
+### Todo propio
+
+- **Animaciones:** keyframes de vanilla (el sistema del warden), sin librerías.
+  Once: vigilar, acecho, patrulla, persecución, alerta, cepo, mirada,
+  tambaleo, buscar y muerte, más la cabeza siguiendo a la presa.
+- **Sonidos:** 19 eventos y 27 `.ogg` **sintetizados** por script con lo que el
+  bicho lleva encima —el hierro del farol, el cristal, las cadenas, una garganta
+  y la llama—. Ninguno es de vanilla.
+- **El rayo** es un proyectil propio con malla y renderer propios: núcleo
+  incandescente, dos halos cruzados que laten, punta y estela de geometría,
+  apuntado a su velocidad como una flecha. Una pared lo para.
+- **Partículas:** ocho dibujadas para él (chispa, rayo, maldición, marca,
+  zarpa, esquirla, humo y alma). Los efectos de vanilla que pone
+  (brillo, lentitud) van sin partículas para que solo se vean las suyas.
+
+Interruptor propio en el panel: **El Vigía**, apagado de fábrica.
+
+### Los generadores
+
+Todo lo del Vigía sale de scripts en `materiales/generadores/`, para poder
+retocarlo cambiando un número y regenerar:
+
+| Script | Genera |
+|---|---|
+| `vigia_tex.py` | la piel y las dos capas de brillo (calma y caza) |
+| `vigia_iconos.py` | huevo, Ojo del Vigía e icono de Marcado |
+| `vigia_particulas.py` | las ocho partículas |
+| `vigia_rayo_tex.py` | la textura del proyectil |
+| `vigia_sonidos.py` | los 27 `.ogg` (Python con numpy, scipy y soundfile) |
+| `vigia_render.py` + `vigia_poster.py` | el póster de `materiales/promo/` |
+
+`vigia_render.py` es un renderizador 3D por software que lee la misma malla que
+`VigiaModel`: sirve para sacar el bicho en cualquier pose, no la del tick.
+
 ## Comandos
 
 | Comando | Permiso | Qué hace |

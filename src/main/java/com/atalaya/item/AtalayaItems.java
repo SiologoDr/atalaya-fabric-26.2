@@ -42,6 +42,12 @@ public final class AtalayaItems {
     /** Huevo generador del fulminante, el creeper del desierto. */
     public static Item HUEVO_FULMINANTE;
 
+    /** Huevo generador del Vigia. */
+    public static Item HUEVO_VIGIA;
+
+    /** Lo que suelta el Vigia al caer: su mirada, en tu mano. */
+    public static Item OJO_VIGIA;
+
     /**
      * Fulgurita en bruto: la arena que un rayo fundio de golpe.
      *
@@ -245,6 +251,11 @@ public final class AtalayaItems {
 
         FULGURITA = registrar("fulgurita", Item::new);
 
+        HUEVO_VIGIA = registrar("huevo_vigia",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.VIGIA)));
+        // Ocho usos: la durabilidad hace de contador y se ve en la barra.
+        OJO_VIGIA = registrar("ojo_vigia", props -> new OjoVigiaItem(props.durability(8)));
+
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),
                 azul("item.atalaya.plantilla_sellado.ingredientes"),
@@ -272,7 +283,7 @@ public final class AtalayaItems {
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO,
-                FULGURITA
+                FULGURITA, OJO_VIGIA
         };
     }
 }
