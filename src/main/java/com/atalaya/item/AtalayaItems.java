@@ -59,6 +59,15 @@ public final class AtalayaItems {
     public static Item HUEVO_NEREA;
 
     /**
+     * Escama del Vendaval: el nucleo elemental del aire. La entrega Aeralis al
+     * quedar liberada; es otra de las cuatro piezas de los jefes elementales.
+     */
+    public static Item ESCAMA_AERALIS;
+
+    /** Huevo generador de Aeralis: nace posada, con las alas cerradas, hasta que ve a alguien. */
+    public static Item HUEVO_AERALIS;
+
+    /**
      * Fulgurita en bruto: la arena que un rayo fundio de golpe.
      *
      * Sale de cepillar la arena sospechosa que deja el fulminante, y solo una de
@@ -269,6 +278,10 @@ public final class AtalayaItems {
                 props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.NEREA)));
         LAGRIMA_NEREA = registrar("lagrima_nerea", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
+        HUEVO_AERALIS = registrar("huevo_aeralis",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.AERALIS)));
+        ESCAMA_AERALIS = registrar("escama_aeralis", props -> new Item(props.stacksTo(1).fireResistant()
+                .rarity(Rarity.EPIC)));
 
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),
@@ -297,7 +310,7 @@ public final class AtalayaItems {
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO,
-                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA
+                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA, ESCAMA_AERALIS
         };
     }
 }

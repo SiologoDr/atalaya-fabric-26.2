@@ -82,6 +82,37 @@ public final class AtalayaParticulas {
     /** Polvo de arena que levantan las pisadas y las caidas. */
     public static SimpleParticleType NEREA_POLVO;
 
+    // --- Las de Aeralis (aeralis_extras.py). Ninguna es de vanilla. ---
+
+    /** Estela de viento: la arena corre con ella. Se orienta con su velocidad. */
+    public static SimpleParticleType AERALIS_VIENTO;
+    /** Escama de las alas, que cae revoloteando con los golpes y al batir. */
+    public static SimpleParticleType AERALIS_ESCAMA;
+    /** Espiral de polvo que gira: donde va a nacer un tornado y en su base. */
+    public static SimpleParticleType AERALIS_REMOLINO;
+    /** Rayo que salta dentro de las alas desde la fase III. */
+    public static SimpleParticleType AERALIS_RAYO;
+    /** Runa de viento azul: la Marca del Vendaval. */
+    public static SimpleParticleType AERALIS_MARCA;
+    /** Mota de cielo: el ojo de la tormenta, los nucleos, la bendicion. */
+    public static SimpleParticleType AERALIS_LUZ;
+    /** Mota dorada de la liberacion. */
+    public static SimpleParticleType AERALIS_ORO;
+    /**
+     * Onda de presion: un anillo tumbado que se abre. Como la de Nerea, lleva
+     * la fuerza del temblor en la velocidad X y el radio en la Y.
+     */
+    public static SimpleParticleType AERALIS_ONDA;
+    /**
+     * El circulo del Juicio, tumbado en el suelo. Lleva el radio en la
+     * velocidad X y los ticks que dura en la Y.
+     */
+    public static SimpleParticleType AERALIS_CIRCULO;
+    /** Polvo que levanta el viento. */
+    public static SimpleParticleType AERALIS_POLVO;
+    /** Jiron de nube que se estira y se deshace: estelas de rafagas y tornados. */
+    public static SimpleParticleType AERALIS_JIRON;
+
     private AtalayaParticulas() {
     }
 
@@ -117,6 +148,20 @@ public final class AtalayaParticulas {
         NEREA_ONDA = registrar("nerea_onda", true);
         NEREA_ROCA = registrar("nerea_roca", false);
         NEREA_POLVO = registrar("nerea_polvo", false);
+
+        // Las de aviso de Aeralis (donde nace un tornado, la marca, el circulo
+        // del Juicio, la onda) siempre visibles.
+        AERALIS_VIENTO = registrar("aeralis_viento", false);
+        AERALIS_ESCAMA = registrar("aeralis_escama", false);
+        AERALIS_REMOLINO = registrar("aeralis_remolino", true);
+        AERALIS_RAYO = registrar("aeralis_rayo", false);
+        AERALIS_MARCA = registrar("aeralis_marca", true);
+        AERALIS_LUZ = registrar("aeralis_luz", false);
+        AERALIS_ORO = registrar("aeralis_oro", false);
+        AERALIS_ONDA = registrar("aeralis_onda", true);
+        AERALIS_CIRCULO = registrar("aeralis_circulo", true);
+        AERALIS_POLVO = registrar("aeralis_polvo", false);
+        AERALIS_JIRON = registrar("aeralis_jiron", false);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {

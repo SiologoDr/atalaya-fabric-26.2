@@ -5,7 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Lo que se siente cerca de Nerea aunque no te toque: la camara tiembla con
+ * Lo que se siente cerca de Nerea (y de Aeralis) aunque no te toque: la camara tiembla con
  * sus golpes, retumba mientras gira las cadenas o remueve el agua, y el miedo
  * oscurece los bordes de la pantalla cuando ruge o te clava la mirada.
  *
@@ -23,6 +23,7 @@ public final class NereaPresencia {
     /** De 0 a 1: lo oscuros que se ponen los bordes. */
     private static float miedo;
     private static float miedoAnt;
+    private static boolean miedoAire;
 
     private NereaPresencia() {
     }
@@ -40,7 +41,24 @@ public final class NereaPresencia {
 
     /** Un rugido o una mirada: sube el miedo segun la distancia. */
     public static void asustar(double x, double y, double z, float nivel, float alcance) {
-        miedo = Math.max(miedo, Math.min(1.0F, nivel * caida(x, y, z, alcance)));
+        asustar(x, y, z, nivel, alcance, false);
+    }
+
+    /**
+     * Lo mismo, diciendo de quien es el miedo: el de Aeralis cierra los bordes
+     * con nubes de tormenta en vez de con el fondo del mar.
+     */
+    public static void asustar(double x, double y, double z, float nivel, float alcance, boolean aire) {
+        float m = Math.min(1.0F, nivel * caida(x, y, z, alcance));
+        if (m > miedo) {
+            miedo = m;
+            miedoAire = aire;
+        }
+    }
+
+    /** Si el miedo de ahora es de Aeralis. */
+    public static boolean miedoDeAire() {
+        return miedoAire;
     }
 
     private static float caida(double x, double y, double z, float alcance) {

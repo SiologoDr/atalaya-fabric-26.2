@@ -59,6 +59,23 @@ public final class AtalayaEntities {
     /** El gancho del Arpon. */
     public static EntityType<GanchoNereaEntity> GANCHO_NEREA;
 
+    public static final ResourceKey<EntityType<?>> CLAVE_AERALIS = clave("aeralis");
+    public static final ResourceKey<EntityType<?>> CLAVE_CUCHILLA_VIENTO = clave("cuchilla_viento");
+    public static final ResourceKey<EntityType<?>> CLAVE_TORNADO_AERALIS = clave("tornado_aeralis");
+    public static final ResourceKey<EntityType<?>> CLAVE_RAFAGA_AERALIS = clave("rafaga_aeralis");
+    public static final ResourceKey<EntityType<?>> CLAVE_NUCLEO_VIENTO = clave("nucleo_viento");
+
+    /** Aeralis, la Mariposa del Vendaval: el jefe elemental del aire. */
+    public static EntityType<AeralisEntity> AERALIS;
+    /** Las cuchillas del Aleteo Cortante. */
+    public static EntityType<CuchillaVientoEntity> CUCHILLA_VIENTO;
+    /** Los tornados (y el ciclon del Juicio). */
+    public static EntityType<TornadoAeralisEntity> TORNADO_AERALIS;
+    /** Las rafagas de La Caceria. */
+    public static EntityType<RafagaAeralisEntity> RAFAGA_AERALIS;
+    /** Los cuatro nucleos del Juicio. */
+    public static EntityType<NucleoVientoEntity> NUCLEO_VIENTO;
+
     private AtalayaEntities() {
     }
 
@@ -111,6 +128,50 @@ public final class AtalayaEntities {
 
         registrarVigia();
         registrarNerea();
+        registrarAeralis();
+    }
+
+    private static void registrarAeralis() {
+        // La caja tapa el cuerpo, de la punta del abdomen a la cabeza (10
+        // bloques): las alas (22 de punta a punta) y las antenas quedan fuera,
+        // las flechas las atraviesan. Se ve desde muy lejos.
+        AERALIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_AERALIS,
+                EntityType.Builder.of(AeralisEntity::new, MobCategory.MONSTER)
+                        .sized(3.6F, 10.0F)
+                        .eyeHeight(9.0F)
+                        .fireImmune()
+                        .clientTrackingRange(24)
+                        .updateInterval(2)
+                        .build(CLAVE_AERALIS));
+        FabricDefaultAttributeRegistry.register(AERALIS, AeralisEntity.crearAtributos());
+
+        // Lo que vuela o se mueve, cada tick. Nada de esto se guarda con el
+        // mundo: es del ataque que lo lanzo.
+        CUCHILLA_VIENTO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CUCHILLA_VIENTO,
+                EntityType.Builder.<CuchillaVientoEntity>of(CuchillaVientoEntity::new, MobCategory.MISC)
+                        .sized(2.0F, 0.8F)
+                        .clientTrackingRange(10)
+                        .updateInterval(1)
+                        .build(CLAVE_CUCHILLA_VIENTO));
+        TORNADO_AERALIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_TORNADO_AERALIS,
+                EntityType.Builder.<TornadoAeralisEntity>of(TornadoAeralisEntity::new, MobCategory.MISC)
+                        .sized(2.6F, 7.0F)
+                        .fireImmune()
+                        .clientTrackingRange(12)
+                        .updateInterval(1)
+                        .build(CLAVE_TORNADO_AERALIS));
+        RAFAGA_AERALIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_RAFAGA_AERALIS,
+                EntityType.Builder.<RafagaAeralisEntity>of(RafagaAeralisEntity::new, MobCategory.MISC)
+                        .sized(1.2F, 1.2F)
+                        .clientTrackingRange(10)
+                        .updateInterval(1)
+                        .build(CLAVE_RAFAGA_AERALIS));
+        NUCLEO_VIENTO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_NUCLEO_VIENTO,
+                EntityType.Builder.<NucleoVientoEntity>of(NucleoVientoEntity::new, MobCategory.MISC)
+                        .sized(1.6F, 1.6F)
+                        .fireImmune()
+                        .clientTrackingRange(12)
+                        .build(CLAVE_NUCLEO_VIENTO));
     }
 
     private static void registrarNerea() {

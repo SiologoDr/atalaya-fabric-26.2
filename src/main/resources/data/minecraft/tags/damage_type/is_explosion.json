@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "atalaya:nerea_burbuja"
+    "atalaya:nerea_burbuja",
+    "atalaya:aeralis_estallido",
+    "atalaya:aeralis_rafaga"
   ]
 }

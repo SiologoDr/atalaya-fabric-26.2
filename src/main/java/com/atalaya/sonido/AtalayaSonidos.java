@@ -12,7 +12,8 @@ import net.minecraft.sounds.SoundEvent;
  * Ninguno es de vanilla: los .ogg salen de scripts de sintesis que construyen
  * cada uno con lo que el bicho tiene encima. Los del Vigia, con el hierro del
  * farol, el cristal, las cadenas, una garganta y la llama; los de Nerea
- * (nerea_sonidos.py), con agua, piedra, hueso, cadenas y una voz sumergida.
+ * (nerea_sonidos.py), con agua, piedra, hueso, cadenas y una voz sumergida; los de
+ * Aeralis (aeralis_sonidos.py), con viento, alas, quitina, tornados y truenos.
  *
  * Aqui solo se registra el NOMBRE de cada evento. Que fichero suena, con que
  * variantes y con que subtitulo lo dice assets/atalaya/sounds.json.
@@ -75,6 +76,40 @@ public final class AtalayaSonidos {
     public static SoundEvent NEREA_LIBERACION;
     public static SoundEvent NEREA_DISOLVER;
 
+    public static SoundEvent AERALIS_AMBIENTE;
+    public static SoundEvent AERALIS_ALETEO;
+    public static SoundEvent AERALIS_INMUNE;
+    public static SoundEvent AERALIS_HERIDO;
+    public static SoundEvent AERALIS_CHILLIDO;
+    public static SoundEvent AERALIS_DESPERTAR;
+    public static SoundEvent AERALIS_ALETEO_CARGA;
+    public static SoundEvent AERALIS_ALETEO_CORTE;
+    public static SoundEvent AERALIS_CUCHILLA_GOLPE;
+    public static SoundEvent AERALIS_TORNADOS_GOLPE;
+    public static SoundEvent AERALIS_TORNADO_NACE;
+    public static SoundEvent AERALIS_TORNADO;
+    public static SoundEvent AERALIS_TORNADO_ATRAPA;
+    public static SoundEvent AERALIS_TORNADO_EXPLOTA;
+    public static SoundEvent AERALIS_TORNADO_ROMPE;
+    public static SoundEvent AERALIS_MARCA;
+    public static SoundEvent AERALIS_RAFAGA;
+    public static SoundEvent AERALIS_RAFAGA_ROMPE;
+    public static SoundEvent AERALIS_RAFAGA_GOLPE;
+    public static SoundEvent AERALIS_JUICIO_SILENCIO;
+    public static SoundEvent AERALIS_JUICIO_CIRCULO;
+    public static SoundEvent AERALIS_JUICIO_CICLON;
+    public static SoundEvent AERALIS_NUCLEO;
+    public static SoundEvent AERALIS_NUCLEO_GOLPE;
+    public static SoundEvent AERALIS_NUCLEO_ROTO;
+    public static SoundEvent AERALIS_JUICIO_GOLPE;
+    public static SoundEvent AERALIS_TRUENO;
+    public static SoundEvent AERALIS_TAMBALEO;
+    public static SoundEvent AERALIS_ATURDIDA;
+    public static SoundEvent AERALIS_AGOTADA;
+    public static SoundEvent AERALIS_JADEO;
+    public static SoundEvent AERALIS_LIBERACION;
+    public static SoundEvent AERALIS_DISOLVER;
+
     private AtalayaSonidos() {
     }
 
@@ -133,6 +168,40 @@ public final class AtalayaSonidos {
         NEREA_LATIDO = registrar("nerea.latido");
         NEREA_LIBERACION = registrar("nerea.liberacion");
         NEREA_DISOLVER = registrar("nerea.disolver");
+
+        AERALIS_AMBIENTE = registrar("aeralis.ambiente");
+        AERALIS_ALETEO = registrar("aeralis.aleteo");
+        AERALIS_INMUNE = registrar("aeralis.inmune");
+        AERALIS_HERIDO = registrar("aeralis.herido");
+        AERALIS_CHILLIDO = registrar("aeralis.chillido");
+        AERALIS_DESPERTAR = registrar("aeralis.despertar");
+        AERALIS_ALETEO_CARGA = registrar("aeralis.aleteo_carga");
+        AERALIS_ALETEO_CORTE = registrar("aeralis.aleteo_corte");
+        AERALIS_CUCHILLA_GOLPE = registrar("aeralis.cuchilla_golpe");
+        AERALIS_TORNADOS_GOLPE = registrar("aeralis.tornados_golpe");
+        AERALIS_TORNADO_NACE = registrar("aeralis.tornado_nace");
+        AERALIS_TORNADO = registrar("aeralis.tornado");
+        AERALIS_TORNADO_ATRAPA = registrar("aeralis.tornado_atrapa");
+        AERALIS_TORNADO_EXPLOTA = registrar("aeralis.tornado_explota");
+        AERALIS_TORNADO_ROMPE = registrar("aeralis.tornado_rompe");
+        AERALIS_MARCA = registrar("aeralis.marca");
+        AERALIS_RAFAGA = registrar("aeralis.rafaga");
+        AERALIS_RAFAGA_ROMPE = registrar("aeralis.rafaga_rompe");
+        AERALIS_RAFAGA_GOLPE = registrar("aeralis.rafaga_golpe");
+        AERALIS_JUICIO_SILENCIO = registrar("aeralis.juicio_silencio");
+        AERALIS_JUICIO_CIRCULO = registrar("aeralis.juicio_circulo");
+        AERALIS_JUICIO_CICLON = registrar("aeralis.juicio_ciclon");
+        AERALIS_NUCLEO = registrar("aeralis.nucleo");
+        AERALIS_NUCLEO_GOLPE = registrar("aeralis.nucleo_golpe");
+        AERALIS_NUCLEO_ROTO = registrar("aeralis.nucleo_roto");
+        AERALIS_JUICIO_GOLPE = registrar("aeralis.juicio_golpe");
+        AERALIS_TRUENO = registrar("aeralis.trueno");
+        AERALIS_TAMBALEO = registrar("aeralis.tambaleo");
+        AERALIS_ATURDIDA = registrar("aeralis.aturdida");
+        AERALIS_AGOTADA = registrar("aeralis.agotada");
+        AERALIS_JADEO = registrar("aeralis.jadeo");
+        AERALIS_LIBERACION = registrar("aeralis.liberacion");
+        AERALIS_DISOLVER = registrar("aeralis.disolver");
     }
 
     private static SoundEvent registrar(String nombre) {

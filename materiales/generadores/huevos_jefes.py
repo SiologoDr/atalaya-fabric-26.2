@@ -1,5 +1,5 @@
 """
-Huevos generadores del Vigia y de Nerea, dibujados pixel a pixel (16x16).
+Huevos generadores del Vigia, de Nerea y de Aeralis, dibujados pixel a pixel (16x16).
 
 Siguen el estilo de los huevos de vanilla de 26.x: la misma silueta y la luz
 desde arriba a la izquierda, con contorno de dos tonos, y encima los rasgos
@@ -10,6 +10,9 @@ puas del guardian:
           costillas de hueso con la brasa roja dentro; el bajo deshilachado
   Nerea   prismarina, la corona de coral, la calavera de hueso con los ojos
           cian, la cadena oxidada que le cruza el pecho y el corazon maldito
+  Aeralis quitina azul pizarra, las alas de viento que asoman por los lados,
+          las antenas con la punta encendida, los ojos cian y el ojo de la
+          tormenta en el pecho
 
 Uso: python huevos_jefes.py <raiz del proyecto> [vista_previa.png]
 """
@@ -128,9 +131,40 @@ pintar(nerea, [
 # La cadena le cruza el pecho y se sale por los lados; debajo, el corazon.
 nerea.save(os.path.join(ITEM, 'huevo_nerea.png'))
 
+# ---------------------------------------------------------------- Aeralis
+AERALIS = {
+    'o': hexc('1f2738'), 'O': hexc('0b0f18'),                       # contorno
+    '1': hexc('141a26'), '2': hexc('1f2738'), '3': hexc('2b3550'), '4': hexc('3c4a6c'),
+    'p': hexc('b8c3d7'), 'P': hexc('8592ac'),                       # pelaje del collar
+    'a': hexc('2b3550'), 'k': hexc('f2ffff'),                       # antenas y su punta encendida
+    'E': hexc('5fd2ff'), 'e': hexc('e8fbff'),                       # ojos compuestos
+    'm': hexc('dff2ff'), 'M': hexc('6fa8d8'), 'c': hexc('5fd2ff'),  # alas de viento y su ocelo
+    'n': hexc('5fd2ff'), 'N': hexc('f2ffff'),                       # el ojo de la tormenta
+}
+aeralis = cascara([AERALIS['1'], AERALIS['2'], AERALIS['3'], AERALIS['3'], AERALIS['4']], AERALIS['o'], AERALIS['O'], 'aeralis')
+pintar(aeralis, [
+    "...k........k...",
+    "...a........a...",
+    "....a......a....",
+    ".....a....a.....",
+    ".....PppppP.....",
+    ".M...EeppeE...M.",
+    "MmM..EEppEE..MmM",
+    "MmcM...PP...McmM",
+    "MmmM..NnnN..MmmM",
+    ".MmM..nNNn..MmM.",
+    ".MmmM......MmmM.",
+    "..MmM......MmM..",
+    "...MM......MM...",
+    "................",
+    "................",
+    "................",
+], AERALIS)
+aeralis.save(os.path.join(ITEM, 'huevo_aeralis.png'))
+
 if len(sys.argv) > 2:
     VAN = sys.argv[3] if len(sys.argv) > 3 else None
-    fila = [vigia, nerea]
+    fila = [vigia, nerea, aeralis]
     if VAN:
         for f in ('warden', 'guardian', 'drowned', 'wither_skeleton'):
             fila.append(Image.open(os.path.join(VAN, f + '_spawn_egg.png')).convert('RGBA'))

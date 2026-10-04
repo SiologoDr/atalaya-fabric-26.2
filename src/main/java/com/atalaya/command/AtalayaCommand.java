@@ -3,6 +3,7 @@ package com.atalaya.command;
 import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.entity.AtalayaEntities;
+import com.atalaya.entity.AeralisEntity;
 import com.atalaya.entity.NereaEntity;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -40,6 +41,9 @@ import net.minecraft.server.level.ServerPlayer;
  *                                    remolino, burbujas, molino, arpon, lejano,
  *                                    mirada, aturdido, agotado, fase, liberar).
  *                                    Nerea se invoca con su huevo generador.
+ *   /atalaya aeralis &lt;orden&gt;       -> lo mismo con la Aeralis mas cercana (despertar,
+ *                                    aleteo, tornados, caceria, rafaga, doble,
+ *                                    juicio, aturdida, agotada, fase, liberar).
  *
  * Todos piden permiso de operador.
  *
@@ -71,6 +75,12 @@ public final class AtalayaCommand {
                                 .then(Commands.argument("orden", StringArgumentType.word())
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NEREA, sb))
                                         .executes(ctx -> probarNerea(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("aeralis")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_AERALIS, sb))
+                                        .executes(ctx -> probarAeralis(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
@@ -198,6 +208,33 @@ public final class AtalayaCommand {
             return 0;
         }
         fuente.sendSuccess(() -> Component.literal("Nerea: " + orden), false);
+        return 1;
+    }
+
+    private static final String[] ORDENES_AERALIS = {"despertar", "aleteo", "tornados", "caceria", "rafaga", "doble",
+            "juicio", "aturdida", "agotada", "fase", "liberar"};
+
+    /** Fuerza a la Aeralis mas cercana (en 80 bloques) a hacer algo ya. */
+    private static int probarAeralis(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        AeralisEntity aeralis = null;
+        double mejor = 80 * 80;
+        for (AeralisEntity a : nivel.getEntitiesOfClass(AeralisEntity.class, new AABB(desde, desde).inflate(80))) {
+            if (a.isAlive() && a.distanceToSqr(desde) < mejor) {
+                mejor = a.distanceToSqr(desde);
+                aeralis = a;
+            }
+        }
+        if (aeralis == null) {
+            fuente.sendFailure(Component.literal("No hay ninguna Aeralis a menos de 80 bloques."));
+            return 0;
+        }
+        if (!aeralis.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Aeralis: " + orden), false);
         return 1;
     }
 

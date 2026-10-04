@@ -57,6 +57,9 @@ public class NereaBarraHud implements HudElement {
     private static final int EMBLEMA = 13;
     private static final int CORAZON = 16;
 
+    /** Si se ha dibujado este fotograma: la de Aeralis se pone debajo. */
+    public static boolean visible;
+
     private float fantasma = 1.0F;
     private int ultimo = -1;
 
@@ -68,6 +71,7 @@ public class NereaBarraHud implements HudElement {
     public void extractRenderState(GuiGraphicsExtractor g, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
         NereaEntity n = cercana(mc);
+        visible = n != null;
         if (n == null) {
             ultimo = -1;
             return;

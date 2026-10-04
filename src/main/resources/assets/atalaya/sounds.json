@@ -357,5 +357,240 @@
     "sounds": [
       "atalaya:nerea/disolver"
     ]
+  },
+  "aeralis.ambiente": {
+    "subtitle": "subtitles.atalaya.aeralis.ambiente",
+    "sounds": [
+      "atalaya:aeralis/ambiente1",
+      "atalaya:aeralis/ambiente2",
+      "atalaya:aeralis/ambiente3"
+    ]
+  },
+  "aeralis.aleteo": {
+    "subtitle": "subtitles.atalaya.aeralis.aleteo",
+    "sounds": [
+      "atalaya:aeralis/aleteo1",
+      "atalaya:aeralis/aleteo2",
+      "atalaya:aeralis/aleteo3",
+      "atalaya:aeralis/aleteo4"
+    ]
+  },
+  "aeralis.inmune": {
+    "subtitle": "subtitles.atalaya.aeralis.inmune",
+    "sounds": [
+      "atalaya:aeralis/inmune1",
+      "atalaya:aeralis/inmune2",
+      "atalaya:aeralis/inmune3"
+    ]
+  },
+  "aeralis.herido": {
+    "subtitle": "subtitles.atalaya.aeralis.herido",
+    "sounds": [
+      "atalaya:aeralis/herido1",
+      "atalaya:aeralis/herido2",
+      "atalaya:aeralis/herido3",
+      "atalaya:aeralis/herido4"
+    ]
+  },
+  "aeralis.chillido": {
+    "subtitle": "subtitles.atalaya.aeralis.chillido",
+    "sounds": [
+      "atalaya:aeralis/chillido1",
+      "atalaya:aeralis/chillido2",
+      "atalaya:aeralis/chillido3"
+    ]
+  },
+  "aeralis.despertar": {
+    "subtitle": "subtitles.atalaya.aeralis.despertar",
+    "sounds": [
+      "atalaya:aeralis/despertar"
+    ]
+  },
+  "aeralis.aleteo_carga": {
+    "subtitle": "subtitles.atalaya.aeralis.aleteo_carga",
+    "sounds": [
+      "atalaya:aeralis/aleteo_carga1",
+      "atalaya:aeralis/aleteo_carga2"
+    ]
+  },
+  "aeralis.aleteo_corte": {
+    "subtitle": "subtitles.atalaya.aeralis.aleteo_corte",
+    "sounds": [
+      "atalaya:aeralis/aleteo_corte1",
+      "atalaya:aeralis/aleteo_corte2"
+    ]
+  },
+  "aeralis.cuchilla_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.cuchilla_golpe",
+    "sounds": [
+      "atalaya:aeralis/cuchilla_golpe1",
+      "atalaya:aeralis/cuchilla_golpe2",
+      "atalaya:aeralis/cuchilla_golpe3"
+    ]
+  },
+  "aeralis.tornados_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.tornados_golpe",
+    "sounds": [
+      "atalaya:aeralis/tornados_golpe1",
+      "atalaya:aeralis/tornados_golpe2"
+    ]
+  },
+  "aeralis.tornado_nace": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_nace",
+    "sounds": [
+      "atalaya:aeralis/tornado_nace1",
+      "atalaya:aeralis/tornado_nace2"
+    ]
+  },
+  "aeralis.tornado": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado",
+    "sounds": [
+      "atalaya:aeralis/tornado1",
+      "atalaya:aeralis/tornado2"
+    ]
+  },
+  "aeralis.tornado_atrapa": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_atrapa",
+    "sounds": [
+      "atalaya:aeralis/tornado_atrapa1",
+      "atalaya:aeralis/tornado_atrapa2"
+    ]
+  },
+  "aeralis.tornado_explota": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_explota",
+    "sounds": [
+      "atalaya:aeralis/tornado_explota1",
+      "atalaya:aeralis/tornado_explota2"
+    ]
+  },
+  "aeralis.tornado_rompe": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_rompe",
+    "sounds": [
+      "atalaya:aeralis/tornado_rompe1",
+      "atalaya:aeralis/tornado_rompe2"
+    ]
+  },
+  "aeralis.marca": {
+    "subtitle": "subtitles.atalaya.aeralis.marca",
+    "sounds": [
+      "atalaya:aeralis/marca1",
+      "atalaya:aeralis/marca2"
+    ]
+  },
+  "aeralis.rafaga": {
+    "subtitle": "subtitles.atalaya.aeralis.rafaga",
+    "sounds": [
+      "atalaya:aeralis/rafaga1",
+      "atalaya:aeralis/rafaga2",
+      "atalaya:aeralis/rafaga3"
+    ]
+  },
+  "aeralis.rafaga_rompe": {
+    "subtitle": "subtitles.atalaya.aeralis.rafaga_rompe",
+    "sounds": [
+      "atalaya:aeralis/rafaga_rompe1",
+      "atalaya:aeralis/rafaga_rompe2",
+      "atalaya:aeralis/rafaga_rompe3"
+    ]
+  },
+  "aeralis.rafaga_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.rafaga_golpe",
+    "sounds": [
+      "atalaya:aeralis/rafaga_golpe1",
+      "atalaya:aeralis/rafaga_golpe2"
+    ]
+  },
+  "aeralis.juicio_silencio": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_silencio",
+    "sounds": [
+      "atalaya:aeralis/juicio_silencio"
+    ]
+  },
+  "aeralis.juicio_circulo": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_circulo",
+    "sounds": [
+      "atalaya:aeralis/juicio_circulo"
+    ]
+  },
+  "aeralis.juicio_ciclon": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_ciclon",
+    "sounds": [
+      "atalaya:aeralis/juicio_ciclon"
+    ]
+  },
+  "aeralis.nucleo": {
+    "subtitle": "subtitles.atalaya.aeralis.nucleo",
+    "sounds": [
+      "atalaya:aeralis/nucleo1",
+      "atalaya:aeralis/nucleo2"
+    ]
+  },
+  "aeralis.nucleo_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.nucleo_golpe",
+    "sounds": [
+      "atalaya:aeralis/nucleo_golpe1",
+      "atalaya:aeralis/nucleo_golpe2",
+      "atalaya:aeralis/nucleo_golpe3"
+    ]
+  },
+  "aeralis.nucleo_roto": {
+    "subtitle": "subtitles.atalaya.aeralis.nucleo_roto",
+    "sounds": [
+      "atalaya:aeralis/nucleo_roto1",
+      "atalaya:aeralis/nucleo_roto2"
+    ]
+  },
+  "aeralis.juicio_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_golpe",
+    "sounds": [
+      "atalaya:aeralis/juicio_golpe"
+    ]
+  },
+  "aeralis.trueno": {
+    "subtitle": "subtitles.atalaya.aeralis.trueno",
+    "sounds": [
+      "atalaya:aeralis/trueno1",
+      "atalaya:aeralis/trueno2",
+      "atalaya:aeralis/trueno3"
+    ]
+  },
+  "aeralis.tambaleo": {
+    "subtitle": "subtitles.atalaya.aeralis.tambaleo",
+    "sounds": [
+      "atalaya:aeralis/tambaleo1",
+      "atalaya:aeralis/tambaleo2"
+    ]
+  },
+  "aeralis.aturdida": {
+    "subtitle": "subtitles.atalaya.aeralis.aturdida",
+    "sounds": [
+      "atalaya:aeralis/aturdida"
+    ]
+  },
+  "aeralis.agotada": {
+    "subtitle": "subtitles.atalaya.aeralis.agotada",
+    "sounds": [
+      "atalaya:aeralis/agotada"
+    ]
+  },
+  "aeralis.jadeo": {
+    "subtitle": "subtitles.atalaya.aeralis.jadeo",
+    "sounds": [
+      "atalaya:aeralis/jadeo1",
+      "atalaya:aeralis/jadeo2",
+      "atalaya:aeralis/jadeo3"
+    ]
+  },
+  "aeralis.liberacion": {
+    "subtitle": "subtitles.atalaya.aeralis.liberacion",
+    "sounds": [
+      "atalaya:aeralis/liberacion"
+    ]
+  },
+  "aeralis.disolver": {
+    "subtitle": "subtitles.atalaya.aeralis.disolver",
+    "sounds": [
+      "atalaya:aeralis/disolver"
+    ]
   }
 }

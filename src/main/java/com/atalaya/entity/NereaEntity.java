@@ -96,14 +96,14 @@ public class NereaEntity extends Monster {
     public static final int AGOTADO = 13;
 
     /**
-     * Vida EFECTIVA: 11 250, la misma con cualquier numero de jugadores. La de
+     * Vida EFECTIVA: 12 500, la misma con cualquier numero de jugadores. La de
      * vanilla tiene tope de 1024, asi que el dano que recibe se divide para
      * que aguante esto.
      */
-    public static final float VIDA = 11250.0F;
+    public static final float VIDA = 12500.0F;
     private static final float VIDA_VANILLA = 1024.0F;
-    /** Lo que suma cada fase a todos sus ataques: +7 en la II, +14 en la III, +21 en la IV. */
-    public static final float DANO_POR_FASE = 7.0F;
+    /** Lo que suma cada fase a todos sus ataques: +8 en la II, +16 en la III, +24 en la IV. */
+    public static final float DANO_POR_FASE = 8.0F;
     /** Lo que quita el Remolino por segundo a quien arrastra (sin escalar con la fase). */
     private static final float DANO_REMOLINO = 10.0F;
 
@@ -306,7 +306,7 @@ public class NereaEntity extends Monster {
         return (t - 1) * ritmoEstado < k && t * ritmoEstado >= k;
     }
 
-    /** El dano de un ataque en la fase actual: el base y +7 por cada fase. */
+    /** El dano de un ataque en la fase actual: el base y +8 por cada fase. */
     private float dano(float base) {
         return base + DANO_POR_FASE * (Mth.clamp(fase(), 1, 4) - 1);
     }

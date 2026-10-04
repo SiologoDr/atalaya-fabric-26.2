@@ -22,6 +22,14 @@ import com.atalaya.client.NereaMalla;
 import com.atalaya.client.NereaModel;
 import com.atalaya.client.NereaParticula;
 import com.atalaya.client.NereaRenderer;
+import com.atalaya.client.AeralisMalla;
+import com.atalaya.client.AeralisModel;
+import com.atalaya.client.AeralisParticula;
+import com.atalaya.client.AeralisRenderer;
+import com.atalaya.client.CuchillaVientoRenderer;
+import com.atalaya.client.NucleoVientoRenderer;
+import com.atalaya.client.RafagaAeralisRenderer;
+import com.atalaya.client.TornadoAeralisRenderer;
 import com.atalaya.entity.AtalayaEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -105,6 +113,15 @@ public class AtalayaClient implements ClientModInitializer {
         ModelLayerRegistry.registerModelLayer(GanchoNereaRenderer.CAPA, GanchoNereaRenderer.Modelo::crear);
         EntityRendererRegistry.register(AtalayaEntities.GANCHO_NEREA, GanchoNereaRenderer::new);
 
+        // Aeralis: malla y animaciones generadas desde vendaval_juego*.py, y lo
+        // suyo: cuchillas, tornados, rafagas y nucleos (dibujados a mano).
+        ModelLayerRegistry.registerModelLayer(AeralisModel.CAPA, AeralisMalla::crear);
+        EntityRendererRegistry.register(AtalayaEntities.AERALIS, AeralisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CUCHILLA_VIENTO, CuchillaVientoRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.TORNADO_AERALIS, TornadoAeralisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.RAFAGA_AERALIS, RafagaAeralisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.NUCLEO_VIENTO, NucleoVientoRenderer::new);
+
         // El aviso de la tecla va DESPUES de la hotbar para quedar por encima:
         // es una instruccion, y taparla con cualquier cosa la haria inutil.
         HudElementRegistry.attachElementAfter(
@@ -147,10 +164,24 @@ public class AtalayaClient implements ClientModInitializer {
         nerea(AtalayaParticulas.NEREA_ROCA, NereaParticula.Tipo.ROCA);
         nerea(AtalayaParticulas.NEREA_POLVO, NereaParticula.Tipo.POLVO);
 
+        // Las once de Aeralis.
+        aeralis(AtalayaParticulas.AERALIS_VIENTO, AeralisParticula.Tipo.VIENTO);
+        aeralis(AtalayaParticulas.AERALIS_ESCAMA, AeralisParticula.Tipo.ESCAMA);
+        aeralis(AtalayaParticulas.AERALIS_REMOLINO, AeralisParticula.Tipo.REMOLINO);
+        aeralis(AtalayaParticulas.AERALIS_RAYO, AeralisParticula.Tipo.RAYO);
+        aeralis(AtalayaParticulas.AERALIS_MARCA, AeralisParticula.Tipo.MARCA);
+        aeralis(AtalayaParticulas.AERALIS_LUZ, AeralisParticula.Tipo.LUZ);
+        aeralis(AtalayaParticulas.AERALIS_ORO, AeralisParticula.Tipo.ORO);
+        aeralis(AtalayaParticulas.AERALIS_ONDA, AeralisParticula.Tipo.ONDA);
+        aeralis(AtalayaParticulas.AERALIS_CIRCULO, AeralisParticula.Tipo.CIRCULO);
+        aeralis(AtalayaParticulas.AERALIS_POLVO, AeralisParticula.Tipo.POLVO);
+        aeralis(AtalayaParticulas.AERALIS_JIRON, AeralisParticula.Tipo.JIRON);
+
         // La presencia de Nerea: temblor, retumbo y miedo. El miedo va con los
         // velos de camara (calabaza, nieve polvo...): un velo bajo el resto del
         // HUD. NO cuelga de la hotbar como la vineta del calor: en espectador
         // la hotbar no se dibuja, y con ella desaparecia todo lo enganchado.
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.AeralisEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NereaEfectosCliente::tick);
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.MISC_OVERLAYS,
@@ -163,6 +194,11 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.BOSS_BAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_nerea"),
                 new com.atalaya.client.NereaBarraHud());
+        // La de Aeralis, despues: si las dos estan a la vista, va debajo.
+        HudElementRegistry.attachElementAfter(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_nerea"),
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_aeralis"),
+                new com.atalaya.client.AeralisBarraHud());
 
         // Solo en el entorno de pruebas (con run/atalaya_fotos.flag).
         com.atalaya.client.FotosPrueba.registrar();
@@ -173,6 +209,11 @@ public class AtalayaClient implements ClientModInitializer {
     private static void nerea(SimpleParticleType tipo, NereaParticula.Tipo comportamiento) {
         ParticleProviderRegistry.getInstance().register(tipo,
                 sprites -> new NereaParticula.Fabrica(sprites, comportamiento));
+    }
+
+    private static void aeralis(SimpleParticleType tipo, AeralisParticula.Tipo comportamiento) {
+        ParticleProviderRegistry.getInstance().register(tipo,
+                sprites -> new AeralisParticula.Fabrica(sprites, comportamiento));
     }
 
     private static void particula(SimpleParticleType tipo, VigiaParticula.Tipo comportamiento) {
