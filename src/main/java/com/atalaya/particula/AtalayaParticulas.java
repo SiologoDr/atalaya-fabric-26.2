@@ -49,6 +49,39 @@ public final class AtalayaParticulas {
     /** Lo ultimo que sale del farol al morir. */
     public static SimpleParticleType VIGIA_ALMA;
 
+    // --- Las de Nerea (nerea_extras.py). Tampoco ninguna es de vanilla. ---
+
+    /** Burbuja que sube y revienta: avisa del remolino y de la maldicion. */
+    public static SimpleParticleType NEREA_BURBUJA;
+    /** Bocanada de espuma: impactos, olas, burbujas que revientan. */
+    public static SimpleParticleType NEREA_ESPUMA;
+    /** Gota de agua con peso: lo que salpica. */
+    public static SimpleParticleType NEREA_GOTA;
+    /** La cresta del Rompeolas avanzando por el suelo. */
+    public static SimpleParticleType NEREA_OLA;
+    /** Espiral de agua alrededor de quien arrastra el remolino. */
+    public static SimpleParticleType NEREA_REMOLINO;
+    /** Chispas de las cadenas al arrastrarse por la piedra. */
+    public static SimpleParticleType NEREA_CHISPA;
+    /** Destello que vuela hacia los ojos durante la mirada. */
+    public static SimpleParticleType NEREA_OJO;
+    /** Esquirlas de cristal y laton de los sellos. */
+    public static SimpleParticleType NEREA_SELLO;
+    /** El latido del corazon maldito. */
+    public static SimpleParticleType NEREA_CORAZON;
+    /** Mota dorada de la liberacion. */
+    public static SimpleParticleType NEREA_LUZ;
+    /**
+     * Onda expansiva: un anillo tumbado que se abre por el suelo. Lleva la
+     * fuerza del temblor en la velocidad X y el radio en la Y, y al nacer en el
+     * cliente sacude la camara de quien este cerca.
+     */
+    public static SimpleParticleType NEREA_ONDA;
+    /** Esquirlas de prismarina que saltan con los golpes. */
+    public static SimpleParticleType NEREA_ROCA;
+    /** Polvo de arena que levantan las pisadas y las caidas. */
+    public static SimpleParticleType NEREA_POLVO;
+
     private AtalayaParticulas() {
     }
 
@@ -68,6 +101,22 @@ public final class AtalayaParticulas {
         VIGIA_ESQUIRLA = registrar("vigia_esquirla", false);
         VIGIA_HUMO = registrar("vigia_humo", false);
         VIGIA_ALMA = registrar("vigia_alma", false);
+
+        // Las de aviso de Nerea (el remolino que viene, la ola, los ojos que
+        // cargan, el sello que se agrieta) siempre visibles, como las del Vigia.
+        NEREA_BURBUJA = registrar("nerea_burbuja", true);
+        NEREA_ESPUMA = registrar("nerea_espuma", false);
+        NEREA_GOTA = registrar("nerea_gota", false);
+        NEREA_OLA = registrar("nerea_ola", true);
+        NEREA_REMOLINO = registrar("nerea_remolino", true);
+        NEREA_CHISPA = registrar("nerea_chispa", true);
+        NEREA_OJO = registrar("nerea_ojo", true);
+        NEREA_SELLO = registrar("nerea_sello", true);
+        NEREA_CORAZON = registrar("nerea_corazon", false);
+        NEREA_LUZ = registrar("nerea_luz", false);
+        NEREA_ONDA = registrar("nerea_onda", true);
+        NEREA_ROCA = registrar("nerea_roca", false);
+        NEREA_POLVO = registrar("nerea_polvo", false);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {

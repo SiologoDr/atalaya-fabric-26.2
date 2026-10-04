@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SmithingTemplateItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.component.Consumables;
@@ -47,6 +48,15 @@ public final class AtalayaItems {
 
     /** Lo que suelta el Vigia al caer: su mirada, en tu mano. */
     public static Item OJO_VIGIA;
+
+    /**
+     * Lagrima de Nerea: el nucleo elemental del agua. Lo entrega Nerea al
+     * quedar liberado; es una de las cuatro piezas de los jefes elementales.
+     */
+    public static Item LAGRIMA_NEREA;
+
+    /** Huevo generador de Nerea: nace dormido y encadenado hasta que ve a alguien. */
+    public static Item HUEVO_NEREA;
 
     /**
      * Fulgurita en bruto: la arena que un rayo fundio de golpe.
@@ -255,6 +265,10 @@ public final class AtalayaItems {
                 props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.VIGIA)));
         // Ocho usos: la durabilidad hace de contador y se ve en la barra.
         OJO_VIGIA = registrar("ojo_vigia", props -> new OjoVigiaItem(props.durability(8)));
+        HUEVO_NEREA = registrar("huevo_nerea",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.NEREA)));
+        LAGRIMA_NEREA = registrar("lagrima_nerea", props -> new Item(props.stacksTo(1).fireResistant()
+                .rarity(Rarity.EPIC)));
 
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),
@@ -283,7 +297,7 @@ public final class AtalayaItems {
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO,
-                FULGURITA, OJO_VIGIA
+                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA
         };
     }
 }

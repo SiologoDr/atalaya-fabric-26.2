@@ -1,4 +1,4 @@
-"""Huevo del Vigia, Ojo del Vigia (item) y el icono del efecto Marcado."""
+"""Ojo del Vigia (item) y el icono del efecto Marcado. El huevo, en huevos_jefes.py."""
 from PIL import Image
 import math, sys, os
 
@@ -8,24 +8,7 @@ TEX = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures')
 def hexc(s, a=255):
     s = s.lstrip('#'); return (int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16), a)
 
-# ------------------------------------------------------------------
-# Huevo: la silueta del huevo del fulminante, recoloreada (DISENO §10).
-# Cascara de tela oscura con motas ambar: los colores del bicho.
-# ------------------------------------------------------------------
-huevo = Image.open(os.path.join(TEX, 'item/huevo_fulminante.png')).convert('RGBA')
-MAPA = {
-    (168, 143, 99): hexc('1d1a22'),   # contorno
-    (213, 196, 150): hexc('38333f'),  # cascara
-    (247, 244, 232): hexc('5a5363'),  # brillo de la cascara
-    (112, 92, 62): hexc('ffb43a'),    # motas: el ojo
-}
-out = Image.new('RGBA', huevo.size, (0, 0, 0, 0))
-for y in range(16):
-    for x in range(16):
-        p = huevo.getpixel((x, y))
-        if p[3] >= 16:
-            out.putpixel((x, y), MAPA.get(p[:3], p))
-out.save(os.path.join(TEX, 'item/huevo_vigia.png'))
+# El huevo del Vigia lo dibuja huevos_jefes.py (con sus antenas y su ojo).
 
 # ------------------------------------------------------------------
 # Ojo del Vigia: el ojo arrancado del farol, con su marco de hierro.
@@ -98,7 +81,7 @@ marca.save(os.path.join(TEX, 'mob_effect/marcado.png'))
 
 # previsualizacion, sobre fondo oscuro como el del juego
 prev = Image.new('RGBA', (16 * 3 + 18 + 40, 24), hexc('2b2b2b'))
-prev.alpha_composite(out, (4, 4)); prev.alpha_composite(ojo, (28, 4)); prev.alpha_composite(marca, (52, 3))
+prev.alpha_composite(Image.open(os.path.join(TEX, 'item/huevo_vigia.png')).convert('RGBA'), (4, 4)); prev.alpha_composite(ojo, (28, 4)); prev.alpha_composite(marca, (52, 3))
 fondo_inv = Image.new('RGBA', (20, 20), hexc('8b8b8b'))
 prev.alpha_composite(fondo_inv, (76, 2)); prev.alpha_composite(ojo, (78, 4))
 prev.resize((prev.width * 10, prev.height * 10), Image.NEAREST).save(sys.argv[2])

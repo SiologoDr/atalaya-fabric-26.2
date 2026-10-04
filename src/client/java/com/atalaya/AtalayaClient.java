@@ -16,6 +16,12 @@ import com.atalaya.client.RayoVigiaRenderer;
 import com.atalaya.client.VigiaParticula;
 import net.minecraft.core.particles.SimpleParticleType;
 import com.atalaya.client.VigiaRenderer;
+import com.atalaya.client.BurbujaNereaRenderer;
+import com.atalaya.client.GanchoNereaRenderer;
+import com.atalaya.client.NereaMalla;
+import com.atalaya.client.NereaModel;
+import com.atalaya.client.NereaParticula;
+import com.atalaya.client.NereaRenderer;
 import com.atalaya.entity.AtalayaEntities;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -90,6 +96,15 @@ public class AtalayaClient implements ClientModInitializer {
         ModelLayerRegistry.registerModelLayer(RayoVigiaModel.CAPA, RayoVigiaModel::crear);
         EntityRendererRegistry.register(AtalayaEntities.RAYO_VIGIA, RayoVigiaRenderer::new);
 
+        // Nerea: malla y animaciones generadas desde nerea_juego*.py, y lo
+        // suyo alrededor: las burbujas y el gancho.
+        ModelLayerRegistry.registerModelLayer(NereaModel.CAPA, NereaMalla::crear);
+        EntityRendererRegistry.register(AtalayaEntities.NEREA, NereaRenderer::new);
+        ModelLayerRegistry.registerModelLayer(BurbujaNereaRenderer.CAPA, BurbujaNereaRenderer.Modelo::crear);
+        EntityRendererRegistry.register(AtalayaEntities.BURBUJA_NEREA, BurbujaNereaRenderer::new);
+        ModelLayerRegistry.registerModelLayer(GanchoNereaRenderer.CAPA, GanchoNereaRenderer.Modelo::crear);
+        EntityRendererRegistry.register(AtalayaEntities.GANCHO_NEREA, GanchoNereaRenderer::new);
+
         // El aviso de la tecla va DESPUES de la hotbar para quedar por encima:
         // es una instruccion, y taparla con cualquier cosa la haria inutil.
         HudElementRegistry.attachElementAfter(
@@ -117,7 +132,47 @@ public class AtalayaClient implements ClientModInitializer {
         particula(AtalayaParticulas.VIGIA_HUMO, VigiaParticula.Tipo.HUMO);
         particula(AtalayaParticulas.VIGIA_ALMA, VigiaParticula.Tipo.ALMA);
 
+        // Las diez de Nerea.
+        nerea(AtalayaParticulas.NEREA_BURBUJA, NereaParticula.Tipo.BURBUJA);
+        nerea(AtalayaParticulas.NEREA_ESPUMA, NereaParticula.Tipo.ESPUMA);
+        nerea(AtalayaParticulas.NEREA_GOTA, NereaParticula.Tipo.GOTA);
+        nerea(AtalayaParticulas.NEREA_OLA, NereaParticula.Tipo.OLA);
+        nerea(AtalayaParticulas.NEREA_REMOLINO, NereaParticula.Tipo.REMOLINO);
+        nerea(AtalayaParticulas.NEREA_CHISPA, NereaParticula.Tipo.CHISPA);
+        nerea(AtalayaParticulas.NEREA_OJO, NereaParticula.Tipo.OJO);
+        nerea(AtalayaParticulas.NEREA_SELLO, NereaParticula.Tipo.SELLO);
+        nerea(AtalayaParticulas.NEREA_CORAZON, NereaParticula.Tipo.CORAZON);
+        nerea(AtalayaParticulas.NEREA_LUZ, NereaParticula.Tipo.LUZ);
+        nerea(AtalayaParticulas.NEREA_ONDA, NereaParticula.Tipo.ONDA);
+        nerea(AtalayaParticulas.NEREA_ROCA, NereaParticula.Tipo.ROCA);
+        nerea(AtalayaParticulas.NEREA_POLVO, NereaParticula.Tipo.POLVO);
+
+        // La presencia de Nerea: temblor, retumbo y miedo. El miedo va con los
+        // velos de camara (calabaza, nieve polvo...): un velo bajo el resto del
+        // HUD. NO cuelga de la hotbar como la vineta del calor: en espectador
+        // la hotbar no se dibuja, y con ella desaparecia todo lo enganchado.
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NereaEfectosCliente::tick);
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.MISC_OVERLAYS,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "miedo"),
+                new com.atalaya.client.MiedoHud());
+        // Su barra de jefe, propia: marco de prismarina, el corazon de la fase y
+        // el agua del color de la maldicion. Va con la barra de jefe de vanilla,
+        // que se dibuja en cualquier modo de juego (la hotbar no en espectador).
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.BOSS_BAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_nerea"),
+                new com.atalaya.client.NereaBarraHud());
+
+        // Solo en el entorno de pruebas (con run/atalaya_fotos.flag).
+        com.atalaya.client.FotosPrueba.registrar();
+
         Atalaya.LOGGER.info("Atalaya (cliente) iniciado.");
+    }
+
+    private static void nerea(SimpleParticleType tipo, NereaParticula.Tipo comportamiento) {
+        ParticleProviderRegistry.getInstance().register(tipo,
+                sprites -> new NereaParticula.Fabrica(sprites, comportamiento));
     }
 
     private static void particula(SimpleParticleType tipo, VigiaParticula.Tipo comportamiento) {

@@ -1,0 +1,36 @@
+package com.atalaya.client;
+
+import com.atalaya.Atalaya;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+
+/**
+ * El miedo: cuando Nerea ruge cerca o te elige con la Mirada del Abismo, los
+ * bordes de la pantalla se cierran en el azul negro del fondo del mar, con
+ * vetas de agua que se cuelan hacia el centro. Textura propia (nerea_extras.py).
+ */
+public class MiedoHud implements HudElement {
+
+    private static final Identifier TEXTURA =
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/miedo_nerea.png");
+    private static final int TAM = 256;
+    private static final int ABISMO = 0xFFFFFF;
+    private static final float ALFA_MAXIMA = 0.82F;
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor grafico, DeltaTracker delta) {
+        float miedo = NereaPresencia.miedo(delta.getGameTimeDeltaPartialTick(false));
+        int alfa = Math.round(Math.min(1.0F, miedo) * ALFA_MAXIMA * 255.0F);
+        if (alfa <= 2) {
+            return;
+        }
+        grafico.blit(RenderPipelines.GUI_TEXTURED, TEXTURA,
+                0, 0, 0.0F, 0.0F,
+                grafico.guiWidth(), grafico.guiHeight(),
+                TAM, TAM, TAM, TAM,
+                (alfa << 24) | ABISMO);
+    }
+}

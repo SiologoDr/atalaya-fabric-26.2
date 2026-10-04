@@ -9,9 +9,10 @@ import net.minecraft.sounds.SoundEvent;
 /**
  * Sonidos propios del mod.
  *
- * Ninguno es de vanilla: los .ogg salen de un script de sintesis que construye
- * cada uno con lo que el Vigia tiene encima —el hierro del farol, el cristal,
- * las cadenas, una garganta y la llama—, asi que todos suenan a la misma cosa.
+ * Ninguno es de vanilla: los .ogg salen de scripts de sintesis que construyen
+ * cada uno con lo que el bicho tiene encima. Los del Vigia, con el hierro del
+ * farol, el cristal, las cadenas, una garganta y la llama; los de Nerea
+ * (nerea_sonidos.py), con agua, piedra, hueso, cadenas y una voz sumergida.
  *
  * Aqui solo se registra el NOMBRE de cada evento. Que fichero suena, con que
  * variantes y con que subtitulo lo dice assets/atalaya/sounds.json.
@@ -38,6 +39,42 @@ public final class AtalayaSonidos {
     public static SoundEvent VIGIA_BUSCAR;
     public static SoundEvent OJO_VIGIA_USAR;
 
+    // --- Nerea: agua, piedra, hueso, cadenas y una voz bajo el agua ---
+    public static SoundEvent NEREA_AMBIENTE;
+    public static SoundEvent NEREA_PASO;
+    public static SoundEvent NEREA_INMUNE;
+    public static SoundEvent NEREA_HERIDO;
+    public static SoundEvent NEREA_RUGIDO;
+    public static SoundEvent NEREA_DESPERTAR;
+    public static SoundEvent NEREA_ROMPEOLAS_ALZAR;
+    public static SoundEvent NEREA_ROMPEOLAS_GOLPE;
+    public static SoundEvent NEREA_OLA;
+    public static SoundEvent NEREA_REMOLINO_AVISO;
+    public static SoundEvent NEREA_REMOLINO;
+    public static SoundEvent NEREA_ANTORCHA;
+    public static SoundEvent NEREA_BURBUJAS;
+    public static SoundEvent NEREA_BURBUJA_REVIENTA;
+    public static SoundEvent NEREA_BURBUJA_POMPA;
+    public static SoundEvent NEREA_MOLINO_ARRASTRE;
+    public static SoundEvent NEREA_MOLINO_GIRO;
+    public static SoundEvent NEREA_ARPON_LANZAR;
+    public static SoundEvent NEREA_ARPON_ENGANCHA;
+    public static SoundEvent NEREA_ARPON_REBOTA;
+    public static SoundEvent NEREA_ESTOCADA;
+    public static SoundEvent NEREA_MIRADA_CARGA;
+    public static SoundEvent NEREA_MIRADA_RAYO;
+    public static SoundEvent NEREA_MIRADA_IMPACTO;
+    public static SoundEvent NEREA_OJO_ROTO;
+    public static SoundEvent NEREA_ATURDIDO;
+    public static SoundEvent NEREA_SELLO_GOLPE;
+    public static SoundEvent NEREA_SELLO_ROTO;
+    public static SoundEvent NEREA_CADENA_ROMPE;
+    public static SoundEvent NEREA_TAMBALEO;
+    public static SoundEvent NEREA_AGOTADO;
+    public static SoundEvent NEREA_LATIDO;
+    public static SoundEvent NEREA_LIBERACION;
+    public static SoundEvent NEREA_DISOLVER;
+
     private AtalayaSonidos() {
     }
 
@@ -61,6 +98,41 @@ public final class AtalayaSonidos {
         VIGIA_TAMBALEO = registrar("vigia.tambaleo");
         VIGIA_BUSCAR = registrar("vigia.buscar");
         OJO_VIGIA_USAR = registrar("ojo_vigia.usar");
+
+        NEREA_AMBIENTE = registrar("nerea.ambiente");
+        NEREA_PASO = registrar("nerea.paso");
+        NEREA_INMUNE = registrar("nerea.inmune");
+        NEREA_HERIDO = registrar("nerea.herido");
+        NEREA_RUGIDO = registrar("nerea.rugido");
+        NEREA_DESPERTAR = registrar("nerea.despertar");
+        NEREA_ROMPEOLAS_ALZAR = registrar("nerea.rompeolas_alzar");
+        NEREA_ROMPEOLAS_GOLPE = registrar("nerea.rompeolas_golpe");
+        NEREA_OLA = registrar("nerea.ola");
+        NEREA_REMOLINO_AVISO = registrar("nerea.remolino_aviso");
+        NEREA_REMOLINO = registrar("nerea.remolino");
+        NEREA_ANTORCHA = registrar("nerea.antorcha");
+        NEREA_BURBUJAS = registrar("nerea.burbujas");
+        NEREA_BURBUJA_REVIENTA = registrar("nerea.burbuja_revienta");
+        NEREA_BURBUJA_POMPA = registrar("nerea.burbuja_pompa");
+        NEREA_MOLINO_ARRASTRE = registrar("nerea.molino_arrastre");
+        NEREA_MOLINO_GIRO = registrar("nerea.molino_giro");
+        NEREA_ARPON_LANZAR = registrar("nerea.arpon_lanzar");
+        NEREA_ARPON_ENGANCHA = registrar("nerea.arpon_engancha");
+        NEREA_ARPON_REBOTA = registrar("nerea.arpon_rebota");
+        NEREA_ESTOCADA = registrar("nerea.estocada");
+        NEREA_MIRADA_CARGA = registrar("nerea.mirada_carga");
+        NEREA_MIRADA_RAYO = registrar("nerea.mirada_rayo");
+        NEREA_MIRADA_IMPACTO = registrar("nerea.mirada_impacto");
+        NEREA_OJO_ROTO = registrar("nerea.ojo_roto");
+        NEREA_ATURDIDO = registrar("nerea.aturdido");
+        NEREA_SELLO_GOLPE = registrar("nerea.sello_golpe");
+        NEREA_SELLO_ROTO = registrar("nerea.sello_roto");
+        NEREA_CADENA_ROMPE = registrar("nerea.cadena_rompe");
+        NEREA_TAMBALEO = registrar("nerea.tambaleo");
+        NEREA_AGOTADO = registrar("nerea.agotado");
+        NEREA_LATIDO = registrar("nerea.latido");
+        NEREA_LIBERACION = registrar("nerea.liberacion");
+        NEREA_DISOLVER = registrar("nerea.disolver");
     }
 
     private static SoundEvent registrar(String nombre) {

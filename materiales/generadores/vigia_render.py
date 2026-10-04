@@ -163,7 +163,8 @@ class Lienzo:
         self.z = np.full((H, W), np.inf)
         self.emis = np.zeros((H, W, 3))
 
-    def triangulo(self, cam, P, UV, tex, luz_fn, emis_tex=None, niebla=None, aditivo=False, brillo=1.0):
+    def triangulo(self, cam, P, UV, tex, luz_fn, emis_tex=None, niebla=None, aditivo=False, brillo=1.0, envolver=False,
+                  translucido=0.0):
         s = [cam.proyectar(p) for p in P]
         if min(q[2] for q in s) < 0.05:
             return
@@ -188,8 +189,12 @@ class Lienzo:
         u = (l1 * UV[0][0] / az + l2 * UV[1][0] / bz + l3 * UV[2][0] / cz) * z
         v = (l1 * UV[0][1] / az + l2 * UV[1][1] / bz + l3 * UV[2][1] / cz) * z
         th, tw = tex.shape[:2]
-        tu = np.clip((u * tw).astype(int), 0, tw - 1)
-        tv = np.clip((v * th).astype(int), 0, th - 1)
+        if envolver:   # textura en mosaico: materiales que se repiten por la cara
+            tu = np.floor(u * tw).astype(int) % tw
+            tv = np.floor(v * th).astype(int) % th
+        else:
+            tu = np.clip((u * tw).astype(int), 0, tw - 1)
+            tv = np.clip((v * th).astype(int), 0, th - 1)
         texel = tex[tv, tu]
         a = texel[..., 3] / 255.0
         zb = self.z[y0:y1 + 1, x0:x1 + 1]
@@ -197,6 +202,22 @@ class Lienzo:
             m = dentro & (a > 0.01) & (z < zb)
             col = texel[..., :3] / 255.0 * a[..., None] * brillo
             self.emis[y0:y1 + 1, x0:x1 + 1][m] += col[m]
+            return
+        if translucido > 0:
+            # agua y cristal: se mezcla con lo que ya hay detras y no tapa en
+            # profundidad. Hay que pintarlo despues de lo opaco, de atras a delante.
+            m = dentro & (a > 0.01) & (z < zb)
+            if not m.any():
+                return
+            k = (a * translucido)[..., None]
+            rgb = texel[..., :3] / 255.0 * luz_fn
+            if niebla is not None:
+                f = niebla(z)[..., None]
+                rgb = rgb * (1 - f) + np.array(niebla.color) * f
+            vista = self.color[y0:y1 + 1, x0:x1 + 1]
+            vista[m] = (vista * (1 - k) + rgb * k)[m]
+            al = self.alfa[y0:y1 + 1, x0:x1 + 1]
+            al[m] = (1 - (1 - al) * (1 - k[..., 0]))[m]
             return
         m = dentro & (a > 0.1) & (z < zb)
         if not m.any():

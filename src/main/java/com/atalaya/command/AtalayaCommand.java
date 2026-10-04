@@ -3,6 +3,11 @@ package com.atalaya.command;
 import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.entity.AtalayaEntities;
+import com.atalaya.entity.NereaEntity;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBiomeTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -30,6 +35,11 @@ import net.minecraft.server.level.ServerPlayer;
  *   /atalaya menu                 -> panel de interruptores
  *   /atalaya hidratacion &lt;0-100&gt;  -> fija tu hidratacion, para probar
  *   /atalaya frio &lt;0-50&gt;          -> fija tu frio, para probar
+ *   /atalaya nerea &lt;orden&gt;         -> fuerza a la Nerea mas cercana un ataque o
+ *                                    momento del combate (despertar, rompeolas,
+ *                                    remolino, burbujas, molino, arpon, lejano,
+ *                                    mirada, aturdido, agotado, fase, liberar).
+ *                                    Nerea se invoca con su huevo generador.
  *
  * Todos piden permiso de operador.
  *
@@ -56,6 +66,12 @@ public final class AtalayaCommand {
                         .then(Commands.literal("diagnostico")
                                 .requires(AtalayaCommand::esOperador)
                                 .executes(ctx -> diagnostico(ctx.getSource())))
+                        .then(Commands.literal("nerea")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NEREA, sb))
+                                        .executes(ctx -> probarNerea(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -156,6 +172,33 @@ public final class AtalayaCommand {
                            : nivel > 0 ? "  (insolacion nivel " + nivel + ")"
                            : "  (sin insolacion)")), false);
         return puntos;
+    }
+
+    private static final String[] ORDENES_NEREA = {"despertar", "rompeolas", "remolino", "burbujas", "molino",
+            "arpon", "lejano", "mirada", "aturdido", "agotado", "fase", "liberar"};
+
+    /** Fuerza a la Nerea mas cercana (en 64 bloques) a hacer algo ya. */
+    private static int probarNerea(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        NereaEntity nerea = null;
+        double mejor = 64 * 64;
+        for (NereaEntity n : nivel.getEntitiesOfClass(NereaEntity.class, new AABB(desde, desde).inflate(64))) {
+            if (n.isAlive() && n.distanceToSqr(desde) < mejor) {
+                mejor = n.distanceToSqr(desde);
+                nerea = n;
+            }
+        }
+        if (nerea == null) {
+            fuente.sendFailure(Component.literal("No hay ninguna Nerea a menos de 64 bloques."));
+            return 0;
+        }
+        if (!nerea.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Nerea: " + orden), false);
+        return 1;
     }
 
     /**

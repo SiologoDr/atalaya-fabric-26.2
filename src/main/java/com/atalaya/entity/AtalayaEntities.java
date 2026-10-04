@@ -48,7 +48,22 @@ public final class AtalayaEntities {
     /** El proyectil de la mirada. */
     public static EntityType<RayoVigiaEntity> RAYO_VIGIA;
 
+    public static final ResourceKey<EntityType<?>> CLAVE_NEREA = clave("nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_BURBUJA_NEREA = clave("burbuja_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_GANCHO_NEREA = clave("gancho_nerea");
+
+    /** Nerea, Guardian de los Mares: el jefe elemental del agua. */
+    public static EntityType<NereaEntity> NEREA;
+    /** Burbuja bomba. */
+    public static EntityType<BurbujaNereaEntity> BURBUJA_NEREA;
+    /** El gancho del Arpon. */
+    public static EntityType<GanchoNereaEntity> GANCHO_NEREA;
+
     private AtalayaEntities() {
+    }
+
+    private static ResourceKey<EntityType<?>> clave(String nombre) {
+        return ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, nombre));
     }
 
     public static void registrar() {
@@ -95,6 +110,37 @@ public final class AtalayaEntities {
                 MobCategory.MONSTER, FULMINANTE, 12, 1, 2);
 
         registrarVigia();
+        registrarNerea();
+    }
+
+    private static void registrarNerea() {
+        // La caja es mas estrecha que los hombros (4,3 de lado a lado) y mas
+        // baja que la corona de coral (9,7): lo que importa es que tape el
+        // cuerpo para pegarle, no cada rama. Se ve desde lejos: con 30 o 40
+        // jugadores alrededor, la pelea ocupa mucho.
+        NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_NEREA,
+                EntityType.Builder.of(NereaEntity::new, MobCategory.MONSTER)
+                        .sized(3.4F, 8.8F)
+                        .eyeHeight(7.8F)
+                        .fireImmune()
+                        .clientTrackingRange(20)
+                        .build(CLAVE_NEREA));
+        FabricDefaultAttributeRegistry.register(NEREA, NereaEntity.crearAtributos());
+
+        // Las dos que se mueven, cada tick: la burbuja cambia de rumbo y el
+        // gancho va pegado a quien arrastra.
+        BURBUJA_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_BURBUJA_NEREA,
+                EntityType.Builder.<BurbujaNereaEntity>of(BurbujaNereaEntity::new, MobCategory.MISC)
+                        .sized(0.9F, 0.9F)
+                        .clientTrackingRange(10)
+                        .updateInterval(1)
+                        .build(CLAVE_BURBUJA_NEREA));
+        GANCHO_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_GANCHO_NEREA,
+                EntityType.Builder.<GanchoNereaEntity>of(GanchoNereaEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.5F)
+                        .clientTrackingRange(10)
+                        .updateInterval(1)
+                        .build(CLAVE_GANCHO_NEREA));
     }
 
     private static void registrarVigia() {

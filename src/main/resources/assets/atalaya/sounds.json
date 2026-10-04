@@ -120,5 +120,242 @@
     "sounds": [
       "atalaya:vigia/rayo_impacto"
     ]
+  },
+  "nerea.ambiente": {
+    "subtitle": "subtitles.atalaya.nerea.ambiente",
+    "sounds": [
+      "atalaya:nerea/ambiente1",
+      "atalaya:nerea/ambiente2",
+      "atalaya:nerea/ambiente3"
+    ]
+  },
+  "nerea.paso": {
+    "subtitle": "subtitles.atalaya.nerea.paso",
+    "sounds": [
+      "atalaya:nerea/paso1",
+      "atalaya:nerea/paso2",
+      "atalaya:nerea/paso3",
+      "atalaya:nerea/paso4"
+    ]
+  },
+  "nerea.inmune": {
+    "subtitle": "subtitles.atalaya.nerea.inmune",
+    "sounds": [
+      "atalaya:nerea/inmune1",
+      "atalaya:nerea/inmune2",
+      "atalaya:nerea/inmune3"
+    ]
+  },
+  "nerea.herido": {
+    "subtitle": "subtitles.atalaya.nerea.herido",
+    "sounds": [
+      "atalaya:nerea/herido1",
+      "atalaya:nerea/herido2",
+      "atalaya:nerea/herido3",
+      "atalaya:nerea/herido4"
+    ]
+  },
+  "nerea.rugido": {
+    "subtitle": "subtitles.atalaya.nerea.rugido",
+    "sounds": [
+      "atalaya:nerea/rugido1",
+      "atalaya:nerea/rugido2",
+      "atalaya:nerea/rugido3"
+    ]
+  },
+  "nerea.despertar": {
+    "subtitle": "subtitles.atalaya.nerea.despertar",
+    "sounds": [
+      "atalaya:nerea/despertar"
+    ]
+  },
+  "nerea.rompeolas_alzar": {
+    "subtitle": "subtitles.atalaya.nerea.rompeolas_alzar",
+    "sounds": [
+      "atalaya:nerea/rompeolas_alzar1",
+      "atalaya:nerea/rompeolas_alzar2"
+    ]
+  },
+  "nerea.rompeolas_golpe": {
+    "subtitle": "subtitles.atalaya.nerea.rompeolas_golpe",
+    "sounds": [
+      "atalaya:nerea/rompeolas_golpe1",
+      "atalaya:nerea/rompeolas_golpe2"
+    ]
+  },
+  "nerea.ola": {
+    "subtitle": "subtitles.atalaya.nerea.ola",
+    "sounds": [
+      "atalaya:nerea/ola1",
+      "atalaya:nerea/ola2"
+    ]
+  },
+  "nerea.remolino_aviso": {
+    "subtitle": "subtitles.atalaya.nerea.remolino_aviso",
+    "sounds": [
+      "atalaya:nerea/remolino_aviso"
+    ]
+  },
+  "nerea.remolino": {
+    "subtitle": "subtitles.atalaya.nerea.remolino",
+    "sounds": [
+      "atalaya:nerea/remolino"
+    ]
+  },
+  "nerea.antorcha": {
+    "subtitle": "subtitles.atalaya.nerea.antorcha",
+    "sounds": [
+      "atalaya:nerea/antorcha1",
+      "atalaya:nerea/antorcha2"
+    ]
+  },
+  "nerea.burbujas": {
+    "subtitle": "subtitles.atalaya.nerea.burbujas",
+    "sounds": [
+      "atalaya:nerea/burbujas"
+    ]
+  },
+  "nerea.burbuja_revienta": {
+    "subtitle": "subtitles.atalaya.nerea.burbuja_revienta",
+    "sounds": [
+      "atalaya:nerea/burbuja_revienta1",
+      "atalaya:nerea/burbuja_revienta2",
+      "atalaya:nerea/burbuja_revienta3"
+    ]
+  },
+  "nerea.burbuja_pompa": {
+    "subtitle": "subtitles.atalaya.nerea.burbuja_pompa",
+    "sounds": [
+      "atalaya:nerea/burbuja_pompa1",
+      "atalaya:nerea/burbuja_pompa2",
+      "atalaya:nerea/burbuja_pompa3"
+    ]
+  },
+  "nerea.molino_arrastre": {
+    "subtitle": "subtitles.atalaya.nerea.molino_arrastre",
+    "sounds": [
+      "atalaya:nerea/molino_arrastre"
+    ]
+  },
+  "nerea.molino_giro": {
+    "subtitle": "subtitles.atalaya.nerea.molino_giro",
+    "sounds": [
+      "atalaya:nerea/molino_giro1",
+      "atalaya:nerea/molino_giro2",
+      "atalaya:nerea/molino_giro3"
+    ]
+  },
+  "nerea.arpon_lanzar": {
+    "subtitle": "subtitles.atalaya.nerea.arpon_lanzar",
+    "sounds": [
+      "atalaya:nerea/arpon_lanzar"
+    ]
+  },
+  "nerea.arpon_engancha": {
+    "subtitle": "subtitles.atalaya.nerea.arpon_engancha",
+    "sounds": [
+      "atalaya:nerea/arpon_engancha1",
+      "atalaya:nerea/arpon_engancha2"
+    ]
+  },
+  "nerea.arpon_rebota": {
+    "subtitle": "subtitles.atalaya.nerea.arpon_rebota",
+    "sounds": [
+      "atalaya:nerea/arpon_rebota1",
+      "atalaya:nerea/arpon_rebota2"
+    ]
+  },
+  "nerea.estocada": {
+    "subtitle": "subtitles.atalaya.nerea.estocada",
+    "sounds": [
+      "atalaya:nerea/estocada1",
+      "atalaya:nerea/estocada2"
+    ]
+  },
+  "nerea.mirada_carga": {
+    "subtitle": "subtitles.atalaya.nerea.mirada_carga",
+    "sounds": [
+      "atalaya:nerea/mirada_carga"
+    ]
+  },
+  "nerea.mirada_rayo": {
+    "subtitle": "subtitles.atalaya.nerea.mirada_rayo",
+    "sounds": [
+      "atalaya:nerea/mirada_rayo"
+    ]
+  },
+  "nerea.mirada_impacto": {
+    "subtitle": "subtitles.atalaya.nerea.mirada_impacto",
+    "sounds": [
+      "atalaya:nerea/mirada_impacto1",
+      "atalaya:nerea/mirada_impacto2"
+    ]
+  },
+  "nerea.ojo_roto": {
+    "subtitle": "subtitles.atalaya.nerea.ojo_roto",
+    "sounds": [
+      "atalaya:nerea/ojo_roto1",
+      "atalaya:nerea/ojo_roto2"
+    ]
+  },
+  "nerea.aturdido": {
+    "subtitle": "subtitles.atalaya.nerea.aturdido",
+    "sounds": [
+      "atalaya:nerea/aturdido1",
+      "atalaya:nerea/aturdido2"
+    ]
+  },
+  "nerea.sello_golpe": {
+    "subtitle": "subtitles.atalaya.nerea.sello_golpe",
+    "sounds": [
+      "atalaya:nerea/sello_golpe1",
+      "atalaya:nerea/sello_golpe2",
+      "atalaya:nerea/sello_golpe3"
+    ]
+  },
+  "nerea.sello_roto": {
+    "subtitle": "subtitles.atalaya.nerea.sello_roto",
+    "sounds": [
+      "atalaya:nerea/sello_roto"
+    ]
+  },
+  "nerea.cadena_rompe": {
+    "subtitle": "subtitles.atalaya.nerea.cadena_rompe",
+    "sounds": [
+      "atalaya:nerea/cadena_rompe1",
+      "atalaya:nerea/cadena_rompe2"
+    ]
+  },
+  "nerea.tambaleo": {
+    "subtitle": "subtitles.atalaya.nerea.tambaleo",
+    "sounds": [
+      "atalaya:nerea/tambaleo"
+    ]
+  },
+  "nerea.agotado": {
+    "subtitle": "subtitles.atalaya.nerea.agotado",
+    "sounds": [
+      "atalaya:nerea/agotado"
+    ]
+  },
+  "nerea.latido": {
+    "subtitle": "subtitles.atalaya.nerea.latido",
+    "sounds": [
+      "atalaya:nerea/latido1",
+      "atalaya:nerea/latido2",
+      "atalaya:nerea/latido3"
+    ]
+  },
+  "nerea.liberacion": {
+    "subtitle": "subtitles.atalaya.nerea.liberacion",
+    "sounds": [
+      "atalaya:nerea/liberacion"
+    ]
+  },
+  "nerea.disolver": {
+    "subtitle": "subtitles.atalaya.nerea.disolver",
+    "sounds": [
+      "atalaya:nerea/disolver"
+    ]
   }
 }
