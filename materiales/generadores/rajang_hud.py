@@ -19,6 +19,9 @@ con lo suyo:
   rajang_barra_fase_N.png        "FASE I".."FASE IV" y rajang_barra_libre.png
                                  ("LIBERADO"), en grises para tenirlos (64x10)
 
+  (rajang_barra_furia.png, el rotulo "FURIA" de la Furia de Jade, lo pinta
+  rajang_mejoras_extras.py con estas mismas letras.)
+
 Colores de fase pensados para el codigo (el relleno y el rotulo se tinen):
   I 0x58C886 (jade)  II 0x8CFF5A (verde)  III 0xC8FF2A (lima)  IV 0xE6FF4A
   liberado 0xF8D97C / 0xE2B443 (oro)

@@ -29,11 +29,13 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -53,13 +55,19 @@ import java.util.List;
  * cada fase (ver los DANO_*).
  *
  * <pre>
- *   fase I    100-75 %   Selva: Garra Terrestre, Terremoto Ancestral
+ *   fase I    100-75 %   Selva: Garra Terrestre, Terremoto Ancestral, Embestida de Jade
  *   fase II    75-50 %   Grieta: + Sello de la Tierra (inmune mientras dura; si los
- *                        totems no caen a tiempo, el Rugido de Jade mata a todos)
+ *                        totems no caen a tiempo, el Rugido de Jade mata a todos
+ *                        y le deja la Furia), + Tumba de Raices
  *   fase III   50-25 %   Raiz: + Cataclismo de Jade (seis oleadas de fragmentos)
  *   fase IV    25-0 %    Corazon: el peto revienta, salta sobre sus presas y
  *                        el Cataclismo vuelve antes
  * </pre>
+ *
+ * Las mejoras de octubre de 2026 (tras las pruebas del grupo: "tosco y lento"):
+ * la Embestida y la Tumba, los pinchos que lanzan a diez bloques y dejan el
+ * Peso tres segundos, fragmentos del Cataclismo mas grandes y menos, escalones
+ * del Sello que se caen, el pulso de cada totem roto y la Furia de Jade.
  *
  * Como Nerea y Aeralis, el estado vive en un numero sincronizado, el cliente
  * arranca la animacion que toca al verlo cambiar y los ticks de cada golpe y
@@ -84,6 +92,11 @@ public class RajangEntity extends Monster {
     public static final int PARALIZADO = 11;
     public static final int SALTO = 12;
     public static final int TAMBALEO = 13;
+    public static final int EMBESTIDA_AVISO = 14;
+    public static final int EMBESTIDA = 15;
+    public static final int EMBESTIDA_FRENA = 16;
+    public static final int ESTAMPADO = 17;
+    public static final int TUMBA = 18;
 
     /** Vida EFECTIVA: 15 000 (Nerea 12 500, Aeralis 13 500). La de vanilla tiene tope de 1024: el dano se divide. */
     public static final float VIDA = 15000.0F;
@@ -95,30 +108,90 @@ public class RajangEntity extends Monster {
     // les quita 3,5 / 5 / 7,5 / 11 corazones (6, 4, 3 y 2 golpes para matarlos;
     // sin la manzana, en la fase IV basta uno); los de area 2,5 / 4 / 5,5 / 8;
     // los que duran, 1 / 1,5 / 2 / 3 por segundo. Los tipos de dano no escalan
-    // con la dificultad.
+    // con la dificultad. Tras la prueba de octubre de 2026, la II, la III y la IV
+    // pegan un 8, un 12 y un 15 % mas.
     /** El zarpazo y el pincho grande de la Garra (los pequenos, algo menos). */
-    public static final float[] DANO_GARRA = {34, 42, 53, 70};
-    public static final float[] DANO_TERREMOTO = {27, 37, 44, 55};
-    public static final float[] DANO_SALTO = {34, 42, 53, 70};
+    public static final float[] DANO_GARRA = {34, 45, 59, 80};
+    public static final float[] DANO_TERREMOTO = {27, 40, 49, 63};
+    public static final float[] DANO_SALTO = {34, 45, 59, 80};
     /** Cerca del impacto de un fragmento (de la mitad al 100 %); encima, la muerte. */
-    public static final float[] DANO_FRAGMENTO = {34, 45, 54, 67};
+    public static final float[] DANO_FRAGMENTO = {34, 49, 60, 77};
     /**
      * El Rugido de Jade (el Sello sin romper a tiempo), en cualquier fase: mata a
      * todos los que pelean con el en su rango. Pasa la armadura, el escudo, los
      * encantamientos, los efectos y la resistencia; solo salva un totem de la
      * inmortalidad (y lo gasta).
      */
-    private static final float RUGIDO_MATA = 10000.0F;
+    public static final float MORTAL = 10000.0F;
     /** La tierra aplasta: contra armadura sus golpes pegan hasta un 30 % mas. */
     private static final float PERFORA_MAXIMO = 0.3F;
     /** Piel de Jade (tras el Terremoto): recibe un 40 % menos durante 10 s. */
     private static final float PIEL_REDUCE = 0.4F;
     private static final int PIEL_TICKS = 200;
     private static final int PESO_TICKS = 160;
+    /** El Peso que deja un pincho de tierra, sea del ataque que sea: 3 s como mucho. */
+    public static final int PESO_PINCHO = 60;
+
+    /**
+     * La Embestida: 26 bloques/s, contra una presa a 10-36 bloques. La flecha
+     * mide el doble de lo que hay hasta 6 bloques mas alla de ella (24 a 72): se
+     * pasa de largo otro tanto. Si su templo no la deja ir tan lejos, la flecha
+     * se acorta a lo que de verdad corre.
+     */
+    private static final double VEL_CARGA = 1.3;
+    private static final double CARGA_ALCANCE = 36.0;
+    private static final double CARGA_MIN = 24.0;
+    private static final double CARGA_MAX = 72.0;
+    private static final double CARGA_PASA = 6.0;
+    private static final double CARGA_VECES = 2.0;
+    /** Lo que la cabeza va por delante de las manos mas lo que derrapa al frenar: el pecho corre la flecha menos esto. */
+    private static final double CARGA_CABEZA = 9.5;
+    /** Los pinchos de la Embestida: a 4,2 bloques de su linea, uno a cada lado cada 2,2. */
+    private static final double PINCHO_LADO = 4.2;
+    private static final double PINCHO_CADA = 2.2;
+    /** Lo que lanza la Embestida: unos 15 bloques hacia arriba. */
+    public static final double LANZA_MORTAL = 1.7;
+    /** El zarpazo de la Garra empuja unos 6 bloques (unos 9 ticks en el aire, y algo de derrape). */
+    private static final double GARRA_EMPUJE = 0.9;
+
+    /**
+     * La Tumba de Raices: un circulo de 36 bloques que se llena en 6 s (siempre
+     * igual, RajangGeometria.TUMBA_ESTALLA). Desde el cuerpo a cuerpo hay que
+     * correr unos 32: esprintando sobran 0,3 s, y saltando al esprintar 1,5. Quien
+     * dude mas, no sale.
+     */
+    public static final double TUMBA_RADIO = 36.0;
+    private static final double TUMBA_CERCA = 15.5;
+
+    /**
+     * Al paso (acecha de 6 a 10 bloques) y al galope (a mas de 10); en la fase IV
+     * galopa mas. Lo que avanza va con el cuadrado: unos 6,5 bloques/s al paso, 17
+     * al galope y 20 en la IV (con la Furia, un 20 % mas).
+     */
+    private static final double PASO = 1.3;
+    private static final double GALOPE = 2.1;
+    private static final double GALOPE_IV = 2.3;
+    /** Cliente: por encima de esto (bloques/tick) galopa; por debajo, anda (al paso no pasa de 0,4). */
+    public static final float VEL_GALOPE = 0.6F;
+    private static final int TUMBA_PESO = 100;
+    /** Sin Tumba hasta 8 s despues de un Terremoto: con su Peso no se puede escapar. */
+    private static final int TUMBA_TRAS_TERREMOTO = 160;
+
+    /** La Furia de Jade (el Sello fallido): mas rapido, mas dano, menos espera. */
+    private static final float FURIA_RITMO = 1.25F;
+    private static final float FURIA_DANO = 1.35F;
+    private static final float FURIA_ENFRIA = 0.65F;
+    private static final double FURIA_CORRE = 1.1;
+
+    /** El pulso de cada totem roto: 7 bloques alrededor, y te echa en horizontal. */
+    private static final double PULSO_RADIO = 7.0;
+    private static final double PULSO_EMPUJE = 2.4;
+    /** Cada cuanto tiembla un escalon del Sello (y cae un segundo despues). */
+    private static final int ESCALON_CADA = 30;
 
     /** El Sello: 45 s para subir y romper los cuatro totems. Un totem roto se queda roto. */
     public static final int SELLO_TICKS = 900;
-    /** Lo que tarda en volver el Sello desde que acaba: 2 min en la II, 1,5 en la III, 1,3 en la IV. */
+    /** Lo que tarda en volver el Sello desde que acaba: 1,7 min en la II, 1,4 en la III, 1,2 en la IV. */
     private static final int SELLO_DESCANSO = 2400;
     /** Las columnas: 26 bloques de alto y 4 de ancho, a 18 de el en sus cuatro diagonales. */
     private static final float SELLO_ALTO = 26.0F;
@@ -129,14 +202,20 @@ public class RajangEntity extends Monster {
     private static final double PIEDRA_RADIO = 4.0;
     private static final float PIEDRA_ANCHO = 1.8F;
     private static final double PIEDRA_GIRO = 0.62;
-    /** El Cataclismo: tres oleadas, cada 2 s; la marca avisa 1,5 s antes. */
-    /** Seis oleadas de fragmentos, una cada 2 s: 12 s de lluvia de jade. */
+    /**
+     * Seis oleadas de fragmentos, una cada 2 s: 12 s de lluvia de jade; la marca
+     * avisa 1,2 s antes. Desde el centro de la marca hay que correr 4,8-5,7
+     * bloques: esprintando sobran 0,2-0,35 s, y saltando al esprintar, 0,4-0,5.
+     * Es de reflejos.
+     */
     private static final int OLEADAS = 6;
     private static final int CADA_OLEADA = 40;
-    public static final int AVISO_FRAGMENTO = 30;
+    public static final int AVISO_FRAGMENTO = 24;
 
     private static final double ALCANCE_GARRA = 30.0;
     private static final double CORREA = 40.0;
+    /** Hasta donde llega su pecho en una Embestida: una carga se pasa de la correa de andar. */
+    private static final double CORREA_CARGA = CORREA + 24.0;
     private static final double RANGO_DESPERTAR = 40.0;
 
     private static final EntityDataAccessor<Integer> DATA_ESTADO =
@@ -154,6 +233,12 @@ public class RajangEntity extends Monster {
             SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_TOTEMS =
             SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
+    /** La Furia de Jade: el aura verde. */
+    private static final EntityDataAccessor<Boolean> DATA_FURIA =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Lo que mide la flecha de la Embestida desde sus manos (0: no hay flecha). */
+    private static final EntityDataAccessor<Float> DATA_CARGA =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.FLOAT);
 
     // --- Solo cliente ---
     public final AnimationState dormido = new AnimationState();
@@ -169,6 +254,11 @@ public class RajangEntity extends Monster {
     public final AnimationState paralizado = new AnimationState();
     public final AnimationState salto = new AnimationState();
     public final AnimationState tambaleo = new AnimationState();
+    public final AnimationState embestidaAviso = new AnimationState();
+    public final AnimationState embestida = new AnimationState();
+    public final AnimationState embestidaFrena = new AnimationState();
+    public final AnimationState estampado = new AnimationState();
+    public final AnimationState tumba = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
     public int inicioEstado;
     public float ritmoCliente = 1.0F;
@@ -197,6 +287,10 @@ public class RajangEntity extends Monster {
     private int enfSello = 120;
     private int enfCataclismo = 140;
     private int enfSalto = 80;
+    private int enfEmbestida = 60;
+    private int enfTumba = 200;
+    private int ultimoTerremoto = -1000;
+    private int ultimoEscalon;
     private int ultimoAvisoInmune;
     private int piel;
     private @Nullable LivingEntity presa;
@@ -215,6 +309,19 @@ public class RajangEntity extends Monster {
     private boolean rugidoFinal;
     // El Cataclismo
     private boolean mato;
+    // La Embestida
+    private Vec3 dirCarga = new Vec3(0, 0, 1);
+    /** Lo que mide la flecha (desde sus manos) y lo que corre su pecho. */
+    private double largoFlecha;
+    private double largoCarga;
+    private double recorrido;
+    private double siguientePincho;
+    /** Lo deprisa que va en la carga o la frenada (bloques por tick); 0: no carga. */
+    private double velCarga;
+    private double avanceCarga;
+    private final java.util.Set<Integer> arrollados = new java.util.HashSet<>();
+    // La Tumba
+    private @Nullable Vec3 centroTumba;
 
     public RajangEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -242,6 +349,8 @@ public class RajangEntity extends Monster {
         datos.define(DATA_PIEL, false);
         datos.define(DATA_SELLO, 0);
         datos.define(DATA_TOTEMS, 0);
+        datos.define(DATA_FURIA, false);
+        datos.define(DATA_CARGA, 0.0F);
     }
 
     @Override
@@ -282,6 +391,16 @@ public class RajangEntity extends Monster {
         return entityData.get(DATA_TOTEMS);
     }
 
+    /** Con la Furia de Jade (el aura verde): ha fallado un Sello y aun no lo han derribado. */
+    public boolean tieneFuria() {
+        return entityData.get(DATA_FURIA);
+    }
+
+    /** Lo que mide la flecha de la Embestida desde sus manos (0: no hay). */
+    public float getCarga() {
+        return entityData.get(DATA_CARGA);
+    }
+
     public @Nullable BlockPos getCentro() {
         return centro;
     }
@@ -303,17 +422,27 @@ public class RajangEntity extends Monster {
             Vec3 v = getDeltaMovement();
             setDeltaMovement(0, Math.min(0, v.y), 0);
         }
+        if (estado != EMBESTIDA && estado != EMBESTIDA_FRENA) {
+            velCarga = 0.0;
+        }
+        if (estado != EMBESTIDA_AVISO && estado != EMBESTIDA) {
+            entityData.set(DATA_CARGA, 0.0F);
+        }
         entityData.set(DATA_ESTADO, estado);
         t = 0;
-        ritmoEstado = ritmo(estado, fase());
+        ritmoEstado = ritmo(estado, fase(), tieneFuria());
         duracion = (int) Math.ceil(dur / ritmoEstado);
     }
 
-    /** Lo rapido que van sus ataques: x1,05 en la fase I hasta x1,45 en la IV. El cliente usa el mismo numero. */
-    public static float ritmo(int estado, int fase) {
+    /**
+     * Lo rapido que van sus ataques: x1,05 en la fase I hasta x1,45 en la IV, y
+     * con la Furia un 25 % mas. El cliente usa el mismo numero. La Tumba no va
+     * con la fase: escapar de ella cuesta siempre lo mismo.
+     */
+    public static float ritmo(int estado, int fase, boolean furia) {
         return switch (estado) {
-            case GARRA, TERREMOTO, SALTO, CATACLISMO, CATACLISMO_BAJA, RUGIDO ->
-                    new float[]{1.0F, 1.05F, 1.15F, 1.3F, 1.45F}[Mth.clamp(fase, 1, 4)];
+            case GARRA, TERREMOTO, SALTO, CATACLISMO, CATACLISMO_BAJA, RUGIDO, EMBESTIDA_AVISO ->
+                    new float[]{1.0F, 1.05F, 1.22F, 1.4F, 1.56F}[Mth.clamp(fase, 1, 4)] * (furia ? FURIA_RITMO : 1.0F);
             default -> 1.0F;
         };
     }
@@ -333,9 +462,15 @@ public class RajangEntity extends Monster {
         return dano * (1.0F + Math.min(PERFORA_MAXIMO, armadura * 0.012F + dureza * 0.01F));
     }
 
-    /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV. */
+    /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV; con la Furia, un 35 % mas. */
     public float dano(float[] porFase) {
-        return porFase[Mth.clamp(fase(), 1, 4) - 1];
+        float d = porFase[Mth.clamp(fase(), 1, 4) - 1];
+        return tieneFuria() ? d * FURIA_DANO : d;
+    }
+
+    /** El Peso de la Tierra que deja un golpe suyo (sin rebajar uno que ya sea mas largo). */
+    public void lastrar(LivingEntity v, int ticks) {
+        v.addEffect(new MobEffectInstance(PesoTierraEffect.PESO, ticks, 0, false, true, true), this);
     }
 
     @Override
@@ -348,7 +483,7 @@ public class RajangEntity extends Monster {
 
     private AnimationState[] acciones() {
         return new AnimationState[]{dormido, despertar, garra, terremoto, rugido, sello, cataclismo, cataclismoSostiene,
-                cataclismoBaja, aturdido, paralizado, salto, tambaleo};
+                cataclismoBaja, aturdido, paralizado, salto, tambaleo, embestidaAviso, embestida, embestidaFrena, estampado, tumba};
     }
 
     private @Nullable AnimationState animacionDe(int estado) {
@@ -366,6 +501,11 @@ public class RajangEntity extends Monster {
             case PARALIZADO -> paralizado;
             case SALTO -> salto;
             case TAMBALEO -> tambaleo;
+            case EMBESTIDA_AVISO -> embestidaAviso;
+            case EMBESTIDA -> embestida;
+            case EMBESTIDA_FRENA -> embestidaFrena;
+            case ESTAMPADO -> estampado;
+            case TUMBA -> tumba;
             default -> null;
         };
     }
@@ -375,7 +515,7 @@ public class RajangEntity extends Monster {
             a.stop();
         }
         inicioEstado = tickCount;
-        ritmoCliente = ritmo(getEstado(), fase());
+        ritmoCliente = ritmo(getEstado(), fase(), tieneFuria());
         AnimationState actual = animacionDe(getEstado());
         if (actual != null) {
             actual.start(tickCount);
@@ -429,12 +569,14 @@ public class RajangEntity extends Monster {
         float periodoAndar = RajangGeometria.PERIODO_ANDAR * 50.0F;
         float periodoCorrer = RajangGeometria.PERIODO_CORRER * 50.0F;
         // Cada reloj corre lo justo para que las zarpas que apoyan vayan con el suelo y no
-        // resbalen: al paso las zarpas recorren 0.16 bloques por tick y al galope 0.89.
-        relojAndar += 50.0F * andar * Mth.clamp(velocidad / 0.16F, 0.4F, 1.6F);
-        relojCorrer += 50.0F * Mth.clamp(velocidad / 0.89F, 0.3F, 1.2F);
+        // resbalen: lo que recorren por tick al paso y al galope lo mide rajang_juego_anim.py.
+        // El galope esta hecho para 1 bloque/tick y va a 0,86: no baja del 80 % de su ritmo
+        // (a la mitad se veia pesado), aunque las zarpas resbalen un poco.
+        relojAndar += 50.0F * andar * Mth.clamp(velocidad / RajangGeometria.ZANCADA_ANDAR, 0.4F, 2.6F);
+        relojCorrer += 50.0F * Mth.clamp(velocidad / RajangGeometria.ZANCADA_CORRER, 0.8F, 1.3F);
         // Pisadas: dos por ciclo (las manos de cada lado) al andar, una por ciclo al galope.
         if (velocidad > 0.03F) {
-            boolean corre = velocidad > 0.25F;
+            boolean corre = velocidad > VEL_GALOPE;
             float reloj = corre ? relojCorrer : relojAndar;
             float ant = corre ? relojCorrerAnt : relojAndarAnt;
             float periodo = (corre ? periodoCorrer : periodoAndar) / 2.0F;
@@ -502,6 +644,20 @@ public class RajangEntity extends Monster {
             Vec3 b = puntoMundo(RajangGeometria.BOCA);
             level().addParticle(AtalayaParticulas.RAJANG_CHISPA, b.x, b.y - 0.2, b.z, 0, -0.01, 0);
         }
+        // La Furia: llamas verdes que le suben por todo el cuerpo.
+        if (tieneFuria()) {
+            for (int i = 0; i < 2; i++) {
+                Vec3 p = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 4.6, 1.5 + random.nextDouble() * 7.0,
+                        -7.0 + random.nextDouble() * 16.0));
+                level().addParticle(AtalayaParticulas.RAJANG_LLAMA, p.x, p.y, p.z, random.nextGaussian() * 0.02, 0.06,
+                        random.nextGaussian() * 0.02);
+            }
+            if (random.nextInt(3) == 0) {
+                Vec3 p = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 4.0, 2.0 + random.nextDouble() * 6.0,
+                        -6.0 + random.nextDouble() * 14.0));
+                level().addParticle(AtalayaParticulas.RAJANG_CHISPA, p.x, p.y, p.z, 0, 0.05, 0);
+            }
+        }
         // La Piel de Jade: runas de oro dando vueltas.
         if (tienePiel() && tickCount % 2 == 0) {
             for (int k = 0; k < 2; k++) {
@@ -542,11 +698,46 @@ public class RajangEntity extends Monster {
                 Vec3 b = puntoMundo(RajangGeometria.BOCA_CATACLISMO);
                 level().addParticle(AtalayaParticulas.RAJANG_LLAMA, b.x, b.y, b.z, random.nextGaussian() * 0.03, 0.35, random.nextGaussian() * 0.03);
             }
-            case ATURDIDO, PARALIZADO -> {
+            case ATURDIDO, PARALIZADO, ESTAMPADO -> {
                 if (tickCount % 5 == 0) {
                     Vec3 c = puntoMundo(RajangGeometria.CABEZA).add(0, e == ATURDIDO ? -3.5 : 0.5, 0);
                     double a = tickCount * 0.3;
                     level().addParticle(AtalayaParticulas.RAJANG_JADE, c.x + Math.cos(a) * 1.4, c.y + 1.2, c.z + Math.sin(a) * 1.4, 0, 0.02, 0);
+                }
+            }
+            case EMBESTIDA_AVISO -> {
+                // Rasca el suelo: polvo y terrones donde la mano raya la tierra.
+                if (ta >= RajangGeometria.EMBESTIDA_RASCA_1 - 2 && tickCount % 2 == 0) {
+                    Vec3 z = puntoMundo(RajangGeometria.ZARPA_RASCA);
+                    level().addParticle(AtalayaParticulas.RAJANG_POLVO, z.x + random.nextGaussian() * 0.5, getY() + 0.2,
+                            z.z + random.nextGaussian() * 0.5, random.nextGaussian() * 0.05, 0.04, random.nextGaussian() * 0.05);
+                }
+                // El aliento se le escapa a resoplidos.
+                if (tickCount % 4 == 0) {
+                    Vec3 b = puntoMundo(RajangGeometria.BOCA);
+                    level().addParticle(AtalayaParticulas.RAJANG_CHISPA, b.x, b.y - 0.6, b.z, 0, -0.02, 0);
+                }
+            }
+            case EMBESTIDA, EMBESTIDA_FRENA -> {
+                // La carga levanta un muro de polvo y terrones a su paso.
+                if (e == EMBESTIDA || ta < RajangGeometria.EMBESTIDA_FRENA_PARA) {
+                    for (int i = 0; i < 3; i++) {
+                        Vec3 p = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 6.0, 0.2, -4.0 + random.nextDouble() * 8.0));
+                        level().addParticle(AtalayaParticulas.RAJANG_POLVO, p.x, getY() + 0.2, p.z, random.nextGaussian() * 0.08,
+                                0.06, random.nextGaussian() * 0.08);
+                    }
+                    if (random.nextInt(2) == 0) {
+                        Vec3 p = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 5.0, 0.2, random.nextDouble() * 4.0));
+                        level().addParticle(AtalayaParticulas.RAJANG_ROCA, p.x, getY() + 0.3, p.z, random.nextGaussian() * 0.15, 0.3,
+                                random.nextGaussian() * 0.15);
+                    }
+                }
+            }
+            case TUMBA -> {
+                if (ta < RajangGeometria.TUMBA_ESTALLA && tickCount % 3 == 0) {
+                    Vec3 b = puntoMundo(RajangGeometria.BOCA);
+                    level().addParticle(AtalayaParticulas.RAJANG_CHISPA, b.x + random.nextGaussian() * 0.6, getY() + 0.4,
+                            b.z + random.nextGaussian() * 0.6, random.nextGaussian() * 0.06, 0.02, random.nextGaussian() * 0.06);
                 }
             }
             default -> {
@@ -585,6 +776,8 @@ public class RajangEntity extends Monster {
         if (enfSello > 0) enfSello--;
         if (enfCataclismo > 0) enfCataclismo--;
         if (enfSalto > 0) enfSalto--;
+        if (enfEmbestida > 0) enfEmbestida--;
+        if (enfTumba > 0) enfTumba--;
         if (piel > 0 && --piel == 0) {
             entityData.set(DATA_PIEL, false);
         }
@@ -607,6 +800,11 @@ public class RajangEntity extends Monster {
             case ATURDIDO, PARALIZADO -> tickAturdido(nivel);
             case SALTO -> tickSalto(nivel);
             case TAMBALEO -> tickTambaleo(nivel);
+            case EMBESTIDA_AVISO -> tickEmbestidaAviso(nivel);
+            case EMBESTIDA -> tickEmbestida(nivel);
+            case EMBESTIDA_FRENA -> tickFrena(nivel);
+            case ESTAMPADO -> tickEstampado(nivel);
+            case TUMBA -> tickTumba(nivel);
             default -> {
             }
         }
@@ -615,7 +813,7 @@ public class RajangEntity extends Monster {
         }
         if (getEstado() != LIBRE) {
             quieto();
-            if (!saltando) {
+            if (!saltando && velCarga <= 0.0) {
                 Vec3 v = getDeltaMovement();
                 setDeltaMovement(0, v.y, 0);
             }
@@ -661,15 +859,18 @@ public class RajangEntity extends Monster {
                     nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, c.x, c.y, c.z, 40, 2.0, 2.0, 2.0, 0.08);
                     terminar();
                 } else {
-                    // Nadie ha caido: se queda paralizado, con la piedra trabada.
+                    // Nadie ha caido: se queda paralizado, con la piedra trabada. Lo han derribado: se le va la Furia.
                     ponerEstado(PARALIZADO, RajangGeometria.DURACION_PARALIZADO);
                     sonido(AtalayaSonidos.RAJANG_PARALIZADO, 5.0F);
+                    ponerFuria(nivel, false);
                 }
             }
             case SALTO -> {
                 saltando = false;
                 terminar();
             }
+            case EMBESTIDA_AVISO -> empezarCarga(nivel);
+            case EMBESTIDA -> frenar(nivel);
             default -> terminar();
         }
     }
@@ -678,12 +879,16 @@ public class RajangEntity extends Monster {
         ponerEstado(LIBRE, 0);
         presa = null;
         entityData.set(DATA_OBJETIVO, -1);
-        respiro = new int[]{0, 18, 14, 10, 7}[fase()];
+        respiro = new int[]{0, 18, 13, 9, 6}[fase()];
+        if (tieneFuria()) {
+            respiro /= 2;
+        }
     }
 
-    /** Cada fase todo vuelve antes: en la IV, con un 36 % menos de espera. */
+    /** Cada fase todo vuelve antes: en la IV, con un 40 % menos de espera; con la Furia, un 35 % menos encima. */
     private float enfriamiento() {
-        return new float[]{1.0F, 1.0F, 0.88F, 0.76F, 0.64F}[Mth.clamp(fase(), 1, 4)];
+        float k = new float[]{1.0F, 1.0F, 0.84F, 0.72F, 0.6F}[Mth.clamp(fase(), 1, 4)];
+        return tieneFuria() ? k * FURIA_ENFRIA : k;
     }
 
     // ------------------------------------------------------------------
@@ -699,18 +904,19 @@ public class RajangEntity extends Monster {
             return;
         }
         double d = horizontal(position(), objetivo.position());
-        // Hacia su presa, sin salir de su templo: corre si esta lejos, anda si
-        // esta a media distancia, y de cerca se planta mirandola.
+        // Hacia su presa, sin salir de su templo: corre si esta lejos, la acecha a
+        // paso vivo a media distancia, y de cerca se planta mirandola.
         Vec3 meta = objetivo.position();
         Vec3 rel = new Vec3(meta.x - c.x, 0, meta.z - c.z);
         if (rel.length() > CORREA) {
             rel = rel.normalize().scale(CORREA);
             meta = new Vec3(c.x + rel.x, meta.y, c.z + rel.z);
         }
-        if (d > 16.0) {
-            getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, fase() >= 4 ? 1.9 : 1.6);
-        } else if (d > 7.0) {
-            getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, 0.75);
+        double furia = tieneFuria() ? FURIA_CORRE : 1.0;
+        if (d > 10.0) {
+            getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, (fase() >= 4 ? GALOPE_IV : GALOPE) * furia);
+        } else if (d > 6.0) {
+            getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, PASO * furia);
         } else {
             quieto();
             girarHacia(objetivo.position(), 9.0F);
@@ -728,6 +934,13 @@ public class RajangEntity extends Monster {
         if (fase >= 2 && enfSello <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{RUGIDO, 2});
         if (fase >= 3 && enfCataclismo <= 0) opciones.add(new int[]{CATACLISMO, 7});
         if (fase >= 4 && enfSalto <= 0 && d > 8.0 && d < 26.0) opciones.add(new int[]{SALTO, 4});
+        if (enfEmbestida <= 0 && d >= 10.0 && d <= CARGA_ALCANCE && caminoLibre(nivel, objetivo)) {
+            opciones.add(new int[]{EMBESTIDA_AVISO, 5});
+        }
+        if (fase >= 2 && enfTumba <= 0 && tickCount - ultimoTerremoto >= TUMBA_TRAS_TERREMOTO
+                && !jugadores(nivel, TUMBA_CERCA, 0).isEmpty()) {
+            opciones.add(new int[]{TUMBA, 3});
+        }
         if (opciones.isEmpty()) {
             return;
         }
@@ -769,8 +982,24 @@ public class RajangEntity extends Monster {
             }
             case TERREMOTO -> {
                 enfTerremoto = (int) (320 * k);
+                ultimoTerremoto = tickCount;
                 ponerEstado(TERREMOTO, RajangGeometria.DURACION_TERREMOTO);
                 sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);
+            }
+            case EMBESTIDA_AVISO -> {
+                enfEmbestida = (int) (260 * k);
+                presa = blanco;
+                if (blanco != null) {
+                    entityData.set(DATA_OBJETIVO, blanco.getId());
+                }
+                ponerEstado(EMBESTIDA_AVISO, RajangGeometria.DURACION_EMBESTIDA_AVISO);
+                sonido(AtalayaSonidos.RAJANG_EMBESTIDA_AVISO, 6.0F);
+            }
+            case TUMBA -> {
+                enfTumba = (int) (600 * k);
+                centroTumba = null;
+                ponerEstado(TUMBA, RajangGeometria.DURACION_TUMBA);
+                sonido(AtalayaSonidos.RAJANG_TUMBA, 8.0F);
             }
             case RUGIDO -> {
                 enfSello = (int) (1100 * k);
@@ -830,12 +1059,15 @@ public class RajangEntity extends Monster {
                 return true;
             }
             case "perseguir" -> {
-                // Persigue al ser vivo mas lejano (para ver el paso y el galope).
+                // Persigue al ser vivo mas lejano (para ver el paso y el galope), a menos
+                // de 56 bloques de verdad (no en las esquinas de la caja) y dentro de la
+                // correa, que si no lo suelta en el tick siguiente y se queda quieto.
                 LivingEntity lejos = null;
                 double max = 0;
+                Vec3 casa = centro != null ? Vec3.atCenterOf(centro) : position();
                 for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(56), this::esPresa)) {
                     double d = v.distanceToSqr(this);
-                    if (d > max) {
+                    if (d > max && d <= 56 * 56 && v.distanceToSqr(casa) <= 72 * 72) {
                         max = d;
                         lejos = v;
                     }
@@ -860,6 +1092,16 @@ public class RajangEntity extends Monster {
                 }
                 return true;
             }
+            case "furia" -> {
+                // Le pone o le quita la Furia de Jade (para verla sin fallar un Sello).
+                ponerFuria(nivel, !tieneFuria());
+                return true;
+            }
+            case "escalon" -> {
+                // Hace temblar ya un escalon del Sello (si hay Sello).
+                temblarEscalon(nivel);
+                return true;
+            }
             default -> {
             }
         }
@@ -869,8 +1111,11 @@ public class RajangEntity extends Monster {
             case "sello" -> RUGIDO;
             case "cataclismo" -> CATACLISMO;
             case "salto" -> SALTO;
+            case "embestida" -> EMBESTIDA_AVISO;
+            case "tumba" -> TUMBA;
             case "aturdido" -> ATURDIDO;
             case "paralizado" -> PARALIZADO;
+            case "estampado" -> ESTAMPADO;
             default -> -1;
         };
         if (ataque < 0) {
@@ -895,6 +1140,7 @@ public class RajangEntity extends Monster {
                 ponerEstado(PARALIZADO, RajangGeometria.DURACION_PARALIZADO);
                 sonido(AtalayaSonidos.RAJANG_PARALIZADO, 5.0F);
             }
+            case ESTAMPADO -> estampar(nivel);
             default -> iniciar(nivel, ataque, blanco);
         }
         return true;
@@ -1008,7 +1254,7 @@ public class RajangEntity extends Monster {
      * El zarpazo: tres garras de luz que cortan el aire delante de el, de
      * arriba a su derecha a abajo a su izquierda, y rayan el suelo. A quien
      * pille delante (hasta 13 bloques, en un abanico de 125 grados) le pega y
-     * lo barre hacia el lado.
+     * lo empuja unos 6 bloques, lejos de el y casi sin levantarlo.
      */
     private void zarpazo(ServerLevel nivel) {
         Vec3 f = frente();
@@ -1037,9 +1283,7 @@ public class RajangEntity extends Monster {
                 continue;
             }
             v.hurtServer(nivel, fuente, contraArmadura(v, dano));
-            Vec3 barre = f.scale(0.7).add(izq.scale(1.2));
-            v.setDeltaMovement(barre.x, 0.55, barre.z);
-            v.hurtMarked = true;
+            lanzar(v, new Vec3(dx / d, 0, dz / d).scale(GARRA_EMPUJE), 0.3);
             nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 10, 0.3, 0.5, 0.3, 0.12);
         }
     }
@@ -1118,7 +1362,8 @@ public class RajangEntity extends Monster {
                 p = new Vec3(cen.x + Math.cos(a) * d, getY(), cen.z + Math.sin(a) * d);
             }
             double y = sueloBajo(nivel, p.x, p.y + 4, p.z);
-            PilarTierraEntity.avisar(nivel, this, new Vec3(p.x, y, p.z), 0.8F + random.nextFloat() * 0.45F, 6 + i * 3,
+            // Pilares de 0,95 a 1,45: pegan a 2,5-3,2 bloques de su centro.
+            PilarTierraEntity.avisar(nivel, this, new Vec3(p.x, y, p.z), 0.95F + random.nextFloat() * 0.5F, 6 + i * 3,
                     dano(DANO_TERREMOTO));
         }
     }
@@ -1174,7 +1419,7 @@ public class RajangEntity extends Monster {
             for (int k = 0; k < SELLO_PIEDRAS; k++) {
                 double ak = a0 + sentido * k * PIEDRA_GIRO;
                 Vec3 p = new Vec3(x + Math.cos(ak) * PIEDRA_RADIO, y0, z + Math.sin(ak) * PIEDRA_RADIO);
-                plataformas.add(PlataformaSelloEntity.piedra(nivel, this, p, y0 + sube * (k + 1), PIEDRA_ANCHO, arriba + 4 + k * 3));
+                plataformas.add(PlataformaSelloEntity.piedra(nivel, this, p, y0 + sube * (k + 1), PIEDRA_ANCHO, arriba + 4 + k * 3, i, k));
             }
             totemsPendientes.add(new double[]{tickCount + arriba + 2, x, y0 + SELLO_ALTO, z, i, aguanta});
         }
@@ -1218,6 +1463,34 @@ public class RajangEntity extends Monster {
         if (queda <= 100 && queda % 20 == 0) {
             sonido(AtalayaSonidos.RAJANG_RELOJ, 5.0F);
         }
+        // La escalera no se queda quieta: cada poco tiembla un escalon y se cae.
+        if (t >= 60 && t - ultimoEscalon >= ESCALON_CADA) {
+            temblarEscalon(nivel);
+        }
+    }
+
+    /**
+     * Un escalon al azar empieza a temblar (y un segundo despues se cae; vuelve a
+     * los tres). Nunca de las tres de abajo, que no tendria gracia, ni dos a la
+     * vez en la misma columna.
+     */
+    private void temblarEscalon(ServerLevel nivel) {
+        ultimoEscalon = t;
+        java.util.Set<Integer> ocupadas = new java.util.HashSet<>();
+        List<PlataformaSelloEntity> libres = new ArrayList<>();
+        for (PlataformaSelloEntity p : plataformas) {
+            if (p.getTipo() == PlataformaSelloEntity.PIEDRA && p.enCaida()) {
+                ocupadas.add(p.getColumna());
+            }
+        }
+        for (PlataformaSelloEntity p : plataformas) {
+            if (p.getTipo() == PlataformaSelloEntity.PIEDRA && p.firme() && p.getEscalon() >= 3 && !ocupadas.contains(p.getColumna())) {
+                libres.add(p);
+            }
+        }
+        if (!libres.isEmpty()) {
+            libres.get(random.nextInt(libres.size())).temblar(nivel);
+        }
     }
 
     /** Un totem roto (lo avisa el propio totem). */
@@ -1225,17 +1498,62 @@ public class RajangEntity extends Monster {
         if (getEstado() != SELLO) {
             return;
         }
+        pulsoTotem(nivel, tot);
         entityData.set(DATA_TOTEMS, getTotemsRotos() | (1 << tot.getIndice()));
         boolean todos = totems.size() == 4;
         for (TotemSelloEntity x : totems) {
             todos &= x.isRoto();
         }
         if (todos) {
-            // El sello se rompe: las columnas se hunden y el cae aturdido.
+            // El sello se rompe: las columnas se hunden y el cae aturdido. Lo han
+            // derribado: si tenia la Furia, se le va.
             cancelarSello(nivel, true);
             ponerEstado(ATURDIDO, RajangGeometria.DURACION_ATURDIDO);
             sonido(AtalayaSonidos.RAJANG_ATURDIDO, 6.0F);
             sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);
+            ponerFuria(nivel, false);
+        }
+    }
+
+    /**
+     * El pulso de tierra de un totem roto: dano a quien este cerca (la cima y las
+     * piedras de arriba) y un empujon fuerte en horizontal que lo echa de la
+     * columna. No alza: solo un saltito para despegarlo del suelo, que si no el
+     * roce lo frena en dos bloques.
+     */
+    private void pulsoTotem(ServerLevel nivel, TotemSelloEntity tot) {
+        Vec3 c = tot.position();
+        nivel.playSound(null, c.x, c.y + 1, c.z, AtalayaSonidos.RAJANG_TOTEM_PULSO, SoundSource.HOSTILE, 5.0F, 1.0F);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_ONDA, true, true, c.x, c.y + 0.15, c.z, 0, 1.8, PULSO_RADIO, 0.0, 1.0);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_ROCA, true, true, c.x, c.y + 1.0, c.z, 30, 2.0, 0.6, 2.0, 0.4);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y + 0.5, c.z, 24, 2.5, 0.4, 2.5, 0.1);
+        DamageSource fuente = RajangDanos.fuente(nivel, RajangDanos.PULSO, tot, this);
+        float dano = dano(DANO_TERREMOTO);
+        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(PULSO_RADIO, 5.0, PULSO_RADIO),
+                this::esPresa)) {
+            if (horizontal(c, v.position()) > PULSO_RADIO) {
+                continue;
+            }
+            v.hurtServer(nivel, fuente, contraArmadura(v, dano));
+            Vec3 fuera = horizontalHacia(c, v.position());
+            v.setDeltaMovement(fuera.x * PULSO_EMPUJE, 0.12, fuera.z * PULSO_EMPUJE);
+            v.hurtMarked = true;
+        }
+    }
+
+    /** La Furia de Jade: el aura verde (y su rugido al prenderse) o se le apaga. */
+    private void ponerFuria(ServerLevel nivel, boolean si) {
+        if (tieneFuria() == si) {
+            return;
+        }
+        entityData.set(DATA_FURIA, si);
+        Vec3 c = puntoMundo(RajangGeometria.PECHO);
+        if (si) {
+            sonido(AtalayaSonidos.RAJANG_FURIA, 8.0F);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_LLAMA, true, true, c.x, c.y, c.z, 60, 3.0, 3.0, 5.0, 0.15);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_ONDA, true, true, getX(), getY() + 0.1, getZ(), 0, 2.0, 24.0, 0.0, 1.0);
+        } else {
+            nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y, c.z, 30, 3.0, 2.0, 5.0, 0.05);
         }
     }
 
@@ -1251,12 +1569,14 @@ public class RajangEntity extends Monster {
         DamageSource fuente = RajangDanos.fuente(nivel, RajangDanos.RUGIDO, this, this);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(64, 32, 64), this::esPresa)) {
             Vec3 fuera = horizontalHacia(position(), v.position());
-            v.hurtServer(nivel, fuente, RUGIDO_MATA);
+            v.hurtServer(nivel, fuente, MORTAL);
             v.setDeltaMovement(fuera.x * 1.6, 0.7, fuera.z * 1.6);
             v.hurtMarked = true;
             nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, v.getX(), v.getY() + 1, v.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
         }
         cancelarSello(nivel, true);
+        // Y a los que queden se lo encuentran con la Furia.
+        ponerFuria(nivel, true);
     }
 
     /**
@@ -1326,7 +1646,11 @@ public class RajangEntity extends Monster {
             blancos.add(getTarget().position());
         }
         Vec3 c = Vec3.atBottomCenterOf(centro);
-        int extra = Math.min(40, 10 + jugadoresGrupo / 2 + 3 * fase());
+        // Fragmentos grandes y pocos: cada uno tapa unas siete veces el suelo de antes
+        // (4,8-5,7 bloques de radio), asi que los que caen al azar son un tercio de los
+        // de antes; aun en la oleada mas llena tapan como un tercio del templo.
+        // El de cada jugador se queda.
+        int extra = Math.min(14, 3 + jugadoresGrupo / 6 + fase());
         for (int i = 0; i < extra; i++) {
             double a = random.nextDouble() * Math.PI * 2;
             double d = 6.0 + random.nextDouble() * 30.0;
@@ -1334,8 +1658,9 @@ public class RajangEntity extends Monster {
         }
         for (Vec3 p : blancos) {
             double y = sueloBajo(nivel, p.x, p.y + 3, p.z);
-            float tam = 1.0F + random.nextFloat() * 0.6F;
-            nivel.sendParticles(AtalayaParticulas.RAJANG_MARCA, true, true, p.x, y + 0.08, p.z, 0, 1.6 + tam, AVISO_FRAGMENTO, 0.0, 1.0);
+            float tam = 2.3F + random.nextFloat() * 0.4F;
+            nivel.sendParticles(AtalayaParticulas.RAJANG_MARCA, true, true, p.x, y + 0.08, p.z, 0,
+                    FragmentoJadeEntity.radioMuerte(tam) + 0.6, AVISO_FRAGMENTO, 0.0, 1.0);
             FragmentoJadeEntity.caer(nivel, this, new Vec3(p.x, y, p.z), AVISO_FRAGMENTO, tam, dano(DANO_FRAGMENTO));
         }
         nivel.playSound(null, getX(), getY() + 10, getZ(), AtalayaSonidos.RAJANG_MARCA, SoundSource.HOSTILE, 6.0F, 1.0F);
@@ -1412,7 +1737,11 @@ public class RajangEntity extends Monster {
         }
     }
 
-    /** En el salto vuela con su propia gravedad; en el resto, como cualquiera. */
+    /**
+     * En el salto vuela con su propia gravedad; en la carga y la frenada va en
+     * linea recta a su velocidad (sube escalones de dos bloques y cae si hay
+     * hueco); en el resto, como cualquiera.
+     */
     @Override
     public void travel(Vec3 entrada) {
         if (saltando) {
@@ -1421,7 +1750,297 @@ public class RajangEntity extends Monster {
             setDeltaMovement(v.x, v.y - gravedadSalto, v.z);
             return;
         }
+        if (velCarga > 0.0) {
+            double vy = onGround() ? -0.08 : getDeltaMovement().y - 0.08;
+            Vec3 antes = position();
+            move(MoverType.SELF, new Vec3(dirCarga.x * velCarga, vy, dirCarga.z * velCarga));
+            avanceCarga = horizontal(antes, position());
+            setDeltaMovement(0, onGround() ? 0 : vy * 0.98, 0);
+            return;
+        }
         super.travel(entrada);
+    }
+
+    // ------------------------------------------------------------------
+    //  Embestida de Jade: se agazapa y rasca el suelo mientras la flecha
+    //  se llena; carga en linea recta y a su paso revientan pinchos a los
+    //  dos lados. Su cuerpo y los pinchos matan (salvo totem) y lanzan al
+    //  cielo. Frena derrapando y jadea; contra un muro, se estampa
+    // ------------------------------------------------------------------
+
+    private void tickEmbestidaAviso(ServerLevel nivel) {
+        // Sigue a su presa hasta poco antes de soltarse: al llenarse la flecha, el rumbo queda fijo.
+        if (presa != null && presa.isAlive() && ta() < RajangGeometria.DURACION_EMBESTIDA_AVISO - 4) {
+            girarHacia(presa.position(), 10.0F);
+            double d = horizontal(puntoMundo(RajangGeometria.ZARPA_IZQ), presa.position());
+            double largo = Mth.clamp((d + CARGA_PASA) * CARGA_VECES, CARGA_MIN, CARGA_MAX);
+            entityData.set(DATA_CARGA, (float) Math.min(largo, flechaMaxima(frente())));
+        } else if (getCarga() <= 0.0F) {
+            entityData.set(DATA_CARGA, (float) Math.min(CARGA_MIN, flechaMaxima(frente())));
+        }
+        if (cruza(RajangGeometria.EMBESTIDA_RASCA_1) || cruza(RajangGeometria.EMBESTIDA_RASCA_2)) {
+            Vec3 z = puntoMundo(RajangGeometria.ZARPA_RASCA);
+            double y0 = sueloBajo(nivel, z.x, getY() + 2, z.z);
+            nivel.playSound(null, z.x, y0, z.z, AtalayaSonidos.RAJANG_GRIETA, SoundSource.HOSTILE, 2.0F, 1.3F);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_ROCA, true, true, z.x, y0 + 0.3, z.z, 6, 0.5, 0.1, 0.5, 0.2);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_GRIETA, true, true, z.x, y0 + 0.06, z.z, 0, 1.2, 50.0, 0.0, 1.0);
+        }
+    }
+
+    /**
+     * Se acaba el aviso: el rumbo y el largo quedan fijos y sale disparado. La
+     * flecha se mide desde sus manos, pero lo que corre es su pecho, con la cabeza
+     * nueve bloques y medio por delante y unos dos de frenada: el pecho recorre la
+     * flecha menos eso, para que lo que mata no pase de la punta que se ha visto.
+     */
+    private void empezarCarga(ServerLevel nivel) {
+        dirCarga = frente();
+        largoFlecha = Math.min(Math.max(CARGA_MIN, getCarga()), flechaMaxima(dirCarga));
+        largoCarga = Math.max(4.0, largoFlecha - CARGA_CABEZA);
+        recorrido = 0.0;
+        avanceCarga = VEL_CARGA;
+        siguientePincho = 1.0;
+        arrollados.clear();
+        ponerEstado(EMBESTIDA, (int) Math.ceil(largoCarga / VEL_CARGA) + 16);
+        entityData.set(DATA_CARGA, (float) largoFlecha);
+        velCarga = VEL_CARGA;
+        sonido(AtalayaSonidos.RAJANG_EMBESTIDA, 8.0F);
+        sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);
+        golpeSuelo(nivel, position(), 1.4F, 8.0F, 30);
+    }
+
+    private void tickEmbestida(ServerLevel nivel) {
+        recorrido += avanceCarga;
+        // Contra un muro: lo que ha avanzado en el ultimo tick es casi nada, o la
+        // cabeza (que va nueve bloques por delante de su caja) ya da en el.
+        if (t > 1 && (horizontalCollision && avanceCarga < VEL_CARGA * 0.35 || muroDelante(nivel))) {
+            estampar(nivel);
+            return;
+        }
+        arrollar(nivel);
+        while (recorrido >= siguientePincho) {
+            pinchosCarga(nivel);
+            siguientePincho += PINCHO_CADA;
+        }
+        entityData.set(DATA_CARGA, (float) Math.max(0.0, largoFlecha - recorrido));
+        boolean fuera = centro != null && horizontal(position(), Vec3.atBottomCenterOf(centro)) > CORREA_CARGA + 2.0;
+        if (recorrido >= largoCarga || fuera) {
+            frenar(nivel);
+        }
+    }
+
+    /** Su cuerpo, a la carrera: a lo que pille, la muerte (salvo totem) y al cielo. */
+    private void arrollar(ServerLevel nivel) {
+        Vec3 f = dirCarga;
+        Vec3 izq = new Vec3(f.z, 0, -f.x);
+        DamageSource fuente = RajangDanos.fuente(nivel, RajangDanos.EMBESTIDA, this, this);
+        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(11, 3, 11), this::esPresa)) {
+            if (arrollados.contains(v.getId())) {
+                continue;
+            }
+            Vec3 d = v.position().subtract(position());
+            double largo = d.x * f.x + d.z * f.z;
+            double lado = Math.abs(d.x * izq.x + d.z * izq.z);
+            if (largo < -7.0 || largo > 9.8 || lado > 3.4 + v.getBbWidth() * 0.5 || d.y < -1.5 || d.y > 8.0) {
+                continue;
+            }
+            arrollados.add(v.getId());
+            v.hurtServer(nivel, fuente, MORTAL);
+            lanzar(v, f.scale(0.6), LANZA_MORTAL);
+            lastrar(v, PESO_PINCHO);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, v.getX(), v.getY() + 1, v.getZ(), 12, 0.4, 0.6, 0.4, 0.2);
+            nivel.playSound(null, v.getX(), v.getY(), v.getZ(), AtalayaSonidos.RAJANG_PICO_GOLPE, SoundSource.HOSTILE, 3.0F, 0.7F);
+        }
+    }
+
+    /** A los dos lados de su camino, un pincho mortal cada uno. */
+    private void pinchosCarga(ServerLevel nivel) {
+        Vec3 f = dirCarga;
+        Vec3 izq = new Vec3(f.z, 0, -f.x);
+        float rumbo = (float) (Mth.atan2(f.z, f.x) * Mth.RAD_TO_DEG) - 90.0F;
+        for (int lado = -1; lado <= 1; lado += 2) {
+            Vec3 p = position().subtract(f.scale(1.0)).add(izq.scale(lado * (PINCHO_LADO + (random.nextDouble() - 0.5) * 0.4)));
+            double y = sueloBajo(nivel, p.x, getY() + 4, p.z);
+            float tam = 0.62F + random.nextFloat() * 0.16F;
+            PicoTierraEntity.brotarMortal(nivel, this, new Vec3(p.x, y, p.z), tam, rumbo + lado * (60.0F + random.nextFloat() * 30.0F));
+        }
+    }
+
+    private void frenar(ServerLevel nivel) {
+        double v = velCarga;
+        ponerEstado(EMBESTIDA_FRENA, RajangGeometria.DURACION_EMBESTIDA_FRENA);
+        velCarga = Math.max(v, 0.6);
+        entityData.set(DATA_CARGA, 0.0F);
+        sonido(AtalayaSonidos.RAJANG_EMBESTIDA_FRENA, 6.0F);
+    }
+
+    /** Derrapa con las cuatro hasta pararse (aun arrolla mientras va deprisa) y jadea: la ventana para pegarle. */
+    private void tickFrena(ServerLevel nivel) {
+        if (velCarga > 0.0) {
+            if (velCarga > 0.5) {
+                arrollar(nivel);
+            }
+            velCarga *= 0.78;
+            if (velCarga < 0.05 || t >= RajangGeometria.EMBESTIDA_FRENA_PARA) {
+                velCarga = 0.0;
+            }
+        }
+        if (t == RajangGeometria.EMBESTIDA_FRENA_PARA) {
+            sonido(AtalayaSonidos.RAJANG_GRUNIDO, 3.0F);
+        }
+    }
+
+    /** La Embestida contra un muro: se estampa y se queda 2 s aturdido (y recibe el doble). */
+    private void estampar(ServerLevel nivel) {
+        ponerEstado(ESTAMPADO, RajangGeometria.DURACION_ESTAMPADO);
+        sonido(AtalayaSonidos.RAJANG_ESTAMPADO, 8.0F);
+        Vec3 c = puntoMundo(RajangGeometria.CABEZA);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_ROCA, true, true, c.x, c.y, c.z, 30, 1.5, 1.5, 1.5, 0.35);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y, c.z, 30, 2.0, 1.5, 2.0, 0.08);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, c.x, c.y, c.z, 16, 1.0, 1.0, 1.0, 0.2);
+        golpeSuelo(nivel, position(), 2.6F, 10.0F, 30);
+    }
+
+    private void tickEstampado(ServerLevel nivel) {
+        if (t % 10 == 0) {
+            Vec3 c = puntoMundo(RajangGeometria.CABEZA);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y, c.z, 4, 1.0, 0.6, 1.0, 0.02);
+        }
+    }
+
+    /**
+     * Hay un muro justo delante de la cabeza (a la altura del pecho y de la cara,
+     * y a lo ancho de los sables). La caja de choque solo tapa el pecho: sin esto
+     * se pararia con la cabeza metida cinco bloques en la pared.
+     */
+    private boolean muroDelante(ServerLevel nivel) {
+        Vec3 f = dirCarga;
+        Vec3 izq = new Vec3(f.z, 0, -f.x);
+        for (double delante : new double[]{8.0, 9.6}) {
+            for (double lado : new double[]{-1.8, 0.0, 1.8}) {
+                for (double alto : new double[]{2.5, 4.5, 6.0}) {
+                    Vec3 p = position().add(f.scale(delante)).add(izq.scale(lado)).add(0, alto, 0);
+                    BlockPos b = BlockPos.containing(p);
+                    if (!nivel.getBlockState(b).getCollisionShape(nivel, b).isEmpty()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Lo mas larga que puede ser la flecha hacia 'f' sin que su pecho salga de
+     * CORREA_CARGA (donde frena): el pecho corre la flecha menos CARGA_CABEZA.
+     */
+    private double flechaMaxima(Vec3 f) {
+        if (centro == null) {
+            return CARGA_MAX;
+        }
+        Vec3 c = Vec3.atBottomCenterOf(centro);
+        double rx = getX() - c.x;
+        double rz = getZ() - c.z;
+        double b = rx * f.x + rz * f.z;
+        double disc = b * b - (rx * rx + rz * rz) + CORREA_CARGA * CORREA_CARGA;
+        double pecho = disc > 0.0 ? -b + Math.sqrt(disc) : 0.0;
+        return Math.max(CARGA_CABEZA + 4.0, pecho + CARGA_CABEZA);
+    }
+
+    /** Hay linea limpia (sin bloques) desde el hasta su presa, a la altura del pecho y de los hombros. */
+    private boolean caminoLibre(ServerLevel nivel, LivingEntity objetivo) {
+        for (double h : new double[]{1.5, 4.0}) {
+            Vec3 desde = position().add(0, h, 0);
+            Vec3 hasta = new Vec3(objetivo.getX(), getY() + h, objetivo.getZ());
+            if (nivel.clip(new ClipContext(desde, hasta, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType()
+                    != HitResult.Type.MISS) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Lo lanza al cielo (vy) con algo de empujon (horizontal); sin acumular la caida que ya llevara. */
+    static void lanzar(LivingEntity v, Vec3 empuje, double vy) {
+        v.resetFallDistance();
+        v.setDeltaMovement(empuje.x, vy, empuje.z);
+        v.hurtMarked = true;
+    }
+
+    // ------------------------------------------------------------------
+    //  Tumba de Raices: clava las garras y ruge contra el suelo. Un circulo
+    //  de 16 bloques se llena desde el en 3,5 s (siempre igual, sea la fase
+    //  que sea) y el es inmune mientras tanto; al llenarse, lo que siga
+    //  dentro muere (salvo totem) y el que se salve se queda con el Peso
+    // ------------------------------------------------------------------
+
+    private void tickTumba(ServerLevel nivel) {
+        if (centroTumba == null) {
+            // El circulo (el borde y lo llenado) lo pinta RajangRenderer bajo el: no se mueve en todo el ataque.
+            centroTumba = new Vec3(getX(), sueloBajo(nivel, getX(), getY() + 3, getZ()), getZ());
+            golpeSuelo(nivel, centroTumba, 1.2F, 8.0F, 30);
+        }
+        Vec3 c = centroTumba;
+        if (t < RajangGeometria.TUMBA_ESTALLA) {
+            if (t == RajangGeometria.TUMBA_RUGE_2) {
+                // A mitad, toma aire y vuelve a rugir contra el suelo.
+                sonido(AtalayaSonidos.RAJANG_TUMBA, 7.0F);
+            }
+            // Las raices avanzan: grietas y polvo en el frente del llenado (mas cuanto mas largo es).
+            if (t % 4 == 0) {
+                double r = TUMBA_RADIO * t / RajangGeometria.TUMBA_ESTALLA;
+                for (int k = 0; k < 2 + (int) (r / 6.0); k++) {
+                    double a = random.nextDouble() * Math.PI * 2;
+                    double x = c.x + Math.cos(a) * r;
+                    double z = c.z + Math.sin(a) * r;
+                    double y = sueloBajo(nivel, x, c.y + 3, z);
+                    nivel.sendParticles(AtalayaParticulas.RAJANG_GRIETA, true, true, x, y + 0.06, z, 0, 1.4, 40.0, 0.0, 1.0);
+                    nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, x, y + 0.3, z, 2, 0.4, 0.1, 0.4, 0.03);
+                }
+            }
+            return;
+        }
+        if (t == RajangGeometria.TUMBA_ESTALLA) {
+            estallarTumba(nivel, c);
+        }
+    }
+
+    private void estallarTumba(ServerLevel nivel, Vec3 c) {
+        sonido(AtalayaSonidos.RAJANG_TUMBA_ESTALLA, 10.0F);
+        golpeSuelo(nivel, c, 3.2F, (float) TUMBA_RADIO + 4.0F, 80);
+        DamageSource fuente = RajangDanos.fuente(nivel, RajangDanos.RAIZ, this, this);
+        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(TUMBA_RADIO, 6.0, TUMBA_RADIO),
+                this::esPresa)) {
+            if (horizontal(c, v.position()) > TUMBA_RADIO) {
+                continue;
+            }
+            v.hurtServer(nivel, fuente, MORTAL);
+            if (v.isAlive()) {
+                lastrar(v, TUMBA_PESO);
+                lanzar(v, Vec3.ZERO, 0.6);
+            }
+            nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, v.getX(), v.getY() + 1, v.getZ(), 10, 0.4, 0.6, 0.4, 0.15);
+        }
+        // Las raices revientan por todo el circulo: pinchos y grietas (solo se ven, el dano ya esta hecho).
+        for (int k = 0; k < 40; k++) {
+            double a = random.nextDouble() * Math.PI * 2;
+            double r = 3.0 + random.nextDouble() * (TUMBA_RADIO - 3.5);
+            double x = c.x + Math.cos(a) * r;
+            double z = c.z + Math.sin(a) * r;
+            double y = sueloBajo(nivel, x, c.y + 3, z);
+            PicoTierraEntity.brotarAdorno(nivel, this, new Vec3(x, y, z), 0.35F + random.nextFloat() * 0.35F,
+                    (float) Math.toDegrees(a) - 90.0F);
+        }
+        for (int k = 0; k < 22; k++) {
+            double a = Math.PI * 2 * k / 22 + random.nextDouble() * 0.2;
+            for (int j = 1; j < 11; j++) {
+                double r = j * TUMBA_RADIO / 10.5;
+                double x = c.x + Math.cos(a) * r;
+                double z = c.z + Math.sin(a) * r;
+                nivel.sendParticles(AtalayaParticulas.RAJANG_GRIETA, true, true, x, sueloBajo(nivel, x, c.y + 3, z) + 0.06, z,
+                        0, 1.8, 100.0, 0.0, 1.0);
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1578,9 +2197,9 @@ public class RajangEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (e == SELLO || e == RUGIDO) {
+        if (e == SELLO || e == RUGIDO || (e == TUMBA && t < RajangGeometria.TUMBA_ESTALLA)) {
             // Mientras sostiene el Sello la tierra lo cubre entero: no le entra nada,
-            // lo unico que sirve es romper los totems.
+            // lo unico que sirve es romper los totems. Igual mientras llena la Tumba.
             avisoInmune(nivel, causante);
             return false;
         }
@@ -1588,7 +2207,7 @@ public class RajangEntity extends Monster {
             setTarget(vivo);
         }
         float k = factorGrupo;
-        if (e == ATURDIDO || e == PARALIZADO) {
+        if (e == ATURDIDO || e == PARALIZADO || e == ESTAMPADO) {
             k *= 2.0F;
         }
         if (piel > 0) {
@@ -1637,6 +2256,9 @@ public class RajangEntity extends Monster {
         super.die(fuente);
         entityData.set(DATA_OBJETIVO, -1);
         entityData.set(DATA_PIEL, false);
+        entityData.set(DATA_FURIA, false);
+        entityData.set(DATA_CARGA, 0.0F);
+        velCarga = 0.0;
         if (level() instanceof ServerLevel nivel) {
             cancelarSello(nivel, true);
         }
@@ -1852,6 +2474,7 @@ public class RajangEntity extends Monster {
         salida.putFloat("factor_grupo", factorGrupo);
         salida.putInt("jugadores_grupo", jugadoresGrupo);
         salida.putInt("fase", fase());
+        salida.putBoolean("furia", tieneFuria());
     }
 
     @Override
@@ -1861,6 +2484,7 @@ public class RajangEntity extends Monster {
         factorGrupo = entrada.getFloatOr("factor_grupo", VIDA_VANILLA / VIDA);
         jugadoresGrupo = entrada.getIntOr("jugadores_grupo", 1);
         entityData.set(DATA_FASE, entrada.getIntOr("fase", 1));
+        entityData.set(DATA_FURIA, entrada.getBooleanOr("furia", false));
         ponerEstado(entrada.getBooleanOr("dormido", true) ? DORMIDO : LIBRE, 0);
     }
 }

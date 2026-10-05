@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
  *
  * Durante el Sello de la Tierra, debajo, el tiempo que queda (una losa que se
  * vacia, roja al final) y los cuatro totems: encendidos los que siguen en pie.
+ * Con la Furia de Jade, la energia late en verde vivo y el rotulo dice FURIA.
  *
  * Misma composicion y medidas que las de Nerea y Aeralis. Si estan a la vista,
  * la de Rajang va debajo.
@@ -41,6 +42,9 @@ public class RajangBarraHud implements HudElement {
     private static final Identifier[] FASES = {tex("rajang_barra_fase_1"), tex("rajang_barra_fase_2"),
             tex("rajang_barra_fase_3"), tex("rajang_barra_fase_4")};
     private static final Identifier LIBRE = tex("rajang_barra_libre");
+    private static final Identifier FURIA = tex("rajang_barra_furia");
+    /** El verde vivo de la Furia de Jade. */
+    private static final int COLOR_FURIA = 0x7CFF3A;
     private static final int NOMBRE_ANCHO = 48;
     private static final int ROTULO_ANCHO = 64;
     private static final int LETRAS_ALTO = 10;
@@ -98,7 +102,12 @@ public class RajangBarraHud implements HudElement {
             g.fill(hx + lleno, hy, hx + rastro, hy + HUECO_ALTO, 0xD8F0FFE0);
         }
         int color = 0xFF000000 | (libre ? ORO : COLOR_FASE[fase - 1]);
-        if (fase == 4 && !libre) {
+        boolean furia = r.tieneFuria() && !libre;
+        if (furia) {
+            // Con la Furia, la energia late en verde vivo, deprisa.
+            float k = 0.8F + 0.25F * Mth.sin((r.tickCount + parcial) * 0.45F);
+            color = 0xFF000000 | escalar(COLOR_FURIA, k);
+        } else if (fase == 4 && !libre) {
             // En la ultima fase el sol late con la maldicion.
             float k = 0.85F + 0.2F * Mth.sin((r.tickCount + parcial) * 0.25F);
             color = 0xFF000000 | escalar(COLOR_FASE[3], k);
@@ -127,7 +136,7 @@ public class RajangBarraHud implements HudElement {
         int ly = y0 + 7 - LETRAS_ALTO;
         g.blit(RenderPipelines.GUI_TEXTURED, NOMBRE, hx, ly, 0.0F, 0.0F, NOMBRE_ANCHO, LETRAS_ALTO,
                 NOMBRE_ANCHO, LETRAS_ALTO, NOMBRE_ANCHO, LETRAS_ALTO, 0xFFFFFFFF);
-        g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, ly,
+        g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, ly,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
 
         int sello = r.getSello();

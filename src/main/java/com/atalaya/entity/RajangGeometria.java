@@ -24,10 +24,11 @@ public final class RajangGeometria {
     public static final Vec3 LOMO = new Vec3(0.000, 8.251, 0.875);
     public static final Vec3 GRUPA = new Vec3(0.000, 6.251, -6.000);
     public static final Vec3 COSTILLAS = new Vec3(0.000, 6.251, -1.625);
-    public static final Vec3 ZARPA_GARRA = new Vec3(1.598, 0.415, 6.002);
-    public static final Vec3 ZARPA_CARGA = new Vec3(-3.205, 7.203, 6.660);
-    public static final Vec3 ZARPA_IZQ_TERREMOTO = new Vec3(0.700, -0.722, 5.482);
-    public static final Vec3 ZARPA_DER_TERREMOTO = new Vec3(-0.724, -0.619, 5.641);
+    public static final Vec3 ZARPA_GARRA = new Vec3(2.148, 0.501, 6.248);
+    public static final Vec3 ZARPA_CARGA = new Vec3(-3.392, 7.903, 6.366);
+    public static final Vec3 ZARPA_RASCA = new Vec3(-1.920, -0.483, -0.597);
+    public static final Vec3 ZARPA_IZQ_TERREMOTO = new Vec3(0.700, -0.869, 5.500);
+    public static final Vec3 ZARPA_DER_TERREMOTO = new Vec3(-0.724, -0.769, 5.660);
     public static final Vec3 ZARPA_IZQ = new Vec3(1.375, 0.233, 2.207);
     public static final Vec3 ZARPA_DER = new Vec3(-1.375, 0.233, 2.207);
     public static final Vec3 PATA_IZQ = new Vec3(1.375, 0.126, -5.723);
@@ -37,11 +38,11 @@ public final class RajangGeometria {
     public static final int DURACION_DESPERTAR = 72;
     public static final int DESPERTAR_SE_ALZA = 30;
     public static final int DESPERTAR_RUGE = 46;
-    public static final int DURACION_GARRA = 26;
+    public static final int DURACION_GARRA = 21;
     public static final int GARRA_ALZA = 2;
-    public static final int GARRA_GOLPE = 10;
-    public static final int DURACION_TERREMOTO = 46;
-    public static final int TERREMOTO_GOLPE = 19;
+    public static final int GARRA_GOLPE = 8;
+    public static final int DURACION_TERREMOTO = 38;
+    public static final int TERREMOTO_GOLPE = 16;
     public static final int DURACION_RUGIDO = 40;
     public static final int RUGIDO_RUGE = 10;
     public static final int DURACION_CATACLISMO = 52;
@@ -58,6 +59,18 @@ public final class RajangGeometria {
     public static final int TAMBALEO_RUGE = 22;
     public static final int DURACION_LIBERACION = 200;
     public static final int LIBERACION_OJOS_ORO = 80;
-    public static final int PERIODO_ANDAR = 32;
+    public static final int PERIODO_ANDAR = 26;
     public static final int PERIODO_CORRER = 16;
+    public static final int DURACION_EMBESTIDA_AVISO = 24;
+    public static final int EMBESTIDA_RASCA_1 = 8;
+    public static final int EMBESTIDA_RASCA_2 = 14;
+    public static final int DURACION_EMBESTIDA_FRENA = 34;
+    public static final int EMBESTIDA_FRENA_PARA = 14;
+    public static final int DURACION_ESTAMPADO = 40;
+    public static final int DURACION_TUMBA = 142;
+    public static final int TUMBA_ESTALLA = 120;
+    public static final int TUMBA_RUGE_2 = 69;
+
+    public static final float ZANCADA_ANDAR = 0.176F;
+    public static final float ZANCADA_CORRER = 1.039F;
 }

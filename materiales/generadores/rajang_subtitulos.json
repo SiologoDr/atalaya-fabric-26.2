@@ -41,7 +41,17 @@
     "subtitles.atalaya.rajang.tambaleo": "Rajang se tambalea",
     "subtitles.atalaya.rajang.liberacion": "Rajang queda libre",
     "subtitles.atalaya.rajang.disolver": "Rajang vuelve a la piedra",
-    "subtitles.atalaya.rajang.zarpazo": "Rajang lanza un zarpazo"
+    "subtitles.atalaya.rajang.zarpazo": "Rajang lanza un zarpazo",
+    "subtitles.atalaya.rajang.embestida_aviso": "Rajang rasca la tierra",
+    "subtitles.atalaya.rajang.embestida": "Rajang embiste",
+    "subtitles.atalaya.rajang.embestida_frena": "Rajang derrapa",
+    "subtitles.atalaya.rajang.estampado": "Rajang se estampa",
+    "subtitles.atalaya.rajang.tumba": "La tierra se llena de raíces",
+    "subtitles.atalaya.rajang.tumba_estalla": "Revientan las raíces",
+    "subtitles.atalaya.rajang.furia": "Rajang se enfurece",
+    "subtitles.atalaya.rajang.escalon_tiembla": "Tiembla un escalón",
+    "subtitles.atalaya.rajang.escalon_cae": "Se cae un escalón",
+    "subtitles.atalaya.rajang.totem_pulso": "Un pulso de tierra"
   },
   "en_us": {
     "subtitles.atalaya.rajang.ambiente": "Rajang breathes deeply",
@@ -85,6 +95,16 @@
     "subtitles.atalaya.rajang.tambaleo": "Rajang staggers",
     "subtitles.atalaya.rajang.liberacion": "Rajang is freed",
     "subtitles.atalaya.rajang.disolver": "Rajang turns to stone",
-    "subtitles.atalaya.rajang.zarpazo": "Rajang swipes its claw"
+    "subtitles.atalaya.rajang.zarpazo": "Rajang swipes its claw",
+    "subtitles.atalaya.rajang.embestida_aviso": "Rajang paws the ground",
+    "subtitles.atalaya.rajang.embestida": "Rajang charges",
+    "subtitles.atalaya.rajang.embestida_frena": "Rajang skids to a halt",
+    "subtitles.atalaya.rajang.estampado": "Rajang crashes into a wall",
+    "subtitles.atalaya.rajang.tumba": "Roots spread through the earth",
+    "subtitles.atalaya.rajang.tumba_estalla": "The roots burst out",
+    "subtitles.atalaya.rajang.furia": "Rajang flies into a rage",
+    "subtitles.atalaya.rajang.escalon_tiembla": "A step shakes",
+    "subtitles.atalaya.rajang.escalon_cae": "A step falls",
+    "subtitles.atalaya.rajang.totem_pulso": "An earth pulse"
   }
 }

@@ -26,8 +26,9 @@ import org.jspecify.annotations.Nullable;
  * hexagono roto que brilla en el suelo un segundo (mas si sale tarde), y
  * luego revienta: la torre de roca en bloques, cada bloque algo torcido, con
  * su punta en esquirla y dos a cuatro menores alrededor (las dibuja
- * PilarTierraRenderer con su semilla). Golpea y lanza a quien este encima, se
- * queda cuatro segundos y se hunde.
+ * PilarTierraRenderer con su semilla). Golpea a quien este encima, lo lanza
+ * unos diez bloques y le deja el Peso tres segundos; se queda cuatro segundos
+ * y se hunde.
  */
 public class PilarTierraEntity extends Entity {
 
@@ -155,8 +156,11 @@ public class PilarTierraEntity extends Entity {
             }
             v.hurtServer(nivel, fuente, RajangEntity.contraArmadura(v, dano));
             Vec3 fuera = RajangEntity.horizontalHacia(position(), v.position());
-            v.setDeltaMovement(fuera.x * 0.5, 0.95, fuera.z * 0.5);
-            v.hurtMarked = true;
+            // Unos diez bloques hacia arriba, y el Peso tres segundos.
+            RajangEntity.lanzar(v, fuera.scale(0.5), PicoTierraEntity.LANZA);
+            if (dueno != null) {
+                dueno.lastrar(v, RajangEntity.PESO_PINCHO);
+            }
         }
     }
 

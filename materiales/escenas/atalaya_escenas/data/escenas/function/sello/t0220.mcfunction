@@ -1,0 +1,4 @@
+execute at @e[type=minecraft:marker,tag=ancla,limit=1] run atalaya rajang escalon
+execute at @e[type=minecraft:marker,tag=ancla,limit=1] run atalaya rajang escalon
+execute at @e[type=minecraft:marker,tag=ancla,limit=1] run atalaya rajang escalon
+execute at @e[type=minecraft:marker,tag=ancla,limit=1] run atalaya rajang escalon

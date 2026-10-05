@@ -37,6 +37,8 @@ public class PicoTierraRenderer extends EntityRenderer<PicoTierraEntity, PicoTie
         public float tam;
         public int semilla;
         public float rumbo;
+        /** Uno de la Embestida: las vetas encendidas del todo (mata). */
+        public boolean mortal;
     }
 
     public PicoTierraRenderer(EntityRendererProvider.Context contexto) {
@@ -55,6 +57,7 @@ public class PicoTierraRenderer extends EntityRenderer<PicoTierraEntity, PicoTie
         s.tam = p.getTam();
         s.semilla = p.getSemilla();
         s.rumbo = p.getYRot();
+        s.mortal = p.isMortal();
     }
 
     @Override
@@ -102,6 +105,11 @@ public class PicoTierraRenderer extends EntityRenderer<PicoTierraEntity, PicoTie
         int brillo = (int) (255 * k);
         colector.submitCustomGeometry(pose, VETAS, (p, buf) ->
                 RajangDibujo.emitir(buf, p, caras, brillo, brillo, brillo, 255, AeralisDibujo.A_PLENA_LUZ));
+        if (s.mortal) {
+            // Los de la Embestida matan: las vetas, el doble de encendidas.
+            colector.submitCustomGeometry(pose, VETAS, (p, buf) ->
+                    RajangDibujo.emitir(buf, p, caras, brillo, brillo, brillo, 255, AeralisDibujo.A_PLENA_LUZ));
+        }
         pose.popPose();
         super.submit(s, pose, colector, camara);
     }

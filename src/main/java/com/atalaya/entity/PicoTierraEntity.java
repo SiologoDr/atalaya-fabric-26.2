@@ -28,9 +28,13 @@ import org.jspecify.annotations.Nullable;
  * la grieta; alrededor, otros menores abiertos y los terrones del suelo roto
  * (los dibuja PicoTierraRenderer con su semilla).
  *
- * Al salir golpea y lanza hacia arriba a quien este encima: cuanto mas grande
- * el pico, mas alto. El ultimo de la fila, el mayor (6 bloques), sale dentro
- * del aro que avisaba.
+ * Al salir golpea a quien este encima, lo lanza unos diez bloques hacia arriba
+ * y le deja el Peso de la Tierra tres segundos. El ultimo de la fila, el mayor
+ * (6 bloques), sale dentro del aro que avisaba.
+ *
+ * Los de la Embestida son mortales (como un fragmento del Cataclismo encima:
+ * solo salva un totem) y lanzan unos quince bloques; las vetas les brillan mas.
+ * Los de la Tumba de Raices son solo de adorno: el dano ya lo ha hecho ella.
  */
 public class PicoTierraEntity extends Entity {
 
@@ -40,19 +44,40 @@ public class PicoTierraEntity extends Entity {
     public static final int BAJA = 16;
     /** Alto del pico de tamano 1, en bloques. */
     public static final float ALTO = 6.0F;
+    /** Lo que lanza un pico normal: unos diez bloques hacia arriba. */
+    public static final double LANZA = 1.36;
 
     private static final EntityDataAccessor<Float> DATA_TAM =
             SynchedEntityData.defineId(PicoTierraEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> DATA_SEMILLA =
             SynchedEntityData.defineId(PicoTierraEntity.class, EntityDataSerializers.INT);
+    /** Uno de la Embestida: mata (salvo totem). */
+    private static final EntityDataAccessor<Boolean> DATA_MORTAL =
+            SynchedEntityData.defineId(PicoTierraEntity.class, EntityDataSerializers.BOOLEAN);
 
     private @Nullable RajangEntity dueno;
     private float dano;
+    /** Solo de adorno (los de la Tumba): no golpea a nadie. */
+    private boolean adorno;
 
     public PicoTierraEntity(EntityType<? extends PicoTierraEntity> tipo, Level nivel) {
         super(tipo, nivel);
         this.noPhysics = true;
         setNoGravity(true);
+    }
+
+    /** Un pincho mortal de la Embestida, a un lado de su camino. */
+    public static PicoTierraEntity brotarMortal(ServerLevel nivel, RajangEntity dueno, Vec3 donde, float tam, float rumbo) {
+        PicoTierraEntity p = brotar(nivel, dueno, donde, tam, rumbo, RajangEntity.MORTAL);
+        p.entityData.set(DATA_MORTAL, true);
+        return p;
+    }
+
+    /** Un pincho que solo se ve (las raices que revientan en la Tumba). */
+    public static PicoTierraEntity brotarAdorno(ServerLevel nivel, RajangEntity dueno, Vec3 donde, float tam, float rumbo) {
+        PicoTierraEntity p = brotar(nivel, dueno, donde, tam, rumbo, 0.0F);
+        p.adorno = true;
+        return p;
     }
 
     public static PicoTierraEntity brotar(ServerLevel nivel, RajangEntity dueno, Vec3 donde, float tam, float rumbo, float dano) {
@@ -82,6 +107,11 @@ public class PicoTierraEntity extends Entity {
     protected void defineSynchedData(SynchedEntityData.Builder datos) {
         datos.define(DATA_TAM, 1.0F);
         datos.define(DATA_SEMILLA, 0);
+        datos.define(DATA_MORTAL, false);
+    }
+
+    public boolean isMortal() {
+        return entityData.get(DATA_MORTAL);
     }
 
     public float getTam() {
@@ -127,7 +157,7 @@ public class PicoTierraEntity extends Entity {
             discard();
             return;
         }
-        if (tickCount == 2) {
+        if (tickCount == 2 && !adorno) {
             golpear((ServerLevel) level(), tam);
         }
         if (tickCount == DURA) {
@@ -138,19 +168,25 @@ public class PicoTierraEntity extends Entity {
         }
     }
 
-    /** Lo que esta encima sale volando: hasta 5 bloques con el pico grande. */
+    /**
+     * Lo que esta encima sale volando: unos diez bloques (quince el de la
+     * Embestida, que ademas mata salvo totem), y se queda con el Peso tres segundos.
+     */
     private void golpear(ServerLevel nivel, float tam) {
         double radio = 0.8 + 1.3 * tam;
-        DamageSource fuente = RajangDanos.fuente(nivel, RajangDanos.GARRA, this, dueno);
+        boolean mortal = isMortal();
+        DamageSource fuente = RajangDanos.fuente(nivel, mortal ? RajangDanos.EMBESTIDA : RajangDanos.GARRA, this, dueno);
         AABB caja = new AABB(getX() - radio, getY() - 0.5, getZ() - radio, getX() + radio, getY() + ALTO * tam, getZ() + radio);
-        Vec3 empuje = Vec3.directionFromRotation(0, getYRot()).scale(0.25);
+        Vec3 empuje = Vec3.directionFromRotation(0, getYRot()).scale(mortal ? 0.4 : 0.25);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, caja, x -> dueno != null && dueno.esPresa(x))) {
             if (RajangEntity.horizontal(position(), v.position()) > radio) {
                 continue;
             }
-            v.hurtServer(nivel, fuente, RajangEntity.contraArmadura(v, dano * (0.6F + 0.4F * tam)));
-            v.setDeltaMovement(empuje.x, 0.55 + 0.6 * tam, empuje.z);
-            v.hurtMarked = true;
+            v.hurtServer(nivel, fuente, mortal ? RajangEntity.MORTAL : RajangEntity.contraArmadura(v, dano * (0.6F + 0.4F * tam)));
+            RajangEntity.lanzar(v, empuje, mortal ? RajangEntity.LANZA_MORTAL : LANZA);
+            if (dueno != null) {
+                dueno.lastrar(v, RajangEntity.PESO_PINCHO);
+            }
             nivel.playSound(null, v.getX(), v.getY(), v.getZ(), AtalayaSonidos.RAJANG_PICO_GOLPE, SoundSource.HOSTILE, 1.5F, 1.0F);
             nivel.sendParticles(AtalayaParticulas.RAJANG_ROCA, true, true, v.getX(), v.getY() + 0.5, v.getZ(), 8, 0.3, 0.3, 0.3, 0.2);
         }

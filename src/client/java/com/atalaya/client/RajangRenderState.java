@@ -19,6 +19,11 @@ public class RajangRenderState extends LivingEntityRenderState {
     public final AnimationState paralizado = new AnimationState();
     public final AnimationState salto = new AnimationState();
     public final AnimationState tambaleo = new AnimationState();
+    public final AnimationState embestidaAviso = new AnimationState();
+    public final AnimationState embestida = new AnimationState();
+    public final AnimationState embestidaFrena = new AnimationState();
+    public final AnimationState estampado = new AnimationState();
+    public final AnimationState tumba = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
 
     public int estado;
@@ -37,4 +42,11 @@ public class RajangRenderState extends LivingEntityRenderState {
     public boolean libre;
     /** De 0 a 1 mientras se vuelve piedra y se deshace al final. */
     public float disolver;
+    /** Con la Furia de Jade: el aura verde. */
+    public boolean furia;
+    /** La flecha de la Embestida: lo que mide desde sus manos (0: no hay) y lo llenado (0 a 1). */
+    public float carga;
+    public float cargaLlena;
+    /** La Tumba de Raices: ticks desde que clavo las garras (negativo: no hay circulo). */
+    public float circuloTumba = -1.0F;
 }

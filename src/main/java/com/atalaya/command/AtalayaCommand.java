@@ -51,6 +51,11 @@ import java.util.List;
  *   /atalaya aeralis &lt;orden&gt;       -> lo mismo con la Aeralis mas cercana (despertar,
  *                                    aleteo, tornados, caceria, rafaga, doble,
  *                                    juicio, aturdida, agotada, fase, liberar).
+ *   /atalaya rajang &lt;orden&gt;        -> lo mismo con el Rajang mas cercano (despertar,
+ *                                    perseguir, garra, terremoto, embestida, tumba,
+ *                                    sello, romper, escalon, cataclismo, salto,
+ *                                    aturdido, paralizado, estampado, furia, fase,
+ *                                    liberar).
  *
  *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
  *                                    peto o elitros, grebas y botas) tuya o de
@@ -256,8 +261,9 @@ public final class AtalayaCommand {
         return 1;
     }
 
-    private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "sello", "romper", "cataclismo",
-            "salto", "aturdido", "paralizado", "fase", "liberar"};
+    private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "embestida", "tumba",
+            "sello", "romper", "escalon", "cataclismo", "salto", "aturdido", "paralizado", "estampado", "furia", "fase",
+            "liberar"};
 
     /** Fuerza al Rajang mas cercano (en 80 bloques) a hacer algo ya. */
     private static int probarRajang(CommandSourceStack fuente, String orden) {

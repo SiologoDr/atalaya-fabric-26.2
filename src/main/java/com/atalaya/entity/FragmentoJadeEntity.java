@@ -25,16 +25,26 @@ import org.jspecify.annotations.Nullable;
  * cuando la cuenta se cierra.
  *
  * Encima del impacto, la muerte (el totem de la inmortalidad aun salva); cerca,
- * 20 de dano y fase, y el empujon. Despues se queda clavado, brillando, hasta
- * que se apaga.
+ * hasta 12 bloques, el dano de la fase (de la mitad al todo) y el empujon.
+ * Despues se queda clavado, brillando, hasta que se apaga.
+ *
+ * Desde octubre de 2026 son mas grandes (tamano 2,3 a 2,7) y caen menos: la
+ * muerte llega a 4,8-5,7 bloques del impacto en vez de 2 (los 3,3-4 de la primera
+ * version, y luego 4-4,8, se quedaron cortos al verlos en el juego).
  */
 public class FragmentoJadeEntity extends Entity {
 
     /** Desde donde cae (bloques por encima y hacia atras de la marca). */
     public static final Vec3 DESDE = new Vec3(-9.0, 40.0, 7.0);
     public static final int CLAVADO = 60;
-    private static final double MUERTE = 1.7;
-    private static final double CERCA = 5.5;
+    /** La muerte llega a 2,1 bloques por cada punto de tamano: de 4,8 a 5,7 bloques. */
+    private static final double MUERTE = 2.1;
+    private static final double CERCA = 12.0;
+
+    /** Hasta donde mata un fragmento de tamano 'tam' (para dibujar su marca a juego). */
+    public static double radioMuerte(float tam) {
+        return MUERTE * tam;
+    }
 
     private static final EntityDataAccessor<Float> DATA_TAM =
             SynchedEntityData.defineId(FragmentoJadeEntity.class, EntityDataSerializers.FLOAT);
@@ -155,7 +165,7 @@ public class FragmentoJadeEntity extends Entity {
         DamageSource cerca = RajangDanos.fuente(nivel, RajangDanos.IMPACTO, this, dueno);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(p, p).inflate(CERCA, 4, CERCA), dueno::esPresa)) {
             double d = RajangEntity.horizontal(p, v.position());
-            if (d <= MUERTE * (0.8 + 0.3 * tam) && Math.abs(v.getY() - p.y) < 3.0) {
+            if (d <= radioMuerte(tam) && Math.abs(v.getY() - p.y) < 3.5) {
                 v.hurtServer(nivel, muerte, 10000.0F);
                 if (!v.isAlive()) {
                     dueno.alMatar(v);

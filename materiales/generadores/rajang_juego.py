@@ -334,6 +334,7 @@ def var(n):
 def java_malla(uv, alto):
     L = ['package com.atalaya.client;', '',
          'import net.minecraft.client.model.geom.PartPose;',
+         'import net.minecraft.client.model.geom.builders.CubeDeformation;',
          'import net.minecraft.client.model.geom.builders.CubeListBuilder;',
          'import net.minecraft.client.model.geom.builders.LayerDefinition;',
          'import net.minecraft.client.model.geom.builders.MeshDefinition;',
@@ -349,6 +350,13 @@ def java_malla(uv, alto):
          '    public static final String[] CRISTALES = {' + ', '.join(f'"{c}"' for c in CRISTALES) + '};', '',
          '    private RajangMalla() {', '    }', '',
          '    public static LayerDefinition crear() {',
+         '        return crear(CubeDeformation.NONE);',
+         '    }', '',
+         '    /** La misma malla hinchada: la capa del aura de la Furia (como la carga del creeper). */',
+         '    public static LayerDefinition crearAura() {',
+         '        return crear(new CubeDeformation(1.5F));',
+         '    }', '',
+         '    private static LayerDefinition crear(CubeDeformation infla) {',
          '        MeshDefinition malla = new MeshDefinition();',
          '        PartDefinition p_root = malla.getRoot();']
     for n in ORDEN:
@@ -357,7 +365,7 @@ def java_malla(uv, alto):
         cub = 'CubeListBuilder.create()'
         for i, c in enumerate(p.cajas):
             u, v = uv[(n, i)]
-            cub += f'\n                .texOffs({u}, {v}).addBox({f(c[0])}, {f(c[1])}, {f(c[2])}, {f(c[3])}, {f(c[4])}, {f(c[5])})'
+            cub += f'\n                .texOffs({u}, {v}).addBox({f(c[0])}, {f(c[1])}, {f(c[2])}, {f(c[3])}, {f(c[4])}, {f(c[5])}, infla)'
         rx, ry, rz = [r * D2R for r in p.rot]
         pose = f'PartPose.offsetAndRotation({f(p.pivote[0])}, {f(p.pivote[1])}, {f(p.pivote[2])}, {f(rx)}, {f(ry)}, {f(rz)})'
         decl = f'PartDefinition {var(n)} = ' if p.hijos else ''

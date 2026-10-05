@@ -10,10 +10,15 @@ Convenciones (todo SE SUMA a la postura de reposo de tierra_modelo.py):
   esc   multiplicadores (x, y, z)
 
 Es el primer jefe que corre: anda con el paso lateral de los felinos (pata de
-atras, la de delante del mismo lado, la otra de atras, la otra de delante) y
-corre al galope (las de delante juntas, las de atras juntas, el lomo que se
-encoge y se estira). La cola se queda atras como un latigo (cada segmento con
-algo de retraso).
+atras, la de delante del mismo lado, la otra de atras, la otra de delante),
+la cabeza baja de acecho y los hombros que suben y bajan con cada mano, y
+corre al galope rotatorio de los felinos grandes (el lomo que se encoge y se
+estira, mucho tiempo en el aire). La cola se queda atras como un latigo (cada
+segmento con algo de retraso).
+
+Las mejoras de octubre de 2026 (tras las pruebas: "tosco y lento") anaden la
+Embestida (aviso, carga y frenada), el golpe contra un muro, la Tumba de
+Raices, y acortan las cargas de la Garra y el Terremoto.
 
 De aqui salen RajangMalla.java, RajangAnimaciones.java, RajangGeometria.java
 (duraciones, ticks clave y puntos para el servidor) y las texturas.
@@ -112,7 +117,10 @@ def temblor(base, t0, t1, cada, delta, claves):
 #  Reposo, andar y correr
 # ----------------------------------------------------------------------
 T_REPOSO = 4.0
-T_ANDAR = 1.6
+T_ANDAR = 1.3
+# El paso largo: a 6-7 bloques/s, con la zancada corta, las patas iban a toda
+# prisa y se veia agitado; con un 30 % mas de barrido va mas suelto.
+PASO_ANDAR = 1.3
 T_CORRER = 0.8
 
 
@@ -125,43 +133,51 @@ def pose_reposo(s):
                  cola(sube=2 * math.sin(w), fase=w, onda=10, retraso=0.6))
 
 
-def _pierna_del(fase, amp=1.0):
+def _pierna_del(fase, amp=1.0, paso=1.0):
     """Una pata de delante en el paso: apoyo (de -A a +B, la mano en el
     suelo) el 65 % del ciclo y vuelo (levanta y adelanta, el antebrazo
-    doblado) el resto. fase en [0, 1)."""
+    doblado) el resto. fase en [0, 1). paso alarga la zancada (el barrido del
+    brazo) sin levantar mas la mano."""
     if fase < 0.65:
         k = fase / 0.65
-        brazo = (-18 + 36 * k) * amp
+        brazo = (-18 + 36 * k) * amp * paso
         return brazo, -4 * amp * math.sin(math.pi * k), 6 * amp * k
     k = (fase - 0.65) / 0.35
-    brazo = (18 - 36 * (0.5 - 0.5 * math.cos(math.pi * k))) * amp
+    brazo = (18 - 36 * (0.5 - 0.5 * math.cos(math.pi * k))) * amp * paso
     return brazo, 44 * amp * math.sin(math.pi * k), -30 * amp * math.sin(math.pi * k)
 
 
-def _pierna_tras(fase, amp=1.0):
+def _pierna_tras(fase, amp=1.0, paso=1.0):
     if fase < 0.65:
         k = fase / 0.65
-        muslo = (-14 + 32 * k) * amp
+        muslo = (-14 + 32 * k) * amp * paso
         return muslo, -6 * amp * k, 6 * amp * k, -8 * amp * k
     k = (fase - 0.65) / 0.35
-    muslo = (18 - 32 * (0.5 - 0.5 * math.cos(math.pi * k))) * amp
+    muslo = (18 - 32 * (0.5 - 0.5 * math.cos(math.pi * k))) * amp * paso
     sube = math.sin(math.pi * k)
     return muslo, 26 * amp * sube, -24 * amp * sube, 20 * amp * sube
 
 
 def pose_andar(s):
+    """El paso lateral de los felinos: cada pata apoya en su momento (atras
+    izquierda 0, delante izquierda 0.25, atras derecha 0.5, delante derecha
+    0.75). El fase de cada pata es (f - momento): con + salia la secuencia
+    diagonal. Al acecho: la cabeza baja y por delante de los hombros, que suben
+    y bajan con cada mano; el peso cae justo despues de que apoye cada mano."""
     f = s / T_ANDAR
     w = 2 * math.pi * f
     p = {}
-    # paso lateral: atras izq 0, delante izq 0.25, atras der 0.5, delante der 0.75
     for lado, off_d, off_t in ((1, 0.25, 0.0), (-1, 0.75, 0.5)):
-        b, a, m = _pierna_del((f + off_d) % 1.0)
+        b, a, m = _pierna_del((f - off_d) % 1.0, 1.1, PASO_ANDAR)
         p.update(mano(lado, b, a, m))
-        mu, ti, ta, pi_ = _pierna_tras((f + off_t) % 1.0)
+        mu, ti, ta, pi_ = _pierna_tras((f - off_t) % 1.0, 1.05, PASO_ANDAR)
         p.update(pata(lado, mu, ti, ta, pi_))
-    return sumar(p, cuerpo(x=1.0 * math.sin(2 * w), z=2.5 * math.sin(w), baja=2.5 * math.sin(2 * w + 0.6), y=1.5 * math.sin(w)),
-                 cabeza(x=2.5 * math.sin(2 * w + 1.2), y=-2 * math.sin(w), boca=-8, cuello=2 * math.sin(2 * w + 0.9)),
-                 cola(sube=4, lado=-4 * math.sin(w), fase=w, onda=12, retraso=0.7))
+    # el peso cae tras cada mano (0.25 y 0.75) y el lomo rueda hacia la que apoya
+    cae = 0.5 + 0.5 * math.cos(4 * math.pi * (f - 0.32))
+    rueda = math.cos(2 * math.pi * (f - 0.57))
+    return sumar(p, cuerpo(x=1.6 * math.cos(4 * math.pi * (f - 0.3)), z=3.0 * rueda, baja=2.6 * cae, y=1.8 * rueda),
+                 cabeza(x=5 + 2.5 * math.cos(4 * math.pi * (f - 0.42)), y=-2.5 * rueda, boca=-6, cuello=7 - 2 * cae, orejas=4),
+                 cola(sube=6, lado=-5 * rueda, fase=w, onda=14, retraso=0.7))
 
 
 def _ciclo(fase, apoyo, a0, a1):
@@ -186,15 +202,19 @@ def pose_correr(s):
     w = 2 * math.pi * f
     p = {}
     for lado, n, golpe_del, golpe_tras in ((1, 'izq', 0.55, 0.0), (-1, 'der', 0.43, 0.11)):
-        b, rec = _ciclo((f - golpe_del) % 1.0, 0.38, -28.0, 30.0)
-        p.update(mano(lado, b, 74 * rec, -38 * rec))
-        m, rec = _ciclo((f - golpe_tras) % 1.0, 0.38, -26.0, 38.0)
-        p.update(pata(lado, m, 44 * rec, -40 * rec, 30 * rec))
-    # el lomo: encogido (hocico abajo) a 0.15, estirado a 0.65
+        b, rec = _ciclo((f - golpe_del) % 1.0, 0.36, -32.0, 32.0)
+        p.update(mano(lado, b, 80 * rec, -42 * rec))
+        m, rec = _ciclo((f - golpe_tras) % 1.0, 0.36, -30.0, 40.0)
+        p.update(pata(lado, m, 48 * rec, -44 * rec, 32 * rec))
+    # el lomo: encogido (hocico abajo) a 0.15, estirado a 0.65; y al final del
+    # ciclo, cuando la mano izquierda ya ha despegado y la trasera aun no ha
+    # caido (0.91 a 1.0), en el aire: el cuerpo sube
     enc = math.cos(2 * math.pi * (f - 0.15))
-    return sumar(p, cuerpo(x=5.0 * enc, baja=7.0 - 2.5 * math.cos(4 * math.pi * (f - 0.05)), avanza=2.0 * enc),
-                 cabeza(x=10 - 5.0 * enc, boca=4 + 6 * max(0.0, math.sin(w)), cuello=8 - 3.0 * enc, orejas=-16),
-                 cola(sube=-4 + 5 * math.sin(w + 1.6), fase=w, onda=5, retraso=0.45))
+    vuela = max(0.0, math.cos(2 * math.pi * (f - 0.955))) ** 6
+    return sumar(p, cuerpo(x=8.0 * enc, baja=7.0 - 2.5 * math.cos(4 * math.pi * (f - 0.05)) - 3.5 * vuela, avanza=3.0 * enc),
+                 # la cabeza firme, mirando a la presa: compensa el cabeceo del lomo
+                 cabeza(x=11 - 7.5 * enc, boca=8 + 8 * max(0.0, math.sin(w)), cuello=9 - 4.5 * enc, orejas=-24),
+                 cola(sube=-2 + 4 * math.sin(w + 1.6), fase=w, onda=4, retraso=0.45))
 
 
 anim('REPOSO', T_REPOSO, muestreada(pose_reposo, T_REPOSO, 16), loop=True)
@@ -238,42 +258,45 @@ anim('DESPERTAR', 3.6, _cl)
 # ----------------------------------------------------------------------
 #  Garra Terrestre: se echa atras con la garra derecha en alto y la clava
 # ----------------------------------------------------------------------
-T_GARRA = 0.5
+T_GARRA = 0.42
+T_GARRA_CARGA = 0.3
 # Carga: se echa atras y tuerce el cuerpo, la zarpa derecha arriba y abierta
 # hacia fuera, las garras en alto y la cabeza girada hacia la presa.
-_carga_zarpa = sumar(cuerpo(x=-10, y=8, z=4, baja=-4, avanza=-6), mano(-1, -96, 30, -40, -26), mano(1, 6, -4, 2),
-                     pata(1, 10, -4), pata(-1, 12, -4), cabeza(x=-10, y=-8, boca=20, cuello=-4, orejas=-20),
-                     cola(sube=18, lado=-14, fase=0.0, onda=0))
+_carga_zarpa = sumar(cuerpo(x=-12, y=10, z=5, baja=-4, avanza=-8), mano(-1, -100, 32, -42, -28), mano(1, 8, -4, 2),
+                     pata(1, 12, -4), pata(-1, 14, -4), cabeza(x=-10, y=-10, boca=22, cuello=-4, orejas=-22),
+                     cola(sube=20, lado=-16, fase=0.0, onda=0))
 # El tajo: la zarpa barre en diagonal de arriba a la derecha a abajo a la
-# izquierda, el cuerpo se lanza y gira con ella.
-_tajo = sumar(cuerpo(x=8, y=-6, z=-6, baja=6, avanza=10), mano(-1, -44, -6, 30, 22), mano(1, 10, -10, 6),
-              pata(1, -8, 0), pata(-1, -12, 0), cabeza(x=4, y=5, boca=30, cuello=6, orejas=-24),
-              cola(sube=6, lado=16, fase=0.0, onda=0))
-_remate = sumar(cuerpo(x=10, y=-8, z=-4, baja=8, avanza=10), mano(-1, -16, -14, 40, 30), mano(1, 12, -10, 6),
-                cabeza(x=6, y=7, boca=18, cuello=8, orejas=-20), cola(sube=0, lado=20, fase=0.0, onda=0))
-_cl = [(0, N, 'c'), (0.12, sumar(cuerpo(baja=3), cabeza(boca=8)), 'c'), (0.36, _carga_zarpa, 'c')]
-temblor(_carga_zarpa, 0.38, 0.45, 0.025, {'brazo_der': {'rot': (2, 0, 1.5)}}, _cl)
+# izquierda y el cuerpo entero entra detras de ella: se lanza, baja y gira.
+_tajo = sumar(cuerpo(x=8, y=-9, z=-7, baja=6, avanza=15), mano(-1, -44, -6, 30, 22), mano(1, 14, -12, 8),
+              pata(1, -14, 4), pata(-1, -18, 4), cabeza(x=0, y=7, boca=32, cuello=2, orejas=-26),
+              cola(sube=6, lado=18, fase=0.0, onda=0))
+_remate = sumar(cuerpo(x=9, y=-10, z=-4, baja=7, avanza=14), mano(-1, -16, -14, 40, 30), mano(1, 14, -10, 6),
+                pata(1, -12, 4), pata(-1, -14, 4), cabeza(x=2, y=8, boca=20, cuello=4, orejas=-22),
+                cola(sube=0, lado=22, fase=0.0, onda=0))
+_cl = [(0, N, 'c'), (0.1, sumar(cuerpo(baja=3, avanza=-2), cabeza(boca=10)), 'c'), (T_GARRA_CARGA, _carga_zarpa, 'c')]
+temblor(_carga_zarpa, 0.32, 0.38, 0.025, {'brazo_der': {'rot': (2, 0, 1.5)}}, _cl)
 _cl += [(T_GARRA, _tajo, 'l'),
-        (0.58, _remate, 'c'),
-        (0.85, sumar(_remate, cabeza(x=-4, boca=-10)), 'c'),
-        (1.3, N, 'c')]
-anim('GARRA', 1.3, _cl)
+        (0.5, _remate, 'c'),
+        (0.72, sumar(_remate, cabeza(x=-4, boca=-10)), 'c'),
+        (1.05, N, 'c')]
+anim('GARRA', 1.05, _cl)
 
 # ----------------------------------------------------------------------
 #  Terremoto Ancestral: se alza sobre las patas de atras y golpea con las dos
 # ----------------------------------------------------------------------
-T_TERREMOTO = 0.95
-_te_alza = sumar(cuerpo(x=-30, baja=-14, avanza=-10), mano(1, -70, 40, -20, 8), mano(-1, -74, 42, -20, 8),
-                 pata(1, 18, 10, -6), pata(-1, 18, 10, -6), cabeza(x=-20, boca=26, orejas=-20),
-                 cola(sube=16, fase=0.0, onda=0))
-_te_golpe = sumar(cuerpo(x=12, baja=10, avanza=8), mano(1, -40, -14, 36, 10), mano(-1, -42, -14, 36, 10),
-                  pata(1, -16, 6), pata(-1, -16, 6), cabeza(x=10, boca=30, cuello=10, orejas=-24),
+T_TERREMOTO = 0.8
+_te_alza = sumar(cuerpo(x=-32, baja=-15, avanza=-10), mano(1, -72, 40, -20, 8), mano(-1, -76, 42, -20, 8),
+                 pata(1, 20, 10, -6), pata(-1, 20, 10, -6), cabeza(x=-22, boca=28, orejas=-22),
+                 cola(sube=18, fase=0.0, onda=0))
+# El golpe con todo el peso: el pecho cae casi al suelo detras de las zarpas.
+_te_golpe = sumar(cuerpo(x=13, baja=10, avanza=10), mano(1, -40, -14, 36, 10), mano(-1, -42, -14, 36, 10),
+                  pata(1, -18, 8), pata(-1, -18, 8), cabeza(x=2, boca=32, cuello=4, orejas=-26),
                   cola(sube=-4, fase=0.0, onda=0))
-_cl = [(0, N, 'c'), (0.2, sumar(cuerpo(baja=8), cabeza(x=6)), 'c'), (0.72, _te_alza, 'c'),
+_cl = [(0, N, 'c'), (0.15, sumar(cuerpo(baja=9), cabeza(x=6)), 'c'), (0.6, _te_alza, 'c'),
        (T_TERREMOTO, _te_golpe, 'l')]
-temblor(_te_golpe, 1.0, 1.5, 0.05, {'cuerpo': {'rot': (1.5, 0, 1.5)}, 'cabeza': {'rot': (2, 2, 0)}}, _cl)
-_cl += [(1.8, sumar(_te_golpe, cuerpo(baja=-6), cabeza(x=-8, boca=-20)), 'c'), (2.3, N, 'c')]
-anim('TERREMOTO', 2.3, _cl)
+temblor(_te_golpe, 0.85, 1.3, 0.05, {'cuerpo': {'rot': (1.5, 0, 1.5)}, 'cabeza': {'rot': (2, 2, 0)}}, _cl)
+_cl += [(1.5, sumar(_te_golpe, cuerpo(baja=-6), cabeza(x=-8, boca=-20)), 'c'), (1.9, N, 'c')]
+anim('TERREMOTO', 1.9, _cl)
 
 # ----------------------------------------------------------------------
 #  Rugido (el del Sello y los cambios de fase) y el Sello sosteniendo
@@ -388,6 +411,98 @@ anim('LIBERACION', 10.0, [(0, N, 'c'), (0.5, _ruge, 'c'), (1.5, sumar(_ruge, cab
                                       pata(-1, -30, 50, -30, 20), cabeza(x=14, boca=-10)), 'c'),
                           (4.0, sumar(_esfinge, cabeza(x=10)), 'c'),
                           (5.5, _orgullo, 'c'), (7.5, sumar(_orgullo, cuerpo(baja=1.5)), 'c'), (10.0, _orgullo, 'c')])
+
+# ----------------------------------------------------------------------
+#  Embestida de Jade: se agazapa y rasca el suelo con la mano derecha
+#  mientras la flecha se llena; carga al galope con la cabeza baja y los
+#  sables por delante; y frena derrapando con las cuatro, jadeando despues
+# ----------------------------------------------------------------------
+T_EMB_AVISO = 1.2
+_agazapado = sumar(cuerpo(x=3, baja=12, avanza=-5), mano(1, -12, 18, 8, 6), mano(-1, -14, 20, 8, -6),
+                   pata(1, -30, 50, -36, 24), pata(-1, -30, 50, -36, 24),
+                   cabeza(x=0, boca=12, cuello=2, orejas=-20), cola(sube=8, fase=0.0, onda=0))
+_rasca_alza = mano(-1, -34, 46, -24)            # la mano derecha, adelantada y en alto
+_rasca_tira = mano(-1, 26, -8, 22)              # la arrastra hacia atras rayando el suelo
+_resorte = sumar(cuerpo(x=4, baja=15, avanza=-9), mano(1, -16, 22, 10, 8), mano(-1, -16, 22, 10, -8),
+                 pata(1, -36, 58, -42, 28), pata(-1, -36, 58, -42, 28),
+                 cabeza(x=0, boca=30, cuello=0, orejas=-28), cola(sube=14, lado=0, fase=0.0, onda=0))
+_cl = [(0, N, 'c'), (0.15, _agazapado, 'c'),
+       (0.3, sumar(_agazapado, _rasca_alza, cola(lado=22, fase=0.0, onda=0)), 'c'),
+       (0.42, sumar(_agazapado, _rasca_tira, cola(lado=-18, fase=0.0, onda=0)), 'l'),
+       (0.56, sumar(_agazapado, _rasca_alza, cola(lado=20, fase=0.0, onda=0)), 'c'),
+       (0.68, sumar(_agazapado, _rasca_tira, cola(lado=-16, fase=0.0, onda=0)), 'l'),
+       (0.95, _resorte, 'c')]
+temblor(_resorte, 0.98, T_EMB_AVISO - 0.02, 0.04, {'cuerpo': {'rot': (0.8, 0, 0.6)}, 'cola0': {'rot': (0, 4, 0)}}, _cl)
+_cl += [(T_EMB_AVISO, _resorte, 'c')]
+anim('EMBESTIDA_AVISO', T_EMB_AVISO, _cl)
+
+T_EMBESTIDA = 0.56
+
+
+def pose_carga(s):
+    """El galope de la carga: el mismo ciclo, mas rapido, con la cabeza baja y
+    los sables por delante, la boca abierta y las orejas pegadas."""
+    return sumar(pose_correr(s * T_CORRER / T_EMBESTIDA), cabeza(x=10, boca=16, cuello=6, orejas=-10), cuerpo(x=3, baja=2))
+
+
+anim('EMBESTIDA', T_EMBESTIDA, muestreada(pose_carga, T_EMBESTIDA, 14), loop=True)
+
+T_FRENA_PARA = 0.7
+_derrapa = sumar(cuerpo(x=-6, z=4, baja=11, avanza=-6), mano(1, -40, 6, 22, 12), mano(-1, -38, 6, 22, -12),
+                 pata(1, -30, 50, -30, 20, 6), pata(-1, -28, 50, -30, 20, 6),
+                 cabeza(x=-6, boca=24, cuello=-2, orejas=-20), cola(sube=26, lado=12, fase=0.0, onda=0))
+_jadea = sumar(cuerpo(x=6, baja=9, avanza=2), mano(1, -8, 6), mano(-1, -6, 6), pata(1, -6, 10, -6, 4), pata(-1, -6, 10, -6, 4),
+               cabeza(x=12, boca=20, cuello=10, orejas=-6), cola(sube=-2, fase=0.0, onda=0))
+_cl = [(0, pose_carga(0.0), 'c'), (0.12, _derrapa, 'c')]
+temblor(_derrapa, 0.16, 0.6, 0.05, {'cuerpo': {'rot': (0.8, 0.5, 1.2)}, 'cabeza': {'rot': (1.5, 1.5, 0)}}, _cl)
+_cl += [(T_FRENA_PARA, _jadea, 'c')]
+# el jadeo: la boca se abre y se cierra y los costados suben y bajan
+for k in range(4):
+    tt = T_FRENA_PARA + 0.12 + k * 0.22
+    _cl.append((round(tt, 3), sumar(_jadea, cabeza(boca=-12 if k % 2 == 0 else 6, x=-2 if k % 2 == 0 else 2),
+                                    cuerpo(baja=-2 if k % 2 == 0 else 1)), 'c'))
+_cl += [(1.7, N, 'c')]
+anim('EMBESTIDA_FRENA', 1.7, _cl)
+
+# ----------------------------------------------------------------------
+#  Estampado: la Embestida contra un muro. Le rebota la cabeza, se tambalea
+#  de lado y sacude la cabeza, aturdido
+# ----------------------------------------------------------------------
+_choca = sumar(cuerpo(x=-12, baja=4, avanza=-9), mano(1, -40, 10, 20, 16), mano(-1, -38, 10, 20, -16),
+               pata(1, -10, 20, -10, 6), pata(-1, -10, 20, -10, 6),
+               cabeza(x=-26, y=10, boca=22, cuello=-10, orejas=12), cola(sube=20, lado=-20, fase=0.0, onda=0))
+_tambalea = sumar(cuerpo(x=3, z=-12, baja=6, lado=-4), mano(1, -20, 20, 0, 14), mano(-1, -10, 12),
+                  pata(1, -16, 30, -16, 10, 8), pata(-1, -8, 16), cabeza(x=2, y=-14, z=10, boca=10, cuello=2, orejas=10),
+                  cola(sube=-6, lado=20, fase=0.0, onda=0))
+_cl = [(0, pose_carga(0.0), 'c'), (0.08, _choca, 'l'), (0.4, _tambalea, 'c')]
+temblor(_tambalea, 0.5, 1.6, 0.09, {'cabeza': {'rot': (0, 14, 4)}, 'cuello': {'rot': (0, 6, 0)}}, _cl)
+_cl += [(2.0, N, 'c')]
+anim('ESTAMPADO', 2.0, _cl)
+
+# ----------------------------------------------------------------------
+#  Tumba de Raices: clava las garras abiertas y ruge contra el suelo
+#  mientras el circulo se llena (6 s fijos, no van con la fase), con un
+#  respiro a mitad y un segundo rugido; al llenarse, se alza de golpe y la
+#  tierra revienta; y se recompone
+# ----------------------------------------------------------------------
+T_TUMBA_ESTALLA = 6.0
+T_TUMBA_RUGE_2 = 3.45
+_planta = sumar(cuerpo(x=6, baja=11, avanza=4), mano(1, -20, 22, 30, 22), mano(-1, -20, 22, 30, -22),
+                pata(1, -22, 40, -30, 20, 10), pata(-1, -22, 40, -30, 20, 10),
+                cabeza(x=4, boca=8, cuello=4, orejas=-24), cola(sube=20, fase=0.0, onda=0))
+_ruge_suelo = sumar(_planta, cabeza(x=6, boca=28, cuello=2, orejas=-4))
+_alza_tumba = sumar(cuerpo(x=-16, baja=-6, avanza=-2), mano(1, -54, 30, -10, 14), mano(-1, -52, 30, -10, -14),
+                    pata(1, 10, 6, -4), pata(-1, 10, 6, -4), cabeza(x=-24, boca=34, cuello=-8, orejas=-26),
+                    cola(sube=26, fase=0.0, onda=0))
+_respira = sumar(_planta, cuerpo(baja=-2), cabeza(x=-6, boca=6, cuello=4))
+_tiembla_tumba = {'cuerpo': {'rot': (0.8, 0, 0.8)}, 'cabeza': {'rot': (2.5, 2.5, 0)}, 'mandibula': {'rot': (3, 0, 0)}}
+_cl = [(0, N, 'c'), (0.35, _planta, 'c'), (0.6, _ruge_suelo, 'c')]
+temblor(_ruge_suelo, 0.65, 2.95, 0.07, _tiembla_tumba, _cl)
+_cl += [(3.15, _respira, 'c'), (T_TUMBA_RUGE_2, _ruge_suelo, 'c')]
+temblor(_ruge_suelo, T_TUMBA_RUGE_2 + 0.05, T_TUMBA_ESTALLA - 0.2, 0.07, _tiembla_tumba, _cl)
+_cl += [(T_TUMBA_ESTALLA - 0.15, sumar(_planta, cuerpo(baja=3)), 'c'), (T_TUMBA_ESTALLA, _alza_tumba, 'l'),
+        (T_TUMBA_ESTALLA + 0.4, _te_golpe, 'c'), (T_TUMBA_ESTALLA + 1.1, N, 'c')]
+anim('TUMBA', T_TUMBA_ESTALLA + 1.1, _cl)
 
 # ----------------------------------------------------------------------
 #  De poses a canales
@@ -538,7 +653,8 @@ def java_geometria():
         'GRUPA': p_bloques(None, 0, 'cuerpo', (0, -4, 40)),
         'COSTILLAS': p_bloques(None, 0, 'cuerpo', (0, -4, -30)),
         'ZARPA_GARRA': p_bloques('GARRA', T_GARRA, 'mano_der', (0, 8, -8)),
-        'ZARPA_CARGA': p_bloques('GARRA', 0.36, 'mano_der', (0, 8, -8)),
+        'ZARPA_CARGA': p_bloques('GARRA', T_GARRA_CARGA, 'mano_der', (0, 8, -8)),
+        'ZARPA_RASCA': p_bloques('EMBESTIDA_AVISO', 0.42, 'mano_der', (0, 8, -8)),
         'ZARPA_IZQ_TERREMOTO': p_bloques('TERREMOTO', T_TERREMOTO, 'mano_izq', (0, 8, -8)),
         'ZARPA_DER_TERREMOTO': p_bloques('TERREMOTO', T_TERREMOTO, 'mano_der', (0, 8, -8)),
         'ZARPA_IZQ': p_bloques(None, 0, 'mano_izq', (0, 8, -8)),
@@ -563,7 +679,14 @@ def java_geometria():
         'DURACION_TAMBALEO': tick(ANIMS['TAMBALEO']['dur']), 'TAMBALEO_RUGE': tick(1.1),
         'DURACION_LIBERACION': tick(ANIMS['LIBERACION']['dur']), 'LIBERACION_OJOS_ORO': tick(4.0),
         'PERIODO_ANDAR': tick(T_ANDAR), 'PERIODO_CORRER': tick(T_CORRER),
+        'DURACION_EMBESTIDA_AVISO': tick(T_EMB_AVISO), 'EMBESTIDA_RASCA_1': tick(0.42), 'EMBESTIDA_RASCA_2': tick(0.68),
+        'DURACION_EMBESTIDA_FRENA': tick(ANIMS['EMBESTIDA_FRENA']['dur']), 'EMBESTIDA_FRENA_PARA': tick(T_FRENA_PARA),
+        'DURACION_ESTAMPADO': tick(ANIMS['ESTAMPADO']['dur']),
+        'DURACION_TUMBA': tick(ANIMS['TUMBA']['dur']), 'TUMBA_ESTALLA': tick(T_TUMBA_ESTALLA), 'TUMBA_RUGE_2': tick(T_TUMBA_RUGE_2),
     }
+    # Lo que corren las zarpas que apoyan, en bloques por tick con el reloj a su
+    # ritmo: el cliente adelanta cada reloj lo justo para que no resbalen.
+    zancadas = {'ZANCADA_ANDAR': zancada('ANDAR'), 'ZANCADA_CORRER': zancada('CORRER')}
     L = ['package com.atalaya.entity;', '',
          'import net.minecraft.world.phys.Vec3;', '',
          '/**',
@@ -582,8 +705,22 @@ def java_geometria():
     L.append('')
     for k, v in tiempos.items():
         L.append(f'    public static final int {k} = {v};')
+    L.append('')
+    for k, v in zancadas.items():
+        L.append(f'    public static final float {k} = {fj(v)};')
     L.append('}')
     return '\n'.join(L) + '\n', puntos, tiempos
+
+
+def zancada(nombre, pieza='pie_izq', local=(0, 8, -8), n=400):
+    """Lo deprisa que va hacia atras la zarpa trasera mientras apoya (bloques por
+    tick a ritmo nominal), que es lo que tiene que avanzar el cuerpo para que no
+    resbale. Con un 10 % menos: la zarpa no apoya plana todo el apoyo."""
+    T = ANIMS[nombre]['dur']
+    ps = np.array([rj.a_bloques(rj.punto(pose_en(nombre, T * k / n), pieza, local)) for k in range(n)])
+    dz = np.diff(ps[:, 2]) / (T / n * 20)
+    apoyo = ps[:-1, 1] < ps[:, 1].min() + 0.08
+    return round(float(-dz[apoyo].mean()) * 0.9, 3)
 
 
 # ----------------------------------------------------------------------

@@ -153,6 +153,17 @@ public final class AtalayaSonidos {
     public static SoundEvent RAJANG_TAMBALEO;
     public static SoundEvent RAJANG_LIBERACION;
     public static SoundEvent RAJANG_DISOLVER;
+    // Las mejoras de octubre de 2026 (al final de rajang_sonidos.py, con su propia semilla)
+    public static SoundEvent RAJANG_EMBESTIDA_AVISO;
+    public static SoundEvent RAJANG_EMBESTIDA;
+    public static SoundEvent RAJANG_EMBESTIDA_FRENA;
+    public static SoundEvent RAJANG_ESTAMPADO;
+    public static SoundEvent RAJANG_TUMBA;
+    public static SoundEvent RAJANG_TUMBA_ESTALLA;
+    public static SoundEvent RAJANG_FURIA;
+    public static SoundEvent RAJANG_ESCALON_TIEMBLA;
+    public static SoundEvent RAJANG_ESCALON_CAE;
+    public static SoundEvent RAJANG_TOTEM_PULSO;
 
     private AtalayaSonidos() {
     }
@@ -288,6 +299,16 @@ public final class AtalayaSonidos {
         RAJANG_TAMBALEO = registrar("rajang.tambaleo");
         RAJANG_LIBERACION = registrar("rajang.liberacion");
         RAJANG_DISOLVER = registrar("rajang.disolver");
+        RAJANG_EMBESTIDA_AVISO = registrar("rajang.embestida_aviso");
+        RAJANG_EMBESTIDA = registrar("rajang.embestida");
+        RAJANG_EMBESTIDA_FRENA = registrar("rajang.embestida_frena");
+        RAJANG_ESTAMPADO = registrar("rajang.estampado");
+        RAJANG_TUMBA = registrar("rajang.tumba");
+        RAJANG_TUMBA_ESTALLA = registrar("rajang.tumba_estalla");
+        RAJANG_FURIA = registrar("rajang.furia");
+        RAJANG_ESCALON_TIEMBLA = registrar("rajang.escalon_tiembla");
+        RAJANG_ESCALON_CAE = registrar("rajang.escalon_cae");
+        RAJANG_TOTEM_PULSO = registrar("rajang.totem_pulso");
     }
 
     private static SoundEvent registrar(String nombre) {

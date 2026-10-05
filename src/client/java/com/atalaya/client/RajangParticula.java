@@ -21,6 +21,10 @@ import org.joml.Quaternionf;
  * los ticks que duran en la Y; la onda sacude la camara de quien este cerca.
  * Las que son luz (chispa, llama, runa, oro y las de suelo) no se oscurecen de
  * noche. Las piedras y las astillas caen con su peso y rebotan.
+ *
+ * El circulo de la Tumba de Raices no es una particula: lo pinta
+ * {@link RajangRenderer}, porque el juego descarta una particula cuando su
+ * centro sale de la vista, y la Tumba mide 72 bloques.
  */
 public class RajangParticula extends SingleQuadParticle {
 

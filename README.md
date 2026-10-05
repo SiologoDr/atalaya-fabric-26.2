@@ -1153,11 +1153,21 @@ fase.
 
 **El primer jefe que corre.** Anda y galopa a cuatro patas. Mezcla el paso y el
 galope según la velocidad, con relojes que avanzan al ritmo del suelo para que
-las zarpas no resbalen. Lo que hace depende de lo lejos que esté su objetivo:
+las zarpas no resbalen. Lo que corre cada zarpa al apoyar lo mide
+`rajang_juego_anim.py` y lo deja en `RajangGeometria` (`ZANCADA_ANDAR`,
+`ZANCADA_CORRER`), así que tocar una animación no hace patinar los pies. El galope
+está hecho para 1 bloque/tick y él va a 0,86, así que su reloj nunca baja del 80 %
+(a la mitad se veía pesado); las zarpas resbalan un poco. Lo que hace depende de
+lo lejos que esté su objetivo:
 
-- a más de 16 bloques, corre;
-- entre 7 y 16, anda;
-- a menos de 7, se planta.
+- a más de 10 bloques, galopa: unos 17 bloques/s (20 en la fase IV);
+- entre 6 y 10, lo acecha a paso vivo y largo, a unos 6,5 bloques/s;
+- a menos de 6, se planta.
+
+El paso es el **lateral** de los felinos de verdad: atrás izquierda, delante
+izquierda, atrás derecha, delante derecha. Lleva la cabeza baja de acecho, y los
+hombros suben y bajan con cada mano. El galope es rotatorio y tiene tiempo en el
+aire.
 
 **Varias cajas de golpe.** Con 17 bloques de largo, una sola caja o deja la
 cabeza fuera o le ocupa media plaza. Por eso la caja principal tapa el pecho y
@@ -1172,18 +1182,24 @@ las patas delanteras, y la cabeza y la grupa llevan cajas propias
 
 | Fase | Nombre | Qué se añade |
 |---|---|---|
-| I | Selva | Garra Terrestre, Terremoto Ancestral |
-| II | Grieta | Sello de la Tierra |
+| I | Selva | Garra Terrestre, Terremoto Ancestral, **Embestida de Jade** |
+| II | Grieta | Sello de la Tierra, **Tumba de Raíces** |
 | III | Raíz | Cataclismo de Jade |
 | IV | Corazón | el peto revienta; **Salto**; el Cataclismo vuelve antes |
 
+Desde la prueba de octubre de 2026, en las fases II, III y IV pega un 8, un 12 y
+un 15 % más, ataca más rápido (`ritmo()` ×1,22, ×1,4 y ×1,56) y espera menos
+entre un ataque y otro (enfriamientos ×0,84, ×0,72 y ×0,6).
+
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
-| **Garra Terrestre** | zarpazo en abanico de 125° y una fila de picos de roca que corre hasta la presa. La avisan una grieta y un hexágono | 34 / 42 / 53 / 70 | salir del frente y del hexágono. El escudo para el zarpazo |
-| **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 8 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores. Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 37 / 44 / 55 | apartarse del hexágono y no pegarle con la Piel puesta |
-| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune | — | **subir y romper los cuatro tótems** (6 + jugadores/4 golpes cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques. Solo salva un tótem |
-| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos: uno sobre cada jugador y más al azar, con una marca que cuenta atrás 1,5 s | encima: **mata**; cerca: 54 / 67 | apartarse de la marca. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
-| **Salto** (fase IV) | salta en parábola sobre la presa | 70 en 6,5 bloques | apartarse cuando despega |
+| **Garra Terrestre** | zarpazo en abanico de 125° que te **empuja unos 6 bloques** y una fila de picos de roca que corre hasta la presa. La avisan una grieta y un hexágono. Cada pico te **lanza unos 10 bloques** y te deja el **Peso 3 s** | 34 / 45 / 59 / 80 | salir del frente y del hexágono. El escudo para el zarpazo |
+| **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 8 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores (pegan a 2,5–3,2 bloques de su centro), que **lanzan unos 10 bloques** y dejan el Peso 3 s. Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 40 / 49 / 63 | apartarse del hexágono y no pegarle con la Piel puesta |
+| **Embestida de Jade** | se agazapa y rasca el suelo mientras una **flecha** en el suelo marca por dónde va a cargar (1,15 s en la fase I, 0,75 s en la IV; al llenarse, el rumbo queda fijo). Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
+| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** (1 s), se cae y vuelve a los 3 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (6 + jugadores/4 golpes cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
+| **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s | salir del círculo: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
+| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás 1,2 s (es de reflejos) | encima (4,8 a 5,7 bloques): **mata**; cerca (hasta 12): 60 / 77 | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
+| **Salto** (fase IV) | salta en parábola sobre la presa | 80 en 6,5 bloques | apartarse cuando despega |
 
 **Las columnas del Sello son entidades, no bloques.** Son pisables a cualquier
 altura gracias a un truco: el juego solo busca choques con entidades cuyo origen
@@ -1191,6 +1207,27 @@ esté a unos 4 bloques por debajo de quien se mueve, así que la columna crea
 tramos invisibles apilados.
 
 Un tótem roto se queda roto, y después de cada Sello hay 2 minutos de descanso.
+Las tres piedras de abajo de cada espiral no caen nunca, y en cada columna se
+cae como mucho una a la vez. Como cada piedra está un bloque más alta que la
+anterior, si falta una el salto siguiente es de dos: toca esperar a que vuelva.
+
+**La Furia de Jade.** Si el Sello falla, a los que sobrevivan al Rugido de Jade
+se lo encuentran con un aura verde: la misma malla un poco hinchada con bandas
+que le corren despacio por encima, como la carga del creeper pero a un quinto de
+su velocidad (`RajangFuriaLayer`, sobre la capa de vanilla). Con la Furia:
+
+- ataca un 25 % más rápido;
+- pega un 35 % más en todo lo que no sea ya mortal;
+- espera un 35 % menos entre ataques, y la mitad entre uno y otro;
+- corre un 15 % más.
+
+Le dura hasta que lo derriben: un Sello superado o un Cataclismo sin muertes.
+En la barra, el rótulo pasa a **FURIA** y la energía late en verde vivo.
+
+> Estas mejoras salen de las pruebas del grupo de octubre de 2026 («tosco y
+> lento»). La ficha con los renders y las cifras está en
+> `materiales/fichas/rajang_mejoras/`, con las hojas de control de las
+> animaciones de antes y de después.
 
 ---
 
@@ -1284,11 +1321,27 @@ Los scripts de cada jefe:
 |---|---|---|---|---|
 | Nerea | `nerea_modelo`, `nerea_b_modelo`, `nerea_c_modelo`, `nerea_escenas`, `nerea_v2`, `nerea_c_escenas` | `nerea_juego`, `nerea_fisica`, `nerea_juego_anim` | `nerea_extras`, `nerea_hud`, `nerea_sonidos` | `nerea_poster`, `video/nerea_teaser` |
 | Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas` | `vendaval_juego`, `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_hud`, `aeralis_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
-| Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_hud`, `rajang_sonidos` | `rajang_poster`, `video/rajang_teaser` |
+| Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas`, `rajang_mejoras_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_mejoras_extras`, `rajang_hud`, `rajang_sonidos`, `rajang_mejoras_sonidos` | `rajang_poster`, `video/rajang_teaser` |
 
 Los nombres de los scripts del boceto van por **elemento** (`viento_`,
 `tierra_`) y los del juego por **jefe**, porque el nombre se decidió después del
 diseño.
+
+**Cómo se añade algo a un jefe que ya existe** (lo que se hizo con las mejoras
+de Rajang), sin regenerar lo que ya está:
+
+- **Texturas nuevas**: en un script aparte (`rajang_mejoras_extras.py`) que
+  solo escribe ficheros nuevos. Volver a pasar `rajang_extras.py` reescribiría
+  todos los PNG, y otra versión de Pillow puede cambiar los bytes aunque los
+  píxeles sean los mismos.
+- **Sonidos nuevos**: al **final** de `rajang_sonidos.py`, con **su propia
+  semilla**, para que los de antes no cambien. Como ese script borra la carpeta
+  y los rehace todos, `rajang_mejoras_sonidos.py` toma de él las herramientas y
+  solo el bloque nuevo, y añade sus eventos a `sounds.json` sin quitar los
+  demás. Una pasada entera da el mismo resultado.
+- **Animaciones**: en `rajang_juego_anim.py`, y se regenera con
+  `RAJANG_SIN_TEXTURAS=1` para no reescribir las pieles. Las hojas de control de
+  antes y de después se guardan junto a la ficha.
 
 > **Ojo con los imports.** Los `*_escenas.py` leen `sys.argv` y crean carpetas
 > **al importarse**. Por eso los pósters y los teasers cambian `sys.argv` un
@@ -1409,7 +1462,7 @@ El esquema es siempre el mismo:
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `aturdida`, `agotada`, `fase`, `liberar` |
-| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `sello`, `romper` (rompe los tótems), `cataclismo`, `salto`, `aturdido`, `paralizado`, `fase`, `liberar` |
+| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
 En las órdenes de los jefes:
@@ -1502,6 +1555,10 @@ python -m pip install numpy scipy soundfile pillow imageio-ffmpeg
 |---|---|
 | `numpy`, `pillow` | todo: texturas, el renderizador 3D, las fichas y los pósters |
 | `scipy`, `soundfile` | los sonidos. `soundfile` trae libsndfile con Vorbis, así que escribe `.ogg` sin nada más |
+
+> Si Windows rechaza una DLL de scipy al importarla («Una directiva de Control de
+> aplicaciones bloqueó este archivo», en `scipy.spatial._qhull`), instala
+> `scipy==1.16.3`: en la máquina del trabajo la 1.18 estaba bloqueada y esa no.
 | `imageio-ffmpeg` | los teasers. Trae su propio ffmpeg: no hace falta instalarlo aparte |
 
 Y las **fuentes**: los pósters, las fichas y los teasers las cargan de
@@ -1604,6 +1661,25 @@ esté tapada o sin foco.
    el chat.
 
 Sin el fichero no hace nada.
+
+### Escenas de prueba en el juego
+
+`materiales/generadores/rajang_escenas_juego.py` escribe un datapack
+(`materiales/escenas/atalaya_escenas/`) que monta cada ataque de Rajang delante
+de la cámara, con maniquíes de presa, y saca una foto en el momento justo.
+
+```bash
+python materiales/generadores/rajang_escenas_juego.py . run/saves/<mundo> [--auto]
+```
+
+- En el juego: `/function escenas:recorrido` (todas, unos 2 minutos),
+  `/function escenas:<escena>` (una) y `/function escenas:parar`.
+- Necesita un mundo plano. Si hay un pueblo cerca, el recorrido se monta a 120
+  bloques de él, porque Rajang iría a por los aldeanos.
+- Con `--auto`, el recorrido arranca solo al abrir el mundo. Después hay que
+  generarlo otra vez sin `--auto`.
+- Para entrar directo al mundo:
+  `gradlew runClient --args="--quickPlaySingleplayer <mundo>"`.
 
 ---
 
@@ -1936,6 +2012,10 @@ jugable, pero conviene saberlo antes de tocar cerca.
 
 - **Sonido `rajang.totem_rehace`.** Sigue registrado, pero desde que los tótems
   del Sello dejaron de rehacerse nadie lo usa.
+- **Las mejoras de Rajang de octubre de 2026 no se han probado en una partida.**
+  Compilan y sus recursos cargan sin errores en el cliente de desarrollo, pero
+  los números (velocidades, radios, lanzamientos) y las animaciones nuevas
+  están por ajustar jugando.
 - **Partícula `rajang_sello`.** Tiene sprites, pero el servidor no la emite nunca.
 - **`rajang_coloso.png`.** El docstring de `rajang_juego.py` lo promete, pero no
   se genera. El "Coloso de Tierra" del Sello se quedó en la ficha de diseño.
@@ -1950,7 +2030,6 @@ jugable, pero conviene saberlo antes de tocar cerca.
 - `AeralisEntity` cita a "Nerea, 11 250"; son 12 500.
 - Varios comentarios de daño en `TornadoAeralis`, `CuchillaViento` y
   `NucleoViento` también son anteriores al balance.
-- `RajangEntity` habla de "tres oleadas"; son seis.
 - `AtalayaClient` dice que Nerea tiene "diez" partículas y Rajang "catorce"; son
   13 y 15.
 - `fabric.mod.json` describe el mod sin Aeralis ni Rajang.

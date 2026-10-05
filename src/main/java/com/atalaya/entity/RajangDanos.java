@@ -24,6 +24,10 @@ import org.jspecify.annotations.Nullable;
  *               escudo, ni encantamientos, ni Resistencia; el totem de la
  *               inmortalidad si vale)
  *   impacto     Cerca del impacto de un fragmento: cuenta como explosion
+ *   embestida   Su cuerpo a la carrera y los pinchos de la Embestida: la muerte,
+ *               como el fragmento (solo salva un totem)
+ *   raiz        La Tumba de Raices llena: la muerte, igual
+ *   pulso       El pulso de tierra de un totem del Sello roto
  * </pre>
  */
 public final class RajangDanos {
@@ -34,6 +38,9 @@ public final class RajangDanos {
     public static final ResourceKey<DamageType> RUGIDO = clave("rajang_rugido");
     public static final ResourceKey<DamageType> FRAGMENTO = clave("rajang_fragmento");
     public static final ResourceKey<DamageType> IMPACTO = clave("rajang_impacto");
+    public static final ResourceKey<DamageType> EMBESTIDA = clave("rajang_embestida");
+    public static final ResourceKey<DamageType> RAIZ = clave("rajang_raiz");
+    public static final ResourceKey<DamageType> PULSO = clave("rajang_pulso");
 
     private RajangDanos() {
     }

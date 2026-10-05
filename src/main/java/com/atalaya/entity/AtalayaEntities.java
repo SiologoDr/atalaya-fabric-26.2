@@ -164,7 +164,7 @@ public final class AtalayaEntities {
                         .eyeHeight(9.0F)
                         .fireImmune()
                         .clientTrackingRange(24)
-                        .updateInterval(2)
+                        .updateInterval(1)
                         .build(CLAVE_AERALIS));
         FabricDefaultAttributeRegistry.register(AERALIS, AeralisEntity.crearAtributos());
 
@@ -199,14 +199,15 @@ public final class AtalayaEntities {
 
     private static void registrarRajang() {
         // La caja tapa el pecho y las patas de delante (el origen va al pecho):
-        // la cabeza y la grupa llevan cajas propias. Se ve desde muy lejos.
+        // la cabeza y la grupa llevan cajas propias. Se ve desde muy lejos. Su
+        // posicion se manda cada tick: a 17-20 bloques/s, cada dos se veia a saltos.
         RAJANG = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_RAJANG,
                 EntityType.Builder.of(RajangEntity::new, MobCategory.MONSTER)
                         .sized(6.0F, 7.6F)
                         .eyeHeight(6.2F)
                         .fireImmune()
                         .clientTrackingRange(24)
-                        .updateInterval(2)
+                        .updateInterval(1)
                         .build(CLAVE_RAJANG));
         FabricDefaultAttributeRegistry.register(RAJANG, RajangEntity.crearAtributos());
 

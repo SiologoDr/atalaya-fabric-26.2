@@ -22,7 +22,7 @@ import net.minecraft.util.Mth;
  * mas deprisa y mas fuerte, y en la III y la IV con una segunda pasada que lo
  * enciende del todo. Dormido, respira despacio; mientras sostiene el Sello o
  * ruge al cielo, late fuerte; aturdido o paralizado, parpadea como una brasa
- * que se apaga.
+ * que se apaga. Con la Furia de Jade, todo encendido.
  */
 public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangModel> {
 
@@ -48,9 +48,10 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
         float k = 1.0F - s.disolver;
         switch (s.estado) {
             case RajangEntity.DORMIDO -> k *= 0.45F + 0.25F * Mth.sin(s.ageInTicks * 0.06F);
-            case RajangEntity.SELLO, RajangEntity.RUGIDO, RajangEntity.CATACLISMO, RajangEntity.CATACLISMO_SOSTIENE ->
+            case RajangEntity.SELLO, RajangEntity.RUGIDO, RajangEntity.CATACLISMO, RajangEntity.CATACLISMO_SOSTIENE,
+                 RajangEntity.EMBESTIDA_AVISO, RajangEntity.EMBESTIDA, RajangEntity.TUMBA ->
                     k *= 0.85F + 0.15F * Mth.sin(s.ageInTicks * 0.5F);
-            case RajangEntity.ATURDIDO, RajangEntity.PARALIZADO -> {
+            case RajangEntity.ATURDIDO, RajangEntity.PARALIZADO, RajangEntity.ESTAMPADO -> {
                 if (((int) s.ageInTicks % 7) < 2) {
                     k *= 0.3F;
                 }
@@ -68,8 +69,12 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
         RenderType tipo = s.libre ? LIBRE : FASES[Math.clamp(s.fase, 1, 4) - 1];
         colector.order(1).submitModel(getParentModel(), s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,
                 ARGB.colorFromFloat(k, k, k, k), null, s.outlineColor, null);
-        // En la III y la IV la maldicion lo enciende del todo: una segunda pasada encima.
+        // En la III y la IV la maldicion lo enciende del todo: una segunda pasada encima
+        // (y con la Furia, aun mas).
         float extra = s.libre || s.deathTime > 0 ? 0.0F : s.fase >= 4 ? 0.7F : s.fase == 3 ? 0.35F : 0.0F;
+        if (s.furia && !s.libre && s.deathTime <= 0) {
+            extra = Math.min(1.0F, extra + 0.5F);
+        }
         if (extra > 0.0F) {
             float e = k * extra;
             colector.order(2).submitModel(getParentModel(), s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,

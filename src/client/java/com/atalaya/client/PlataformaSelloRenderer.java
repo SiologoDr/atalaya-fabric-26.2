@@ -54,6 +54,8 @@ public class PlataformaSelloRenderer extends EntityRenderer<PlataformaSelloEntit
         public int nace;
         public int seVa;
         public float vuelo;
+        /** El escalon que tiembla, se cae y vuelve: tick en que empezo (-1: firme). */
+        public int tiembla;
     }
 
     /** La geometria de una pieza (sale de su semilla: se calcula una vez). */
@@ -83,6 +85,7 @@ public class PlataformaSelloRenderer extends EntityRenderer<PlataformaSelloEntit
         s.nace = p.getNace();
         s.seVa = p.getSeVa();
         s.vuelo = p.getVuelo();
+        s.tiembla = p.getTiembla();
     }
 
     @Override
@@ -110,6 +113,23 @@ public class PlataformaSelloRenderer extends EntityRenderer<PlataformaSelloEntit
             // Sube volando desde el suelo, girando.
             pose.translate(0.0, -s.vuelo * (1.0F - k), 0.0);
             pose.mulPose(Axis.YP.rotationDegrees(220.0F * (1.0F - k)));
+        } else if (s.tiembla >= 0) {
+            // El escalon que se cae: tiembla, cae deshaciendose, falta un rato y vuelve volando.
+            float[] c = PlataformaSelloEntity.caida(s.edad, s.tiembla);
+            if (c[2] <= 0.01F) {
+                pose.popPose();
+                return;
+            }
+            if (c[1] > 0.0F) {
+                float a = c[1] * 0.09F;
+                pose.translate(Math.sin(s.edad * 2.9) * a, Math.sin(s.edad * 4.3) * a * 0.5, Math.cos(s.edad * 3.7) * a);
+                pose.mulPose(Axis.ZP.rotationDegrees((float) Math.sin(s.edad * 3.3) * 3.0F * c[1]));
+            }
+            pose.translate(0.0, -c[0], 0.0);
+            if (c[0] > 0.0F && c[1] <= 0.0F) {
+                pose.mulPose(Axis.XP.rotationDegrees(c[0] * 4.0F));
+            }
+            pose.scale(c[2], c[2], c[2]);
         }
         int luz = s.lightCoords;
         colector.submitCustomGeometry(pose, ROCA, (p, buf) -> RajangDibujo.emitir(buf, p, g.roca(), 255, 255, 255, 255, luz));

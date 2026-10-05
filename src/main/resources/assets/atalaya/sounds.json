@@ -879,5 +879,68 @@
       "atalaya:rajang/zarpazo1",
       "atalaya:rajang/zarpazo2"
     ]
+  },
+  "rajang.embestida_aviso": {
+    "subtitle": "subtitles.atalaya.rajang.embestida_aviso",
+    "sounds": [
+      "atalaya:rajang/embestida_aviso1",
+      "atalaya:rajang/embestida_aviso2"
+    ]
+  },
+  "rajang.embestida": {
+    "subtitle": "subtitles.atalaya.rajang.embestida",
+    "sounds": [
+      "atalaya:rajang/embestida"
+    ]
+  },
+  "rajang.embestida_frena": {
+    "subtitle": "subtitles.atalaya.rajang.embestida_frena",
+    "sounds": [
+      "atalaya:rajang/embestida_frena"
+    ]
+  },
+  "rajang.estampado": {
+    "subtitle": "subtitles.atalaya.rajang.estampado",
+    "sounds": [
+      "atalaya:rajang/estampado"
+    ]
+  },
+  "rajang.tumba": {
+    "subtitle": "subtitles.atalaya.rajang.tumba",
+    "sounds": [
+      "atalaya:rajang/tumba"
+    ]
+  },
+  "rajang.tumba_estalla": {
+    "subtitle": "subtitles.atalaya.rajang.tumba_estalla",
+    "sounds": [
+      "atalaya:rajang/tumba_estalla"
+    ]
+  },
+  "rajang.furia": {
+    "subtitle": "subtitles.atalaya.rajang.furia",
+    "sounds": [
+      "atalaya:rajang/furia"
+    ]
+  },
+  "rajang.escalon_tiembla": {
+    "subtitle": "subtitles.atalaya.rajang.escalon_tiembla",
+    "sounds": [
+      "atalaya:rajang/escalon_tiembla1",
+      "atalaya:rajang/escalon_tiembla2"
+    ]
+  },
+  "rajang.escalon_cae": {
+    "subtitle": "subtitles.atalaya.rajang.escalon_cae",
+    "sounds": [
+      "atalaya:rajang/escalon_cae1",
+      "atalaya:rajang/escalon_cae2"
+    ]
+  },
+  "rajang.totem_pulso": {
+    "subtitle": "subtitles.atalaya.rajang.totem_pulso",
+    "sounds": [
+      "atalaya:rajang/totem_pulso"
+    ]
   }
 }

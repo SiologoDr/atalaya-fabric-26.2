@@ -1,6 +1,7 @@
 package com.atalaya.client;
 
 import com.atalaya.Atalaya;
+import com.atalaya.entity.RajangEntity;
 import net.minecraft.client.animation.KeyframeAnimation;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -29,6 +30,9 @@ public class RajangModel extends EntityModel<RajangRenderState> {
 
     public static final ModelLayerLocation CAPA = new ModelLayerLocation(
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "rajang"), "main");
+    /** La misma malla hinchada, para el aura de la Furia. */
+    public static final ModelLayerLocation CAPA_AURA = new ModelLayerLocation(
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "rajang"), "aura");
 
     /** Cuanto crecen los cristales en cada fase. */
     private static final float[] CRECEN = {1.0F, 1.0F, 1.12F, 1.3F, 1.55F};
@@ -52,6 +56,11 @@ public class RajangModel extends EntityModel<RajangRenderState> {
     private final KeyframeAnimation paralizado;
     private final KeyframeAnimation salto;
     private final KeyframeAnimation tambaleo;
+    private final KeyframeAnimation embestidaAviso;
+    private final KeyframeAnimation embestida;
+    private final KeyframeAnimation embestidaFrena;
+    private final KeyframeAnimation estampado;
+    private final KeyframeAnimation tumba;
     private final KeyframeAnimation liberacion;
 
     public RajangModel(ModelPart raiz) {
@@ -77,6 +86,11 @@ public class RajangModel extends EntityModel<RajangRenderState> {
         this.paralizado = RajangAnimaciones.PARALIZADO.bake(raiz);
         this.salto = RajangAnimaciones.SALTO.bake(raiz);
         this.tambaleo = RajangAnimaciones.TAMBALEO.bake(raiz);
+        this.embestidaAviso = RajangAnimaciones.EMBESTIDA_AVISO.bake(raiz);
+        this.embestida = RajangAnimaciones.EMBESTIDA.bake(raiz);
+        this.embestidaFrena = RajangAnimaciones.EMBESTIDA_FRENA.bake(raiz);
+        this.estampado = RajangAnimaciones.ESTAMPADO.bake(raiz);
+        this.tumba = RajangAnimaciones.TUMBA.bake(raiz);
         this.liberacion = RajangAnimaciones.LIBERACION.bake(raiz);
     }
 
@@ -87,9 +101,10 @@ public class RajangModel extends EntityModel<RajangRenderState> {
         if (!muriendo) {
             if (s.pesoLibre > 0.0F) {
                 // Quieto, al paso o al galope, segun lo deprisa que va.
-                // Al paso va a ~0.11 bloques por tick y al galope a ~0.5: entre medias, poco rato.
+                // Al paso (acechando) va a ~0.26 bloques por tick (0.35 con la Furia) y al galope
+                // a ~0.7: el cambio, alrededor de RajangEntity.VEL_GALOPE, dura poco.
                 float anda = Mth.clamp(s.velocidad / 0.06F, 0.0F, 1.0F);
-                float corre = Mth.clamp((s.velocidad - 0.16F) / 0.18F, 0.0F, 1.0F);
+                float corre = Mth.clamp((s.velocidad - (RajangEntity.VEL_GALOPE - 0.08F)) / 0.16F, 0.0F, 1.0F);
                 reposo.apply((long) (s.ageInTicks * 50.0F), s.pesoLibre * (1.0F - anda));
                 andar.apply((long) s.relojAndar, s.pesoLibre * anda * (1.0F - corre));
                 correr.apply((long) s.relojCorrer, s.pesoLibre * anda * corre);
@@ -107,6 +122,11 @@ public class RajangModel extends EntityModel<RajangRenderState> {
             paralizado.apply(s.paralizado, s.ageInTicks, 1.0F);
             salto.apply(s.salto, s.ageInTicks, s.ritmo);
             tambaleo.apply(s.tambaleo, s.ageInTicks, 1.0F);
+            embestidaAviso.apply(s.embestidaAviso, s.ageInTicks, s.ritmo);
+            embestida.apply(s.embestida, s.ageInTicks, 1.0F);
+            embestidaFrena.apply(s.embestidaFrena, s.ageInTicks, 1.0F);
+            estampado.apply(s.estampado, s.ageInTicks, 1.0F);
+            tumba.apply(s.tumba, s.ageInTicks, 1.0F);
         }
         liberacion.apply(s.liberacion, s.ageInTicks);
         crecer(CRECEN[Mth.clamp(s.fase, 1, 4)]);

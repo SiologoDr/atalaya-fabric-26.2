@@ -39,6 +39,11 @@ import java.util.List;
  * Al acabar el Sello se hunden (la columna) o se desmoronan (las piedras); a
  * quien este encima no le duele la caida. No se guardan con el mundo.
  *
+ * Mientras dura, la escalera no se queda quieta: Rajang hace temblar una
+ * piedra cada poco (un segundo, con polvo y crujidos), se cae (y quien estuviera
+ * encima con ella) y a los tres segundos vuelve volando a su sitio. Sin ella,
+ * el siguiente salto es de dos bloques: toca esperar.
+ *
  * El juego solo busca choques con entidades cuyo origen este a menos de unos
  * 4 bloques por debajo de quien se mueve: la columna, ya arriba, se pisa por
  * sus tramos (cajas invisibles de 3 bloques apiladas, del tipo TRAMO).
@@ -60,6 +65,11 @@ public class PlataformaSelloEntity extends Entity {
     public static final int CAE = 14;
     /** Grueso de la losa que se pisa de una piedra. */
     public static final float GRUESO = 0.6F;
+    /** El escalon que se cae: lo que tiembla, lo que esta fuera y lo que tarda en volver (CAE y VUELA, los de arriba). */
+    public static final int TIEMBLA = 20;
+    public static final int FUERA = 60;
+    /** Lo que cae un escalon antes de deshacerse. */
+    public static final float CAIDA = 6.0F;
 
     private static final EntityDataAccessor<Integer> DATA_TIPO =
             SynchedEntityData.defineId(PlataformaSelloEntity.class, EntityDataSerializers.INT);
@@ -78,8 +88,14 @@ public class PlataformaSelloEntity extends Entity {
     /** Tick en que empezo a irse (-1: sigue en pie). */
     private static final EntityDataAccessor<Integer> DATA_SE_VA =
             SynchedEntityData.defineId(PlataformaSelloEntity.class, EntityDataSerializers.INT);
+    /** Tick (de la propia pieza) en que empezo a temblar el escalon (-1: firme). */
+    private static final EntityDataAccessor<Integer> DATA_TIEMBLA =
+            SynchedEntityData.defineId(PlataformaSelloEntity.class, EntityDataSerializers.INT);
 
     private @Nullable RajangEntity dueno;
+    /** Solo servidor: la columna (0-3) y el escalon (0 el de abajo) de una piedra. */
+    private int columna = -1;
+    private int escalon = -1;
     private float altoVisto = -1.0F;
     private final List<PlataformaSelloEntity> tramos = new ArrayList<>();
 
@@ -98,11 +114,74 @@ public class PlataformaSelloEntity extends Entity {
         return p;
     }
 
-    /** Una piedra del parkour con su cara de arriba a la altura 'arriba'; vuela a su sitio en 'retraso' ticks. */
-    public static PlataformaSelloEntity piedra(ServerLevel nivel, RajangEntity dueno, Vec3 centro, double arriba, float ancho, int retraso) {
+    /**
+     * Una piedra del parkour con su cara de arriba a la altura 'arriba'; vuela a
+     * su sitio en 'retraso' ticks. Es el escalon 'escalon' de la columna 'columna'.
+     */
+    public static PlataformaSelloEntity piedra(ServerLevel nivel, RajangEntity dueno, Vec3 centro, double arriba, float ancho, int retraso,
+                                               int columna, int escalon) {
         PlataformaSelloEntity p = crear(nivel, dueno, PIEDRA, new Vec3(centro.x, arriba - GRUESO, centro.z), ancho, GRUESO, retraso);
         p.entityData.set(DATA_VUELO, (float) Math.max(1.0, arriba - centro.y));
+        p.columna = columna;
+        p.escalon = escalon;
         return p;
+    }
+
+    public int getColumna() {
+        return columna;
+    }
+
+    public int getEscalon() {
+        return escalon;
+    }
+
+    public int getTiembla() {
+        return entityData.get(DATA_TIEMBLA);
+    }
+
+    /** Tiembla, se ha caido o esta volviendo. */
+    public boolean enCaida() {
+        return getTiembla() >= 0;
+    }
+
+    /** El escalon empieza a temblar; en un segundo se cae. */
+    public void temblar(ServerLevel nivel) {
+        if (getTipo() != PIEDRA || enCaida() || !firme()) {
+            return;
+        }
+        entityData.set(DATA_TIEMBLA, tickCount);
+        nivel.playSound(null, getX(), getY(), getZ(), AtalayaSonidos.RAJANG_ESCALON_TIEMBLA, SoundSource.HOSTILE, 2.0F,
+                0.9F + random.nextFloat() * 0.2F);
+    }
+
+    /**
+     * Donde esta un escalon que se cae, respecto a su sitio: cuanto baja y cuanto
+     * tiembla (de 0 a 1) y su tamano (se deshace al final de la caida). -1 en la
+     * caida: no esta.
+     */
+    public static float[] caida(float edad, int tiembla) {
+        if (tiembla < 0) {
+            return null;
+        }
+        float e = edad - tiembla;
+        if (e < TIEMBLA) {
+            return new float[]{0.0F, 0.4F + 0.6F * e / TIEMBLA, 1.0F};
+        }
+        e -= TIEMBLA;
+        if (e < CAE) {
+            float k = e / CAE;
+            return new float[]{CAIDA * k * k, 0.0F, 1.0F - 0.6F * k};
+        }
+        e -= CAE;
+        if (e < FUERA) {
+            return new float[]{CAIDA, 0.0F, 0.0F};
+        }
+        e -= FUERA;
+        if (e < VUELA) {
+            float k = 1.0F - (float) Math.pow(1.0F - e / VUELA, 3);
+            return new float[]{CAIDA * (1.0F - k), 0.0F, 0.4F + 0.6F * k};
+        }
+        return new float[]{0.0F, 0.0F, 1.0F};
     }
 
     private static PlataformaSelloEntity crear(ServerLevel nivel, RajangEntity dueno, int tipo, Vec3 donde, float ancho,
@@ -130,6 +209,7 @@ public class PlataformaSelloEntity extends Entity {
         datos.define(DATA_NACE, 0);
         datos.define(DATA_VUELO, 0.0F);
         datos.define(DATA_SE_VA, -1);
+        datos.define(DATA_TIEMBLA, -1);
     }
 
     public int getTipo() {
@@ -187,9 +267,15 @@ public class PlataformaSelloEntity extends Entity {
         return salida(getTipo(), tickCount, getNace(), getSeVa());
     }
 
-    /** En pie y en su sitio: ya se puede pisar. */
+    /** En pie y en su sitio: ya se puede pisar (un escalon que tiembla aun aguanta; uno caido, no). */
     public boolean firme() {
         int tipo = getTipo();
+        if (tipo == PIEDRA && enCaida()) {
+            int e = tickCount - getTiembla();
+            if (e >= TIEMBLA && e < TIEMBLA + CAE + FUERA + VUELA) {
+                return false;
+            }
+        }
         return getSeVa() < 0 && tickCount >= getNace() + (tipo == PIEDRA ? VUELA : tipo == COLUMNA ? 2 : 0);
     }
 
@@ -260,6 +346,9 @@ public class PlataformaSelloEntity extends Entity {
             return;
         }
         int e = tickCount - getNace();
+        if (tipo == PIEDRA && enCaida()) {
+            tickCaida(nivel, tickCount - getTiembla());
+        }
         if (tipo == COLUMNA) {
             tickColumna(nivel, e);
         } else if (e == 0) {
@@ -268,6 +357,25 @@ public class PlataformaSelloEntity extends Entity {
         } else if (e == VUELA) {
             nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, getX(), getY() + GRUESO, getZ(), 6, getAncho() * 0.3,
                     0.1, getAncho() * 0.3, 0.02);
+        }
+    }
+
+    /** El escalon que tiembla, se cae, falta un rato y vuelve. */
+    private void tickCaida(ServerLevel nivel, int e) {
+        if (e < TIEMBLA && e % 4 == 0) {
+            nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, getX(), getY(), getZ(), 3, getAncho() * 0.3, 0.1,
+                    getAncho() * 0.3, 0.02);
+        }
+        if (e == TIEMBLA) {
+            nivel.playSound(null, getX(), getY(), getZ(), AtalayaSonidos.RAJANG_ESCALON_CAE, SoundSource.HOSTILE, 2.5F,
+                    0.9F + random.nextFloat() * 0.2F);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_ROCA, true, true, getX(), getY(), getZ(), 10, 0.5, 0.2, 0.5, 0.15);
+        }
+        if (e == TIEMBLA + CAE + FUERA) {
+            nivel.playSound(null, getX(), getY(), getZ(), AtalayaSonidos.RAJANG_PLATAFORMA, SoundSource.HOSTILE, 1.2F, 1.4F);
+        }
+        if (e >= TIEMBLA + CAE + FUERA + VUELA) {
+            entityData.set(DATA_TIEMBLA, -1);
         }
     }
 

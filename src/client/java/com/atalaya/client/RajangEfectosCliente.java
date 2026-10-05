@@ -52,7 +52,7 @@ public final class RajangEfectosCliente {
         int t = (int) ((r.tickCount - r.inicioEstado) * r.ritmoCliente);
         switch (e) {
             case RajangEntity.LIBRE -> {
-                if (r.velocidad > 0.3F && r.tickCount % 12 == 0) {
+                if (r.velocidad > RajangEntity.VEL_GALOPE && r.tickCount % 12 == 0) {
                     NereaPresencia.sacudir(x, y, z, 0.25F, 24);
                 }
                 hojas(nivel, r, yo);
@@ -107,6 +107,38 @@ public final class RajangEfectosCliente {
                 if (t == 2) {
                     NereaPresencia.sacudir(x, y, z, 2.0F, 56);
                     NereaPresencia.asustarTierra(x, y, z, 0.6F, 56);
+                }
+            }
+            case RajangEntity.EMBESTIDA_AVISO -> {
+                if (t == RajangGeometria.EMBESTIDA_RASCA_1 || t == RajangGeometria.EMBESTIDA_RASCA_2) {
+                    NereaPresencia.sacudir(x, y, z, 0.5F, 30);
+                }
+                if (t == 1) {
+                    NereaPresencia.asustarTierra(x, y, z, 0.35F, 40);
+                }
+            }
+            case RajangEntity.EMBESTIDA -> NereaPresencia.retumbar(x, y, z, 0.7F, 40);
+            case RajangEntity.EMBESTIDA_FRENA -> {
+                if (t < RajangGeometria.EMBESTIDA_FRENA_PARA) {
+                    NereaPresencia.retumbar(x, y, z, 0.45F, 36);
+                }
+            }
+            case RajangEntity.ESTAMPADO -> {
+                if (t == 1) {
+                    NereaPresencia.sacudir(x, y, z, 2.6F, 50);
+                }
+            }
+            case RajangEntity.TUMBA -> {
+                // El suelo tiembla cada vez mas mientras el circulo se llena; al llenarse, revienta.
+                if (t < RajangGeometria.TUMBA_ESTALLA) {
+                    NereaPresencia.retumbar(x, y, z, 0.15F + 0.5F * t / RajangGeometria.TUMBA_ESTALLA, 60);
+                    if (t == 2 && yo.distanceToSqr(r) < RajangEntity.TUMBA_RADIO * RajangEntity.TUMBA_RADIO) {
+                        NereaPresencia.asustarTierra(x, y, z, 0.7F, 40);
+                    }
+                }
+                if (t == RajangGeometria.TUMBA_ESTALLA) {
+                    NereaPresencia.sacudir(x, y, z, 3.0F, 64);
+                    NereaPresencia.asustarTierra(x, y, z, 0.9F, 40);
                 }
             }
             default -> {

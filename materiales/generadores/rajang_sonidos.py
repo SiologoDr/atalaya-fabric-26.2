@@ -53,6 +53,10 @@ assets/atalaya/sounds/rajang/, sus eventos en sounds.json
 (rajang.<evento>, subtitulo subtitles.atalaya.rajang.<evento>) y los textos
 de los subtitulos en materiales/generadores/rajang_subtitulos.json.
 
+Los de las mejoras de octubre de 2026 (embestida, tumba, furia, escalones y
+pulso del totem) van al final con su propia semilla: se pueden generar sueltos,
+sin tocar los demas, con rajang_mejoras_sonidos.py.
+
 Uso: python rajang_sonidos.py <raiz del proyecto> [hoja_espectrogramas.png]
 """
 import numpy as np
@@ -754,7 +758,10 @@ LARGOS = {'ambiente': 6.2, 'dormido': 7.0, 'paso': 1.4, 'herido': 1.4, 'inmune':
           'plataforma': 4.0, 'totem': 3.0, 'totem_golpe': 1.6, 'totem_roto': 3.2, 'totem_rehace': 3.4, 'columna': 6.5,
           'rugido_jade': 6.0, 'reloj': 0.6, 'cataclismo': 7.0, 'cielo': 5.0, 'fragmento': 2.8, 'impacto': 3.0,
           'marca': 1.8, 'salto': 1.6, 'aterriza': 3.0, 'aturdido': 4.5, 'paralizado': 5.0, 'cura': 3.0, 'tambaleo': 4.5,
-          'liberacion': 7.0, 'disolver': 3.6}
+          'liberacion': 7.0, 'disolver': 3.6,
+          # las mejoras de octubre de 2026
+          'embestida_aviso': 1.9, 'embestida': 2.6, 'embestida_frena': 2.4, 'estampado': 2.6, 'tumba': 3.9,
+          'tumba_estalla': 3.2, 'furia': 3.8, 'escalon_tiembla': 1.4, 'escalon_cae': 2.2, 'totem_pulso': 2.4}
 
 
 def sonoridad_a(x):
@@ -1335,6 +1342,138 @@ for i in range(2):
     guardar('zarpazo', reverb(mezclar(pico(barre, 1.0), pico(cortes, 0.8), pico(unas, 0.22), pico(hombro, 0.3),
                                       en(0.04, pico(boom(70, 40, 0.08), 0.35))), 0.22, 1.4), i + 1, limite=0.6)
 
+# ======================================================================
+#  MEJORAS DE OCTUBRE DE 2026. Con su propia semilla: anadirlas no cambia
+#  los de antes, y rajang_mejoras_sonidos.py las genera sueltas igual que
+#  en la pasada entera.
+# ======================================================================
+rng = np.random.default_rng(20261006)
+
+# EMBESTIDA (aviso): se agazapa gruñendo bajo, rasca dos veces la tierra con
+# la zarpa (la piedra que se arrastra, la tierra que se raja, la grava que
+# salta) y resopla antes de soltarse.
+for i in range(2):
+    gru = grunido(1.5, 54 + 4 * i, 0.4, 1.6)
+    rascas = []
+    for s in (0.38, 0.66):
+        raspa = moler(0.26, 1.3, (40, 90), 1.0) * campana_env(0.26, 1.2)
+        rascas.append(en(s, mezclar(pico(raspa, 0.8), pico(rajar_roca(5, 0.03, 1.0, 0.9), 0.6),
+                                    pico(grava(0.4, 900 * np.exp(-t_(0.4) / 0.08), (0.4, 2.5)), 0.4))))
+    sopla = bufido(66 + 6 * i, 0.45, 0.6)
+    guardar('embestida_aviso', reverb(mezclar(pico(gru, 0.9), *[pico(r_, 0.55) for r_ in rascas], en(1.05, pico(sopla, 0.8))),
+                                      0.22, 1.6), i + 1, limite=0.6)
+
+# EMBESTIDA (carga): una estampida de un animal de ocho bloques. Las cuatro
+# zarpas que caen a galope (cuatro golpes seguidos y un hueco), la tierra que
+# retumba bajo el, la grava que salta y el aire que arrastra. Arranca con un
+# rugido corto.
+d = 2.4
+t = t_(d)
+env = np.interp(t, [0, 0.15, 1.8, d], [0.3, 1.0, 0.9, 0])
+tierra = retumbo(d, 95, 3.2, 0.55, 1.0) * env
+caidas = []
+for k in range(4):
+    for j, off in enumerate((0.0, 0.07, 0.27, 0.34)):
+        s = 0.12 + k * 0.56 + off + rng.uniform(-0.01, 0.01)
+        if s < d - 0.3:
+            golpe = mezclar(pico(saturar(boom(78, 34, 0.07), 2.0), 0.8), pico(canto(rng.uniform(18, 26), 0.9, False), 0.7),
+                            pico(bp(ruido(0.12, 'rosa'), 120, 900) * caida(0.12, 0.03), 0.6))
+            caidas.append(en(s, golpe * (0.75 + 0.25 * (j % 2))))
+salta = grava(d, 1100 * env, (0.4, 4.0))
+aire = filtro_mov(ruido(d, 'rosa'), curva(n_(d), [(0, 300), (0.5, 900), (1, 400)]), 'band', 1.0) * env
+guardar('embestida', reverb(mezclar(pico(rugido(1.2, 66, 104, cola=0.8), 0.8), pico(tierra, 0.6), *[pico(c, 0.55) for c in caidas],
+                                    pico(salta, 0.35), pico(aire, 0.25)), 0.22, 1.8), limite=0.5)
+
+# EMBESTIDA (frenada): derrapa con las cuatro zarpas clavadas: la piedra que
+# se arrastra cada vez mas despacio, la tierra que se levanta en ola y las
+# chinas que saltan; al pararse, resuella dos veces.
+d = 2.4
+dl = 0.8
+arrastra = moler(dl, 1.8, (30, 80), 1.2, velocidad=curva(n_(dl), [(0, 1.4), (0.6, 0.8), (1, 0.1)])) * ventana(dl, 0.02, 0.3)
+ola = pb(ruido(1.2, 'rosa'), 1600) * np.interp(t_(1.2), [0, 0.1, 0.6, 1.2], [0, 1, 0.5, 0])
+chinas = grava(1.2, 1400 * np.exp(-t_(1.2) / 0.3), (0.4, 3.5))
+jadeo = mezclar(en(0.0, respiro(0.5, True, 52.0, 0.5)), en(0.6, respiro(0.45, False)), en(1.05, respiro(0.5, True, 50.0, 0.5)))
+guardar('embestida_frena', reverb(mezclar(pico(arrastra, 0.9), pico(ola, 0.4), pico(chinas, 0.4), en(0.9, pico(jadeo, 0.55))),
+                                  0.22, 1.6), limite=0.55)
+
+# ESTAMPADO: la carga contra un muro. El golpe de la cabeza de jade contra la
+# piedra, el muro que se raja, lo que cae, el jade que se queda vibrando y una
+# queja aturdida.
+d = 2.4
+choque = golpe_tierra(1.8, 1.6, 1.2, 2.4)
+timbre = jade(rng.uniform(420, 520), None, 0.6, JADE_TALLA, 1.0)
+muro = mezclar(*[en(s, rajar_roca(int(rng.integers(6, 12)), 0.05, 1.0, 0.9)) for s in np.sort(rng.uniform(0.02, 0.4, 4))])
+queja = quejido(0.9, 88)
+guardar('estampado', reverb(mezclar(pico(choque, 1.0), pico(timbre, 0.3), pico(muro, 0.5), en(0.55, pico(queja, 0.8))), 0.25, 2.0),
+        limite=0.5)
+
+# TUMBA DE RAICES: clava las garras y ruge contra el suelo (la voz ahogada
+# por la tierra), y la tierra contesta: un retumbo que crece, las raices que
+# se rajan cada vez mas deprisa y la maldicion que sube de tono. 3,5 s
+# exactos hasta el estallido.
+d = 3.8
+n = n_(d)
+t = t_(d)
+crece = np.interp(t, [0, 0.4, 3.4, 3.5, d], [0.1, 0.3, 1.0, 1.0, 0])
+tierra = retumbo(d, 90, 2.0, 0.6, 1.2) * crece
+raices = crepitar(d, 30 + 700 * np.clip(t / 3.5, 0, 1) ** 2, curva(n, [(0, 600), (0.9, 2600), (1, 2600)]), 1.4) * crece
+hum = maldicion(d, 55.0, 1.0) * crece
+voz = pb(rugido(3.3, 58, 92, cola=1.0, mezcla=0.2), 1300)
+guardar('tumba', reverb(mezclar(pico(tierra, 0.6), pico(raices, 0.35), pico(hum, 0.3), en(0.2, pico(voz, 0.9))), 0.3, 2.2, 4500),
+        limite=0.5)
+
+# TUMBA (estallido): el circulo se llena y la tierra revienta: el golpe hondo,
+# las raices de piedra que brotan por todas partes, la roca que se raja y lo
+# que llueve.
+d = 3.0
+golpe = golpe_tierra(2.2, 1.8, 1.6, 3.0)
+brotan = mezclar(*[en(s, brota(rng.uniform(0.25, 0.4), 1300, rng.uniform(220, 380), 1.2) * rng.uniform(0.6, 1.0))
+                   for s in np.sort(rng.uniform(0.0, 0.35, 8))])
+rajas = mezclar(*[en(s, rajar_roca(int(rng.integers(8, 16)), 0.06, 1.0, 0.8)) for s in rng.uniform(0.0, 0.5, 6)])
+guardar('tumba_estalla', reverb(mezclar(pico(golpe, 1.0), pico(brotan, 0.6), pico(rajas, 0.45)), 0.3, 2.4, 5000), limite=0.45)
+
+# FURIA DE JADE: la maldicion lo prende entero. Un rugido mas agudo y aspero,
+# el fuego verde que le corre por las grietas y la nota de la maldicion que
+# sube.
+d = 3.6
+t = t_(d)
+fuego = llama(d, 1.3, 13.0, 1.2) * np.interp(t, [0, 0.4, 2.8, d], [0, 1, 0.8, 0])
+hum = maldicion(d, 62.0, 1.3) * np.interp(t, [0, 0.6, 3.0, d], [0, 1, 0.7, 0])
+guardar('furia', reverb(mezclar(pico(rugido(3.2, 74, 122, cola=1.6), 1.0), pico(fuego, 0.5), pico(hum, 0.3),
+                                en(0.1, pico(glifo(260, 1.0, 1.4), 0.35))), 0.3, 2.2), limite=0.5)
+
+# ESCALON QUE TIEMBLA: la piedra que se suelta: un roce que va y viene, los
+# crujidos y un hilo de arenilla que cae.
+for i in range(2):
+    d = 1.2
+    t = t_(d)
+    vaiven = 0.5 + 0.5 * np.sin(2 * np.pi * (9 + 2 * i) * t)
+    roce = moler(d, 0.9, (25, 60), 0.6) * vaiven * np.interp(t, [0, 0.2, 1.0, d], [0.3, 1.0, 1.0, 0.6])
+    crujen = mezclar(*[en(s, rajar_roca(int(rng.integers(3, 6)), 0.03, 1.0, 1.0)) for s in np.sort(rng.uniform(0.1, 1.0, 4))])
+    arenilla = grava(d, 250 + 250 * vaiven, (0.4, 1.2))
+    guardar('escalon_tiembla', reverb(mezclar(pico(roce, 0.7), pico(crujen, 0.5), pico(arenilla, 0.3)), 0.2, 1.4), i + 1,
+            limite=0.6)
+
+# ESCALON QUE SE CAE: se suelta de golpe, cae silbando y se rompe abajo.
+for i in range(2):
+    suelta = mezclar(pico(rajar_roca(8, 0.04, 1.0, 0.9), 1.0), pico(boom(120, 60, 0.06), 0.5))
+    silba = pasada(0.7, 1800 + 200 * i, 400, 1.6, 0.1)
+    rompe = mezclar(pico(golpe_tierra(0.9, 1.0, 0.8, 1.4), 1.0), en(0.05, pico(rodar(1.0, 12, 5, 0.6), 0.4)))
+    guardar('escalon_cae', reverb(mezclar(pico(suelta, 0.7), en(0.05, pico(silba, 0.4)), en(0.75, pico(rompe, 0.8))), 0.22, 1.6),
+            i + 1, limite=0.55)
+
+# PULSO DEL TOTEM: el totem se rompe y suelta la tierra que sujetaba de
+# golpe: un golpe de presion hondo, el aire que barre hacia fuera y el jade
+# que se queda cantando.
+d = 2.2
+t = t_(d)
+golpe = saturar(boom(68, 26, 0.3), 2.6)
+barre = filtro_mov(ruido(d, 'rosa'), curva(n_(d), [(0, 180), (0.15, 1500), (1, 200)]), 'band', 1.2)
+barre *= np.interp(t, [0, 0.08, 0.6, d], [0, 1, 0.3, 0])
+canta = jade(rng.uniform(300, 360), None, 1.1, JADE, 0.8)
+guardar('totem_pulso', reverb(mezclar(pico(golpe, 0.9), pico(barre, 0.6), pico(canta, 0.3),
+                                      pico(rajar_roca(10, 0.05, 1.0, 0.8), 0.5)), 0.28, 2.0), limite=0.5)
+
 # ----------------------------------------------------------------------
 #  sounds.json: los eventos rajang.* con sus variantes y subtitulo
 # ----------------------------------------------------------------------
@@ -1397,6 +1536,16 @@ SUBTITULOS = {
     'liberacion': ('Rajang queda libre', 'Rajang is freed'),
     'disolver': ('Rajang vuelve a la piedra', 'Rajang turns to stone'),
     'zarpazo': ('Rajang lanza un zarpazo', 'Rajang swipes its claw'),
+    'embestida_aviso': ('Rajang rasca la tierra', 'Rajang paws the ground'),
+    'embestida': ('Rajang embiste', 'Rajang charges'),
+    'embestida_frena': ('Rajang derrapa', 'Rajang skids to a halt'),
+    'estampado': ('Rajang se estampa', 'Rajang crashes into a wall'),
+    'tumba': ('La tierra se llena de raíces', 'Roots spread through the earth'),
+    'tumba_estalla': ('Revientan las raíces', 'The roots burst out'),
+    'furia': ('Rajang se enfurece', 'Rajang flies into a rage'),
+    'escalon_tiembla': ('Tiembla un escalón', 'A step shakes'),
+    'escalon_cae': ('Se cae un escalón', 'A step falls'),
+    'totem_pulso': ('Un pulso de tierra', 'An earth pulse'),
 }
 faltan = [ev for ev in EVENTOS if ev not in SUBTITULOS]
 assert not faltan, f'eventos sin subtitulo: {faltan}'

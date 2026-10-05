@@ -135,6 +135,7 @@ public class AtalayaClient implements ClientModInitializer {
         // Rajang: malla y animaciones generadas desde rajang_juego*.py, y lo
         // suyo: picos, pilares, totems, plataformas y fragmentos (a mano).
         ModelLayerRegistry.registerModelLayer(RajangModel.CAPA, RajangMalla::crear);
+        ModelLayerRegistry.registerModelLayer(RajangModel.CAPA_AURA, RajangMalla::crearAura);
         EntityRendererRegistry.register(AtalayaEntities.RAJANG, RajangRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.RAJANG_PARTE, RajangParteRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.PICO_TIERRA, PicoTierraRenderer::new);
@@ -198,7 +199,7 @@ public class AtalayaClient implements ClientModInitializer {
         aeralis(AtalayaParticulas.AERALIS_POLVO, AeralisParticula.Tipo.POLVO);
         aeralis(AtalayaParticulas.AERALIS_JIRON, AeralisParticula.Tipo.JIRON);
 
-        // Las catorce de Rajang.
+        // Las quince de Rajang.
         rajang(AtalayaParticulas.RAJANG_POLVO, RajangParticula.Tipo.POLVO);
         rajang(AtalayaParticulas.RAJANG_ROCA, RajangParticula.Tipo.ROCA);
         rajang(AtalayaParticulas.RAJANG_JADE, RajangParticula.Tipo.JADE);

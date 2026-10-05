@@ -1,0 +1,448 @@
+<title>Rajang, segunda talla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,600&display=swap">
+<style>
+  /* Ficha de diseño a una columna: cada cambio es una lámina (render arriba, ficha técnica y salida debajo),
+     con el jade y el oro de la barra de jefe de Rajang sobre piedra de templo. */
+  :root {
+    --piedra: #121c17;        /* fondo: piedra húmeda del templo */
+    --losa: #1a2821;          /* superficies */
+    --musgo: #2a3d33;         /* bordes y filetes */
+    --texto: #e3ecdf;
+    --apagado: #9db1a2;
+    --jade: #58c886;          /* color de la fase I en la barra */
+    --lima: #c8ff2a;          /* grietas de la fase III */
+    --oro: #e2b443;           /* el liberado */
+    --peligro: #ff7a59;
+    --display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --cuerpo: "Montserrat", "Segoe UI", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --piedra: #eef1ea; --losa: #ffffff; --musgo: #cfd9cf; --texto: #16251c; --apagado: #536a5a;
+      --jade: #1d7a4a; --lima: #5a7d00; --oro: #9a6a00; --peligro: #c2410c; color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --piedra: #eef1ea; --losa: #ffffff; --musgo: #cfd9cf; --texto: #16251c; --apagado: #536a5a;
+    --jade: #1d7a4a; --lima: #5a7d00; --oro: #9a6a00; --peligro: #c2410c; color-scheme: light;
+  }
+
+  body { background: var(--piedra); color: var(--texto); font-family: var(--cuerpo); font-size: 16px; line-height: 1.6; }
+  .pagina { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: grid; gap: 56px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; line-height: 1.1; margin: 0; letter-spacing: 0.01em; }
+  h1 { font-size: clamp(2.4rem, 6vw, 4rem); text-transform: uppercase; }
+  h2 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); text-transform: uppercase; }
+  h3 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--apagado); font-weight: 500; }
+  p { margin: 0; max-width: 68ch; }
+  .antetitulo { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--jade); }
+  .epiteto { font-style: italic; font-weight: 600; font-size: 1.2rem; color: var(--apagado); }
+  .raya { width: 72px; height: 4px; background: var(--oro); }
+
+  header.cabecera { display: grid; gap: 14px; }
+  .pruebas { border-left: 3px solid var(--musgo); padding-left: 16px; color: var(--apagado); font-style: italic; max-width: 70ch; }
+  .pruebas strong { color: var(--texto); font-style: normal; }
+
+  /* el resumen: una fila por cambio */
+  .resumen { display: grid; gap: 0; border-top: 1px solid var(--musgo); }
+  .resumen a { display: grid; grid-template-columns: 96px 1fr auto; gap: 16px; align-items: baseline; padding: 12px 4px;
+    border-bottom: 1px solid var(--musgo); color: inherit; text-decoration: none; }
+  .resumen a:hover, .resumen a:focus-visible { background: var(--losa); outline: none; }
+  .resumen .que { font-weight: 600; }
+  .resumen .fase { color: var(--apagado); font-size: 0.85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chip { font-family: var(--display); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;
+    padding: 2px 8px; border-radius: 3px; justify-self: start; border: 1px solid currentColor; }
+  .chip.nuevo { color: var(--lima); }
+  .chip.cambio { color: var(--jade); }
+  .chip.anim { color: var(--oro); }
+
+  /* cada lámina */
+  section.lamina { display: grid; gap: 20px; scroll-margin-top: 20px; }
+  .titulo-lamina { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+  figure { margin: 0; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--musgo); }
+  figcaption { font-size: 0.85rem; color: var(--apagado); margin-top: 8px; }
+  .dos { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; }
+  .dos > * { min-width: 0; display: grid; gap: 12px; align-content: start; }
+  @media (max-width: 760px) { .dos { grid-template-columns: 1fr; } .resumen a { grid-template-columns: 1fr; gap: 4px; } }
+
+  dl.ficha { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; }
+  dl.ficha dt { color: var(--apagado); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+  dl.ficha dd { margin: 0; font-variant-numeric: tabular-nums; }
+  @media (max-width: 460px) { dl.ficha { grid-template-columns: 1fr; gap: 2px; } dl.ficha dd { margin-bottom: 10px; } }
+  .mortal { color: var(--peligro); font-weight: 700; }
+  ul.salida { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+  ul.salida li::marker { color: var(--jade); }
+
+  .tabla { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--musgo); vertical-align: top; }
+  th { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--apagado); }
+  td.antes { color: var(--apagado); }
+  td.ahora { color: var(--texto); font-weight: 600; }
+
+  .diagrama { overflow-x: auto; background: var(--losa); border: 1px solid var(--musgo); border-radius: 4px; padding: 12px; }
+  .diagrama svg { display: block; width: 100%; min-width: 520px; height: auto; }
+  svg text { font-family: var(--cuerpo); fill: var(--texto); }
+  svg .suave { fill: var(--apagado); }
+  svg .jade-f { fill: var(--jade); }
+  svg .lima-f { fill: var(--lima); }
+  svg .oro-f { fill: var(--oro); }
+  svg .peligro-f { fill: var(--peligro); }
+  svg .musgo-s { stroke: var(--musgo); }
+  svg .jade-s { stroke: var(--jade); }
+  svg .lima-s { stroke: var(--lima); }
+  svg .texto-s { stroke: var(--texto); }
+  svg .peligro-s { stroke: var(--peligro); }
+
+  .estado { border: 1px solid var(--jade); border-radius: 4px; padding: 14px 16px; display: grid; gap: 6px; }
+  .estado strong { color: var(--jade); font-family: var(--display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+  .hoja { display: grid; gap: 4px; }
+  .hoja img { display: block; width: 100%; height: auto; border-radius: 3px; border: 1px solid var(--musgo); image-rendering: auto; }
+  .hoja .etiqueta { font-size: 0.8rem; color: var(--apagado); text-transform: uppercase; letter-spacing: 0.08em; }
+  .comparar { display: grid; gap: 14px; }
+  .nota { background: var(--losa); border: 1px solid var(--musgo); border-radius: 4px; padding: 14px 16px; font-size: 0.93rem; color: var(--apagado); }
+  .nota strong { color: var(--texto); }
+
+  ol.preguntas { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: p; }
+  ol.preguntas li { counter-increment: p; display: grid; grid-template-columns: 34px 1fr; gap: 12px; background: var(--losa);
+    border: 1px solid var(--musgo); border-radius: 4px; padding: 14px 16px; }
+  ol.preguntas li::before { content: counter(p); font-family: var(--display); font-weight: 700; font-size: 1.5rem; color: var(--oro); line-height: 1; }
+  ol.preguntas .defecto { color: var(--apagado); font-size: 0.9rem; margin-top: 4px; }
+  footer { color: var(--apagado); font-size: 0.85rem; border-top: 1px solid var(--musgo); padding-top: 16px; }
+  @media (prefers-reduced-motion: no-preference) { .resumen a { transition: background 0.15s; } }
+</style>
+
+<div class="pagina">
+
+  <header class="cabecera">
+    <div class="antetitulo">Atalaya · Jefe de la tierra · ficha de mejoras</div>
+    <h1>Rajang, segunda talla</h1>
+    <div class="epiteto">Más rápido, más mortal y más difícil de trepar</div>
+    <div class="raya" role="presentation"></div>
+    <p>Esto es la propuesta antes de tocar el juego. Las imágenes salen del renderizador del mod con la malla y las texturas reales de Rajang; las cifras son las que entrarían en el código. Revísala con el grupo y dime qué cambias. Al final hay cinco preguntas, y al lado de cada una lo que haré si no me dices nada.</p>
+    <div class="estado" role="status">
+      <strong>Implementado · 5 de octubre de 2026</strong>
+      <span>Con los valores por defecto de las cinco preguntas (abajo). Compila y sus recursos cargan sin errores en el cliente de desarrollo; falta probarlo jugando para ajustar los números. Las hojas de control de las animaciones, antes y después, están al final.</span>
+    </div>
+    <p class="pruebas">De la prueba: <strong>«muy tosco y lento»</strong>; tendría que tener <strong>«ataques rápidos y con un poco más de daño»</strong>; gusta el efecto que vuelve lento; los meteoritos son <strong>«una maravilla»</strong> pero necesitan un ajuste.</p>
+  </header>
+
+  <nav class="resumen" aria-label="Los cambios">
+    <a href="#embestida"><span class="chip nuevo">Nuevo</span><span class="que">Embestida de Jade: carga en línea con pinchos mortales a los lados</span><span class="fase">desde la fase I</span></a>
+    <a href="#tumba"><span class="chip nuevo">Nuevo</span><span class="que">Tumba de Raíces: el círculo que se llena; dentro, la muerte</span><span class="fase">desde la fase II</span></a>
+    <a href="#pinchos"><span class="chip cambio">Cambio</span><span class="que">Picos y pilares: lanzan a 10 bloques y te dejan el Peso 3 s</span><span class="fase">siempre</span></a>
+    <a href="#cataclismo"><span class="chip cambio">Cambio</span><span class="que">Cataclismo: fragmentos más grandes y menos</span><span class="fase">desde la fase III</span></a>
+    <a href="#sello"><span class="chip cambio">Cambio</span><span class="que">Sello: escalones que se caen y pulso al romper cada tótem</span><span class="fase">desde la fase II</span></a>
+    <a href="#furia"><span class="chip nuevo">Nuevo</span><span class="que">Furia de Jade: el aura verde si el Sello falla</span><span class="fase">tras un Sello fallido</span></a>
+    <a href="#animaciones"><span class="chip anim">Animación</span><span class="que">Andar, correr y atacar: más naturales y más rápidos</span><span class="fase">todo el combate</span></a>
+  </nav>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="embestida">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Embestida de Jade</h2></div>
+    <figure>
+      <img src="img/embestida.jpg" alt="Rajang a la carrera; delante, una flecha verde en el suelo con dos filas de rombos a los lados; detrás, dos filas de pinchos de roca y un jugador por los aires" width="1600" height="900">
+      <figcaption>A mitad de la carga: delante queda la flecha del aviso; detrás, los pinchos que han reventado a su paso.</figcaption>
+    </figure>
+    <div class="dos">
+      <div>
+        <h3>Cómo va</h3>
+        <dl class="ficha">
+          <dt>Cuándo</dt><dd>Su presa está a 10–36 bloques en línea recta. Peso 5 en el sorteo, como la Garra.</dd>
+          <dt>Aviso</dt><dd>Se agazapa y rasca el suelo. Una <strong>flecha</strong> le sale de los pies hacia donde va a cargar y se va llenando: 1,2 s en la fase I, 0,85 s en la IV. Al llenarse, la dirección queda fija.</dd>
+          <dt>Carga</dt><dd>26 bloques/s en línea recta, hasta 6 bloques más allá de la presa (36 como mucho). Una pared lo para.</dd>
+          <dt>Su cuerpo</dt><dd><span class="mortal">Mata</span> (10 000; solo salva un tótem), te lanza unos <strong>15 bloques</strong> hacia arriba y te deja el Peso de la Tierra 3 s.</dd>
+          <dt>Pinchos</dt><dd>Revientan a su paso, a 4,2 bloques de cada lado, uno cada 2,2 bloques. <span class="mortal">Igual de mortales</span>, el mismo lanzamiento y el mismo Peso. Duran 3 s y se hunden.</dd>
+          <dt>Después</dt><dd>Frena derrapando (0,7 s) y se queda 1 s jadeando: la ventana para pegarle.</dd>
+          <dt>Enfriamiento</dt><dd>13 s en la fase I, 8,3 s en la IV.</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>Cómo se sale</h3>
+        <ul class="salida">
+          <li>La flecha marca su cuerpo y las dos filas de rombos marcan los pinchos: la franja mortal mide unos <strong>13 bloques</strong> de ancho.</li>
+          <li>Desde el centro hay que apartarse unos 7 bloques de lado. Con el aviso más el tiempo que tarda en llegar, a 20 bloques se tiene casi 2 s.</li>
+          <li>Ponerse detrás de un muro también vale: se para contra él.</li>
+          <li>Es el ataque que le faltaba para «no dejar que te acerques»: el que se queda quieto en su línea, muere.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="diagrama" role="img" aria-label="Vista de arriba de la Embestida: una franja central de 6 bloques para su cuerpo y dos filas de pinchos a 4,2 bloques de cada lado; fuera de 6,5 bloques del centro se está a salvo">
+      <svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg">
+        <!-- escala: 1 bloque = 16 px; el centro del carril en y=115 -->
+        <rect x="80" y="11" width="760" height="208" fill="none" class="musgo-s" stroke-dasharray="4 6"/>
+        <text x="840" y="244" font-size="12" class="suave" text-anchor="end">fuera de la franja: a salvo</text>
+        <!-- franja mortal: ±6,5 bloques -->
+        <rect x="80" y="11" width="760" height="208" class="peligro-f" fill-opacity="0.08"/>
+        <!-- su cuerpo: ±3 bloques -->
+        <rect x="80" y="67" width="760" height="96" class="jade-f" fill-opacity="0.22"/>
+        <!-- galones de la flecha -->
+        <g class="jade-s" fill="none" stroke-width="3">
+          <path d="M150 85 L176 115 L150 145"/><path d="M250 85 L276 115 L250 145"/><path d="M350 85 L376 115 L350 145"/>
+          <path d="M450 85 L476 115 L450 145"/><path d="M550 85 L576 115 L550 145"/><path d="M650 85 L676 115 L650 145"/>
+        </g>
+        <path d="M760 75 L840 115 L760 155 Z" class="jade-f" fill-opacity="0.85"/>
+        <!-- pinchos: rombos a ±4,2 bloques (±67 px) cada 2,2 bloques (35 px) -->
+        <g class="lima-f">
+          <path d="M100 48 l6 -6 l6 6 l-6 6z"/><path d="M135 48 l6 -6 l6 6 l-6 6z"/><path d="M170 48 l6 -6 l6 6 l-6 6z"/><path d="M205 48 l6 -6 l6 6 l-6 6z"/>
+          <path d="M240 48 l6 -6 l6 6 l-6 6z"/><path d="M275 48 l6 -6 l6 6 l-6 6z"/><path d="M310 48 l6 -6 l6 6 l-6 6z"/><path d="M345 48 l6 -6 l6 6 l-6 6z"/>
+          <path d="M380 48 l6 -6 l6 6 l-6 6z"/><path d="M415 48 l6 -6 l6 6 l-6 6z"/><path d="M450 48 l6 -6 l6 6 l-6 6z"/><path d="M485 48 l6 -6 l6 6 l-6 6z"/>
+          <path d="M520 48 l6 -6 l6 6 l-6 6z"/><path d="M555 48 l6 -6 l6 6 l-6 6z"/><path d="M590 48 l6 -6 l6 6 l-6 6z"/><path d="M625 48 l6 -6 l6 6 l-6 6z"/>
+          <path d="M660 48 l6 -6 l6 6 l-6 6z"/><path d="M695 48 l6 -6 l6 6 l-6 6z"/><path d="M730 48 l6 -6 l6 6 l-6 6z"/>
+          <path d="M100 182 l6 -6 l6 6 l-6 6z"/><path d="M135 182 l6 -6 l6 6 l-6 6z"/><path d="M170 182 l6 -6 l6 6 l-6 6z"/><path d="M205 182 l6 -6 l6 6 l-6 6z"/>
+          <path d="M240 182 l6 -6 l6 6 l-6 6z"/><path d="M275 182 l6 -6 l6 6 l-6 6z"/><path d="M310 182 l6 -6 l6 6 l-6 6z"/><path d="M345 182 l6 -6 l6 6 l-6 6z"/>
+          <path d="M380 182 l6 -6 l6 6 l-6 6z"/><path d="M415 182 l6 -6 l6 6 l-6 6z"/><path d="M450 182 l6 -6 l6 6 l-6 6z"/><path d="M485 182 l6 -6 l6 6 l-6 6z"/>
+          <path d="M520 182 l6 -6 l6 6 l-6 6z"/><path d="M555 182 l6 -6 l6 6 l-6 6z"/><path d="M590 182 l6 -6 l6 6 l-6 6z"/><path d="M625 182 l6 -6 l6 6 l-6 6z"/>
+          <path d="M660 182 l6 -6 l6 6 l-6 6z"/><path d="M695 182 l6 -6 l6 6 l-6 6z"/><path d="M730 182 l6 -6 l6 6 l-6 6z"/>
+        </g>
+        <!-- cotas -->
+        <g class="texto-s" stroke-width="1">
+          <path d="M40 67 V163"/><path d="M34 67 H46"/><path d="M34 163 H46"/>
+          <path d="M60 11 V219"/><path d="M54 11 H66"/><path d="M54 219 H66"/>
+        </g>
+        <text x="4" y="119" font-size="12">6</text>
+        <text x="4" y="133" font-size="11" class="suave">cuerpo</text>
+        <text x="80" y="244" font-size="12" class="suave">13 bloques de franja mortal</text>
+        <text x="250" y="34" font-size="12" class="suave">pinchos a 4,2 bloques de su línea, uno cada 2,2</text>
+        <text x="560" y="210" font-size="12" class="suave">→ dirección fijada al acabar el aviso</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="tumba">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Tumba de Raíces</h2></div>
+    <figure>
+      <img src="img/tumba.jpg" alt="Rajang con las garras clavadas en el suelo rugiendo; alrededor, un círculo verde grande cuyo interior se está llenando desde él; los jugadores corren hacia el borde" width="1600" height="900">
+      <figcaption>Lleva el 68 % del llenado. El de pegado a su cuerpo ya no llega.</figcaption>
+    </figure>
+    <div class="dos">
+      <div>
+        <h3>Cómo va</h3>
+        <dl class="ficha">
+          <dt>Cuándo</dt><dd>Desde la fase II, si hay alguien a 14 bloques o menos: castiga a los que se le pegan. Peso 3 en el sorteo.</dd>
+          <dt>Carga</dt><dd>Clava las garras y ruge contra el suelo. <strong>Inmune</strong> mientras carga.</dd>
+          <dt>Círculo</dt><dd>Radio <strong>16 bloques</strong> alrededor de él. El borde se ve desde el primer instante; lo de dentro se llena desde el centro en <strong>3,5 s</strong>, siempre igual, en cualquier fase.</dd>
+          <dt>Al llenarse</dt><dd>Todo lo que siga dentro: <span class="mortal">muerte</span> (10 000; solo salva un tótem) y el Peso de la Tierra 5 s al que se salve con el tótem. Revientan raíces por todo el círculo.</dd>
+          <dt>Después</dt><dd>1 s jadeando.</dd>
+          <dt>Enfriamiento</dt><dd>30 s en la fase II, 22 s en la IV. No sale hasta 8 s después de un Terremoto.</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>Por qué esos números</h3>
+        <ul class="salida">
+          <li>Pediste que escapar se pueda, pero que <strong>quien se duerma 1–1,5 s pegado a él ya no llegue</strong>. Con radio 16 y 3,5 s sale justo eso.</li>
+          <li>El Terremoto pone el Peso a todos durante 8 s. Con ese Peso nadie sale a tiempo: por eso la Tumba no puede salir justo después.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="diagrama" role="img" aria-label="Tiempo de escape desde el cuerpo a cuerpo: esprintando se tarda 2,1 s y sobran 1,4 s; saltando al esprintar, 1,85 s; con el Peso de la Tierra, 3,3 s y no se llega">
+      <svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- escala: 1 s = 200 px, desde x=160 -->
+        <g class="musgo-s" stroke-width="1">
+          <path d="M160 30 V170"/><path d="M360 30 V170"/><path d="M560 30 V170"/><path d="M760 30 V170"/>
+        </g>
+        <text x="156" y="190" font-size="12" class="suave">0 s</text>
+        <text x="356" y="190" font-size="12" class="suave">1 s</text>
+        <text x="556" y="190" font-size="12" class="suave">2 s</text>
+        <text x="756" y="190" font-size="12" class="suave">3 s</text>
+        <!-- el llenado: 3,5 s -->
+        <rect x="160" y="14" width="700" height="10" class="lima-f" fill-opacity="0.75"/>
+        <text x="866" y="24" font-size="12" class="lima-f">3,5 s</text>
+        <text x="4" y="24" font-size="12">Se llena</text>
+        <!-- esprintando: 12 bloques / 5,6 = 2,14 s -->
+        <rect x="160" y="48" width="428" height="22" class="jade-f" fill-opacity="0.8"/>
+        <rect x="588" y="48" width="272" height="22" class="jade-f" fill-opacity="0.18"/>
+        <text x="4" y="64" font-size="12">Esprintando</text>
+        <text x="596" y="64" font-size="12">margen 1,4 s</text>
+        <!-- saltando al esprintar: 1,85 s -->
+        <rect x="160" y="88" width="370" height="22" class="jade-f" fill-opacity="0.8"/>
+        <rect x="530" y="88" width="330" height="22" class="jade-f" fill-opacity="0.18"/>
+        <text x="4" y="104" font-size="12">Salto + esprint</text>
+        <text x="538" y="104" font-size="12">margen 1,65 s</text>
+        <!-- con el Peso: 3,3 s -->
+        <rect x="160" y="128" width="658" height="22" class="peligro-f" fill-opacity="0.75"/>
+        <text x="4" y="144" font-size="12">Con el Peso</text>
+        <text x="826" y="144" font-size="12" class="peligro-f">3,3 s</text>
+        <path d="M860 10 V160" class="texto-s" stroke-dasharray="3 4"/>
+      </svg>
+    </div>
+    <p class="nota">Desde el cuerpo a cuerpo (unos 4 bloques de su centro) hasta el borde hay 12 bloques. El que estaba más lejos tiene más margen.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="pinchos">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Picos y pilares</h2></div>
+    <p>Los pinchos de la Garra y los pilares del Terremoto siguen haciendo el mismo daño, pero ahora te mandan al cielo y te frenan. La caída desde 10 bloques son 3,5 corazones antes de la armadura: el golpe duele dos veces.</p>
+    <div class="tabla">
+      <table>
+        <thead><tr><th></th><th>Antes</th><th>Ahora</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Garra (picos)</th><td class="antes">te lanza de 3 a 7,5 bloques según el tamaño</td><td class="ahora">10 bloques, todos</td></tr>
+          <tr><th scope="row">Terremoto (pilares)</th><td class="antes">te lanza unos 5 bloques</td><td class="ahora">10 bloques</td></tr>
+          <tr><th scope="row">Cualquier pincho</th><td class="antes">nada más</td><td class="ahora">Peso de la Tierra 3 s (−35 % velocidad, −50 % salto)</td></tr>
+          <tr><th scope="row">Embestida</th><td class="antes">—</td><td class="ahora">15 bloques, mortal, y el mismo Peso 3 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota"><strong>El Peso de un pincho dura 3 s como mucho</strong>, como pediste. El del Terremoto, el que cae sobre todos a la vez, se queda en 8 s. Si ya lo llevas más largo, el pincho no te lo acorta.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="cataclismo">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Cataclismo de Jade</h2></div>
+    <p>Fragmentos más grandes y menos. El que cae sobre cada jugador se queda, que es el corazón del ataque; los que caen al azar por la plaza bajan a un tercio, porque cada uno tapa el triple de suelo.</p>
+    <div class="dos">
+      <div class="tabla">
+        <table>
+          <thead><tr><th></th><th>Antes</th><th>Ahora</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Muerte (encima)</th><td class="antes">radio 1,9–2,2</td><td class="ahora">radio 3,3–4,0</td></tr>
+            <tr><th scope="row">Daño cerca</th><td class="antes">hasta 5,5 bloques</td><td class="ahora">hasta 9 bloques</td></tr>
+            <tr><th scope="row">Uno sobre cada jugador</th><td class="antes">sí</td><td class="ahora">sí</td></tr>
+            <tr><th scope="row">Extra al azar por oleada</th><td class="antes">10 + jug/2 + 3·fase (tope 40)</td><td class="ahora">3 + jug/6 + fase (tope 14)</td></tr>
+            <tr><th scope="row">Ejemplo: fase III, 10 jugadores</th><td class="antes">24 extra</td><td class="ahora">7 extra</td></tr>
+            <tr><th scope="row">Tamaño que se ve</th><td class="antes">×1,0–1,6</td><td class="ahora">×1,8–2,4, con su marca a juego</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="diagrama" role="img" aria-label="Comparación a escala de un fragmento: antes, muerte en radio 2 y daño hasta 5,5; ahora, muerte en radio 3,6 y daño hasta 9">
+        <svg viewBox="0 0 440 240" xmlns="http://www.w3.org/2000/svg">
+          <!-- escala: 1 bloque = 11 px -->
+          <circle cx="110" cy="115" r="60.5" class="lima-f" fill-opacity="0.12"/>
+          <circle cx="110" cy="115" r="22" class="peligro-f" fill-opacity="0.75"/>
+          <circle cx="315" cy="115" r="99" class="lima-f" fill-opacity="0.12"/>
+          <circle cx="315" cy="115" r="40" class="peligro-f" fill-opacity="0.75"/>
+          <text x="110" y="226" font-size="13" text-anchor="middle">Antes</text>
+          <text x="315" y="232" font-size="13" text-anchor="middle">Ahora</text>
+          <text x="110" y="119" font-size="11" text-anchor="middle">2</text>
+          <text x="315" y="119" font-size="12" text-anchor="middle">3,6</text>
+          <text x="110" y="48" font-size="11" text-anchor="middle" class="suave">5,5</text>
+          <text x="315" y="12" font-size="11" text-anchor="middle" class="suave">9 bloques</text>
+        </svg>
+      </div>
+    </div>
+    <p class="nota"><strong>Ojo con los grupos grandes:</strong> como cada jugador sigue llevando su fragmento encima y ahora es más grande, si el grupo va apiñado los fragmentos de unos alcanzan a los otros. La respuesta es separarse, y es la que el ataque quiere enseñar.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="sello">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Sello de la Tierra</h2></div>
+    <figure>
+      <img src="img/sello.jpg" alt="Una columna de roca de 26 bloques con piedras en espiral alrededor; arriba, un tótem roto con un anillo de pulso verde que echa a un jugador; a media altura, una piedra que tiembla; abajo, otra cayendo" width="1600" height="900">
+      <figcaption>Una de las cuatro columnas: el pulso del tótem recién roto, un escalón temblando y otro cayendo.</figcaption>
+    </figure>
+    <div class="dos">
+      <div>
+        <h3>Escalones que se caen</h3>
+        <dl class="ficha">
+          <dt>Cada cuánto</dt><dd>Cada 1,5 s, una piedra al azar de alguna columna. Como mucho una a la vez por columna; las tres de más abajo no caen.</dd>
+          <dt>Aviso</dt><dd><strong>Tiembla 1 s</strong>: se sacude, suelta polvo y cruje.</dd>
+          <dt>Cae</dt><dd>Se suelta y cae. Si estabas encima, caes con ella.</dd>
+          <dt>Vuelve</dt><dd>A los 3 s sube volando a su sitio.</dd>
+        </dl>
+        <p class="nota">Cada piedra está un bloque más alta que la anterior. Si falta una, el siguiente salto es de dos bloques y no se puede dar: <strong>toca esperar a que vuelva</strong>, con el reloj del Sello corriendo.</p>
+      </div>
+      <div>
+        <h3>Pulso al romper cada tótem</h3>
+        <dl class="ficha">
+          <dt>Alcance</dt><dd>7 bloques alrededor del tótem (y 5 arriba y abajo): la cima y las piedras de arriba.</dd>
+          <dt>Daño</dt><dd>27 / 37 / 44 / 55 según la fase, el del Terremoto, con el +30 % contra armadura.</dd>
+          <dt>Empujón</dt><dd>Fuerte y <strong>en horizontal</strong>, unos 5–6 bloques: te echa de la columna. No te alza; solo un saltito mínimo para despegarte del suelo, que si no el roce te frena en 2 bloques.</dd>
+          <dt>El último</dt><dd>El cuarto tótem sigue sin daño de caída para nadie, como ahora.</dd>
+        </dl>
+        <p class="nota">Caer desde la cima son unos 26 bloques: con Protección IV, unos 4 corazones. Sumado al pulso, duele pero no mata con el equipo para el que está pensado.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="furia">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Furia de Jade</h2></div>
+    <figure>
+      <img src="img/furia.jpg" alt="Rajang agazapado envuelto en un aura verde brillante que le recorre el cuerpo, con llamas verdes subiendo" width="1600" height="900">
+      <figcaption>El aura corre por todo el cuerpo como la carga del creeper, pero en el verde de la maldición.</figcaption>
+    </figure>
+    <div class="dos">
+      <div>
+        <h3>Cómo va</h3>
+        <dl class="ficha">
+          <dt>Cuándo</dt><dd>Si no rompéis los cuatro tótems a tiempo. El Rugido de Jade sigue matando a todos salvo tótem; los que queden, se lo encuentran así.</dd>
+          <dt>Ataques</dt><dd>×1,25 más rápidos (encima del ritmo de su fase).</dd>
+          <dt>Daño</dt><dd>×1,35 en todo lo que no sea ya mortal.</dd>
+          <dt>Ritmo</dt><dd>Enfriamientos ×0,65, la pausa entre ataques a la mitad, corre ×1,15.</dd>
+          <dt>Dura</dt><dd>Hasta que lo derribéis: un Sello superado o un Cataclismo sin muertes (ver pregunta 1).</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>Cómo se ve</h3>
+        <ul class="salida">
+          <li>Una segunda capa sobre su cuerpo con bandas verdes que corren, como la carga del creeper.</li>
+          <li>Llamas verdes por las grietas y los ojos más encendidos.</li>
+          <li>En la barra, el rótulo cambia a <strong>FURIA</strong> y el relleno late en verde vivo.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="animaciones">
+    <div class="titulo-lamina"><span class="chip anim">Animación</span><h2>Andar, correr y atacar</h2></div>
+    <p>Lo de «tosco y lento» viene sobre todo de aquí. Las animaciones se escriben pose a pose en Python y se hornean en el juego. Antes de compilar te mando las hojas de control: cada animación en una tira de fotogramas, la de ahora al lado de la nueva.</p>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Qué</th><th>Ahora</th><th>Cambio</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Andar</th><td class="antes">ciclo de 1,6 s; las patas van en diagonal por un signo cambiado (el comentario dice lateral)</td><td class="ahora">el paso lateral de los felinos de verdad; cabeza baja de acecho; los hombros suben y bajan con cada mano; el peso cae en cada pisada; ciclo de 1,3 s</td></tr>
+          <tr><th scope="row">Correr</th><td class="antes">galope rotatorio correcto pero corto</td><td class="ahora">más tiempo en el aire, la espalda se dobla y se estira más, cabeza firme mirando a la presa, orejas pegadas, la cola de timón</td></tr>
+          <tr><th scope="row">Distancias</th><td class="antes">corre a más de 16 bloques; entre 7 y 16 anda despacio</td><td class="ahora">corre a más de 10; entre 6 y 10, acecho rápido. Se acabó el paseo lento a media distancia</td></tr>
+          <tr><th scope="row">Garra y Terremoto</th><td class="antes">cargas largas, golpe con el brazo</td><td class="ahora">anticipación más corta y marcada, el golpe con todo el cuerpo, recuperación más corta</td></tr>
+          <tr><th scope="row">Nuevas</th><td class="antes">—</td><td class="ahora">agazaparse y rascar (aviso de la Embestida), la carga, la frenada derrapando, rugido contra el suelo (Tumba), entrada en Furia</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="hojas">
+    <div class="titulo-lamina"><span class="chip anim">Animación</span><h2>Hojas de control</h2></div>
+    <p>Cada animación en seis fotogramas, con la malla y la piel del juego. Arriba la de antes, abajo la nueva. En el andar se ve la cabeza más baja y el paso lateral; en el galope, el cuerpo en el aire; en la Garra y el Terremoto, el golpe con todo el cuerpo y la carga más corta.</p>
+    <div class="comparar">
+      <div class="hoja"><span class="etiqueta">Andar · antes (1,6 s)</span><img src="hojas/antes/rajang_anim_andar.png" alt="Seis fotogramas del paso de antes" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Andar · ahora (1,3 s)</span><img src="hojas/despues/rajang_anim_andar.png" alt="Seis fotogramas del paso nuevo, con la cabeza más baja" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Correr · antes</span><img src="hojas/antes/rajang_anim_correr.png" alt="Seis fotogramas del galope de antes" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Correr · ahora</span><img src="hojas/despues/rajang_anim_correr.png" alt="Seis fotogramas del galope nuevo, con tiempo en el aire" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Garra · antes (golpe a 0,5 s)</span><img src="hojas/antes/rajang_anim_garra.png" alt="Seis fotogramas de la Garra de antes" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Garra · ahora (golpe a 0,42 s)</span><img src="hojas/despues/rajang_anim_garra.png" alt="Seis fotogramas de la Garra nueva" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Terremoto · antes (golpe a 0,95 s)</span><img src="hojas/antes/rajang_anim_terremoto.png" alt="Seis fotogramas del Terremoto de antes" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Terremoto · ahora (golpe a 0,8 s)</span><img src="hojas/despues/rajang_anim_terremoto.png" alt="Seis fotogramas del Terremoto nuevo" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Nueva · Embestida, el aviso: se agazapa y rasca</span><img src="hojas/despues/rajang_anim_embestida_aviso.png" alt="Seis fotogramas del aviso de la Embestida" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Nueva · Embestida, la carga</span><img src="hojas/despues/rajang_anim_embestida.png" alt="Seis fotogramas de la carga" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Nueva · Embestida, la frenada y el jadeo</span><img src="hojas/despues/rajang_anim_embestida_frena.png" alt="Seis fotogramas de la frenada" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Nueva · Estampado contra un muro</span><img src="hojas/despues/rajang_anim_estampado.png" alt="Seis fotogramas del estampado" width="2160" height="300" loading="lazy"></div>
+      <div class="hoja"><span class="etiqueta">Nueva · Tumba de Raíces</span><img src="hojas/despues/rajang_anim_tumba.png" alt="Seis fotogramas de la Tumba de Raíces" width="2160" height="300" loading="lazy"></div>
+    </div>
+    <figure>
+      <img src="img/texturas.png" alt="Las texturas nuevas ampliadas: el borde de la Tumba, lo llenado, la flecha, la punta, el rombo, el rótulo FURIA y las bandas del aura" width="1808" height="960" loading="lazy">
+      <figcaption>Las texturas nuevas, ampliadas sobre fondo oscuro y sobre tierra: el borde de la Tumba (y su parpadeo), lo llenado, la flecha de la Embestida, el rombo de los pinchos, el rótulo FURIA y las bandas del aura.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="preguntas">
+    <h2>Las cinco preguntas</h2>
+    <p>Se implementó con lo que dice «por defecto» en cada una. Si queréis otra cosa, se cambia.</p>
+    <ol class="preguntas">
+      <li><div><strong>¿Cuánto dura la Furia?</strong> Hasta que lo derribéis (un Sello superado o un Cataclismo sin muertes), o un tiempo fijo, por ejemplo 60 s.<div class="defecto">Si no me dices nada: hasta que lo derribéis.</div></div></li>
+      <li><div><strong>¿Qué más había que arreglar del Cataclismo?</strong> En la prueba dijisteis que necesitaba un ajuste. Aquí solo cambio el tamaño y el número.<div class="defecto">Si no me dices nada: solo eso.</div></div></li>
+      <li><div><strong>¿Se estampa contra las paredes?</strong> Si la Embestida choca contra un muro, que quede 2 s aturdido con daño doble: un contraataque para el que lo atraiga a una pared.<div class="defecto">Si no me dices nada: sí.</div></div></li>
+      <li><div><strong>¿Más daño base?</strong> Subir un 15 % la Garra y el Terremoto. Ya suben la amenaza la Embestida, la Tumba, los lanzamientos y la Furia.<div class="defecto">Si no me dices nada: no.</div></div></li>
+      <li><div><strong>¿Las fases?</strong> Embestida desde la I y Tumba desde la II.<div class="defecto">Si no me dices nada: así.</div></div></li>
+    </ol>
+  </section>
+
+  <footer>Atalaya · Rajang, el Jaguar de Jade · ficha de mejoras del 5 de octubre de 2026 · renders de <code>materiales/generadores/rajang_mejoras_escenas.py</code></footer>
+</div>
