@@ -1,28 +1,38 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.2**.
 
-Las geodas de amatista emiten radiación. Sobrevivir cerca de ellas exige un traje
-Hazmat que se desgasta con la exposición y hay que mantener con filtros.
+**Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
+parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
+aparece el peligro, aparece la herramienta. Las fases las abre un operador desde
+el menú, así que se pueden anunciar como evento.
 
-> **Esto es la primera fase, no el mod.** La idea es una dificultad que sube por
-> etapas: cada una vuelve invivible una parte del mundo y desbloquea a la vez lo
-> que hace falta para volver a entrar. La radiación y el traje son el patrón en
-> pequeño — aparece el peligro, aparece la herramienta. Las fases las abre un
-> operador desde el menú, así que se pueden anunciar como evento.
+El primer ejemplo del patrón fue la radiación: las geodas de amatista queman, y
+para entrar hace falta un traje Hazmat que se gasta y se mantiene con filtros.
+Detrás vinieron el desierto, la lluvia, la nieve, dos monstruos propios y los
+jefes elementales.
 
 > ¿Vas a dibujar una textura? Empieza por **[DISEÑO.md](DISEÑO.md)**: proporciones,
 > rampas de color y sombreado, para que lo nuevo parezca del mismo mod.
+>
+> ¿Vas a hacer un jefe? Empieza por **[Cómo se hace un jefe](#cómo-se-hace-un-jefe)**:
+> la ficha de diseño, los generadores, el póster y el teaser.
 
 > **Estado: contenido jugable y probado en el cliente de desarrollo.**
-> Traje Hazmat completo, tres mejoras de herrería, un creeper propio, y **seis
-> efectos propios registrados**: radiación en las geodas, insolación en el
-> desierto —con su hidratación y su agua purificada—, corrosión y empapado bajo
-> la lluvia, frío con hipotermia en la nieve, y aturdimiento al reventar un
-> fulminante. Todo bajo un panel de configuración con 24 interruptores.
+>
+> - **El mundo:** radiación en las geodas (con el traje Hazmat y tres mejoras de
+>   herrería), insolación e hidratación en el desierto, corrosión y empapado bajo
+>   la lluvia, hipotermia en la nieve.
+> - **Monstruos:** el Fulminante (el creeper del desierto, con su aturdimiento y
+>   la fulgurita) y el Vigía.
+> - **Jefes elementales:** **Nerea** (agua), **Aeralis** (aire) y **Rajang**
+>   (tierra). Son tres de cuatro: falta el del fuego.
+> - **13 efectos propios** registrados y un panel de configuración con **25
+>   interruptores**.
 >
 > **Nada está encendido de fábrica.** Un mundo recién puesto se comporta como
-> vanilla hasta que un operador abre cada mecánica.
+> vanilla hasta que un operador abre cada mecánica. Los jefes no tienen
+> interruptor porque no aparecen solos: solo salen con su huevo o con `/summon`.
 
 ---
 
@@ -834,7 +844,8 @@ encoge y **se apaga**, se desploma y **el farol se le desprende y rueda**. Vanil
 retira el cuerpo a los 20 ticks; aquí se retiene hasta los 60.
 
 Suelta el **Ojo del Vigía** (solo si lo mata un jugador): 8 usos, un minuto de
-espera, y hace brillar 10 s a los monstruos a 32 bloques.
+espera, y hace brillar 10 s a los monstruos a 32 bloques. Además, siempre, 1-3
+huesos (más con Botín) y 2-5 pepitas de hierro.
 
 ### Todo propio
 
@@ -861,14 +872,532 @@ retocarlo cambiando un número y regenerar:
 | Script | Genera |
 |---|---|
 | `vigia_tex.py` | la piel y las dos capas de brillo (calma y caza) |
-| `vigia_iconos.py` | huevo, Ojo del Vigía e icono de Marcado |
+| `vigia_iconos.py` | Ojo del Vigía e icono de Marcado |
+| `huevos_jefes.py` | el huevo (junto con los de los tres jefes) |
 | `vigia_particulas.py` | las ocho partículas |
 | `vigia_rayo_tex.py` | la textura del proyectil |
-| `vigia_sonidos.py` | los 27 `.ogg` (Python con numpy, scipy y soundfile) |
-| `vigia_render.py` + `vigia_poster.py` | el póster de `materiales/promo/` |
+| `vigia_sonidos.py` | los 27 `.ogg`; el argumento es la carpeta de salida, y su bloque de `sounds.json` se mantiene a mano |
+| `vigia_render.py` + `vigia_poster.py` | `materiales/promo/vigia_poster_atalaya.png` |
 
-`vigia_render.py` es un renderizador 3D por software que lee la misma malla que
-`VigiaModel`: sirve para sacar el bicho en cualquier pose, no la del tick.
+`vigia_render.py` es un **renderizador 3D por software** (numpy, sin GPU) y acabó
+siendo la base de todo el arte del mod: lo usan las fichas, las hojas de
+animación, los pósters y los teasers de los jefes. Para el Vigía lleva la malla
+**copiada a mano** de `VigiaModel`: si se toca el Java, hay que tocar también el
+script. Los jefes ya no tienen ese problema, porque su malla sale de Python.
+
+---
+
+## Los jefes elementales
+
+Cuatro jefes, uno por elemento, cada uno consumido por su maldición. Están
+pensados para **un servidor grande en hardcore**: 30-40 jugadores con netherita
+entera, Protección IV y manzana de Notch. Con ese equipo, un golpe fuerte quita
+3,5 / 5 / 7,5 / 11 corazones según la fase.
+
+Ninguno muere: al final **se libera**, deja una bendición a todo el que esté
+cerca y entrega su pieza.
+
+| Jefe | Elemento | Vida | Armadura / dureza | XP | Suelta |
+|---|---|---|---|---|---|
+| **Nerea**, Guardián de los Mares | agua | 12 500 | 14 / 8 | 300 | Lágrima de Nerea |
+| **Aeralis**, la Mariposa del Vendaval | aire | 13 500 | 14 / 8 | 400 | Escama del Vendaval |
+| **Rajang**, el Jaguar de Jade | tierra | 15 000 | 16 / 10 | 450 | Colmillo de Jade |
+| *pendiente* | fuego | | | | |
+
+Las tres piezas **todavía no hacen nada**: no tienen receta ni uso. Son tres de
+cuatro, y esperan al jefe que falta. Caen siempre, sin pedir que mate un
+jugador, y no se apilan.
+
+### Lo que comparten
+
+No hay clase base. Cada jefe es una clase de unas 1 800 líneas que hereda de
+`Monster` y copia y adapta la del anterior. Lo que se repite en los tres:
+
+**Nacen dormidos.** Nerea encadenado, Aeralis posada con las alas cerradas,
+Rajang tumbado como una esfinge. Despiertan al ver a un jugador a 40 bloques, o
+al recibir un golpe, que no hace daño. Al despertar cuentan los jugadores que hay
+a 80 bloques. Ese número **no cambia la vida**: escala cuántos proyectiles salen
+y cuánto aguanta lo que hay que romper.
+
+**La vida pasa del tope de vanilla.** `MAX_HEALTH` no puede pasar de 1024, así
+que se queda en 1024 y todo el daño que entra se multiplica por `1024 / VIDA`.
+
+**Cuatro fases por la vida que queda**: 75, 50 y 25 %. Solo suben, nunca bajan.
+Cada fase:
+
+- acelera los ataques: `ritmo()`, de ×1,0 a ×1,45;
+- acorta los enfriamientos y el respiro entre un ataque y otro;
+- cambia la piel y el brillo.
+
+El daño de cada ataque es una tabla con un valor por fase. Al cambiar de fase hay
+un **tambaleo** de unos 3 s que corta lo que estuviera haciendo.
+
+**Un golpe cooperativo por jefe.** En cada combate hay un momento en que el jefe
+es inmune y lo único que sirve es que el grupo rompa algo a la vez:
+
+- a Nerea, los **dos ojos**;
+- a Aeralis, los **cuatro núcleos**;
+- a Rajang, los **cuatro tótems**.
+
+Si sale bien, cae aturdido con **daño doble**. Si sale mal, el castigo es gordo, y
+en dos de los tres es la muerte.
+
+**Daño propio.** Cada ataque tiene su tipo de daño en `data/atalaya/damage_type/`.
+
+- Todos llevan `"scaling": "never"`. En hardcore la dificultad es Difícil, y
+  vanilla multiplicaría por 1,5 todo lo que pega un monstruo.
+- Casi todos van en `no_knockback`, porque el empujón lo da cada ataque a su
+  manera.
+- Los que **matan salvo tótem** (10 000 de daño) van en todas las etiquetas
+  `bypasses_*`: armadura, escudo, encantamientos, efectos y resistencia. Todas
+  menos `bypasses_invulnerability`, que es la única que anula el tótem.
+
+**El tótem avisa.** `AvisoTotemMixin` lo anuncia a todo el servidor:
+"**Nombre** ha usado un tótem de la inmortalidad", con el icono en el chat. Va
+siempre encendido, porque es un aviso y no una mecánica.
+
+**Un templo sin estructura.** El sitio donde aparece es su `centro`, y se queda
+atado a él:
+
+- no se aleja más de una correa: 28 / 40 / 40 bloques;
+- suelta al objetivo que se vaya a más de 64 / 72 / 72;
+- vuelve al centro cuando no tiene a nadie.
+
+No se genera ninguna arena. Lo que levanta Rajang son entidades temporales.
+
+**Persistentes.** No desaparecen por distancia, no cruzan portales, no se empujan
+ni se atan. `/kill` los borra **sin liberación ni botín**: es una orden de
+administrador, no el final del combate.
+
+**La liberación**, en lugar de la muerte, dura 200 ticks propios en vez de los 20
+de vanilla:
+
+| Tick | Qué pasa |
+|---|---|
+| 1 | suena la liberación |
+| 70 (80 en Rajang) | los ojos pasan a oro; piel, brillo y barra de liberado |
+| 150 | **bendición de 10 minutos** para todos los jugadores a ±80 bloques |
+| 150-160 → 200 | se deshace con la máscara `<jefe>_disolver.png`, el mismo efecto que el dragón del End |
+| 200 | estallido final, y se retira |
+
+| Bendición | Efecto |
+|---|---|
+| de las Mareas (Nerea) | +1,0 de eficiencia en el agua, +0,8 a picar sumergido, el aire se rellena |
+| de los Vientos (Aeralis) | +20 % de velocidad, −35 % de gravedad, +7 de caída segura |
+| de la Tierra (Rajang) | +6 de armadura, +3 de dureza, +1,0 de resistencia al empuje |
+
+**Presencia.** Hay dos cosas, y las lleva `NereaPresencia`, que a pesar del
+nombre es compartido por los tres jefes:
+
+- **Temblor de cámara.** Lo aplica `TemblorCamaraMixin` en `bobHurt` y respeta la
+  opción de accesibilidad "efectos de pantalla". Las ondas en el suelo sacuden la
+  cámara solas al nacer.
+- **Viñeta de miedo.** Es una por jefe, y la pinta `MiedoHud`: el fondo marino,
+  las nubes de tormenta y la selva con grietas de jade.
+
+**Barra de jefe propia.** No usan la de vanilla: no hay `ServerBossEvent`. Cada
+barra lleva:
+
+- marco de 208×26 pintado a mano;
+- relleno en grises que se tiñe con el color de la fase y corre en bucle;
+- tres muescas que se rompen al 75, 50 y 25 %;
+- emblema que tiembla al recibir daño;
+- nombre y "FASE I-IV" en letras de píxel;
+- rastro blanco del daño.
+
+Las barras **se apilan**: Nerea arriba, Aeralis 32 px más abajo y Rajang debajo.
+Cada una enseña el jefe despierto más cercano.
+
+**Lo que se ve y lo que pega van juntos.** `<Jefe>Geometria.java` guarda los ticks
+de cada golpe y los puntos del cuerpo (ojos, manos, puntas). Se genera desde las
+mismas poses que las animaciones, y `ritmo()` da el mismo número en el servidor y
+en el cliente.
+
+**Sin paquetes propios.** Todo viaja por `SynchedEntityData` (estado, fase,
+objetivo…), por partículas y por sonidos. El cliente arranca la animación al ver
+cambiar el estado. Para pasar datos se usa la velocidad de las partículas, con
+`count 0`: el radio y el temblor de una onda, o la duración de una marca.
+
+**Todo propio:** malla, pieles por fase, animaciones horneadas en keyframes de
+vanilla, partículas, sonidos sintetizados, barra, iconos y huevo. Nada sale de
+vanilla.
+
+Cada jefe tiene un comando para probarlo por partes: `/atalaya <jefe> <orden>`
+(ver [Comandos](#comandos)).
+
+### Nerea, Guardián de los Mares
+
+> *Rompe sus cadenas. Libera su corazón.*
+
+Un gigante de hueso y prismarina de unos **10 bloques**:
+
+- cráneo con corona de coral;
+- en el pecho, una cavidad cerrada por costillas, con el **corazón maldito**
+  dentro y cuatro cadenas oxidadas cruzándolo;
+- en la derecha, el tridente, que lleva como bastón;
+- en la izquierda, una cadena-látigo con un gancho de hueso.
+
+Con cada fase salta una cadena y el corazón se raja y se apaga. En la IV las
+costillas se abren.
+
+Se dibujaron tres versiones:
+
+- **A, "El Guardián Ahogado"**, el de las referencias;
+- **B, "La Marea Encadenada"**, una armadura de buzo llena de mar, sin piernas;
+- **C, "La Leyenda de las Mareas"**, una deidad con cola de serpiente.
+
+Ganó la A.
+
+| | |
+|---|---|
+| Vida | 12 500 · armadura 14, dureza 8 |
+| Caja | 3,4 × 8,8. A propósito, más estrecha que los hombros y más baja que la corona: tiene que tapar el cuerpo, no cada rama |
+| Velocidad | 0,27, menos que un jugador andando; ×1,3 en la fase IV |
+| Correa | 28 bloques |
+
+| Fase | Vida | Ritmo | Qué se añade |
+|---|---|---|---|
+| I | 100-75 % | ×1,0 | Rompeolas (1 ola), Remolino, Burbujas bomba |
+| II | 75-50 % | ×1,12 | Molino de cadenas, Arpón; el Rompeolas lanza 3 olas |
+| III | 50-25 % | ×1,25 | Mirada del Abismo; Rompeolas de 5 olas; un gancho más |
+| IV | 25-0 % | ×1,4 | las costillas se abren; cada 25 s cae **agotado** (daño doble) |
+
+Los ojos van de cian a violeta, a magenta y a rojo.
+
+El daño de cada ataque va en el orden de las fases, I / II / III / IV:
+
+| Ataque | Qué hace | Daño | Cómo se sale |
+|---|---|---|---|
+| **Rompeolas** | clava el tridente y lanza olas en abanico, a ras de suelo, hasta 34 bloques | 44 / 55 / 69 / 91 | apartarse de la línea, o el escudo. **Saltar no vale** |
+| **Remolino** | 4,4 s tirando de todo hacia él; deja **Corriente Abismal** (−20 % de velocidad por nivel) | 7 / 10 / 14 / 21 por segundo, atraviesa la armadura | **llevar una antorcha** en la mano: hace inmune |
+| **Burbujas bomba** | una por jugador, hasta 40; salen del corazón, persiguen y explotan en 5,5-7,75 bloques | 36 / 48 / 58 / 72, cuenta como explosión | **cualquier proyectil** la pincha sin daño. De un espadazo te explota encima |
+| **Molino de cadenas** | dos cadenas de 21 bloques dan dos vueltas | 48 / 58 / 72, el escudo no la para | **saltarla**, pegarse a sus pies o irse lejos |
+| **Arpón** | un gancho por cada 10 jugadores (hasta 5) a los más lejanos; los arrastra hasta el tridente y remata con la Estocada | 48 / 58 / 72, y la estocada 55 / 69 / 91 | escudo de cara al gancho, o romper la línea de visión |
+| **Mirada del Abismo** | carga 4 s un rayo doble desde los ojos hacia un jugador | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos (3 + jugadores/6 impactos cada uno). Así cae aturdido, con daño doble |
+
+Mientras mira es inmune, y romper un solo ojo no salva: el disparo sale del punto
+medio entre los dos.
+
+### Aeralis, la Mariposa del Vendaval
+
+> *Calma la tormenta. Apaga el ojo de su pecho.*
+
+Una polilla de tormenta erguida, de unos 17 bloques de alto y **22 de
+envergadura**:
+
+- quitina azul pizarra, ojos de hielo y colmillos;
+- antenas plumosas con la punta encendida;
+- seis patas;
+- cuatro alas de viento translúcidas, con ocelos en espiral.
+
+En el pecho lleva el **ojo de la tormenta**, que gira más deprisa en cada fase.
+
+Se dibujaron tres versiones:
+
+- **A, "Mariposa del Vendaval"**;
+- **B, "Dragón mariposa"**;
+- **C, "Polilla de rayos"**.
+
+B y C salen de imágenes de referencia. Ganó la A.
+
+**Vuela.** No tiene gravedad ni choques: con 22 bloques de alas, chocar con cada
+árbol la frenaría.
+
+- Va a unos 3 bloques del suelo, con el tórax a 9.
+- Rodea al objetivo a 12 bloques y de vez en cuando hace una pasada rasante.
+- Las alas no tienen caja de golpe, así que se le pega al cuerpo, sobre todo con
+  arcos, ballestas y tridentes.
+- Solo baja al alcance de la espada cuando está aturdida o agotada.
+
+| | |
+|---|---|
+| Vida | 13 500 · armadura 14, dureza 8 |
+| Caja | 3,6 × 10, solo el cuerpo |
+| Correa | 40 bloques |
+
+**El viento se mete por las juntas.** Las cuchillas, los estallidos y las ráfagas
+pegan hasta un **30 % más** cuanta más armadura lleves (`contraArmadura`). Rajang
+lo heredó.
+
+| Fase | Nombre | Color | Qué se añade |
+|---|---|---|---|
+| I | Brisa | cian | Aleteo Cortante, Tornados |
+| II | Ráfaga | añil | la Cacería del Vendaval |
+| III | Tempestad | violeta | Juicio del Ciclón; rayos en las alas y truenos |
+| IV | Ojo de la tormenta | magenta | todo más seguido; cada 25 s cae **agotada** (daño doble) |
+
+| Ataque | Qué hace | Daño | Cómo se sale |
+|---|---|---|---|
+| **Aleteo Cortante** | de 3 a 10 cuchillas de viento en abanico, a ras de suelo, alternando bajas y altas | 31 / 39 / 49 / 61 | **saltar las bajas y apartarse de las altas**. El escudo la para de frente |
+| **Tornados** | de 3 a 9 tornados que nacen junto a los jugadores y los persiguen 12 s. Atrapan, suben en espiral y revientan a los 3 s | 7 / 10 / 14 / 21 por segundo, más el estallido: 27 / 37 / 44 / 55 | **3 golpes** de lo que sea lo deshacen y sueltan a la víctima sin daño de caída |
+| **Cacería del Vendaval** | marca a una presa 15 s y le tira ráfagas que la persiguen. La marca no se quita: si la leche la borra, vuelve. Si nadie se queda cerca de la presa, acelera | 34 / 42 / 53 / 70, explota en 3,5 bloques | **reventar la ráfaga** en el aire (1 + jugadores/12 golpes) o ponerse delante |
+| **Juicio del Ciclón** | se hace el silencio (corta todos sus sonidos) y sube al centro. Un ciclón atrapa al jugador con **menos vida** y aparecen **cuatro núcleos** | 139 / 139 / 139 / 174 al atrapado, atravesando armadura y escudo; la mitad a quien esté a 8 bloques. Cada núcleo roto le quita un 25 % | **romper los cuatro núcleos** (6 + jugadores/4 golpes cada uno). Así cae aturdida 5 s, con daño doble |
+
+Mientras dura el Juicio es inmune.
+
+### Rajang, el Jaguar de Jade
+
+> *Resiste el cataclismo. Arranca la raíz de su pecho.*
+
+Un dientes de sable colosal, tallado en jade y oro por un pueblo que ya no existe:
+
+- unos 8 bloques hasta la cruz y 25 de largo con la cola;
+- sables de 2 bloques y rosetas de jaguar;
+- máscara y hombreras de oro con grecas;
+- una cresta de cristales que **crecen en cada fase**;
+- un **sol de jade** en el pecho, tapado por un peto de oro que **revienta en la
+  fase IV**.
+
+Las grietas de la maldición nacen del sol y se extienden por el cuerpo fase a
+fase.
+
+**El primer jefe que corre.** Anda y galopa a cuatro patas. Mezcla el paso y el
+galope según la velocidad, con relojes que avanzan al ritmo del suelo para que
+las zarpas no resbalen. Lo que hace depende de lo lejos que esté su objetivo:
+
+- a más de 16 bloques, corre;
+- entre 7 y 16, anda;
+- a menos de 7, se planta.
+
+**Varias cajas de golpe.** Con 17 bloques de largo, una sola caja o deja la
+cabeza fuera o le ocupa media plaza. Por eso la caja principal tapa el pecho y
+las patas delanteras, y la cabeza y la grupa llevan cajas propias
+(`RajangParteEntity`) que le pasan el daño.
+
+| | |
+|---|---|
+| Vida | 15 000 · armadura 16, dureza 10 |
+| Caja | 6 × 7,6, más la cabeza y la grupa |
+| Correa | 40 bloques |
+
+| Fase | Nombre | Qué se añade |
+|---|---|---|
+| I | Selva | Garra Terrestre, Terremoto Ancestral |
+| II | Grieta | Sello de la Tierra |
+| III | Raíz | Cataclismo de Jade |
+| IV | Corazón | el peto revienta; **Salto**; el Cataclismo vuelve antes |
+
+| Ataque | Qué hace | Daño | Cómo se sale |
+|---|---|---|---|
+| **Garra Terrestre** | zarpazo en abanico de 125° y una fila de picos de roca que corre hasta la presa. La avisan una grieta y un hexágono | 34 / 42 / 53 / 70 | salir del frente y del hexágono. El escudo para el zarpazo |
+| **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 8 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores. Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 37 / 44 / 55 | apartarse del hexágono y no pegarle con la Piel puesta |
+| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune | — | **subir y romper los cuatro tótems** (6 + jugadores/4 golpes cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques. Solo salva un tótem |
+| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos: uno sobre cada jugador y más al azar, con una marca que cuenta atrás 1,5 s | encima: **mata**; cerca: 54 / 67 | apartarse de la marca. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
+| **Salto** (fase IV) | salta en parábola sobre la presa | 70 en 6,5 bloques | apartarse cuando despega |
+
+**Las columnas del Sello son entidades, no bloques.** Son pisables a cualquier
+altura gracias a un truco: el juego solo busca choques con entidades cuyo origen
+esté a unos 4 bloques por debajo de quien se mueve, así que la columna crea
+tramos invisibles apilados.
+
+Un tótem roto se queda roto, y después de cada Sello hay 2 minutos de descanso.
+
+---
+
+## Cómo se hace un jefe
+
+Un jefe nuevo sale en tres tiempos:
+
+1. **Se decide con imágenes.**
+2. **Se pasa al juego con scripts.**
+3. **Se presenta con un póster y un teaser.**
+
+Todo lo visual y sonoro sale de **Python** en `materiales/generadores/`: nada se
+pinta en un editor ni se graba. Así un retoque es cambiar un número y regenerar.
+
+### 1. La ficha de diseño, antes de una línea de Java
+
+1. **Boceto** (`<elemento>_modelo.py`). Es un esqueleto de cajas al estilo
+   Minecraft, en píxeles de modelo: 16 son 1 bloque, la Y va hacia abajo y el
+   frente mira a −Z. Lleva **materiales en mosaico**, no un atlas, porque sirve
+   para decidir la forma y el tamaño, no la textura.
+   - Si hay varias propuestas, va una por opción: A, B, C.
+   - Se apoya en `nerea_modelo.py`, que tiene los nodos, las losetas y las rampas.
+2. **Ficha** (`<elemento>_escenas.py`). Lo renderiza con `vigia_render.py` en JPG
+   de 1600×900, en una carpeta **fuera del repo**:
+   - la escena heroica, en su templo;
+   - las vistas de frente, perfil y espalda;
+   - las cuatro fases;
+   - una escena por ataque;
+   - la **escala**, junto a un jugador, el Vigía y los jefes anteriores.
+
+   La plantilla más completa es `tierra_escenas.py`. Las piezas de los ataques
+   pueden ir aparte, como en `tierra_ataques.py`.
+3. **Página de revisión.** La ficha se publica como **página privada de Claude**
+   (un artifact) con las imágenes, la historia, las fases, los ataques y las
+   preguntas abiertas. Ahí se elige el diseño, el tamaño y los ataques, **antes**
+   de pasar nada al juego.
+
+### 2. Al juego
+
+4. **`<jefe>_juego.py`.** Pasa el boceto elegido a piezas animables, pinta el
+   atlas de cada fase y escribe el Java de la malla. Es la **única fuente de la
+   geometría**: `<Jefe>Malla.java` dice "GENERADO" y no se toca a mano.
+5. **`<jefe>_juego_anim.py <raíz> [carpeta]`.** Las animaciones, pose a pose. Cada
+   pose **se suma** a la de reposo.
+   - Con `<jefe>_fisica.py` se añade lo que el cuerpo no puede dejar de hacer:
+     pies plantados por cinemática inversa, inercia en cadenas y colgajos, y la
+     cabeza que llega un poco tarde.
+   - La física se simula a 80 Hz y se **hornea** en keyframes, así que en el
+     juego no cuesta nada.
+
+   **Al ejecutarlo escribe en el repo:**
+   - `<Jefe>Malla.java`, `<Jefe>Animaciones.java` (un método por animación, por
+     el límite de 64 KB de bytecode) y `<Jefe>Geometria.java`;
+   - las pieles `_f1` a `_f4`, sus brillos y el liberado;
+   - con carpeta, las **hojas de control**: una tira por animación con sus
+     fotogramas clave, para revisarlas.
+6. **El resto de recursos.** Son independientes entre sí:
+   - `<jefe>_extras.py`: proyectiles, partículas y sus JSON, iconos de efectos,
+     botín, viñeta de miedo y máscara de disolver;
+   - `<jefe>_hud.py`: la barra;
+   - `huevos_jefes.py`: los huevos de todos;
+   - `<jefe>_sonidos.py`: **borra** sus `.ogg`, los sintetiza otra vez y reescribe
+     su bloque de `sounds.json`. Los subtítulos de `lang/` y el registro en
+     `AtalayaSonidos.java` se hacen a mano.
+7. **El Java a mano.** Lista de lo que tocó Rajang:
+
+   | Dónde | Qué |
+   |---|---|
+   | `entity/` | `<Jefe>Entity`, `<Jefe>Danos`, los proyectiles, y el registro en `AtalayaEntities` |
+   | `effect/` | el castigo y la bendición; se registran en `Atalaya.java` |
+   | `item/AtalayaItems` | el huevo y la pieza; el huevo va a la pestaña en `Atalaya.java` |
+   | `sonido/`, `particula/` | los eventos y las partículas |
+   | `command/AtalayaCommand` | `/atalaya <jefe> <orden>` → `<Jefe>Entity.forzar` |
+   | `client/` | `Renderer`, `RenderState`, `Model`, `BrilloLayer`, `Particula`, `EfectosCliente`, `BarraHud`, los renderers de proyectiles; y el registro en `AtalayaClient` |
+   | compartido | `MiedoHud` (su textura), `NereaPresencia` (su miedo), la barra anterior (para apilarse) |
+   | `lang/` | `es_es.json` y `en_us.json` con las **mismas claves** |
+   | `data/` | `damage_type/<jefe>_*.json`, las etiquetas de `minecraft/tags/damage_type/`, `loot_table/entities/<jefe>.json` |
+
+**El orden para regenerar:**
+
+1. `<jefe>_juego_anim.py`, que genera el Java: va antes de compilar.
+2. `_extras`, `_hud`, `_sonidos` y `huevos_jefes`, en cualquier orden.
+3. El póster y el teaser, al final, porque leen las texturas, la barra y los
+   `.ogg` ya hechos.
+
+Las fichas y las hojas de control no hacen falta para compilar.
+
+Los scripts de cada jefe:
+
+| Jefe | Boceto y ficha | Juego | Recursos | Promo |
+|---|---|---|---|---|
+| Nerea | `nerea_modelo`, `nerea_b_modelo`, `nerea_c_modelo`, `nerea_escenas`, `nerea_v2`, `nerea_c_escenas` | `nerea_juego`, `nerea_fisica`, `nerea_juego_anim` | `nerea_extras`, `nerea_hud`, `nerea_sonidos` | `nerea_poster`, `video/nerea_teaser` |
+| Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas` | `vendaval_juego`, `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_hud`, `aeralis_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
+| Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_hud`, `rajang_sonidos` | `rajang_poster`, `video/rajang_teaser` |
+
+Los nombres de los scripts del boceto van por **elemento** (`viento_`,
+`tierra_`) y los del juego por **jefe**, porque el nombre se decidió después del
+diseño.
+
+> **Ojo con los imports.** Los `*_escenas.py` leen `sys.argv` y crean carpetas
+> **al importarse**. Por eso los pósters y los teasers cambian `sys.argv` un
+> momento antes de importarlos. Y `NEREA_SIN_FISICA=1` o `VENDAVAL_SIN_FISICA=1`
+> se saltan el horneado de la física, que es lento y no hace falta para una pose
+> fija.
+
+### Los sonidos
+
+Los cuatro `*_sonidos.py` sintetizan desde cero con numpy y scipy, a partir de
+**la física de lo que el bicho lleva encima**:
+
+| Jefe | De qué salen |
+|---|---|
+| Nerea | burbujas (la resonancia de Minnaert), chapuzones y olas; hueso, coral y cadenas mojadas; una garganta de leviatán con un lamento de sirena |
+| Aeralis | turbulencia, tonos eólicos que silban, aletazos de membrana, tornados y truenos; la voz de una cigarra del tamaño de una tormenta |
+| Rajang | la resonancia de una barra de jade, piedra que muele, grava; una voz felina |
+
+Todos producen OGG Vorbis **mono** a 44,1 kHz, que es lo que hace falta para que
+el juego los coloque en 3D. Las semillas son fijas, pero **añadir un sonido
+cambia el azar de todos los que vienen detrás**.
+
+Con un segundo argumento sacan además una hoja de espectrogramas, para revisarlos
+con la vista.
+
+| | Eventos | `.ogg` |
+|---|---|---|
+| Vigía | 19 | 27 |
+| Nerea | 34 | 67 |
+| Aeralis | 33 | 70 |
+| Rajang | 42 | 77 |
+
+### 3. El póster
+
+`python <jefe>_poster.py <raíz> <salida.png> [escala]`
+
+Sale en **1920×1080**: se pinta al doble y se reduce, para suavizar bordes. Con
+escala `0.5` da una vista previa rápida, y con `2`, un 4K.
+
+Los cuatro tienen la misma composición, y eso es lo que los hace una serie:
+
+- **el jefe, grande a la derecha**, con la cámara baja mirándolo desde abajo, y
+  la malla y las texturas reales del juego;
+- **a la izquierda**:
+  - el antetítulo «ATALAYA · JEFE DEL …» en Montserrat Bold 22, espaciado;
+  - el **NOMBRE** en Oswald Bold 196, con halo;
+  - el epíteto, en Montserrat SemiBold Italic 34;
+  - el lema, en Montserrat Medium 24;
+  - una raya de acento;
+- **arriba**, la barra de jefe tal como sale en el juego, ampliada ×2;
+- **en las esquinas**, el sello «HARDCORE» arriba a la derecha y «Minecraft 26.2 ·
+  Fabric» abajo;
+- **la escena**: el suelo y el decorado en 3D, el efecto propio del jefe en
+  espiral (por delante solo pasa por debajo de la cintura, para no taparle la
+  cara), sus partículas reales delante y detrás, resplandor, contraluz de borde,
+  viñeta y grano.
+
+| | Antetítulo | Lema | Acentos | Fase |
+|---|---|---|---|---|
+| Vigía | NUEVA AMENAZA | Lo que mira, lo maldice. | ámbar y rojo | — |
+| Nerea | JEFE DEL MAR | Rompe sus cadenas. Libera su corazón. | cian y magenta | I |
+| Aeralis | JEFE DEL AIRE | Calma la tormenta. Apaga el ojo de su pecho. | celeste y violeta | III |
+| Rajang | JEFE DE LA TIERRA | Resiste el cataclismo. Arranca la raíz de su pecho. | jade y oro | IV |
+
+El encuadre se ajusta sin tocar código, con variables de entorno: `GUINADA` (el
+giro del jefe), `OBJ_X` (hacia dónde mira la cámara) y `BARRA_X` (dónde va la
+barra).
+
+Para uno nuevo, se copia `rajang_poster.py`, que es el más completo, o
+`nerea_poster.py`, que es el más corto.
+
+### 4. El teaser
+
+`python materiales/video/<jefe>_teaser.py <raíz ABSOLUTA> <carpeta de trabajo> <salida.mp4> [escala]`
+
+Es un vídeo de **14-15 s** a 1920×1080 y 24 fps, en H.264 con audio AAC. Se
+**pinta fotograma a fotograma** con un render propio de cada teaser, sin grabar
+el juego.
+
+El esquema es siempre el mismo:
+
+1. negro;
+2. la amenaza, que va creciendo:
+
+   | Jefe | La amenaza |
+   |---|---|
+   | Nerea | las cadenas que caen al abismo |
+   | Aeralis | el tornado y su interior |
+   | Rajang | la selva, el templo y la estatua dormida |
+3. **la cara**, que abre los ojos;
+4. negro;
+5. **el cierre**: el nombre en letras de píxel de la barra, su emblema latiendo y
+   «P R Ó X I M A M E N T E».
+
+- **Sin voz ni música.** El audio es una mezcla de los `.ogg` del propio jefe.
+- **Codificación.** Usa el ffmpeg que trae el paquete `imageio-ffmpeg`, sin
+  instalar nada más.
+- **Se puede reanudar.** Se salta los fotogramas que ya están en
+  `<trabajo>/cuadros`. Por eso, **si cambias el código, vacía esa carpeta**.
+- **Revisión.** Con `--muestras`, una salida `.png` y `TIEMPOS=1.0,2.5,…` saca una
+  hoja con esos instantes en vez del vídeo.
+- **En varios procesos.** `rajang_teaser.py` se puede repartir con `PARTE=k/n` y
+  luego lanzar uno sin `PARTE` que codifica. Es la plantilla para el siguiente.
+
+> Hubo un vídeo del Vigía de 62 s **grabado del juego**, con un datapack de
+> rodaje, narrador y música. Se quitó al día siguiente: dependía de una grabación
+> de pantalla, de tiempos medidos a mano y de un servicio de voz en la nube, y no
+> se podía regenerar. Los teasers sintéticos sí se pueden. El mp4 de aquel vídeo
+> sigue en el historial de git: 36 MB.
 
 ## Comandos
 
@@ -878,22 +1407,37 @@ retocarlo cambiando un número y regenerar:
 | `/atalaya hidratacion <0-50>` | Operador | Fija tu hidratación. Para probar: llegar al nivel 2 esperando al sol son casi seis minutos |
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
+| `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
+| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `aturdida`, `agotada`, `fase`, `liberar` |
+| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `sello`, `romper` (rompe los tótems), `cataclismo`, `salto`, `aturdido`, `paralizado`, `fase`, `liberar` |
+| `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
+
+En las órdenes de los jefes:
+
+- `fase` deja la vida justo por debajo del siguiente umbral.
+- `liberar` lo mata de verdad, con la liberación entera y el botín.
+- Los ataques apuntan al ser vivo más cercano, maniquíes incluidos.
 
 El traje no tiene comando para conseguirlo: se craftea, o se coge de la pestaña de
-**Combate** en creativo. Los materiales están en **Ingredientes**.
+**Combate** en creativo. Los materiales están en **Ingredientes**. Los jefes y el
+Vigía se invocan con su **huevo**, en la pestaña de huevos.
 
 ## Configuración
 
 Dos formas, equivalentes: el menú en el juego o `config/atalaya.json`.
 
-Son **24 interruptores** en cuatro grupos, cada uno en su propia fila:
+Son **25 interruptores** en cuatro grupos, cada uno en su propia fila:
 
 ```
-[Radiación][Hidratación][Fulminante][Frío][Corrosión][Empapado] lo que hace el MUNDO
-[Miel][Colmillo][Veneno][Espejo][Pata][Alón][Fulgurita]       lo que sueltan los MOBS
-[Lingote][Miel cr.][Plantilla][Herrería]                      la cadena del TRAJE
-[Carbón][Filtro][Alga][Lente][C.Venenoso][P.Alada][Agua]      ITEMS y mejoras
+[Radiación][Hidratación][Fulminante][Vigía][Frío][Corrosión][Empapado]  lo que hace el MUNDO
+[Miel][Colmillo][Veneno][Espejo][Pata][Alón][Fulgurita]                lo que sueltan los MOBS
+[Lingote][Miel cr.][Plantilla][Herrería]                               la cadena del TRAJE
+[Carbón][Filtro][Alga][Lente][C.Venenoso][P.Alada][Agua]               ITEMS y mejoras
 ```
+
+**Los jefes no tienen interruptor.** No aparecen solos (solo con su huevo o
+`/summon`), así que no hay nada que apagar. El Vigía y el Fulminante sí lo
+necesitan, porque aparecen de forma natural.
 
 ### Nada se coloca a mano
 
@@ -907,7 +1451,7 @@ solo a la siguiente.
 
 El panel tiene **seis filas: cinco de contenido y una de navegación**. Cuando el
 contenido no cabe se abre una página nueva, y las flechas solo aparecen si hay
-adónde ir. Con 24 interruptores caben en cuatro filas, así que ahora mismo es una
+adónde ir. Con 25 interruptores caben en cuatro filas, así que ahora mismo es una
 sola página con una fila de margen.
 
 Los huecos van **vacíos, sin cristal de relleno**: los clics en la zona del panel
@@ -945,6 +1489,32 @@ el mod nunca enciende nada por su cuenta.
 - No hace falta instalar Gradle: el proyecto trae el *Gradle Wrapper*.
 - No hace falta instalar Fabric para desarrollar: `runClient` levanta un cliente
   con el mod ya cargado.
+- **Python 3.14**, solo para regenerar texturas, mallas, animaciones, sonidos,
+  pósters y teasers. Para compilar no hace falta: todo lo generado está subido.
+
+### Python para los generadores
+
+```powershell
+python -m pip install numpy scipy soundfile pillow imageio-ffmpeg
+```
+
+| Paquete | Para qué |
+|---|---|
+| `numpy`, `pillow` | todo: texturas, el renderizador 3D, las fichas y los pósters |
+| `scipy`, `soundfile` | los sonidos. `soundfile` trae libsndfile con Vorbis, así que escribe `.ogg` sin nada más |
+| `imageio-ffmpeg` | los teasers. Trae su propio ffmpeg: no hace falta instalarlo aparte |
+
+Y las **fuentes**: los pósters, las fichas y los teasers las cargan de
+`C:/Windows/Fonts/` por su nombre de fichero. Sin ellas fallan con `OSError`.
+
+| Familia | Ficheros |
+|---|---|
+| Montserrat | `Montserrat-Bold.ttf`, `-Medium.ttf`, `-SemiBold.ttf`, `-SemiBoldItalic.ttf` |
+| Oswald | `Oswald-Bold.ttf` |
+
+Están en Google Fonts. Se instalan los ficheros estáticos (no los variables) con
+clic derecho → **«Instalar para todos los usuarios»**. Si se instalan solo para
+el usuario, van a otra carpeta y los scripts no los encuentran.
 
 ### ⚠️ `JAVA_HOME` tiene que apuntar al JDK 25
 
@@ -977,11 +1547,20 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.0.0.jar`.
+El `.jar` queda en `build/libs/atalaya-1.1.2.jar`. La versión sale de
+`mod_version` en `gradle.properties`.
 
-Nada más hace falta: las versiones están fijadas en `gradle.properties` y las
-dependencias las resuelve Gradle. Las carpetas `build/`, `run/` y `.gradle/` no se
-suben y se regeneran solas.
+Nada más hace falta para compilar: las versiones están fijadas en
+`gradle.properties` y las dependencias las resuelve Gradle. Las carpetas `build/`,
+`run/` y `.gradle/` no se suben y se regeneran solas.
+
+**`entrega/`** guarda el `.jar` ya compilado de la última versión, para pasárselo
+a jugadores y servidores sin tener que compilar. Va en git porque `build/` no.
+Al subir de versión: cambiar `mod_version`, compilar, y **sustituir** el `.jar`
+de `entrega/` en vez de añadir otro al lado.
+
+Para regenerar materiales hace falta además el
+[Python de los generadores](#python-para-los-generadores).
 
 ## Desarrollo
 
@@ -999,13 +1578,32 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.0.0
+	- atalaya 1.1.2
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
 
 > **Editar siempre en `src/`, nunca en `build/`.** `build/` es salida generada y
 > se sobrescribe en la siguiente compilación.
+
+> **Tampoco en los ficheros generados de `src/`.** `NereaMalla`, `NereaAnimaciones`,
+> `NereaGeometria` y sus equivalentes de Aeralis y Rajang los escriben los
+> `*_juego_anim.py`, igual que las pieles de los jefes. Un cambio a mano se pierde
+> en la siguiente regeneración. Además descuadra la textura o separa lo que se ve
+> de lo que pega.
+
+### Fotos de prueba
+
+`FotosPrueba` es una herramienta de desarrollo del cliente. Sirve para hacer
+capturas en el tick exacto desde una función de un datapack, aunque la ventana
+esté tapada o sin foco.
+
+1. Crea un fichero vacío `run/atalaya_fotos.flag`.
+2. Desde la función, manda un `tellraw` con `FOTO nombre`.
+3. La captura se guarda en `run/screenshots/nombre.png` y el mensaje no sale en
+   el chat.
+
+Sin el fichero no hace nada.
 
 ---
 
@@ -1145,7 +1743,7 @@ gradle.properties       versiones del toolchain y datos del mod
 src/main/               código común (servidor + cliente)
 ├── java/com/atalaya/
 │   ├── Atalaya.java                entrada común: registros y eventos
-│   ├── command/AtalayaCommand      /atalaya menu
+│   ├── command/AtalayaCommand      /atalaya (menú, pruebas, jefes) y /repair
 │   ├── config/AtalayaConfig        interruptores, persistidos en JSON
 │   ├── config/LibroRecetas         sincroniza el libro con los interruptores
 │   ├── effect/RadiacionEffect      el efecto registrado y su lentitud
@@ -1154,6 +1752,10 @@ src/main/               código común (servidor + cliente)
 │   ├── effect/EmpapadoEffect       el efecto y su lentitud
 │   ├── effect/HipotermiaEffect     el efecto y su tabla de escalones
 │   ├── effect/AturdimientoEffect   la cara visible de estar clavado
+│   ├── effect/MarcadoEffect        la maldición del Vigía
+│   ├── effect/CorrienteAbismal, BendicionMareas    los de Nerea
+│   ├── effect/MarcaVendaval, BendicionVientos      los de Aeralis
+│   ├── effect/PesoTierra, BendicionTierra          los de Rajang
 │   ├── lluvia/LluviaManager        las DOS mecánicas de lluvia, en un bucle
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)
 │   ├── hidratacion/HidratacionManager   lo gasta en el desierto, por ranuras
@@ -1161,12 +1763,22 @@ src/main/               código común (servidor + cliente)
 │   ├── frio/FrioManager            lo sube en la nieve y lo baja junto al fuego
 │   ├── aturdimiento/Aturdimiento   los ticks que quedan, pegados al jugador
 │   ├── aturdimiento/AturdimientoManager  los descuenta, clava y bloquea
+│   ├── entity/AtalayaEntities      los 18 tipos: atributos, aparición y bioma
 │   ├── entity/FulminanteEntity     el creeper del desierto y su vitrificado
-│   ├── entity/AtalayaEntities      tipo, atributos, aparición y bioma
+│   ├── entity/VigiaEntity          el Vigía, y RayoVigiaEntity su rayo
+│   ├── entity/<Jefe>Entity         Nerea, Aeralis y Rajang: IA, ataques, fases, liberación
+│   ├── entity/<Jefe>Geometria      GENERADO: ticks de golpe y puntos del cuerpo
+│   ├── entity/<Jefe>Danos          las claves de sus tipos de daño
+│   ├── entity/  (de Nerea)         BurbujaNerea, GanchoNerea
+│   ├── entity/  (de Aeralis)       CuchillaViento, TornadoAeralis, RafagaAeralis, NucleoViento
+│   ├── entity/  (de Rajang)        RajangParte (cajas de cabeza y grupa), PicoTierra,
+│   │                               PilarTierra, TotemSello, PlataformaSello, FragmentoJade
 │   ├── net/AtalayaRed              el paquete de espacio, cliente → servidor
-│   ├── particula/AtalayaParticulas la estrella de aturdido
+│   ├── particula/AtalayaParticulas la estrella de aturdido y las del Vigía y los jefes
+│   ├── sonido/AtalayaSonidos       los 128 eventos de sonido del Vigía y los jefes
 │   ├── util/BotinSecreto           marca la arena que no enseña su premio
-│   ├── item/AtalayaItems           items que no son armadura
+│   ├── item/AtalayaItems           items que no son armadura (huevos y piezas de jefe incluidos)
+│   ├── item/OjoVigiaItem           el botín del Vigía
 │   ├── item/AtalayaComponents      componentes de datos propios
 │   ├── item/HazmatArmor            las cuatro piezas y sus umbrales
 │   ├── item/HazmatArmorItem        tooltip generado al mostrarse
@@ -1176,7 +1788,8 @@ src/main/               código común (servidor + cliente)
 │   ├── menu/ConfigMenu             el panel de interruptores
 │   ├── mixin/                      BlockItem, PoisonMobEffect, RecipeManager,
 │   │                               Creeper, daño, vitrificado, ranura, botín,
-│   │                               SpawnPlacements
+│   │                               SpawnPlacements, y AvisoTotem (el tótem
+│   │                               avisa a todo el servidor)
 │   └── radiation/                  GeodeIndex (índice) y RadiationManager (tick)
 └── resources/
     ├── fabric.mod.json             manifiesto
@@ -1196,11 +1809,33 @@ src/client/             código SOLO de cliente
 │   ├── client/FulminanteModel      la malla del creeper más la hierba seca
 │   ├── client/FulminanteRenderer   reusa el render del creeper con otra malla
 │   ├── client/EstrellaParticula    la estrella que gira sobre la cabeza
-│   └── mixin/client/               visor translúcido y mareo suave
+│   ├── client/Vigia*, RayoVigia*   modelo, animaciones, ojos, partículas y rayo del Vigía
+│   ├── client/<Jefe>Malla          GENERADO: la malla
+│   ├── client/<Jefe>Animaciones    GENERADO: los keyframes, un método por animación
+│   ├── client/<Jefe>Model          mezcla las animaciones, cadenas, cristales, latido
+│   ├── client/<Jefe>Renderer       piel por fase, liberado y disolverse
+│   ├── client/<Jefe>BrilloLayer    lo que brilla, por fase
+│   ├── client/<Jefe>BarraHud       su barra de jefe, apilada
+│   ├── client/<Jefe>EfectosCliente temblor, miedo y viento según lo que haga
+│   ├── client/<Jefe>Particula      sus partículas, en una clase
+│   ├── client/AeralisDibujo, RajangDibujo   geometría a mano de los proyectiles
+│   ├── client/*Renderer            los de cada proyectil y pieza de ataque
+│   ├── client/NereaPresencia       COMPARTIDO: temblor y miedo de los tres jefes
+│   ├── client/MiedoHud             la viñeta de miedo, con la textura de cada jefe
+│   ├── client/CadenaRender         los eslabones de las cadenas de Nerea
+│   ├── client/FotosPrueba          capturas desde un datapack (desarrollo)
+│   └── mixin/client/               visor translúcido, mareo suave y temblor de cámara
 └── resources/atalaya.client.mixins.json
 
-materiales/             plantillas de diseño de texturas (no van al jar)
-                        y criolita.png, guardada sin conectar a nada
+materiales/             todo lo que NO va al jar
+├── generadores/        los scripts de Python de texturas, mallas, animaciones,
+│                       sonidos, fichas y pósters (ver "Cómo se hace un jefe")
+├── video/              los scripts de los teasers
+├── promo/              pósters (.png) y teasers (.mp4) ya generados
+├── plantillas/         plantillas para pintar la armadura
+└── criolita.png        guardada sin conectar a nada
+
+entrega/                el .jar compilado de la última versión
 ```
 
 La separación `main` / `client` la impone `splitEnvironmentSourceSets()` en
@@ -1213,6 +1848,12 @@ Minecraft tiene **siete variantes de español sin herencia entre ellas**: un jug
 con "Español (México)" no ve `es_es`. `processResources` genera las seis restantes
 a partir de `es_es.json` en cada compilación, así que solo hay que mantener ese
 fichero y `en_us.json`.
+
+Los dos tienen **las mismas claves** (214), y todo lo de los jefes está traducido:
+nombres, piezas, efectos, mensajes de muerte y los subtítulos de cada sonido. Al
+añadir algo, va en los dos. Lo único que no pasa por los idiomas son los textos
+del panel de configuración y de los comandos, que están escritos en español en el
+código.
 
 ## Notas de rendimiento
 
@@ -1260,6 +1901,11 @@ siguiente, conviene seguir el patrón.
 - **Los medidores del HUD son del cliente**: al servidor no le cuestan nada. El
   del frío **cachea medio segundo** lo que le cuesta caro, porque se dibuja en cada
   fotograma y la respuesta solo puede cambiar una vez por segundo.
+- **Los jefes no tienen bucle de servidor propio.** Cada uno se mueve en su
+  `customServerAiStep`, sin goals de movimiento. Las animaciones se hornean en
+  Python, así que en el juego no se calcula física ninguna. Lo que el jugador ve
+  y no afecta al combate —el viento, las hojas, el temblor, el miedo— se calcula
+  en el cliente.
 
 ## Jugar de verdad (no desarrollo)
 
@@ -1267,11 +1913,62 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.0.0.jar`** → carpeta `mods/`
+3. **`atalaya-1.1.2.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
-obligatorio en cliente y servidor: el efecto de radiación y el visor necesitan
-código de cliente.
+obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y
+sus barras necesitan código de cliente.
+
+## Pendientes y cosas que no cuadran
+
+Lo que se encontró al repasar el proyecto entero (05-10-2026). No rompe nada
+jugable, pero conviene saberlo antes de tocar cerca.
+
+**Dependencias escondidas**
+
+- **`NereaPresencia.tick()` solo se llama desde `NereaEfectosCliente`.** Si se
+  quitara Nerea, el temblor y el miedo de Aeralis y Rajang no se apagarían nunca.
+- **Las barras se apilan leyendo un campo estático** de la barra anterior
+  (`NereaBarraHud.visible`, `AeralisBarraHud.visible`). El quinto jefe tiene que
+  leer el de Rajang.
+
+**Restos sin usar**
+
+- **Sonido `rajang.totem_rehace`.** Sigue registrado, pero desde que los tótems
+  del Sello dejaron de rehacerse nadie lo usa.
+- **Partícula `rajang_sello`.** Tiene sprites, pero el servidor no la emite nunca.
+- **`rajang_coloso.png`.** El docstring de `rajang_juego.py` lo promete, pero no
+  se genera. El "Coloso de Tierra" del Sello se quedó en la ficha de diseño.
+- **`ATTACK_DAMAGE` de los jefes.** Ninguno pega cuerpo a cuerpo, así que no se
+  usa.
+
+**Comentarios desfasados** (los números buenos son los del código, los `DANO_*`):
+
+- La cabecera de `NereaEntity` dice que la vida crece con el grupo. Es fija.
+- En Nerea, los comentarios de "tres olas" y de la burbuja (8 de daño en 4
+  bloques) son de antes del pase de balance.
+- `AeralisEntity` cita a "Nerea, 11 250"; son 12 500.
+- Varios comentarios de daño en `TornadoAeralis`, `CuchillaViento` y
+  `NucleoViento` también son anteriores al balance.
+- `RajangEntity` habla de "tres oleadas"; son seis.
+- `AtalayaClient` dice que Nerea tiene "diez" partículas y Rajang "catorce"; son
+  13 y 15.
+- `fabric.mod.json` describe el mod sin Aeralis ni Rajang.
+- `DISEÑO.md` dice que los scripts viven en el scratchpad. Hoy están en
+  `materiales/generadores/`.
+
+**Fallos pequeños**
+
+- **`aeralis_teaser.py` invierte `xx` e `yy`** al leer la caché de la viñeta. La
+  viñeta sale descentrada desde el plano del interior del tornado. Nerea y Rajang
+  lo hacen bien.
+
+**Repositorio**
+
+- **`__pycache__/` está subido** (22 `.pyc`) y no está en `.gitignore`. Cambia
+  cada vez que se ejecuta un script.
+- **El `.git` pesa unos 125 MB.** Lo engordan los mp4, los jar y los pósters, y
+  sigue dentro el vídeo borrado del Vigía. No se usa Git LFS.
 
 ## Enlaces útiles
 
