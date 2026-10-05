@@ -1,0 +1,883 @@
+{
+  "vigia.ambiente": {
+    "subtitle": "subtitles.atalaya.vigia.ambiente",
+    "sounds": [
+      "atalaya:vigia/ambiente1",
+      "atalaya:vigia/ambiente2",
+      "atalaya:vigia/ambiente3"
+    ]
+  },
+  "vigia.acecho": {
+    "subtitle": "subtitles.atalaya.vigia.acecho",
+    "sounds": [
+      "atalaya:vigia/acecho1",
+      "atalaya:vigia/acecho2"
+    ]
+  },
+  "vigia.paso": {
+    "subtitle": "subtitles.atalaya.vigia.paso",
+    "sounds": [
+      "atalaya:vigia/paso1",
+      "atalaya:vigia/paso2",
+      "atalaya:vigia/paso3",
+      "atalaya:vigia/paso4"
+    ]
+  },
+  "vigia.herido": {
+    "subtitle": "subtitles.atalaya.vigia.herido",
+    "sounds": [
+      "atalaya:vigia/herido1",
+      "atalaya:vigia/herido2",
+      "atalaya:vigia/herido3"
+    ]
+  },
+  "vigia.muerte": {
+    "subtitle": "subtitles.atalaya.vigia.muerte",
+    "sounds": [
+      "atalaya:vigia/muerte"
+    ]
+  },
+  "vigia.apagarse": {
+    "subtitle": "subtitles.atalaya.vigia.apagarse",
+    "sounds": [
+      "atalaya:vigia/apagarse"
+    ]
+  },
+  "vigia.farol_cae": {
+    "subtitle": "subtitles.atalaya.vigia.farol_cae",
+    "sounds": [
+      "atalaya:vigia/farol_cae"
+    ]
+  },
+  "vigia.alerta": {
+    "subtitle": "subtitles.atalaya.vigia.alerta",
+    "sounds": [
+      "atalaya:vigia/alerta"
+    ]
+  },
+  "vigia.cepo_abrir": {
+    "subtitle": "subtitles.atalaya.vigia.cepo_abrir",
+    "sounds": [
+      "atalaya:vigia/cepo_abrir"
+    ]
+  },
+  "vigia.cepo_cerrar": {
+    "subtitle": "subtitles.atalaya.vigia.cepo_cerrar",
+    "sounds": [
+      "atalaya:vigia/cepo_cerrar"
+    ]
+  },
+  "vigia.cepo_fallo": {
+    "subtitle": "subtitles.atalaya.vigia.cepo_fallo",
+    "sounds": [
+      "atalaya:vigia/cepo_fallo"
+    ]
+  },
+  "vigia.mirada_carga": {
+    "subtitle": "subtitles.atalaya.vigia.mirada_carga",
+    "sounds": [
+      "atalaya:vigia/mirada_carga"
+    ]
+  },
+  "vigia.mirada_disparo": {
+    "subtitle": "subtitles.atalaya.vigia.mirada_disparo",
+    "sounds": [
+      "atalaya:vigia/mirada_disparo"
+    ]
+  },
+  "vigia.mirada_corte": {
+    "subtitle": "subtitles.atalaya.vigia.mirada_corte",
+    "sounds": [
+      "atalaya:vigia/mirada_corte"
+    ]
+  },
+  "vigia.tambaleo": {
+    "subtitle": "subtitles.atalaya.vigia.tambaleo",
+    "sounds": [
+      "atalaya:vigia/tambaleo"
+    ]
+  },
+  "vigia.buscar": {
+    "subtitle": "subtitles.atalaya.vigia.buscar",
+    "sounds": [
+      "atalaya:vigia/buscar"
+    ]
+  },
+  "ojo_vigia.usar": {
+    "subtitle": "subtitles.atalaya.ojo_vigia.usar",
+    "sounds": [
+      "atalaya:vigia/ojo_usar"
+    ]
+  },
+  "vigia.rayo_vuelo": {
+    "subtitle": "subtitles.atalaya.vigia.rayo_vuelo",
+    "sounds": [
+      "atalaya:vigia/rayo_vuelo"
+    ]
+  },
+  "vigia.rayo_impacto": {
+    "subtitle": "subtitles.atalaya.vigia.rayo_impacto",
+    "sounds": [
+      "atalaya:vigia/rayo_impacto"
+    ]
+  },
+  "nerea.ambiente": {
+    "subtitle": "subtitles.atalaya.nerea.ambiente",
+    "sounds": [
+      "atalaya:nerea/ambiente1",
+      "atalaya:nerea/ambiente2",
+      "atalaya:nerea/ambiente3"
+    ]
+  },
+  "nerea.paso": {
+    "subtitle": "subtitles.atalaya.nerea.paso",
+    "sounds": [
+      "atalaya:nerea/paso1",
+      "atalaya:nerea/paso2",
+      "atalaya:nerea/paso3",
+      "atalaya:nerea/paso4"
+    ]
+  },
+  "nerea.inmune": {
+    "subtitle": "subtitles.atalaya.nerea.inmune",
+    "sounds": [
+      "atalaya:nerea/inmune1",
+      "atalaya:nerea/inmune2",
+      "atalaya:nerea/inmune3"
+    ]
+  },
+  "nerea.herido": {
+    "subtitle": "subtitles.atalaya.nerea.herido",
+    "sounds": [
+      "atalaya:nerea/herido1",
+      "atalaya:nerea/herido2",
+      "atalaya:nerea/herido3",
+      "atalaya:nerea/herido4"
+    ]
+  },
+  "nerea.rugido": {
+    "subtitle": "subtitles.atalaya.nerea.rugido",
+    "sounds": [
+      "atalaya:nerea/rugido1",
+      "atalaya:nerea/rugido2",
+      "atalaya:nerea/rugido3"
+    ]
+  },
+  "nerea.despertar": {
+    "subtitle": "subtitles.atalaya.nerea.despertar",
+    "sounds": [
+      "atalaya:nerea/despertar"
+    ]
+  },
+  "nerea.rompeolas_alzar": {
+    "subtitle": "subtitles.atalaya.nerea.rompeolas_alzar",
+    "sounds": [
+      "atalaya:nerea/rompeolas_alzar1",
+      "atalaya:nerea/rompeolas_alzar2"
+    ]
+  },
+  "nerea.rompeolas_golpe": {
+    "subtitle": "subtitles.atalaya.nerea.rompeolas_golpe",
+    "sounds": [
+      "atalaya:nerea/rompeolas_golpe1",
+      "atalaya:nerea/rompeolas_golpe2"
+    ]
+  },
+  "nerea.ola": {
+    "subtitle": "subtitles.atalaya.nerea.ola",
+    "sounds": [
+      "atalaya:nerea/ola1",
+      "atalaya:nerea/ola2"
+    ]
+  },
+  "nerea.remolino_aviso": {
+    "subtitle": "subtitles.atalaya.nerea.remolino_aviso",
+    "sounds": [
+      "atalaya:nerea/remolino_aviso"
+    ]
+  },
+  "nerea.remolino": {
+    "subtitle": "subtitles.atalaya.nerea.remolino",
+    "sounds": [
+      "atalaya:nerea/remolino"
+    ]
+  },
+  "nerea.antorcha": {
+    "subtitle": "subtitles.atalaya.nerea.antorcha",
+    "sounds": [
+      "atalaya:nerea/antorcha1",
+      "atalaya:nerea/antorcha2"
+    ]
+  },
+  "nerea.burbujas": {
+    "subtitle": "subtitles.atalaya.nerea.burbujas",
+    "sounds": [
+      "atalaya:nerea/burbujas"
+    ]
+  },
+  "nerea.burbuja_revienta": {
+    "subtitle": "subtitles.atalaya.nerea.burbuja_revienta",
+    "sounds": [
+      "atalaya:nerea/burbuja_revienta1",
+      "atalaya:nerea/burbuja_revienta2",
+      "atalaya:nerea/burbuja_revienta3"
+    ]
+  },
+  "nerea.burbuja_pompa": {
+    "subtitle": "subtitles.atalaya.nerea.burbuja_pompa",
+    "sounds": [
+      "atalaya:nerea/burbuja_pompa1",
+      "atalaya:nerea/burbuja_pompa2",
+      "atalaya:nerea/burbuja_pompa3"
+    ]
+  },
+  "nerea.molino_arrastre": {
+    "subtitle": "subtitles.atalaya.nerea.molino_arrastre",
+    "sounds": [
+      "atalaya:nerea/molino_arrastre"
+    ]
+  },
+  "nerea.molino_giro": {
+    "subtitle": "subtitles.atalaya.nerea.molino_giro",
+    "sounds": [
+      "atalaya:nerea/molino_giro1",
+      "atalaya:nerea/molino_giro2",
+      "atalaya:nerea/molino_giro3"
+    ]
+  },
+  "nerea.arpon_lanzar": {
+    "subtitle": "subtitles.atalaya.nerea.arpon_lanzar",
+    "sounds": [
+      "atalaya:nerea/arpon_lanzar"
+    ]
+  },
+  "nerea.arpon_engancha": {
+    "subtitle": "subtitles.atalaya.nerea.arpon_engancha",
+    "sounds": [
+      "atalaya:nerea/arpon_engancha1",
+      "atalaya:nerea/arpon_engancha2"
+    ]
+  },
+  "nerea.arpon_rebota": {
+    "subtitle": "subtitles.atalaya.nerea.arpon_rebota",
+    "sounds": [
+      "atalaya:nerea/arpon_rebota1",
+      "atalaya:nerea/arpon_rebota2"
+    ]
+  },
+  "nerea.estocada": {
+    "subtitle": "subtitles.atalaya.nerea.estocada",
+    "sounds": [
+      "atalaya:nerea/estocada1",
+      "atalaya:nerea/estocada2"
+    ]
+  },
+  "nerea.mirada_carga": {
+    "subtitle": "subtitles.atalaya.nerea.mirada_carga",
+    "sounds": [
+      "atalaya:nerea/mirada_carga"
+    ]
+  },
+  "nerea.mirada_rayo": {
+    "subtitle": "subtitles.atalaya.nerea.mirada_rayo",
+    "sounds": [
+      "atalaya:nerea/mirada_rayo"
+    ]
+  },
+  "nerea.mirada_impacto": {
+    "subtitle": "subtitles.atalaya.nerea.mirada_impacto",
+    "sounds": [
+      "atalaya:nerea/mirada_impacto1",
+      "atalaya:nerea/mirada_impacto2"
+    ]
+  },
+  "nerea.ojo_roto": {
+    "subtitle": "subtitles.atalaya.nerea.ojo_roto",
+    "sounds": [
+      "atalaya:nerea/ojo_roto1",
+      "atalaya:nerea/ojo_roto2"
+    ]
+  },
+  "nerea.aturdido": {
+    "subtitle": "subtitles.atalaya.nerea.aturdido",
+    "sounds": [
+      "atalaya:nerea/aturdido1",
+      "atalaya:nerea/aturdido2"
+    ]
+  },
+  "nerea.sello_golpe": {
+    "subtitle": "subtitles.atalaya.nerea.sello_golpe",
+    "sounds": [
+      "atalaya:nerea/sello_golpe1",
+      "atalaya:nerea/sello_golpe2",
+      "atalaya:nerea/sello_golpe3"
+    ]
+  },
+  "nerea.sello_roto": {
+    "subtitle": "subtitles.atalaya.nerea.sello_roto",
+    "sounds": [
+      "atalaya:nerea/sello_roto"
+    ]
+  },
+  "nerea.cadena_rompe": {
+    "subtitle": "subtitles.atalaya.nerea.cadena_rompe",
+    "sounds": [
+      "atalaya:nerea/cadena_rompe1",
+      "atalaya:nerea/cadena_rompe2"
+    ]
+  },
+  "nerea.tambaleo": {
+    "subtitle": "subtitles.atalaya.nerea.tambaleo",
+    "sounds": [
+      "atalaya:nerea/tambaleo"
+    ]
+  },
+  "nerea.agotado": {
+    "subtitle": "subtitles.atalaya.nerea.agotado",
+    "sounds": [
+      "atalaya:nerea/agotado"
+    ]
+  },
+  "nerea.latido": {
+    "subtitle": "subtitles.atalaya.nerea.latido",
+    "sounds": [
+      "atalaya:nerea/latido1",
+      "atalaya:nerea/latido2",
+      "atalaya:nerea/latido3"
+    ]
+  },
+  "nerea.liberacion": {
+    "subtitle": "subtitles.atalaya.nerea.liberacion",
+    "sounds": [
+      "atalaya:nerea/liberacion"
+    ]
+  },
+  "nerea.disolver": {
+    "subtitle": "subtitles.atalaya.nerea.disolver",
+    "sounds": [
+      "atalaya:nerea/disolver"
+    ]
+  },
+  "aeralis.ambiente": {
+    "subtitle": "subtitles.atalaya.aeralis.ambiente",
+    "sounds": [
+      "atalaya:aeralis/ambiente1",
+      "atalaya:aeralis/ambiente2",
+      "atalaya:aeralis/ambiente3"
+    ]
+  },
+  "aeralis.aleteo": {
+    "subtitle": "subtitles.atalaya.aeralis.aleteo",
+    "sounds": [
+      "atalaya:aeralis/aleteo1",
+      "atalaya:aeralis/aleteo2",
+      "atalaya:aeralis/aleteo3",
+      "atalaya:aeralis/aleteo4"
+    ]
+  },
+  "aeralis.inmune": {
+    "subtitle": "subtitles.atalaya.aeralis.inmune",
+    "sounds": [
+      "atalaya:aeralis/inmune1",
+      "atalaya:aeralis/inmune2",
+      "atalaya:aeralis/inmune3"
+    ]
+  },
+  "aeralis.herido": {
+    "subtitle": "subtitles.atalaya.aeralis.herido",
+    "sounds": [
+      "atalaya:aeralis/herido1",
+      "atalaya:aeralis/herido2",
+      "atalaya:aeralis/herido3",
+      "atalaya:aeralis/herido4"
+    ]
+  },
+  "aeralis.chillido": {
+    "subtitle": "subtitles.atalaya.aeralis.chillido",
+    "sounds": [
+      "atalaya:aeralis/chillido1",
+      "atalaya:aeralis/chillido2",
+      "atalaya:aeralis/chillido3"
+    ]
+  },
+  "aeralis.despertar": {
+    "subtitle": "subtitles.atalaya.aeralis.despertar",
+    "sounds": [
+      "atalaya:aeralis/despertar"
+    ]
+  },
+  "aeralis.aleteo_carga": {
+    "subtitle": "subtitles.atalaya.aeralis.aleteo_carga",
+    "sounds": [
+      "atalaya:aeralis/aleteo_carga1",
+      "atalaya:aeralis/aleteo_carga2"
+    ]
+  },
+  "aeralis.aleteo_corte": {
+    "subtitle": "subtitles.atalaya.aeralis.aleteo_corte",
+    "sounds": [
+      "atalaya:aeralis/aleteo_corte1",
+      "atalaya:aeralis/aleteo_corte2"
+    ]
+  },
+  "aeralis.cuchilla_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.cuchilla_golpe",
+    "sounds": [
+      "atalaya:aeralis/cuchilla_golpe1",
+      "atalaya:aeralis/cuchilla_golpe2",
+      "atalaya:aeralis/cuchilla_golpe3"
+    ]
+  },
+  "aeralis.tornados_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.tornados_golpe",
+    "sounds": [
+      "atalaya:aeralis/tornados_golpe1",
+      "atalaya:aeralis/tornados_golpe2"
+    ]
+  },
+  "aeralis.tornado_nace": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_nace",
+    "sounds": [
+      "atalaya:aeralis/tornado_nace1",
+      "atalaya:aeralis/tornado_nace2"
+    ]
+  },
+  "aeralis.tornado": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado",
+    "sounds": [
+      "atalaya:aeralis/tornado1",
+      "atalaya:aeralis/tornado2"
+    ]
+  },
+  "aeralis.tornado_atrapa": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_atrapa",
+    "sounds": [
+      "atalaya:aeralis/tornado_atrapa1",
+      "atalaya:aeralis/tornado_atrapa2"
+    ]
+  },
+  "aeralis.tornado_explota": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_explota",
+    "sounds": [
+      "atalaya:aeralis/tornado_explota1",
+      "atalaya:aeralis/tornado_explota2"
+    ]
+  },
+  "aeralis.tornado_rompe": {
+    "subtitle": "subtitles.atalaya.aeralis.tornado_rompe",
+    "sounds": [
+      "atalaya:aeralis/tornado_rompe1",
+      "atalaya:aeralis/tornado_rompe2"
+    ]
+  },
+  "aeralis.marca": {
+    "subtitle": "subtitles.atalaya.aeralis.marca",
+    "sounds": [
+      "atalaya:aeralis/marca1",
+      "atalaya:aeralis/marca2"
+    ]
+  },
+  "aeralis.rafaga": {
+    "subtitle": "subtitles.atalaya.aeralis.rafaga",
+    "sounds": [
+      "atalaya:aeralis/rafaga1",
+      "atalaya:aeralis/rafaga2",
+      "atalaya:aeralis/rafaga3"
+    ]
+  },
+  "aeralis.rafaga_rompe": {
+    "subtitle": "subtitles.atalaya.aeralis.rafaga_rompe",
+    "sounds": [
+      "atalaya:aeralis/rafaga_rompe1",
+      "atalaya:aeralis/rafaga_rompe2",
+      "atalaya:aeralis/rafaga_rompe3"
+    ]
+  },
+  "aeralis.rafaga_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.rafaga_golpe",
+    "sounds": [
+      "atalaya:aeralis/rafaga_golpe1",
+      "atalaya:aeralis/rafaga_golpe2"
+    ]
+  },
+  "aeralis.juicio_silencio": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_silencio",
+    "sounds": [
+      "atalaya:aeralis/juicio_silencio"
+    ]
+  },
+  "aeralis.juicio_circulo": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_circulo",
+    "sounds": [
+      "atalaya:aeralis/juicio_circulo"
+    ]
+  },
+  "aeralis.juicio_ciclon": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_ciclon",
+    "sounds": [
+      "atalaya:aeralis/juicio_ciclon"
+    ]
+  },
+  "aeralis.nucleo": {
+    "subtitle": "subtitles.atalaya.aeralis.nucleo",
+    "sounds": [
+      "atalaya:aeralis/nucleo1",
+      "atalaya:aeralis/nucleo2"
+    ]
+  },
+  "aeralis.nucleo_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.nucleo_golpe",
+    "sounds": [
+      "atalaya:aeralis/nucleo_golpe1",
+      "atalaya:aeralis/nucleo_golpe2",
+      "atalaya:aeralis/nucleo_golpe3"
+    ]
+  },
+  "aeralis.nucleo_roto": {
+    "subtitle": "subtitles.atalaya.aeralis.nucleo_roto",
+    "sounds": [
+      "atalaya:aeralis/nucleo_roto1",
+      "atalaya:aeralis/nucleo_roto2"
+    ]
+  },
+  "aeralis.juicio_golpe": {
+    "subtitle": "subtitles.atalaya.aeralis.juicio_golpe",
+    "sounds": [
+      "atalaya:aeralis/juicio_golpe"
+    ]
+  },
+  "aeralis.trueno": {
+    "subtitle": "subtitles.atalaya.aeralis.trueno",
+    "sounds": [
+      "atalaya:aeralis/trueno1",
+      "atalaya:aeralis/trueno2",
+      "atalaya:aeralis/trueno3"
+    ]
+  },
+  "aeralis.tambaleo": {
+    "subtitle": "subtitles.atalaya.aeralis.tambaleo",
+    "sounds": [
+      "atalaya:aeralis/tambaleo1",
+      "atalaya:aeralis/tambaleo2"
+    ]
+  },
+  "aeralis.aturdida": {
+    "subtitle": "subtitles.atalaya.aeralis.aturdida",
+    "sounds": [
+      "atalaya:aeralis/aturdida"
+    ]
+  },
+  "aeralis.agotada": {
+    "subtitle": "subtitles.atalaya.aeralis.agotada",
+    "sounds": [
+      "atalaya:aeralis/agotada"
+    ]
+  },
+  "aeralis.jadeo": {
+    "subtitle": "subtitles.atalaya.aeralis.jadeo",
+    "sounds": [
+      "atalaya:aeralis/jadeo1",
+      "atalaya:aeralis/jadeo2",
+      "atalaya:aeralis/jadeo3"
+    ]
+  },
+  "aeralis.liberacion": {
+    "subtitle": "subtitles.atalaya.aeralis.liberacion",
+    "sounds": [
+      "atalaya:aeralis/liberacion"
+    ]
+  },
+  "aeralis.disolver": {
+    "subtitle": "subtitles.atalaya.aeralis.disolver",
+    "sounds": [
+      "atalaya:aeralis/disolver"
+    ]
+  },
+  "rajang.ambiente": {
+    "subtitle": "subtitles.atalaya.rajang.ambiente",
+    "sounds": [
+      "atalaya:rajang/ambiente1",
+      "atalaya:rajang/ambiente2"
+    ]
+  },
+  "rajang.dormido": {
+    "subtitle": "subtitles.atalaya.rajang.dormido",
+    "sounds": [
+      "atalaya:rajang/dormido1",
+      "atalaya:rajang/dormido2"
+    ]
+  },
+  "rajang.paso": {
+    "subtitle": "subtitles.atalaya.rajang.paso",
+    "sounds": [
+      "atalaya:rajang/paso1",
+      "atalaya:rajang/paso2",
+      "atalaya:rajang/paso3"
+    ]
+  },
+  "rajang.herido": {
+    "subtitle": "subtitles.atalaya.rajang.herido",
+    "sounds": [
+      "atalaya:rajang/herido1",
+      "atalaya:rajang/herido2",
+      "atalaya:rajang/herido3"
+    ]
+  },
+  "rajang.inmune": {
+    "subtitle": "subtitles.atalaya.rajang.inmune",
+    "sounds": [
+      "atalaya:rajang/inmune1",
+      "atalaya:rajang/inmune2",
+      "atalaya:rajang/inmune3"
+    ]
+  },
+  "rajang.rugido": {
+    "subtitle": "subtitles.atalaya.rajang.rugido",
+    "sounds": [
+      "atalaya:rajang/rugido1",
+      "atalaya:rajang/rugido2"
+    ]
+  },
+  "rajang.grunido": {
+    "subtitle": "subtitles.atalaya.rajang.grunido",
+    "sounds": [
+      "atalaya:rajang/grunido1",
+      "atalaya:rajang/grunido2"
+    ]
+  },
+  "rajang.despertar": {
+    "subtitle": "subtitles.atalaya.rajang.despertar",
+    "sounds": [
+      "atalaya:rajang/despertar"
+    ]
+  },
+  "rajang.garra_alza": {
+    "subtitle": "subtitles.atalaya.rajang.garra_alza",
+    "sounds": [
+      "atalaya:rajang/garra_alza1",
+      "atalaya:rajang/garra_alza2"
+    ]
+  },
+  "rajang.garra_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.garra_golpe",
+    "sounds": [
+      "atalaya:rajang/garra_golpe1",
+      "atalaya:rajang/garra_golpe2"
+    ]
+  },
+  "rajang.grieta": {
+    "subtitle": "subtitles.atalaya.rajang.grieta",
+    "sounds": [
+      "atalaya:rajang/grieta1",
+      "atalaya:rajang/grieta2"
+    ]
+  },
+  "rajang.pico": {
+    "subtitle": "subtitles.atalaya.rajang.pico",
+    "sounds": [
+      "atalaya:rajang/pico1",
+      "atalaya:rajang/pico2",
+      "atalaya:rajang/pico3"
+    ]
+  },
+  "rajang.pico_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.pico_golpe",
+    "sounds": [
+      "atalaya:rajang/pico_golpe1",
+      "atalaya:rajang/pico_golpe2"
+    ]
+  },
+  "rajang.terremoto": {
+    "subtitle": "subtitles.atalaya.rajang.terremoto",
+    "sounds": [
+      "atalaya:rajang/terremoto1",
+      "atalaya:rajang/terremoto2"
+    ]
+  },
+  "rajang.onda": {
+    "subtitle": "subtitles.atalaya.rajang.onda",
+    "sounds": [
+      "atalaya:rajang/onda1",
+      "atalaya:rajang/onda2"
+    ]
+  },
+  "rajang.pilar": {
+    "subtitle": "subtitles.atalaya.rajang.pilar",
+    "sounds": [
+      "atalaya:rajang/pilar1",
+      "atalaya:rajang/pilar2",
+      "atalaya:rajang/pilar3"
+    ]
+  },
+  "rajang.aviso": {
+    "subtitle": "subtitles.atalaya.rajang.aviso",
+    "sounds": [
+      "atalaya:rajang/aviso1",
+      "atalaya:rajang/aviso2"
+    ]
+  },
+  "rajang.piel_jade": {
+    "subtitle": "subtitles.atalaya.rajang.piel_jade",
+    "sounds": [
+      "atalaya:rajang/piel_jade"
+    ]
+  },
+  "rajang.lastre": {
+    "subtitle": "subtitles.atalaya.rajang.lastre",
+    "sounds": [
+      "atalaya:rajang/lastre1",
+      "atalaya:rajang/lastre2"
+    ]
+  },
+  "rajang.sello": {
+    "subtitle": "subtitles.atalaya.rajang.sello",
+    "sounds": [
+      "atalaya:rajang/sello"
+    ]
+  },
+  "rajang.plataforma": {
+    "subtitle": "subtitles.atalaya.rajang.plataforma",
+    "sounds": [
+      "atalaya:rajang/plataforma1",
+      "atalaya:rajang/plataforma2"
+    ]
+  },
+  "rajang.totem": {
+    "subtitle": "subtitles.atalaya.rajang.totem",
+    "sounds": [
+      "atalaya:rajang/totem1",
+      "atalaya:rajang/totem2"
+    ]
+  },
+  "rajang.totem_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.totem_golpe",
+    "sounds": [
+      "atalaya:rajang/totem_golpe1",
+      "atalaya:rajang/totem_golpe2",
+      "atalaya:rajang/totem_golpe3"
+    ]
+  },
+  "rajang.totem_roto": {
+    "subtitle": "subtitles.atalaya.rajang.totem_roto",
+    "sounds": [
+      "atalaya:rajang/totem_roto1",
+      "atalaya:rajang/totem_roto2"
+    ]
+  },
+  "rajang.totem_rehace": {
+    "subtitle": "subtitles.atalaya.rajang.totem_rehace",
+    "sounds": [
+      "atalaya:rajang/totem_rehace"
+    ]
+  },
+  "rajang.columna": {
+    "subtitle": "subtitles.atalaya.rajang.columna",
+    "sounds": [
+      "atalaya:rajang/columna"
+    ]
+  },
+  "rajang.rugido_jade": {
+    "subtitle": "subtitles.atalaya.rajang.rugido_jade",
+    "sounds": [
+      "atalaya:rajang/rugido_jade"
+    ]
+  },
+  "rajang.reloj": {
+    "subtitle": "subtitles.atalaya.rajang.reloj",
+    "sounds": [
+      "atalaya:rajang/reloj"
+    ]
+  },
+  "rajang.cataclismo": {
+    "subtitle": "subtitles.atalaya.rajang.cataclismo",
+    "sounds": [
+      "atalaya:rajang/cataclismo"
+    ]
+  },
+  "rajang.cielo": {
+    "subtitle": "subtitles.atalaya.rajang.cielo",
+    "sounds": [
+      "atalaya:rajang/cielo"
+    ]
+  },
+  "rajang.fragmento": {
+    "subtitle": "subtitles.atalaya.rajang.fragmento",
+    "sounds": [
+      "atalaya:rajang/fragmento1",
+      "atalaya:rajang/fragmento2"
+    ]
+  },
+  "rajang.impacto": {
+    "subtitle": "subtitles.atalaya.rajang.impacto",
+    "sounds": [
+      "atalaya:rajang/impacto1",
+      "atalaya:rajang/impacto2",
+      "atalaya:rajang/impacto3"
+    ]
+  },
+  "rajang.marca": {
+    "subtitle": "subtitles.atalaya.rajang.marca",
+    "sounds": [
+      "atalaya:rajang/marca1",
+      "atalaya:rajang/marca2"
+    ]
+  },
+  "rajang.salto": {
+    "subtitle": "subtitles.atalaya.rajang.salto",
+    "sounds": [
+      "atalaya:rajang/salto1",
+      "atalaya:rajang/salto2"
+    ]
+  },
+  "rajang.aterriza": {
+    "subtitle": "subtitles.atalaya.rajang.aterriza",
+    "sounds": [
+      "atalaya:rajang/aterriza1",
+      "atalaya:rajang/aterriza2"
+    ]
+  },
+  "rajang.aturdido": {
+    "subtitle": "subtitles.atalaya.rajang.aturdido",
+    "sounds": [
+      "atalaya:rajang/aturdido"
+    ]
+  },
+  "rajang.paralizado": {
+    "subtitle": "subtitles.atalaya.rajang.paralizado",
+    "sounds": [
+      "atalaya:rajang/paralizado"
+    ]
+  },
+  "rajang.cura": {
+    "subtitle": "subtitles.atalaya.rajang.cura",
+    "sounds": [
+      "atalaya:rajang/cura"
+    ]
+  },
+  "rajang.tambaleo": {
+    "subtitle": "subtitles.atalaya.rajang.tambaleo",
+    "sounds": [
+      "atalaya:rajang/tambaleo1",
+      "atalaya:rajang/tambaleo2"
+    ]
+  },
+  "rajang.liberacion": {
+    "subtitle": "subtitles.atalaya.rajang.liberacion",
+    "sounds": [
+      "atalaya:rajang/liberacion"
+    ]
+  },
+  "rajang.disolver": {
+    "subtitle": "subtitles.atalaya.rajang.disolver",
+    "sounds": [
+      "atalaya:rajang/disolver"
+    ]
+  },
+  "rajang.zarpazo": {
+    "subtitle": "subtitles.atalaya.rajang.zarpazo",
+    "sounds": [
+      "atalaya:rajang/zarpazo1",
+      "atalaya:rajang/zarpazo2"
+    ]
+  }
+}

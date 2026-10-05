@@ -12,6 +12,14 @@ import com.atalaya.lluvia.LluviaManager;
 import com.atalaya.effect.CorrosionEffect;
 import com.atalaya.effect.EmpapadoEffect;
 import com.atalaya.effect.HipotermiaEffect;
+import com.atalaya.effect.MarcadoEffect;
+import com.atalaya.effect.BendicionMareasEffect;
+import com.atalaya.effect.CorrienteAbismalEffect;
+import com.atalaya.effect.MarcaVendavalEffect;
+import com.atalaya.effect.BendicionVientosEffect;
+import com.atalaya.effect.BendicionTierraEffect;
+import com.atalaya.effect.PesoTierraEffect;
+import com.atalaya.sonido.AtalayaSonidos;
 import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.effect.RadiacionEffect;
 import com.atalaya.entity.AtalayaEntities;
@@ -68,6 +76,9 @@ public class Atalaya implements ModInitializer {
     public void onInitialize() {
         // Los componentes van primero: los items los usan al construirse.
         AtalayaComponents.registrar();
+        // Los sonidos antes que nada que los use: entidades e items los
+        // guardan en campos al construirse.
+        AtalayaSonidos.registrar();
         HazmatArmor.registrar();
         AtalayaParticulas.registrar();
         // Las entidades van ANTES que los items: el huevo generador necesita
@@ -80,6 +91,13 @@ public class Atalaya implements ModInitializer {
         EmpapadoEffect.registrar();
         HipotermiaEffect.registrar();
         AturdimientoEffect.registrar();
+        MarcadoEffect.registrar();
+        BendicionMareasEffect.registrar();
+        CorrienteAbismalEffect.registrar();
+        MarcaVendavalEffect.registrar();
+        BendicionVientosEffect.registrar();
+        PesoTierraEffect.registrar();
+        BendicionTierraEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
         Frio.registrar();
@@ -153,6 +171,14 @@ public class Atalaya implements ModInitializer {
         // No cabe en Ingredientes: alli no lo buscaria nadie.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(Items.CREEPER_SPAWN_EGG, AtalayaItems.HUEVO_FULMINANTE));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(Items.ENDERMAN_SPAWN_EGG, AtalayaItems.HUEVO_VIGIA));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_VIGIA, AtalayaItems.HUEVO_NEREA));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_NEREA, AtalayaItems.HUEVO_AERALIS));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_AERALIS, AtalayaItems.HUEVO_RAJANG));
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> AtalayaCommand.registrar(dispatcher));

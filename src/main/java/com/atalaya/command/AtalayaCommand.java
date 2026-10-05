@@ -3,6 +3,13 @@ package com.atalaya.command;
 import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.entity.AtalayaEntities;
+import com.atalaya.entity.AeralisEntity;
+import com.atalaya.entity.RajangEntity;
+import com.atalaya.entity.NereaEntity;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBiomeTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -20,8 +27,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Comando /atalaya.
@@ -30,6 +43,18 @@ import net.minecraft.server.level.ServerPlayer;
  *   /atalaya menu                 -> panel de interruptores
  *   /atalaya hidratacion &lt;0-100&gt;  -> fija tu hidratacion, para probar
  *   /atalaya frio &lt;0-50&gt;          -> fija tu frio, para probar
+ *   /atalaya nerea &lt;orden&gt;         -> fuerza a la Nerea mas cercana un ataque o
+ *                                    momento del combate (despertar, rompeolas,
+ *                                    remolino, burbujas, molino, arpon, lejano,
+ *                                    mirada, aturdido, agotado, fase, liberar).
+ *                                    Nerea se invoca con su huevo generador.
+ *   /atalaya aeralis &lt;orden&gt;       -> lo mismo con la Aeralis mas cercana (despertar,
+ *                                    aleteo, tornados, caceria, rafaga, doble,
+ *                                    juicio, aturdida, agotada, fase, liberar).
+ *
+ *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
+ *                                    peto o elitros, grebas y botas) tuya o de
+ *                                    los jugadores que digas.
  *
  * Todos piden permiso de operador.
  *
@@ -56,6 +81,24 @@ public final class AtalayaCommand {
                         .then(Commands.literal("diagnostico")
                                 .requires(AtalayaCommand::esOperador)
                                 .executes(ctx -> diagnostico(ctx.getSource())))
+                        .then(Commands.literal("nerea")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NEREA, sb))
+                                        .executes(ctx -> probarNerea(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("aeralis")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_AERALIS, sb))
+                                        .executes(ctx -> probarAeralis(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("rajang")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_RAJANG, sb))
+                                        .executes(ctx -> probarRajang(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -63,6 +106,34 @@ public final class AtalayaCommand {
                                         .executes(ctx -> fijarFrio(ctx.getSource(),
                                                 IntegerArgumentType.getInteger(ctx, "puntos")))))
         );
+        dispatcher.register(
+                Commands.literal("repair")
+                        .requires(AtalayaCommand::esOperador)
+                        .executes(ctx -> reparar(ctx.getSource(), List.of(ctx.getSource().getPlayerOrException())))
+                        .then(Commands.argument("jugadores", EntityArgument.players())
+                                .executes(ctx -> reparar(ctx.getSource(), EntityArgument.getPlayers(ctx, "jugadores"))))
+        );
+    }
+
+    private static final EquipmentSlot[] ARMADURA = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+
+    /** Repara la armadura que lleva puesta cada jugador (lo que no tiene durabilidad se deja). */
+    private static int reparar(CommandSourceStack fuente, Collection<ServerPlayer> jugadores) {
+        int piezas = 0;
+        for (ServerPlayer jugador : jugadores) {
+            for (EquipmentSlot hueco : ARMADURA) {
+                ItemStack pieza = jugador.getItemBySlot(hueco);
+                if (!pieza.isEmpty() && pieza.isDamageableItem() && pieza.isDamaged()) {
+                    pieza.setDamageValue(0);
+                    piezas++;
+                }
+            }
+        }
+        int reparadas = piezas;
+        String quien = jugadores.size() == 1 ? jugadores.iterator().next().getName().getString() : jugadores.size() + " jugadores";
+        fuente.sendSuccess(() -> Component.literal("Armadura reparada (" + quien + "): " + reparadas
+                + (reparadas == 1 ? " pieza." : " piezas.")), true);
+        return reparadas;
     }
 
     /**
@@ -156,6 +227,87 @@ public final class AtalayaCommand {
                            : nivel > 0 ? "  (insolacion nivel " + nivel + ")"
                            : "  (sin insolacion)")), false);
         return puntos;
+    }
+
+    private static final String[] ORDENES_NEREA = {"despertar", "rompeolas", "remolino", "burbujas", "molino",
+            "arpon", "lejano", "mirada", "aturdido", "agotado", "fase", "liberar"};
+
+    /** Fuerza a la Nerea mas cercana (en 64 bloques) a hacer algo ya. */
+    private static int probarNerea(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        NereaEntity nerea = null;
+        double mejor = 64 * 64;
+        for (NereaEntity n : nivel.getEntitiesOfClass(NereaEntity.class, new AABB(desde, desde).inflate(64))) {
+            if (n.isAlive() && n.distanceToSqr(desde) < mejor) {
+                mejor = n.distanceToSqr(desde);
+                nerea = n;
+            }
+        }
+        if (nerea == null) {
+            fuente.sendFailure(Component.literal("No hay ninguna Nerea a menos de 64 bloques."));
+            return 0;
+        }
+        if (!nerea.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Nerea: " + orden), false);
+        return 1;
+    }
+
+    private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "sello", "romper", "cataclismo",
+            "salto", "aturdido", "paralizado", "fase", "liberar"};
+
+    /** Fuerza al Rajang mas cercano (en 80 bloques) a hacer algo ya. */
+    private static int probarRajang(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        RajangEntity rajang = null;
+        double mejor = 80 * 80;
+        for (RajangEntity r : nivel.getEntitiesOfClass(RajangEntity.class, new AABB(desde, desde).inflate(80))) {
+            if (r.isAlive() && r.distanceToSqr(desde) < mejor) {
+                mejor = r.distanceToSqr(desde);
+                rajang = r;
+            }
+        }
+        if (rajang == null) {
+            fuente.sendFailure(Component.literal("No hay ningun Rajang a menos de 80 bloques."));
+            return 0;
+        }
+        if (!rajang.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Rajang: " + orden), false);
+        return 1;
+    }
+
+    private static final String[] ORDENES_AERALIS = {"despertar", "aleteo", "tornados", "caceria", "rafaga", "doble",
+            "juicio", "aturdida", "agotada", "fase", "liberar"};
+
+    /** Fuerza a la Aeralis mas cercana (en 80 bloques) a hacer algo ya. */
+    private static int probarAeralis(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        AeralisEntity aeralis = null;
+        double mejor = 80 * 80;
+        for (AeralisEntity a : nivel.getEntitiesOfClass(AeralisEntity.class, new AABB(desde, desde).inflate(80))) {
+            if (a.isAlive() && a.distanceToSqr(desde) < mejor) {
+                mejor = a.distanceToSqr(desde);
+                aeralis = a;
+            }
+        }
+        if (aeralis == null) {
+            fuente.sendFailure(Component.literal("No hay ninguna Aeralis a menos de 80 bloques."));
+            return 0;
+        }
+        if (!aeralis.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Aeralis: " + orden), false);
+        return 1;
     }
 
     /**
