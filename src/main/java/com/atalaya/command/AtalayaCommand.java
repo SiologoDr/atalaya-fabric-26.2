@@ -27,8 +27,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Comando /atalaya.
@@ -45,6 +51,10 @@ import net.minecraft.server.level.ServerPlayer;
  *   /atalaya aeralis &lt;orden&gt;       -> lo mismo con la Aeralis mas cercana (despertar,
  *                                    aleteo, tornados, caceria, rafaga, doble,
  *                                    juicio, aturdida, agotada, fase, liberar).
+ *
+ *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
+ *                                    peto o elitros, grebas y botas) tuya o de
+ *                                    los jugadores que digas.
  *
  * Todos piden permiso de operador.
  *
@@ -96,6 +106,34 @@ public final class AtalayaCommand {
                                         .executes(ctx -> fijarFrio(ctx.getSource(),
                                                 IntegerArgumentType.getInteger(ctx, "puntos")))))
         );
+        dispatcher.register(
+                Commands.literal("repair")
+                        .requires(AtalayaCommand::esOperador)
+                        .executes(ctx -> reparar(ctx.getSource(), List.of(ctx.getSource().getPlayerOrException())))
+                        .then(Commands.argument("jugadores", EntityArgument.players())
+                                .executes(ctx -> reparar(ctx.getSource(), EntityArgument.getPlayers(ctx, "jugadores"))))
+        );
+    }
+
+    private static final EquipmentSlot[] ARMADURA = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+
+    /** Repara la armadura que lleva puesta cada jugador (lo que no tiene durabilidad se deja). */
+    private static int reparar(CommandSourceStack fuente, Collection<ServerPlayer> jugadores) {
+        int piezas = 0;
+        for (ServerPlayer jugador : jugadores) {
+            for (EquipmentSlot hueco : ARMADURA) {
+                ItemStack pieza = jugador.getItemBySlot(hueco);
+                if (!pieza.isEmpty() && pieza.isDamageableItem() && pieza.isDamaged()) {
+                    pieza.setDamageValue(0);
+                    piezas++;
+                }
+            }
+        }
+        int reparadas = piezas;
+        String quien = jugadores.size() == 1 ? jugadores.iterator().next().getName().getString() : jugadores.size() + " jugadores";
+        fuente.sendSuccess(() -> Component.literal("Armadura reparada (" + quien + "): " + reparadas
+                + (reparadas == 1 ? " pieza." : " piezas.")), true);
+        return reparadas;
     }
 
     /**

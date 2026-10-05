@@ -54,8 +54,9 @@ import java.util.List;
  *
  * <pre>
  *   fase I    100-75 %   Selva: Garra Terrestre, Terremoto Ancestral
- *   fase II    75-50 %   Grieta: + Sello de la Tierra
- *   fase III   50-25 %   Raiz: + Cataclismo de Jade
+ *   fase II    75-50 %   Grieta: + Sello de la Tierra (inmune mientras dura; si los
+ *                        totems no caen a tiempo, el Rugido de Jade mata a todos)
+ *   fase III   50-25 %   Raiz: + Cataclismo de Jade (seis oleadas de fragmentos)
  *   fase IV    25-0 %    Corazon: el peto revienta, salta sobre sus presas y
  *                        el Cataclismo vuelve antes
  * </pre>
@@ -101,8 +102,13 @@ public class RajangEntity extends Monster {
     public static final float[] DANO_SALTO = {34, 42, 53, 70};
     /** Cerca del impacto de un fragmento (de la mitad al 100 %); encima, la muerte. */
     public static final float[] DANO_FRAGMENTO = {34, 45, 54, 67};
-    /** El Rugido de Jade (el Sello sin romper): a todos, entre el 60 y el 100 % de esto, ni armadura ni escudo. */
-    public static final float[] RUGIDO_MAX = {49, 49, 69, 97};
+    /**
+     * El Rugido de Jade (el Sello sin romper a tiempo), en cualquier fase: mata a
+     * todos los que pelean con el en su rango. Pasa la armadura, el escudo, los
+     * encantamientos, los efectos y la resistencia; solo salva un totem de la
+     * inmortalidad (y lo gasta).
+     */
+    private static final float RUGIDO_MATA = 10000.0F;
     /** La tierra aplasta: contra armadura sus golpes pegan hasta un 30 % mas. */
     private static final float PERFORA_MAXIMO = 0.3F;
     /** Piel de Jade (tras el Terremoto): recibe un 40 % menos durante 10 s. */
@@ -110,9 +116,10 @@ public class RajangEntity extends Monster {
     private static final int PIEL_TICKS = 200;
     private static final int PESO_TICKS = 160;
 
-    /** El Sello: 45 s para subir y romper los cuatro totems, y 8 s entre el primero y el ultimo. */
+    /** El Sello: 45 s para subir y romper los cuatro totems. Un totem roto se queda roto. */
     public static final int SELLO_TICKS = 900;
-    public static final int SELLO_VENTANA = 160;
+    /** Lo que tarda en volver el Sello desde que acaba: 2 min en la II, 1,5 en la III, 1,3 en la IV. */
+    private static final int SELLO_DESCANSO = 2400;
     /** Las columnas: 26 bloques de alto y 4 de ancho, a 18 de el en sus cuatro diagonales. */
     private static final float SELLO_ALTO = 26.0F;
     private static final float SELLO_ANCHO = 4.0F;
@@ -123,7 +130,8 @@ public class RajangEntity extends Monster {
     private static final float PIEDRA_ANCHO = 1.8F;
     private static final double PIEDRA_GIRO = 0.62;
     /** El Cataclismo: tres oleadas, cada 2 s; la marca avisa 1,5 s antes. */
-    private static final int OLEADAS = 3;
+    /** Seis oleadas de fragmentos, una cada 2 s: 12 s de lluvia de jade. */
+    private static final int OLEADAS = 6;
     private static final int CADA_OLEADA = 40;
     public static final int AVISO_FRAGMENTO = 30;
 
@@ -202,7 +210,6 @@ public class RajangEntity extends Monster {
     private final List<TotemSelloEntity> totems = new ArrayList<>();
     /** Los totems que faltan por salir: tick, la cima (x, y, z) y su indice. */
     private final List<double[]> totemsPendientes = new ArrayList<>();
-    private int primerRoto = -1;
     private int sinCaida;
     /** El Sello no se rompio a tiempo: el rugido que viene es el Rugido de Jade. */
     private boolean rugidoFinal;
@@ -718,7 +725,7 @@ public class RajangEntity extends Monster {
         List<int[]> opciones = new ArrayList<>();
         if (enfGarra <= 0 && d < ALCANCE_GARRA) opciones.add(new int[]{GARRA, 5});
         if (enfTerremoto <= 0) opciones.add(new int[]{TERREMOTO, 3});
-        if (fase >= 2 && enfSello <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{RUGIDO, 6});
+        if (fase >= 2 && enfSello <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{RUGIDO, 2});
         if (fase >= 3 && enfCataclismo <= 0) opciones.add(new int[]{CATACLISMO, 7});
         if (fase >= 4 && enfSalto <= 0 && d > 8.0 && d < 26.0) opciones.add(new int[]{SALTO, 4});
         if (opciones.isEmpty()) {
@@ -1199,7 +1206,6 @@ public class RajangEntity extends Monster {
         ponerEstado(SELLO, SELLO_TICKS);
         entityData.set(DATA_SELLO, SELLO_TICKS);
         entityData.set(DATA_TOTEMS, 0);
-        primerRoto = -1;
     }
 
     private void tickSello(ServerLevel nivel) {
@@ -1212,17 +1218,6 @@ public class RajangEntity extends Monster {
         if (queda <= 100 && queda % 20 == 0) {
             sonido(AtalayaSonidos.RAJANG_RELOJ, 5.0F);
         }
-        // La ventana: si el primero cayo hace mas de 8 s y aun queda alguno en pie, los rotos se rehacen.
-        if (primerRoto >= 0 && t - primerRoto > SELLO_VENTANA) {
-            primerRoto = -1;
-            for (TotemSelloEntity tot : totems) {
-                if (tot.isRoto()) {
-                    tot.rehacer(nivel);
-                }
-            }
-            entityData.set(DATA_TOTEMS, 0);
-            sonido(AtalayaSonidos.RAJANG_TOTEM_REHACE, 5.0F);
-        }
     }
 
     /** Un totem roto (lo avisa el propio totem). */
@@ -1231,9 +1226,6 @@ public class RajangEntity extends Monster {
             return;
         }
         entityData.set(DATA_TOTEMS, getTotemsRotos() | (1 << tot.getIndice()));
-        if (primerRoto < 0) {
-            primerRoto = t;
-        }
         boolean todos = totems.size() == 4;
         for (TotemSelloEntity x : totems) {
             todos &= x.isRoto();
@@ -1247,7 +1239,7 @@ public class RajangEntity extends Monster {
         }
     }
 
-    /** El Rugido de Jade: ruge con toda la tierra y la onda verde lo barre todo; las columnas se hunden. */
+    /** El Rugido de Jade: ruge con toda la tierra y la onda verde mata a todos en su rango; las columnas se hunden. */
     private void rugidoDeJade(ServerLevel nivel) {
         sonido(AtalayaSonidos.RAJANG_RUGIDO_JADE, 10.0F);
         Vec3 b = puntoMundo(RajangGeometria.BOCA_RUGIDO);
@@ -1259,8 +1251,7 @@ public class RajangEntity extends Monster {
         DamageSource fuente = RajangDanos.fuente(nivel, RajangDanos.RUGIDO, this, this);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(64, 32, 64), this::esPresa)) {
             Vec3 fuera = horizontalHacia(position(), v.position());
-            float dano = dano(RUGIDO_MAX) * (0.6F + 0.4F * random.nextFloat());
-            v.hurtServer(nivel, fuente, dano);
+            v.hurtServer(nivel, fuente, RUGIDO_MATA);
             v.setDeltaMovement(fuera.x * 1.6, 0.7, fuera.z * 1.6);
             v.hurtMarked = true;
             nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, v.getX(), v.getY() + 1, v.getZ(), 10, 0.4, 0.6, 0.4, 0.1);
@@ -1268,8 +1259,13 @@ public class RajangEntity extends Monster {
         cancelarSello(nivel, true);
     }
 
-    /** Quita los totems y hunde las columnas y las piedras (o las quita de golpe). */
+    /**
+     * Quita los totems y hunde las columnas y las piedras (o las quita de
+     * golpe). El Sello no vuelve hasta dos minutos despues de acabar (algo menos
+     * en las ultimas fases): el enfriamiento cuenta desde aqui, no desde que empezo.
+     */
     private void cancelarSello(ServerLevel nivel, boolean poco_a_poco) {
+        enfSello = Math.max(enfSello, (int) (SELLO_DESCANSO * enfriamiento()));
         for (TotemSelloEntity tot : totems) {
             tot.desmontar(nivel);
         }
@@ -1277,7 +1273,6 @@ public class RajangEntity extends Monster {
         totemsPendientes.clear();
         entityData.set(DATA_SELLO, 0);
         entityData.set(DATA_TOTEMS, 0);
-        primerRoto = -1;
         if (plataformas.isEmpty()) {
             return;
         }
@@ -1331,7 +1326,7 @@ public class RajangEntity extends Monster {
             blancos.add(getTarget().position());
         }
         Vec3 c = Vec3.atBottomCenterOf(centro);
-        int extra = Math.min(20, 4 + jugadoresGrupo / 2 + fase());
+        int extra = Math.min(40, 10 + jugadoresGrupo / 2 + 3 * fase());
         for (int i = 0; i < extra; i++) {
             double a = random.nextDouble() * Math.PI * 2;
             double d = 6.0 + random.nextDouble() * 30.0;
@@ -1484,7 +1479,7 @@ public class RajangEntity extends Monster {
             sonido(AtalayaSonidos.RAJANG_TAMBALEO, 7.0F);
         }
         if (nueva == 2) {
-            enfSello = 160;
+            enfSello = 600;
         }
         if (nueva == 3) {
             enfCataclismo = 160;
@@ -1583,16 +1578,18 @@ public class RajangEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
+        if (e == SELLO || e == RUGIDO) {
+            // Mientras sostiene el Sello la tierra lo cubre entero: no le entra nada,
+            // lo unico que sirve es romper los totems.
+            avisoInmune(nivel, causante);
+            return false;
+        }
         if (causante instanceof LivingEntity vivo && random.nextInt(4) == 0 && e == LIBRE) {
             setTarget(vivo);
         }
         float k = factorGrupo;
         if (e == ATURDIDO || e == PARALIZADO) {
             k *= 2.0F;
-        }
-        if (e == SELLO || e == RUGIDO) {
-            // Mientras sostiene el Sello, la tierra lo cubre: lo que cuenta son los totems.
-            k *= 0.5F;
         }
         if (piel > 0) {
             k *= 1.0F - PIEL_REDUCE;

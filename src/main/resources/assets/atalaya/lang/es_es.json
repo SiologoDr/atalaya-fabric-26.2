@@ -211,5 +211,6 @@
   "subtitles.atalaya.rajang.tambaleo": "Rajang se tambalea",
   "subtitles.atalaya.rajang.liberacion": "Rajang queda libre",
   "subtitles.atalaya.rajang.disolver": "Rajang vuelve a la piedra",
-  "entity.atalaya.plataforma_sello": "Plataforma del Sello"
+  "entity.atalaya.plataforma_sello": "Plataforma del Sello",
+  "chat.atalaya.totem": "%s ha usado un tótem de la inmortalidad %s"
 }

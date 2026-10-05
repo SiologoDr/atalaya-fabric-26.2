@@ -211,5 +211,6 @@
   "subtitles.atalaya.rajang.tambaleo": "Rajang staggers",
   "subtitles.atalaya.rajang.liberacion": "Rajang is freed",
   "subtitles.atalaya.rajang.disolver": "Rajang turns to stone",
-  "entity.atalaya.plataforma_sello": "Seal Platform"
+  "entity.atalaya.plataforma_sello": "Seal Platform",
+  "chat.atalaya.totem": "%s used a Totem of Undying %s"
 }

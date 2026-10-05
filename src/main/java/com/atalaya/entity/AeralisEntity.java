@@ -58,7 +58,8 @@ import java.util.List;
  * <pre>
  *   fase I    100-75 %   Brisa: Aleteo Cortante, Tornados
  *   fase II    75-50 %   Rafaga: + La Caceria del Vendaval
- *   fase III   50-25 %   Tempestad: + Juicio del Ciclon (rayos en las alas)
+ *   fase III   50-25 %   Tempestad: + Juicio del Ciclon (rayos en las alas; inmune
+ *                        mientras dura: solo sirve romper los nucleos)
  *   fase IV    25-0 %    Ojo de la tormenta: todo mas seguido y cada 25 s
  *                        cae al suelo agotada (dano doble)
  * </pre>
@@ -1555,6 +1556,12 @@ public class AeralisEntity extends Monster {
             return false;
         }
         if (e == DESPERTAR) {
+            avisoInmune(nivel, causante);
+            return false;
+        }
+        if (e == JUICIO_SUBE || e == JUICIO_SOSTIENE || e == JUICIO_GOLPE) {
+            // El Juicio del Ciclon es cooperativo: dentro del ciclon no se le puede pegar,
+            // lo unico que sirve es romper los cuatro nucleos.
             avisoInmune(nivel, causante);
             return false;
         }

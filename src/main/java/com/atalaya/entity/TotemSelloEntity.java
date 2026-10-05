@@ -24,8 +24,8 @@ import org.jspecify.annotations.Nullable;
  *
  * Aguanta 6 golpes, y uno mas por cada 4 jugadores; cualquier golpe cuenta
  * (espada, flecha, tridente). Roto, se le apagan los glifos y se parte en dos.
- * Si los cuatro no caen con menos de 8 s entre el primero y el ultimo, los
- * rotos se rehacen (lo decide Rajang).
+ * Roto, se queda roto hasta que acaba el Sello: hay que romper los cuatro
+ * antes de que se acabe el tiempo.
  */
 public class TotemSelloEntity extends Entity {
 
@@ -150,18 +150,6 @@ public class TotemSelloEntity extends Entity {
         if (dueno != null) {
             dueno.alRomperTotem(nivel, this);
         }
-    }
-
-    /** Se rehace: los glifos vuelven a brillar y hay que romperlo otra vez. */
-    public void rehacer(ServerLevel nivel) {
-        if (!isRoto()) {
-            return;
-        }
-        entityData.set(DATA_ROTO, false);
-        entityData.set(DATA_GOLPES, 0);
-        Vec3 c = position().add(0, 2.5, 0);
-        nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, c.x, c.y, c.z, 30, 0.8, 1.4, 0.8, 0.05);
-        nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y, c.z, 12, 0.8, 1.4, 0.8, 0.02);
     }
 
     /** Se acaba el Sello: se deshace en polvo. */

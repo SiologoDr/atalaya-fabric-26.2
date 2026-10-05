@@ -67,7 +67,8 @@ import java.util.UUID;
  * <pre>
  *   fase I    100-75 %   Rompeolas (tres olas), Remolino, Burbujas bomba
  *   fase II    75-50 %   + Molino de cadenas, Arpon (un gancho por cada 10)
- *   fase III   50-25 %   + Mirada del Abismo (mata de un golpe: solo salva un totem)
+ *   fase III   50-25 %   + Mirada del Abismo (mata de un golpe: solo salva un totem;
+ *                        mientras mira es inmune, solo se le para dandole en los ojos)
  *   fase IV    25-0 %    las costillas se abren: todo mas seguido y cada
  *                        25 s cae de rodillas agotado (dano doble)
  * </pre>
@@ -1348,6 +1349,11 @@ public class NereaEntity extends Monster {
         if (e == MIRADA && ta() >= NereaGeometria.MIRADA_FIJA - 6 && fuente.getDirectEntity() instanceof Projectile proyectil
                 && impactoEnOjo(nivel, proyectil)) {
             return true;
+        }
+        if (e == MIRADA) {
+            // Mientras mira no se le baja la vida: lo unico que sirve es darle en los ojos.
+            avisoInmune(nivel, causante);
+            return false;
         }
         if (e == DESPERTAR) {
             avisoInmune(nivel, causante);
