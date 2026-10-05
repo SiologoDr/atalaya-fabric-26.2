@@ -201,7 +201,7 @@ public class AeralisEntity extends Monster {
     /** Lo que dura La Caceria: 15 s. */
     private static final int CAZA = 300;
     /** Lo que sostiene el ciclon del Juicio antes del golpe: 12 s. */
-    private static final int JUICIO_TICKS = 240;
+    public static final int JUICIO_TICKS = 240;
     /** A partir de cuantos bloques del resto del grupo se acelera la caza. */
     private static final double LEJOS_DEL_GRUPO = 12.0;
     private static final double RANGO_DESPERTAR = 40.0;
@@ -222,6 +222,9 @@ public class AeralisEntity extends Monster {
             SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.FLOAT);
     /** Los orbes de viento de vuelta que lleva (la raya fina bajo su barra). */
     private static final EntityDataAccessor<Integer> DATA_VIENTO =
+            SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.INT);
+    /** Los nucleos del Juicio rotos, uno por bit (para la barra, como los totems de Rajang). */
+    private static final EntityDataAccessor<Integer> DATA_NUCLEOS =
             SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.INT);
     /** La Furia del Vendaval: el aura de rayos. */
     private static final EntityDataAccessor<Boolean> DATA_FURIA =
@@ -308,6 +311,8 @@ public class AeralisEntity extends Monster {
     private int cazaPaso;
     private final List<TornadoAeralisEntity> tornadosVivos = new ArrayList<>();
     private final List<NucleoVientoEntity> nucleos = new ArrayList<>();
+    /** Los cuatro nucleos del Juicio en su orden (para saber cual se ha roto). */
+    private final NucleoVientoEntity[] nucleosJuicio = new NucleoVientoEntity[4];
     private @Nullable TornadoAeralisEntity ciclon;
     /** Los que atrapa el ciclon del Juicio: un tercio de los que pelean, los de menos vida. */
     private final List<LivingEntity> juzgados = new ArrayList<>();
@@ -348,6 +353,7 @@ public class AeralisEntity extends Monster {
         datos.define(DATA_PICADO, 0.0F);
         datos.define(DATA_VIENTO, 0);
         datos.define(DATA_FURIA, false);
+        datos.define(DATA_NUCLEOS, 0);
     }
 
     @Override
@@ -384,6 +390,11 @@ public class AeralisEntity extends Monster {
     /** Los orbes de viento de vuelta que lleva para la siguiente vez que cae aturdida. */
     public int getViento() {
         return entityData.get(DATA_VIENTO);
+    }
+
+    /** Los nucleos del Juicio que ya han roto, un bit cada uno. */
+    public int getNucleosRotos() {
+        return entityData.get(DATA_NUCLEOS);
     }
 
     /** Con la Furia del Vendaval (el aura de rayos): ha fallado un Juicio y aun no la han derribado. */
@@ -1029,6 +1040,16 @@ public class AeralisEntity extends Monster {
                 }
                 return true;
             }
+            case "nucleo" -> {
+                // Rompe uno de los nucleos del Juicio que queden (para ver la barra).
+                if (!nucleos.isEmpty()) {
+                    NucleoVientoEntity n = nucleos.get(random.nextInt(nucleos.size()));
+                    for (int i = 0; i < GOLPES_NUCLEO && !n.isRemoved(); i++) {
+                        n.hurtServer(nivel, nivel.damageSources().generic(), 1.0F);
+                    }
+                }
+                return true;
+            }
             case "furia" -> {
                 // Le pone o le quita la Furia del Vendaval (para verla sin fallar un Juicio).
                 if (getEstado() == DORMIDA) {
@@ -1519,6 +1540,7 @@ public class AeralisEntity extends Monster {
     private void empezarJuicio(ServerLevel nivel) {
         terminarCaza();
         nucleosRotos = 0;
+        entityData.set(DATA_NUCLEOS, 0);
         ponerEstado(JUICIO_SUBE, AeralisGeometria.DURACION_JUICIO_SUBE);
         // El silencio: el viento de toda la arena se calla. Los tornados se
         // deshacen, las rafagas se apagan y a todos se les corta el viento.
@@ -1589,7 +1611,8 @@ public class AeralisEntity extends Monster {
             double x = c.x + Math.cos(a) * d;
             double z = c.z + Math.sin(a) * d;
             double y = sueloBajo(nivel, x, c.y + 6, z) + 2.2;
-            nucleos.add(NucleoVientoEntity.crear(nivel, this, new Vec3(x, y, z), GOLPES_NUCLEO));
+            nucleosJuicio[i] = NucleoVientoEntity.crear(nivel, this, new Vec3(x, y, z), GOLPES_NUCLEO);
+            nucleos.add(nucleosJuicio[i]);
         }
     }
 
@@ -1624,6 +1647,11 @@ public class AeralisEntity extends Monster {
             return;
         }
         nucleosRotos++;
+        for (int i = 0; i < nucleosJuicio.length; i++) {
+            if (nucleosJuicio[i] == n) {
+                entityData.set(DATA_NUCLEOS, getNucleosRotos() | (1 << i));
+            }
+        }
         if (ciclon != null && !ciclon.isRemoved()) {
             ciclon.debilitar(nucleosRotos);
         }

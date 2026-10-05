@@ -1008,8 +1008,10 @@ barra lleva:
 La de **Aeralis** cambió con su remake (octubre de 2026): mide 240×44, lleva un
 marco, un relleno y un emblema por fase con el color ya pintado, un ala que sale
 del emblema por encima, el frente del relleno encendido, ojos de tormenta en las
-muescas y, debajo, una raya fina que se llena con el **viento de vuelta** (en el
-Juicio, en su lugar, cuatro cristales con los núcleos que quedan).
+muescas y, debajo, una raya fina que se llena con el **viento de vuelta**. En el
+Juicio, en su lugar, lo mismo que Rajang en el Sello: los **cuatro núcleos**
+(encendidos los que siguen en pie, partidos los rotos) y la **losa del tiempo**
+que le queda al ciclón, roja al final.
 La de Rajang al mismo estilo está **solo en propuesta**
 (`rajang_remake_hud.py`, ficha en `materiales/fichas/rajang_barra/`).
 
@@ -1507,7 +1509,7 @@ El esquema es siempre el mismo:
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
-| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
+| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 

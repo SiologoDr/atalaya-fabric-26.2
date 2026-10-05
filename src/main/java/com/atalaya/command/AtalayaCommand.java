@@ -290,7 +290,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_AERALIS = {"despertar", "aleteo", "tornados", "caceria", "rafaga", "doble",
-            "juicio", "picado", "posada", "escamas", "romper", "viento", "mancha", "furia", "aturdida", "agotada", "fase", "liberar"};
+            "juicio", "picado", "posada", "escamas", "romper", "viento", "mancha", "nucleo", "furia", "aturdida", "agotada", "fase", "liberar"};
 
     /** Fuerza a la Aeralis mas cercana (en 80 bloques) a hacer algo ya. */
     private static int probarAeralis(CommandSourceStack fuente, String orden) {

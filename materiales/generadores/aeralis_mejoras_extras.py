@@ -198,12 +198,14 @@ def aura_furia(cuadro):
     base = np.array(Image.open(os.path.join(ENT, 'aeralis_f1.png')).convert('RGBA'))
     h, w = base.shape[:2]
     yy, xx = np.mgrid[0:h, 0:w].astype(float)
-    quiebro = np.where((yy // 6) % 2 == 0, 2.5, -2.5)
-    s = (xx + yy + quiebro + 1.5 * np.sin(2 * np.pi * yy / 32.0) + cuadro * 2.5) % 10.0
+    # Rayos gruesos: el atlas va a media resolucion y las alas son enormes, asi
+    # que con bandas finas no se veian.
+    quiebro = np.where((yy // 10) % 2 == 0, 5.0, -5.0)
+    s = (xx + yy + quiebro + 3.0 * np.sin(2 * np.pi * yy / 48.0) + cuadro * 6.0) % 24.0
     out = np.zeros((h, w, 4), np.uint8)
-    out[s < 3.6] = (120, 60, 210, 70)
-    out[s < 2.6] = (170, 100, 255, 170)
-    out[s < 1.0] = (240, 220, 255, 235)
+    out[s < 11.0] = (110, 50, 200, 120)
+    out[s < 8.0] = (175, 105, 255, 215)
+    out[s < 3.5] = (246, 232, 255, 255)
     out[base[..., 3] < 16] = 0
     return Image.fromarray(out)
 

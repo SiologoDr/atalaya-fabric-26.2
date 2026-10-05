@@ -173,19 +173,40 @@ def ojo(apagado):
     return im
 
 
+# El nucleo del Juicio en la barra (7x9): el cristal de ocho caras, en grises
+# para tenirlo del color de la fase, con la cara de la luz y el filo claros.
+# Roto: partido en dos, oscuro, con la punta de arriba caida.
+CRISTAL = ["...o...",
+           "..oLo..",
+           ".oLLMo.",
+           "oLLMMDo",
+           "oLMMDDo",
+           ".oMDDo.",
+           "..oDo..",
+           "...o...",
+           "......."]
+CRISTAL_ROTO = [".......",
+                ".......",
+                "..o.o..",
+                ".oa.bo.",
+                "oaa.bbo",
+                ".oa.bo.",
+                "..o.o..",
+                "...o...",
+                "......."]
+
+
 def cristal(roto):
-    im = Image.new('RGBA', (5, 9), (0, 0, 0, 0))
+    im = Image.new('RGBA', (7, 9), (0, 0, 0, 0))
     px = im.load()
-    for dy in range(-4, 5):
-        semi = 2 - abs(dy) // 2
-        for dx in range(-semi, semi + 1):
-            borde = abs(dx) == semi or abs(dy) == 4
-            if roto:
-                c = NUBE[0] if borde else NUBE[2]
-            else:
-                v = 255 if dx == 0 and dy < 0 else 60 if borde else 190
-                c = (v, v, v, 255)
-            px[2 + dx, 4 + dy] = c
+    pal = {'o': (40, 40, 40, 255), 'L': (255, 255, 255, 255), 'M': (200, 200, 200, 255), 'D': (130, 130, 130, 255),
+           'a': NUBE[2], 'b': NUBE[1]}
+    if roto:
+        pal['o'] = NUBE[0]
+    for y, fila in enumerate(CRISTAL_ROTO if roto else CRISTAL):
+        for x, ch in enumerate(fila):
+            if ch != '.':
+                px[x, y] = pal[ch]
     return im
 
 

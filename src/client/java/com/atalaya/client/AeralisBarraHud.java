@@ -3,7 +3,6 @@ package com.atalaya.client;
 import com.atalaya.Atalaya;
 import com.atalaya.entity.AeralisEntity;
 import com.atalaya.entity.AeralisGeometria;
-import com.atalaya.entity.NucleoVientoEntity;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -27,8 +26,9 @@ import org.jspecify.annotations.Nullable;
  * tornados rotos (10, 20 o 30 segun la fase); llena, Aeralis cae aturdida 5 s.
  * Con la Furia del Vendaval (el Juicio fallido), la tormenta late en violeta
  * vivo y el rotulo dice FURIA.
- * Durante el Juicio del Ciclon, en su lugar, cuatro cristales: los nucleos que
- * quedan en pie. Si la de Nerea esta a la vista, la de Aeralis va
+ * Durante el Juicio del Ciclon, en su lugar, como el Sello de Rajang: los cuatro
+ * nucleos (encendidos los que siguen en pie, partidos los rotos) y la losa del
+ * tiempo que le queda al ciclon, roja al final. Si la de Nerea esta a la vista, la de Aeralis va
  * debajo; la de Rajang, debajo de las dos.
  */
 public class AeralisBarraHud implements HudElement {
@@ -165,16 +165,9 @@ public class AeralisBarraHud implements HudElement {
                 g.fill(hx, vy, hx + w, vy + 2, 0xA0000000 | COLOR_FASE[fase - 1]);
             }
         }
-        // Los nucleos del Juicio que quedan en pie.
-        if (!libre && juicio) {
-            int quedan = nucleosEnPie(mc, a);
-            if (quedan > 0 || e != AeralisEntity.JUICIO_SUBE) {
-                for (int k = 0; k < 4; k++) {
-                    boolean enPie = k < quedan;
-                    g.blit(RenderPipelines.GUI_TEXTURED, enPie ? CRISTAL : CRISTAL_ROTO, hx + 70 + k * 16 - 2, y0 + 35, 0.0F, 0.0F,
-                            5, 9, 5, 9, 5, 9, enPie ? color : 0xFFFFFFFF);
-                }
-            }
+        // El Juicio, como el Sello de Rajang: los cuatro nucleos y el tiempo que le queda.
+        if (!libre && (e == AeralisEntity.JUICIO_SOSTIENE || e == AeralisEntity.JUICIO_GOLPE)) {
+            juicioBajo(g, a, hx, y0 + 35, color, parcial);
         }
         int cx = x0 + EMBLEMA_X - NUCLEO / 2;
         int cy = y0 + EMBLEMA_Y - NUCLEO / 2;
@@ -190,15 +183,29 @@ public class AeralisBarraHud implements HudElement {
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
     }
 
-    /** Los nucleos de viento de esta Aeralis que quedan a la vista (en pie). */
-    private static int nucleosEnPie(Minecraft mc, AeralisEntity a) {
-        int n = 0;
-        for (Entity e : mc.level.entitiesForRendering()) {
-            if (e instanceof NucleoVientoEntity nv && !nv.isRemoved() && nv.getIdDuena() == a.getId()) {
-                n++;
-            }
+    /** Los cuatro nucleos del Juicio (rotos o en pie) y la losa del tiempo, bajo la barra. */
+    private static void juicioBajo(GuiGraphicsExtractor g, AeralisEntity a, int x0, int y0, int color, float parcial) {
+        int rotos = a.getNucleosRotos();
+        for (int i = 0; i < 4; i++) {
+            boolean roto = (rotos & (1 << i)) != 0;
+            // Un fondo oscuro detras, para que se lean sobre su cuerpo o el cielo.
+            g.fill(x0 + 5 + i * 10, y0 - 1, x0 + 14 + i * 10, y0 + 9, 0xB00A0E18);
+            g.blit(RenderPipelines.GUI_TEXTURED, roto ? CRISTAL_ROTO : CRISTAL, x0 + 6 + i * 10, y0, 0.0F, 0.0F,
+                    7, 9, 7, 9, 7, 9, roto ? 0xFFFFFFFF : color);
         }
-        return Math.min(4, n);
+        float k = a.getEstado() == AeralisEntity.JUICIO_SOSTIENE
+                ? Mth.clamp(1.0F - (a.tickCount - a.inicioEstado + parcial) / AeralisEntity.JUICIO_TICKS, 0.0F, 1.0F) : 0.0F;
+        int lx0 = x0 + 50;
+        int lx1 = x0 + HUECO_ANCHO - 2;
+        int ly = y0 + 2;
+        g.fill(lx0, ly, lx1, ly + 5, 0xFF0A0E18);
+        g.fill(lx0 + 1, ly + 1, lx1 - 1, ly + 4, 0xFF101826);
+        int w = Math.round((lx1 - lx0 - 2) * k);
+        if (w > 0) {
+            int c = k > 0.25F ? color : ((a.tickCount / 3) % 2 == 0 ? 0xFFFF5A3A : 0xFFFFC23A);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 4, c);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 2, 0x60FFFFFF);
+        }
     }
 
     private static int escalar(int rgb, float k) {

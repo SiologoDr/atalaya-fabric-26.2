@@ -25,6 +25,8 @@ schedule function escenas_aeralis:juicio/t0130 175t append
 schedule function escenas_aeralis:juicio/t0180 225t append
 schedule function escenas_aeralis:juicio/t0230 275t append
 schedule function escenas_aeralis:juicio/t0300 345t append
+schedule function escenas_aeralis:juicio/t0312 357t append
+schedule function escenas_aeralis:juicio/t0318 363t append
 schedule function escenas_aeralis:juicio/t0330 375t append
 schedule function escenas_aeralis:juicio/t0340 385t append
 schedule function escenas_aeralis:juicio/t0352 397t append

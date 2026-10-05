@@ -100,6 +100,8 @@ schedule clear escenas_aeralis:juicio/t0130
 schedule clear escenas_aeralis:juicio/t0180
 schedule clear escenas_aeralis:juicio/t0230
 schedule clear escenas_aeralis:juicio/t0300
+schedule clear escenas_aeralis:juicio/t0312
+schedule clear escenas_aeralis:juicio/t0318
 schedule clear escenas_aeralis:juicio/t0330
 schedule clear escenas_aeralis:juicio/t0340
 schedule clear escenas_aeralis:juicio/t0352

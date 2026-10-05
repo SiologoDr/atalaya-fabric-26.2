@@ -50,7 +50,7 @@ public class AeralisFuriaLayer extends RenderLayer<AeralisRenderState, AeralisMo
         }
         int cuadro = ((int) (s.ageInTicks / CADA)) % CUADROS.length;
         // Late deprisa, como la tormenta de la barra.
-        float k = 0.7F + 0.3F * Mth.sin(s.ageInTicks * 0.45F);
+        float k = 0.85F + 0.15F * Mth.sin(s.ageInTicks * 0.45F);
         colector.order(2).submitModel(modelo, s, pose, CUADROS[cuadro], AeralisDibujo.A_PLENA_LUZ, OverlayTexture.NO_OVERLAY,
                 ARGB.colorFromFloat(k, 1.0F, 1.0F, 1.0F), null, s.outlineColor, null);
     }
