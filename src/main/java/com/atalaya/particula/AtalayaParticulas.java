@@ -113,6 +113,38 @@ public final class AtalayaParticulas {
     /** Jiron de nube que se estira y se deshace: estelas de rafagas y tornados. */
     public static SimpleParticleType AERALIS_JIRON;
 
+    // --- Rajang, el Jaguar de Jade ---
+    /** Polvo y tierra que levantan sus pasos y sus golpes. */
+    public static SimpleParticleType RAJANG_POLVO;
+    /** Terrones y piedras que saltan y caen. */
+    public static SimpleParticleType RAJANG_ROCA;
+    /** Astillas de jade: los golpes que recibe, los totems que se rompen. */
+    public static SimpleParticleType RAJANG_JADE;
+    /** Brasa verde de la maldicion: por las grietas, la boca, los totems. */
+    public static SimpleParticleType RAJANG_CHISPA;
+    /** Hojas de la selva que caen. */
+    public static SimpleParticleType RAJANG_HOJA;
+    /** La onda de un golpe contra el suelo, tumbada (sacude la camara cerca). Fuerza en la X, radio en la Y. */
+    public static SimpleParticleType RAJANG_ONDA;
+    /** Grieta que brilla en el suelo, tumbada. Tamano en la X, ticks en la Y. */
+    public static SimpleParticleType RAJANG_GRIETA;
+    /** El hexagono roto donde va a salir algo, tumbado. Tamano en la X, ticks en la Y. */
+    public static SimpleParticleType RAJANG_AVISO;
+    /** La marca del Cataclismo con su cuenta atras, tumbada. Tamano en la X, ticks en la Y. */
+    public static SimpleParticleType RAJANG_MARCA;
+    /** El circulo del Sello de la Tierra, tumbado. Tamano en la X, ticks en la Y. */
+    public static SimpleParticleType RAJANG_SELLO;
+    /** Runa de oro de la Piel de Jade. */
+    public static SimpleParticleType RAJANG_RUNA;
+    /** Llama verde: la estela de los fragmentos y la grieta del cielo. */
+    public static SimpleParticleType RAJANG_LLAMA;
+    /** El lastre bajo los pies (Peso de la Tierra), tumbado. Tamano en la X, ticks en la Y. */
+    public static SimpleParticleType RAJANG_LASTRE;
+    /** Chispa de oro: la liberacion. */
+    public static SimpleParticleType RAJANG_ORO;
+    /** El zarpazo: tres garras en arco que cortan el aire. Tamano en la X, ticks en la Y, giro en la Z. */
+    public static SimpleParticleType RAJANG_ZARPAZO;
+
     private AtalayaParticulas() {
     }
 
@@ -162,6 +194,21 @@ public final class AtalayaParticulas {
         AERALIS_CIRCULO = registrar("aeralis_circulo", true);
         AERALIS_POLVO = registrar("aeralis_polvo", false);
         AERALIS_JIRON = registrar("aeralis_jiron", false);
+        RAJANG_POLVO = registrar("rajang_polvo", false);
+        RAJANG_ROCA = registrar("rajang_roca", false);
+        RAJANG_JADE = registrar("rajang_jade", false);
+        RAJANG_CHISPA = registrar("rajang_chispa", true);
+        RAJANG_HOJA = registrar("rajang_hoja", false);
+        RAJANG_ONDA = registrar("rajang_onda", true);
+        RAJANG_GRIETA = registrar("rajang_grieta", true);
+        RAJANG_AVISO = registrar("rajang_aviso", true);
+        RAJANG_MARCA = registrar("rajang_marca", true);
+        RAJANG_SELLO = registrar("rajang_sello", true);
+        RAJANG_RUNA = registrar("rajang_runa", true);
+        RAJANG_LLAMA = registrar("rajang_llama", true);
+        RAJANG_LASTRE = registrar("rajang_lastre", true);
+        RAJANG_ORO = registrar("rajang_oro", true);
+        RAJANG_ZARPAZO = registrar("rajang_zarpazo", true);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {

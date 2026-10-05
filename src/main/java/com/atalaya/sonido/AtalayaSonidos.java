@@ -110,6 +110,50 @@ public final class AtalayaSonidos {
     public static SoundEvent AERALIS_LIBERACION;
     public static SoundEvent AERALIS_DISOLVER;
 
+    // Rajang, el Jaguar de Jade (rajang_sonidos.py)
+    public static SoundEvent RAJANG_AMBIENTE;
+    public static SoundEvent RAJANG_DORMIDO;
+    public static SoundEvent RAJANG_PASO;
+    public static SoundEvent RAJANG_HERIDO;
+    public static SoundEvent RAJANG_INMUNE;
+    public static SoundEvent RAJANG_DESPERTAR;
+    public static SoundEvent RAJANG_RUGIDO;
+    public static SoundEvent RAJANG_GRUNIDO;
+    public static SoundEvent RAJANG_ZARPAZO;
+    public static SoundEvent RAJANG_GARRA_ALZA;
+    public static SoundEvent RAJANG_GARRA_GOLPE;
+    public static SoundEvent RAJANG_GRIETA;
+    public static SoundEvent RAJANG_PICO;
+    public static SoundEvent RAJANG_PICO_GOLPE;
+    public static SoundEvent RAJANG_TERREMOTO;
+    public static SoundEvent RAJANG_ONDA;
+    public static SoundEvent RAJANG_PILAR;
+    public static SoundEvent RAJANG_AVISO;
+    public static SoundEvent RAJANG_PIEL_JADE;
+    public static SoundEvent RAJANG_LASTRE;
+    public static SoundEvent RAJANG_SELLO;
+    public static SoundEvent RAJANG_PLATAFORMA;
+    public static SoundEvent RAJANG_TOTEM;
+    public static SoundEvent RAJANG_TOTEM_GOLPE;
+    public static SoundEvent RAJANG_TOTEM_ROTO;
+    public static SoundEvent RAJANG_TOTEM_REHACE;
+    public static SoundEvent RAJANG_COLUMNA;
+    public static SoundEvent RAJANG_RUGIDO_JADE;
+    public static SoundEvent RAJANG_RELOJ;
+    public static SoundEvent RAJANG_CATACLISMO;
+    public static SoundEvent RAJANG_CIELO;
+    public static SoundEvent RAJANG_FRAGMENTO;
+    public static SoundEvent RAJANG_IMPACTO;
+    public static SoundEvent RAJANG_MARCA;
+    public static SoundEvent RAJANG_SALTO;
+    public static SoundEvent RAJANG_ATERRIZA;
+    public static SoundEvent RAJANG_ATURDIDO;
+    public static SoundEvent RAJANG_PARALIZADO;
+    public static SoundEvent RAJANG_CURA;
+    public static SoundEvent RAJANG_TAMBALEO;
+    public static SoundEvent RAJANG_LIBERACION;
+    public static SoundEvent RAJANG_DISOLVER;
+
     private AtalayaSonidos() {
     }
 
@@ -202,6 +246,48 @@ public final class AtalayaSonidos {
         AERALIS_JADEO = registrar("aeralis.jadeo");
         AERALIS_LIBERACION = registrar("aeralis.liberacion");
         AERALIS_DISOLVER = registrar("aeralis.disolver");
+        RAJANG_AMBIENTE = registrar("rajang.ambiente");
+        RAJANG_DORMIDO = registrar("rajang.dormido");
+        RAJANG_PASO = registrar("rajang.paso");
+        RAJANG_HERIDO = registrar("rajang.herido");
+        RAJANG_INMUNE = registrar("rajang.inmune");
+        RAJANG_DESPERTAR = registrar("rajang.despertar");
+        RAJANG_RUGIDO = registrar("rajang.rugido");
+        RAJANG_GRUNIDO = registrar("rajang.grunido");
+        RAJANG_ZARPAZO = registrar("rajang.zarpazo");
+        RAJANG_GARRA_ALZA = registrar("rajang.garra_alza");
+        RAJANG_GARRA_GOLPE = registrar("rajang.garra_golpe");
+        RAJANG_GRIETA = registrar("rajang.grieta");
+        RAJANG_PICO = registrar("rajang.pico");
+        RAJANG_PICO_GOLPE = registrar("rajang.pico_golpe");
+        RAJANG_TERREMOTO = registrar("rajang.terremoto");
+        RAJANG_ONDA = registrar("rajang.onda");
+        RAJANG_PILAR = registrar("rajang.pilar");
+        RAJANG_AVISO = registrar("rajang.aviso");
+        RAJANG_PIEL_JADE = registrar("rajang.piel_jade");
+        RAJANG_LASTRE = registrar("rajang.lastre");
+        RAJANG_SELLO = registrar("rajang.sello");
+        RAJANG_PLATAFORMA = registrar("rajang.plataforma");
+        RAJANG_TOTEM = registrar("rajang.totem");
+        RAJANG_TOTEM_GOLPE = registrar("rajang.totem_golpe");
+        RAJANG_TOTEM_ROTO = registrar("rajang.totem_roto");
+        RAJANG_TOTEM_REHACE = registrar("rajang.totem_rehace");
+        RAJANG_COLUMNA = registrar("rajang.columna");
+        RAJANG_RUGIDO_JADE = registrar("rajang.rugido_jade");
+        RAJANG_RELOJ = registrar("rajang.reloj");
+        RAJANG_CATACLISMO = registrar("rajang.cataclismo");
+        RAJANG_CIELO = registrar("rajang.cielo");
+        RAJANG_FRAGMENTO = registrar("rajang.fragmento");
+        RAJANG_IMPACTO = registrar("rajang.impacto");
+        RAJANG_MARCA = registrar("rajang.marca");
+        RAJANG_SALTO = registrar("rajang.salto");
+        RAJANG_ATERRIZA = registrar("rajang.aterriza");
+        RAJANG_ATURDIDO = registrar("rajang.aturdido");
+        RAJANG_PARALIZADO = registrar("rajang.paralizado");
+        RAJANG_CURA = registrar("rajang.cura");
+        RAJANG_TAMBALEO = registrar("rajang.tambaleo");
+        RAJANG_LIBERACION = registrar("rajang.liberacion");
+        RAJANG_DISOLVER = registrar("rajang.disolver");
     }
 
     private static SoundEvent registrar(String nombre) {

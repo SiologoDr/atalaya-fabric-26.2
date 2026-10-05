@@ -68,6 +68,15 @@ public final class AtalayaItems {
     public static Item HUEVO_AERALIS;
 
     /**
+     * Colmillo de Jade: el nucleo elemental de la tierra. Lo entrega Rajang al
+     * quedar liberado; es la tercera de las cuatro piezas de los jefes elementales.
+     */
+    public static Item COLMILLO_JADE;
+
+    /** Huevo generador de Rajang: nace tumbado como una esfinge, hasta que ve a alguien. */
+    public static Item HUEVO_RAJANG;
+
+    /**
      * Fulgurita en bruto: la arena que un rayo fundio de golpe.
      *
      * Sale de cepillar la arena sospechosa que deja el fulminante, y solo una de
@@ -282,6 +291,10 @@ public final class AtalayaItems {
                 props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.AERALIS)));
         ESCAMA_AERALIS = registrar("escama_aeralis", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
+        HUEVO_RAJANG = registrar("huevo_rajang",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.RAJANG)));
+        COLMILLO_JADE = registrar("colmillo_jade", props -> new Item(props.stacksTo(1).fireResistant()
+                .rarity(Rarity.EPIC)));
 
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),
@@ -310,7 +323,7 @@ public final class AtalayaItems {
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO,
-                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA, ESCAMA_AERALIS
+                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA, ESCAMA_AERALIS, COLMILLO_JADE
         };
     }
 }

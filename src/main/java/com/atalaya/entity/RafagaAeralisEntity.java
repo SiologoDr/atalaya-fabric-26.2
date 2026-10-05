@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * reventarla en el aire a golpes o a flechazos. Aguanta un golpe, y uno mas por
  * cada 12 jugadores.
  *
- * Si llega, revienta en una explosion de presion: 16 de dano (+9 por fase) en
+ * Si llega, revienta en una explosion de presion (AeralisEntity.DANO_RAFAGA) en
  * 3,5 bloques y un empujon. Ponerse delante tambien la para... y te la comes tu.
  */
 public class RafagaAeralisEntity extends ThrowableProjectile {
@@ -40,7 +40,7 @@ public class RafagaAeralisEntity extends ThrowableProjectile {
     private boolean acelerada;
     private int aguanta = 1;
     private int golpes;
-    private float dano = AeralisEntity.DANO_RAFAGA;
+    private float dano = AeralisEntity.DANO_RAFAGA[0];
 
     public RafagaAeralisEntity(EntityType<? extends RafagaAeralisEntity> tipo, Level nivel) {
         super(tipo, nivel);

@@ -4,6 +4,7 @@ import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.entity.AtalayaEntities;
 import com.atalaya.entity.AeralisEntity;
+import com.atalaya.entity.RajangEntity;
 import com.atalaya.entity.NereaEntity;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -81,6 +82,12 @@ public final class AtalayaCommand {
                                 .then(Commands.argument("orden", StringArgumentType.word())
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_AERALIS, sb))
                                         .executes(ctx -> probarAeralis(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("rajang")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_RAJANG, sb))
+                                        .executes(ctx -> probarRajang(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
@@ -208,6 +215,33 @@ public final class AtalayaCommand {
             return 0;
         }
         fuente.sendSuccess(() -> Component.literal("Nerea: " + orden), false);
+        return 1;
+    }
+
+    private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "sello", "romper", "cataclismo",
+            "salto", "aturdido", "paralizado", "fase", "liberar"};
+
+    /** Fuerza al Rajang mas cercano (en 80 bloques) a hacer algo ya. */
+    private static int probarRajang(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        RajangEntity rajang = null;
+        double mejor = 80 * 80;
+        for (RajangEntity r : nivel.getEntitiesOfClass(RajangEntity.class, new AABB(desde, desde).inflate(80))) {
+            if (r.isAlive() && r.distanceToSqr(desde) < mejor) {
+                mejor = r.distanceToSqr(desde);
+                rajang = r;
+            }
+        }
+        if (rajang == null) {
+            fuente.sendFailure(Component.literal("No hay ningun Rajang a menos de 80 bloques."));
+            return 0;
+        }
+        if (!rajang.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Rajang: " + orden), false);
         return 1;
     }
 

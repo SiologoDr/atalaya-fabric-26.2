@@ -64,6 +64,13 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_TORNADO_AERALIS = clave("tornado_aeralis");
     public static final ResourceKey<EntityType<?>> CLAVE_RAFAGA_AERALIS = clave("rafaga_aeralis");
     public static final ResourceKey<EntityType<?>> CLAVE_NUCLEO_VIENTO = clave("nucleo_viento");
+    public static final ResourceKey<EntityType<?>> CLAVE_RAJANG = clave("rajang");
+    public static final ResourceKey<EntityType<?>> CLAVE_RAJANG_PARTE = clave("rajang_parte");
+    public static final ResourceKey<EntityType<?>> CLAVE_PICO_TIERRA = clave("pico_tierra");
+    public static final ResourceKey<EntityType<?>> CLAVE_PILAR_TIERRA = clave("pilar_tierra");
+    public static final ResourceKey<EntityType<?>> CLAVE_TOTEM_SELLO = clave("totem_sello");
+    public static final ResourceKey<EntityType<?>> CLAVE_PLATAFORMA_SELLO = clave("plataforma_sello");
+    public static final ResourceKey<EntityType<?>> CLAVE_FRAGMENTO_JADE = clave("fragmento_jade");
 
     /** Aeralis, la Mariposa del Vendaval: el jefe elemental del aire. */
     public static EntityType<AeralisEntity> AERALIS;
@@ -75,6 +82,21 @@ public final class AtalayaEntities {
     public static EntityType<RafagaAeralisEntity> RAFAGA_AERALIS;
     /** Los cuatro nucleos del Juicio. */
     public static EntityType<NucleoVientoEntity> NUCLEO_VIENTO;
+
+    /** Rajang, el Jaguar de Jade: el jefe elemental de la tierra. */
+    public static EntityType<RajangEntity> RAJANG;
+    /** Sus cajas de golpe de la cabeza y la grupa. */
+    public static EntityType<RajangParteEntity> RAJANG_PARTE;
+    /** Los picos de la Garra Terrestre. */
+    public static EntityType<PicoTierraEntity> PICO_TIERRA;
+    /** Los pilares del Terremoto Ancestral. */
+    public static EntityType<PilarTierraEntity> PILAR_TIERRA;
+    /** Los totems del Sello de la Tierra. */
+    public static EntityType<TotemSelloEntity> TOTEM_SELLO;
+    /** Las plataformas de roca del Sello y sus piedras para subir saltando. */
+    public static EntityType<PlataformaSelloEntity> PLATAFORMA_SELLO;
+    /** Los fragmentos del Cataclismo de Jade. */
+    public static EntityType<FragmentoJadeEntity> FRAGMENTO_JADE;
 
     private AtalayaEntities() {
     }
@@ -129,6 +151,7 @@ public final class AtalayaEntities {
         registrarVigia();
         registrarNerea();
         registrarAeralis();
+        registrarRajang();
     }
 
     private static void registrarAeralis() {
@@ -172,6 +195,69 @@ public final class AtalayaEntities {
                         .fireImmune()
                         .clientTrackingRange(12)
                         .build(CLAVE_NUCLEO_VIENTO));
+    }
+
+    private static void registrarRajang() {
+        // La caja tapa el pecho y las patas de delante (el origen va al pecho):
+        // la cabeza y la grupa llevan cajas propias. Se ve desde muy lejos.
+        RAJANG = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_RAJANG,
+                EntityType.Builder.of(RajangEntity::new, MobCategory.MONSTER)
+                        .sized(6.0F, 7.6F)
+                        .eyeHeight(6.2F)
+                        .fireImmune()
+                        .clientTrackingRange(24)
+                        .updateInterval(2)
+                        .build(CLAVE_RAJANG));
+        FabricDefaultAttributeRegistry.register(RAJANG, RajangEntity.crearAtributos());
+
+        // Lo suyo: nada se guarda con el mundo, es del ataque que lo saco.
+        RAJANG_PARTE = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_RAJANG_PARTE,
+                EntityType.Builder.<RajangParteEntity>of(RajangParteEntity::new, MobCategory.MISC)
+                        .sized(3.0F, 3.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(24)
+                        .updateInterval(1)
+                        .build(CLAVE_RAJANG_PARTE));
+        PICO_TIERRA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_PICO_TIERRA,
+                EntityType.Builder.<PicoTierraEntity>of(PicoTierraEntity::new, MobCategory.MISC)
+                        .sized(2.6F, 6.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .updateInterval(20)
+                        .build(CLAVE_PICO_TIERRA));
+        PILAR_TIERRA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_PILAR_TIERRA,
+                EntityType.Builder.<PilarTierraEntity>of(PilarTierraEntity::new, MobCategory.MISC)
+                        .sized(4.4F, 5.4F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .updateInterval(20)
+                        .build(CLAVE_PILAR_TIERRA));
+        TOTEM_SELLO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_TOTEM_SELLO,
+                EntityType.Builder.<TotemSelloEntity>of(TotemSelloEntity::new, MobCategory.MISC)
+                        .sized(1.6F, 4.9F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .build(CLAVE_TOTEM_SELLO));
+        PLATAFORMA_SELLO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_PLATAFORMA_SELLO,
+                EntityType.Builder.<PlataformaSelloEntity>of(PlataformaSelloEntity::new, MobCategory.MISC)
+                        .sized(3.0F, 13.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .updateInterval(1)
+                        .build(CLAVE_PLATAFORMA_SELLO));
+        FRAGMENTO_JADE = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_FRAGMENTO_JADE,
+                EntityType.Builder.<FragmentoJadeEntity>of(FragmentoJadeEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .updateInterval(1)
+                        .build(CLAVE_FRAGMENTO_JADE));
     }
 
     private static void registrarNerea() {

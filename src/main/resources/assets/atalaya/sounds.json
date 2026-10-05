@@ -592,5 +592,292 @@
     "sounds": [
       "atalaya:aeralis/disolver"
     ]
+  },
+  "rajang.ambiente": {
+    "subtitle": "subtitles.atalaya.rajang.ambiente",
+    "sounds": [
+      "atalaya:rajang/ambiente1",
+      "atalaya:rajang/ambiente2"
+    ]
+  },
+  "rajang.dormido": {
+    "subtitle": "subtitles.atalaya.rajang.dormido",
+    "sounds": [
+      "atalaya:rajang/dormido1",
+      "atalaya:rajang/dormido2"
+    ]
+  },
+  "rajang.paso": {
+    "subtitle": "subtitles.atalaya.rajang.paso",
+    "sounds": [
+      "atalaya:rajang/paso1",
+      "atalaya:rajang/paso2",
+      "atalaya:rajang/paso3"
+    ]
+  },
+  "rajang.herido": {
+    "subtitle": "subtitles.atalaya.rajang.herido",
+    "sounds": [
+      "atalaya:rajang/herido1",
+      "atalaya:rajang/herido2",
+      "atalaya:rajang/herido3"
+    ]
+  },
+  "rajang.inmune": {
+    "subtitle": "subtitles.atalaya.rajang.inmune",
+    "sounds": [
+      "atalaya:rajang/inmune1",
+      "atalaya:rajang/inmune2",
+      "atalaya:rajang/inmune3"
+    ]
+  },
+  "rajang.rugido": {
+    "subtitle": "subtitles.atalaya.rajang.rugido",
+    "sounds": [
+      "atalaya:rajang/rugido1",
+      "atalaya:rajang/rugido2"
+    ]
+  },
+  "rajang.grunido": {
+    "subtitle": "subtitles.atalaya.rajang.grunido",
+    "sounds": [
+      "atalaya:rajang/grunido1",
+      "atalaya:rajang/grunido2"
+    ]
+  },
+  "rajang.despertar": {
+    "subtitle": "subtitles.atalaya.rajang.despertar",
+    "sounds": [
+      "atalaya:rajang/despertar"
+    ]
+  },
+  "rajang.garra_alza": {
+    "subtitle": "subtitles.atalaya.rajang.garra_alza",
+    "sounds": [
+      "atalaya:rajang/garra_alza1",
+      "atalaya:rajang/garra_alza2"
+    ]
+  },
+  "rajang.garra_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.garra_golpe",
+    "sounds": [
+      "atalaya:rajang/garra_golpe1",
+      "atalaya:rajang/garra_golpe2"
+    ]
+  },
+  "rajang.grieta": {
+    "subtitle": "subtitles.atalaya.rajang.grieta",
+    "sounds": [
+      "atalaya:rajang/grieta1",
+      "atalaya:rajang/grieta2"
+    ]
+  },
+  "rajang.pico": {
+    "subtitle": "subtitles.atalaya.rajang.pico",
+    "sounds": [
+      "atalaya:rajang/pico1",
+      "atalaya:rajang/pico2",
+      "atalaya:rajang/pico3"
+    ]
+  },
+  "rajang.pico_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.pico_golpe",
+    "sounds": [
+      "atalaya:rajang/pico_golpe1",
+      "atalaya:rajang/pico_golpe2"
+    ]
+  },
+  "rajang.terremoto": {
+    "subtitle": "subtitles.atalaya.rajang.terremoto",
+    "sounds": [
+      "atalaya:rajang/terremoto1",
+      "atalaya:rajang/terremoto2"
+    ]
+  },
+  "rajang.onda": {
+    "subtitle": "subtitles.atalaya.rajang.onda",
+    "sounds": [
+      "atalaya:rajang/onda1",
+      "atalaya:rajang/onda2"
+    ]
+  },
+  "rajang.pilar": {
+    "subtitle": "subtitles.atalaya.rajang.pilar",
+    "sounds": [
+      "atalaya:rajang/pilar1",
+      "atalaya:rajang/pilar2",
+      "atalaya:rajang/pilar3"
+    ]
+  },
+  "rajang.aviso": {
+    "subtitle": "subtitles.atalaya.rajang.aviso",
+    "sounds": [
+      "atalaya:rajang/aviso1",
+      "atalaya:rajang/aviso2"
+    ]
+  },
+  "rajang.piel_jade": {
+    "subtitle": "subtitles.atalaya.rajang.piel_jade",
+    "sounds": [
+      "atalaya:rajang/piel_jade"
+    ]
+  },
+  "rajang.lastre": {
+    "subtitle": "subtitles.atalaya.rajang.lastre",
+    "sounds": [
+      "atalaya:rajang/lastre1",
+      "atalaya:rajang/lastre2"
+    ]
+  },
+  "rajang.sello": {
+    "subtitle": "subtitles.atalaya.rajang.sello",
+    "sounds": [
+      "atalaya:rajang/sello"
+    ]
+  },
+  "rajang.plataforma": {
+    "subtitle": "subtitles.atalaya.rajang.plataforma",
+    "sounds": [
+      "atalaya:rajang/plataforma1",
+      "atalaya:rajang/plataforma2"
+    ]
+  },
+  "rajang.totem": {
+    "subtitle": "subtitles.atalaya.rajang.totem",
+    "sounds": [
+      "atalaya:rajang/totem1",
+      "atalaya:rajang/totem2"
+    ]
+  },
+  "rajang.totem_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.totem_golpe",
+    "sounds": [
+      "atalaya:rajang/totem_golpe1",
+      "atalaya:rajang/totem_golpe2",
+      "atalaya:rajang/totem_golpe3"
+    ]
+  },
+  "rajang.totem_roto": {
+    "subtitle": "subtitles.atalaya.rajang.totem_roto",
+    "sounds": [
+      "atalaya:rajang/totem_roto1",
+      "atalaya:rajang/totem_roto2"
+    ]
+  },
+  "rajang.totem_rehace": {
+    "subtitle": "subtitles.atalaya.rajang.totem_rehace",
+    "sounds": [
+      "atalaya:rajang/totem_rehace"
+    ]
+  },
+  "rajang.columna": {
+    "subtitle": "subtitles.atalaya.rajang.columna",
+    "sounds": [
+      "atalaya:rajang/columna"
+    ]
+  },
+  "rajang.rugido_jade": {
+    "subtitle": "subtitles.atalaya.rajang.rugido_jade",
+    "sounds": [
+      "atalaya:rajang/rugido_jade"
+    ]
+  },
+  "rajang.reloj": {
+    "subtitle": "subtitles.atalaya.rajang.reloj",
+    "sounds": [
+      "atalaya:rajang/reloj"
+    ]
+  },
+  "rajang.cataclismo": {
+    "subtitle": "subtitles.atalaya.rajang.cataclismo",
+    "sounds": [
+      "atalaya:rajang/cataclismo"
+    ]
+  },
+  "rajang.cielo": {
+    "subtitle": "subtitles.atalaya.rajang.cielo",
+    "sounds": [
+      "atalaya:rajang/cielo"
+    ]
+  },
+  "rajang.fragmento": {
+    "subtitle": "subtitles.atalaya.rajang.fragmento",
+    "sounds": [
+      "atalaya:rajang/fragmento1",
+      "atalaya:rajang/fragmento2"
+    ]
+  },
+  "rajang.impacto": {
+    "subtitle": "subtitles.atalaya.rajang.impacto",
+    "sounds": [
+      "atalaya:rajang/impacto1",
+      "atalaya:rajang/impacto2",
+      "atalaya:rajang/impacto3"
+    ]
+  },
+  "rajang.marca": {
+    "subtitle": "subtitles.atalaya.rajang.marca",
+    "sounds": [
+      "atalaya:rajang/marca1",
+      "atalaya:rajang/marca2"
+    ]
+  },
+  "rajang.salto": {
+    "subtitle": "subtitles.atalaya.rajang.salto",
+    "sounds": [
+      "atalaya:rajang/salto1",
+      "atalaya:rajang/salto2"
+    ]
+  },
+  "rajang.aterriza": {
+    "subtitle": "subtitles.atalaya.rajang.aterriza",
+    "sounds": [
+      "atalaya:rajang/aterriza1",
+      "atalaya:rajang/aterriza2"
+    ]
+  },
+  "rajang.aturdido": {
+    "subtitle": "subtitles.atalaya.rajang.aturdido",
+    "sounds": [
+      "atalaya:rajang/aturdido"
+    ]
+  },
+  "rajang.paralizado": {
+    "subtitle": "subtitles.atalaya.rajang.paralizado",
+    "sounds": [
+      "atalaya:rajang/paralizado"
+    ]
+  },
+  "rajang.cura": {
+    "subtitle": "subtitles.atalaya.rajang.cura",
+    "sounds": [
+      "atalaya:rajang/cura"
+    ]
+  },
+  "rajang.tambaleo": {
+    "subtitle": "subtitles.atalaya.rajang.tambaleo",
+    "sounds": [
+      "atalaya:rajang/tambaleo1",
+      "atalaya:rajang/tambaleo2"
+    ]
+  },
+  "rajang.liberacion": {
+    "subtitle": "subtitles.atalaya.rajang.liberacion",
+    "sounds": [
+      "atalaya:rajang/liberacion"
+    ]
+  },
+  "rajang.disolver": {
+    "subtitle": "subtitles.atalaya.rajang.disolver",
+    "sounds": [
+      "atalaya:rajang/disolver"
+    ]
+  },
+  "rajang.zarpazo": {
+    "subtitle": "subtitles.atalaya.rajang.zarpazo",
+    "sounds": [
+      "atalaya:rajang/zarpazo1",
+      "atalaya:rajang/zarpazo2"
+    ]
   }
 }

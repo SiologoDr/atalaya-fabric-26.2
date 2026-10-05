@@ -247,7 +247,7 @@ public class TornadoAeralisEntity extends Entity {
             float k = Mth.clamp(dentro / (float) ATRAPA, 0.0F, 1.0F);
             girar(v, i, 0.5 + 5.0 * k, 1.1);
             if (dentro > 0 && dentro % 20 == 0) {
-                v.hurtServer(nivel, fuente, AeralisEntity.DANO_TORNADO);
+                v.hurtServer(nivel, fuente, duena != null ? duena.dano(AeralisEntity.DANO_TORNADO) : AeralisEntity.DANO_TORNADO[0]);
             }
         }
         atrapados.removeIf(v -> !v.isAlive() || v.isRemoved());

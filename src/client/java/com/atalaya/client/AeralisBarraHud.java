@@ -56,6 +56,8 @@ public class AeralisBarraHud implements HudElement {
 
     private float fantasma = 1.0F;
     private int ultimo = -1;
+    /** Si se esta dibujando (la de Rajang va debajo). */
+    public static boolean visible;
 
     private static Identifier tex(String nombre) {
         return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/" + nombre + ".png");
@@ -65,6 +67,7 @@ public class AeralisBarraHud implements HudElement {
     public void extractRenderState(GuiGraphicsExtractor g, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
         AeralisEntity a = cercana(mc);
+        visible = a != null;
         if (a == null) {
             ultimo = -1;
             return;

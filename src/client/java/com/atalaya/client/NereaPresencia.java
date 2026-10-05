@@ -5,7 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Lo que se siente cerca de Nerea (y de Aeralis) aunque no te toque: la camara tiembla con
+ * Lo que se siente cerca de Nerea (y de Aeralis y Rajang) aunque no te toque: la camara tiembla con
  * sus golpes, retumba mientras gira las cadenas o remueve el agua, y el miedo
  * oscurece los bordes de la pantalla cuando ruge o te clava la mirada.
  *
@@ -24,6 +24,7 @@ public final class NereaPresencia {
     private static float miedo;
     private static float miedoAnt;
     private static boolean miedoAire;
+    private static boolean miedoTierra;
 
     private NereaPresencia() {
     }
@@ -53,7 +54,23 @@ public final class NereaPresencia {
         if (m > miedo) {
             miedo = m;
             miedoAire = aire;
+            miedoTierra = false;
         }
+    }
+
+    /** El miedo de Rajang: la selva y las grietas de jade se cierran sobre los bordes. */
+    public static void asustarTierra(double x, double y, double z, float nivel, float alcance) {
+        float m = Math.min(1.0F, nivel * caida(x, y, z, alcance));
+        if (m > miedo) {
+            miedo = m;
+            miedoAire = false;
+            miedoTierra = true;
+        }
+    }
+
+    /** Si el miedo de ahora es de Rajang. */
+    public static boolean miedoDeTierra() {
+        return miedoTierra;
     }
 
     /** Si el miedo de ahora es de Aeralis. */

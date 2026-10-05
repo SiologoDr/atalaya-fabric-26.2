@@ -39,7 +39,6 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
     private static final double RADIO = 5.5;
     /** La fase del jefe al soltarla: mas rapida y mas grande cuanto mas avanzada. */
     private int fase = 1;
-    private static final float DANO = 8.0F;
 
     private @Nullable LivingEntity blanco;
 
@@ -180,7 +179,7 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
             if (v instanceof Player p && (p.isCreative() || p.isSpectator())) {
                 continue;
             }
-            v.hurtServer(nivel, fuente, DANO + NereaEntity.DANO_POR_FASE * (fase - 1));
+            v.hurtServer(nivel, fuente, NereaEntity.DANO_BURBUJA[Math.clamp(fase, 1, 4) - 1]);
             Vec3 fuera = v.position().subtract(c);
             Vec3 h = new Vec3(fuera.x, 0, fuera.z);
             h = h.lengthSqr() < 1.0E-4 ? new Vec3(0, 0, 0) : h.normalize();

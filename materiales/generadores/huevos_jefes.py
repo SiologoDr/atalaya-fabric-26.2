@@ -1,5 +1,5 @@
 """
-Huevos generadores del Vigia, de Nerea y de Aeralis, dibujados pixel a pixel (16x16).
+Huevos generadores del Vigia, de Nerea, de Aeralis y de Rajang, dibujados pixel a pixel (16x16).
 
 Siguen el estilo de los huevos de vanilla de 26.x: la misma silueta y la luz
 desde arriba a la izquierda, con contorno de dos tonos, y encima los rasgos
@@ -13,6 +13,9 @@ puas del guardian:
   Aeralis quitina azul pizarra, las alas de viento que asoman por los lados,
           las antenas con la punta encendida, los ojos cian y el ojo de la
           tormenta en el pecho
+  Rajang  jade con manchas de oro, la cresta de cristales arriba, las orejas
+          con la punta de oro, la mascara de oro con los ojos de la maldicion,
+          los dos sables que cuelgan y el sol de jade encendido en el pecho
 
 Uso: python huevos_jefes.py <raiz del proyecto> [vista_previa.png]
 """
@@ -162,9 +165,41 @@ pintar(aeralis, [
 ], AERALIS)
 aeralis.save(os.path.join(ITEM, 'huevo_aeralis.png'))
 
+# ---------------------------------------------------------------- Rajang
+RAJANG = {
+    'o': hexc('1c4e34'), 'O': hexc('07160e'),                       # contorno
+    '1': hexc('143a27'), '2': hexc('1c4e34'), '3': hexc('266444'), '4': hexc('387a56'),
+    'k': hexc('3aa866'), 'c': hexc('58c886'), 'C': hexc('86e2a8'),  # la cresta de cristales
+    'y': hexc('f8d97c'), 'Y': hexc('e2b443'), 'G': hexc('c28d28'), 'h': hexc('8f6418'),  # oro
+    'E': hexc('c8ff2a'), 'e': hexc('8cff5a'),                       # los ojos de la maldicion
+    'f': hexc('eafff2'), 'F': hexc('a6dcbc'),                       # los sables
+    'n': hexc('8cff5a'), 'N': hexc('f2ffe0'),                       # el sol de jade del pecho
+    'g': hexc('c28d28'), 'r': hexc('0e2a1c'),                       # manchas de oro y rosetas
+}
+rajang = cascara([RAJANG['1'], RAJANG['2'], RAJANG['3'], RAJANG['3'], RAJANG['4']], RAJANG['o'], RAJANG['O'], 'rajang')
+pintar(rajang, [
+    ".......Cc.......",
+    "......kCck......",
+    "...Y..kCck..Y...",
+    "...hG.GYYG.Gh...",
+    "....hYYyyYYh....",
+    "....EeGhhGeE....",
+    ".....GYyyYG.....",
+    ".....fhGGhf.....",
+    "...r.fF..Ff.r...",
+    "...rr.F..F.rr...",
+    "...g........g...",
+    "......GYYG......",
+    "...r.GnNNnG.r...",
+    ".....hnnnnh.....",
+    "......hGGh......",
+    "................",
+], RAJANG)
+rajang.save(os.path.join(ITEM, 'huevo_rajang.png'))
+
 if len(sys.argv) > 2:
     VAN = sys.argv[3] if len(sys.argv) > 3 else None
-    fila = [vigia, nerea, aeralis]
+    fila = [vigia, nerea, aeralis, rajang]
     if VAN:
         for f in ('warden', 'guardian', 'drowned', 'wither_skeleton'):
             fila.append(Image.open(os.path.join(VAN, f + '_spawn_egg.png')).convert('RGBA'))

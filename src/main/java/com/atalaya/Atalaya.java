@@ -17,6 +17,8 @@ import com.atalaya.effect.BendicionMareasEffect;
 import com.atalaya.effect.CorrienteAbismalEffect;
 import com.atalaya.effect.MarcaVendavalEffect;
 import com.atalaya.effect.BendicionVientosEffect;
+import com.atalaya.effect.BendicionTierraEffect;
+import com.atalaya.effect.PesoTierraEffect;
 import com.atalaya.sonido.AtalayaSonidos;
 import com.atalaya.effect.InsolacionEffect;
 import com.atalaya.effect.RadiacionEffect;
@@ -94,6 +96,8 @@ public class Atalaya implements ModInitializer {
         CorrienteAbismalEffect.registrar();
         MarcaVendavalEffect.registrar();
         BendicionVientosEffect.registrar();
+        PesoTierraEffect.registrar();
+        BendicionTierraEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
         Frio.registrar();
@@ -173,6 +177,8 @@ public class Atalaya implements ModInitializer {
                 salida.insertAfter(AtalayaItems.HUEVO_VIGIA, AtalayaItems.HUEVO_NEREA));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(AtalayaItems.HUEVO_NEREA, AtalayaItems.HUEVO_AERALIS));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_AERALIS, AtalayaItems.HUEVO_RAJANG));
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> AtalayaCommand.registrar(dispatcher));

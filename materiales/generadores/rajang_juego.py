@@ -36,6 +36,11 @@ import tierra_piel as tp
 
 ANCHO_ATLAS = 1024
 D2R = math.pi / 180
+# El origen de la entidad va al pecho, no a la cintura: el cuerpo mide 17
+# bloques y la caja principal tapa el pecho y las patas de delante; la cabeza
+# y la grupa llevan cajas propias (RajangParteEntity). Toda la malla se echa
+# atras 3,5 bloques.
+DESPLAZA = 56.0
 
 
 class Parte:
@@ -90,6 +95,7 @@ def construir():
             visitar(h, nombre)
 
     visitar(raiz, None)
+    PARTES['raiz'].pivote = (0.0, 0.0, DESPLAZA)
 
 
 # ----------------------------------------------------------------------
@@ -160,7 +166,9 @@ def empaquetar():
 def caras_atlas(uv):
     """Lista de (cara, region (X0, Y0, X1, Y1)) y las cajas para la sombra de
     contacto, todo en el cuerpo en reposo."""
-    Ms = matrices()
+    # sin el desplazamiento: la piel se pinta en las medidas de tierra_modelo
+    atras = vr.T(0, 0, -DESPLAZA)
+    Ms = {n: atras @ M for n, M in matrices().items()}
     cajas, caras = [], []
     indice = {}
     for n in ORDEN:

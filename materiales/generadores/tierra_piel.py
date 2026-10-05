@@ -561,9 +561,12 @@ def _cristal(c, fase, pal, cajas):
     canto = (iu == 0) | (iv == 0) | (iu == w - 1) | (iv == h - 1)
     col[canto] = col[canto] * 0.6 + a * 0.4
     col += (_grano(P, 107) - 0.5)[:, None] * 14
-    fuerza = 0.12 + 0.05 * fase if fase < 5 else 0.06
-    alfa = (fuerza * (0.45 + 0.55 * k) + 0.1 * faceta + 0.08 * canto) * 255
-    emis = np.c_[np.tile(b, (n, 1)), np.clip(alfa, 0, 255)]
+    # Cada fase brillan mas y cambian de color: esmeralda, verde vivo, lima y
+    # amarillo de oro casi blanco en la IV.
+    fuerza = {1: 0.18, 2: 0.36, 3: 0.58, 4: 0.82}.get(fase, 0.06)
+    col *= 1.0 + 0.08 * (min(fase, 4) - 1)
+    alfa = (fuerza * (0.5 + 0.5 * k) + (0.1 + 0.05 * fase) * faceta + 0.08 * canto) * 255
+    emis = np.c_[np.where((faceta | canto)[:, None], a, b), np.clip(alfa, 0, 255)]
     return w, h, col, emis
 
 

@@ -11,7 +11,8 @@ import net.minecraft.resources.Identifier;
  * El miedo: cuando Nerea ruge cerca o te elige con la Mirada del Abismo, los
  * bordes de la pantalla se cierran en el azul negro del fondo del mar, con
  * vetas de agua que se cuelan hacia el centro. Textura propia (nerea_extras.py).
- * Con Aeralis, en cambio, se cierran nubes de tormenta (aeralis_extras.py).
+ * Con Aeralis, en cambio, se cierran nubes de tormenta (aeralis_extras.py), y con
+ * Rajang, la selva y las grietas de jade (rajang_extras.py).
  */
 public class MiedoHud implements HudElement {
 
@@ -20,6 +21,9 @@ public class MiedoHud implements HudElement {
     /** El de Aeralis: nubes de tormenta y rayos que se cierran (aeralis_extras.py). */
     private static final Identifier TEXTURA_AIRE =
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/miedo_aeralis.png");
+    /** El de Rajang: la selva y las grietas de jade que se cierran (rajang_extras.py). */
+    private static final Identifier TEXTURA_TIERRA =
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/miedo_rajang.png");
     private static final int TAM = 256;
     private static final int ABISMO = 0xFFFFFF;
     private static final float ALFA_MAXIMA = 0.82F;
@@ -31,7 +35,7 @@ public class MiedoHud implements HudElement {
         if (alfa <= 2) {
             return;
         }
-        grafico.blit(RenderPipelines.GUI_TEXTURED, NereaPresencia.miedoDeAire() ? TEXTURA_AIRE : TEXTURA,
+        grafico.blit(RenderPipelines.GUI_TEXTURED, NereaPresencia.miedoDeTierra() ? TEXTURA_TIERRA : NereaPresencia.miedoDeAire() ? TEXTURA_AIRE : TEXTURA,
                 0, 0, 0.0F, 0.0F,
                 grafico.guiWidth(), grafico.guiHeight(),
                 TAM, TAM, TAM, TAM,

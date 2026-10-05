@@ -52,8 +52,8 @@ import java.util.List;
  * IV). Las alas no tienen caja de golpe: solo cuenta el cuerpo.
  *
  * Nace posada, con las alas cerradas, hasta que ve a alguien; se invoca con su
- * huevo generador. Es el segundo jefe y pega mas que Nerea: 13 500 de vida y
- * +9 de dano por fase.
+ * huevo generador. Es el segundo jefe: 13 500 de vida y cada ataque pega mas
+ * en cada fase (ver los DANO_*).
  *
  * <pre>
  *   fase I    100-75 %   Brisa: Aleteo Cortante, Tornados
@@ -90,24 +90,32 @@ public class AeralisEntity extends Monster {
      */
     public static final float VIDA = 13500.0F;
     private static final float VIDA_VANILLA = 1024.0F;
-    /** Lo que suma cada fase a sus ataques: +9 en la II, +18 en la III, +27 en la IV. */
-    public static final float DANO_POR_FASE = 9.0F;
 
-    // --- Danos base (fase I). Se ajustan aqui tras las pruebas ---
-    public static final float DANO_CUCHILLA = 14.0F;
-    /** Por segundo mientras un tornado te tiene atrapado (no sube con la fase; pasa la armadura). */
-    public static final float DANO_TORNADO = 7.0F;
+    // --- Danos por fase (I, II, III, IV) ---
+    // Pensados para 40 jugadores en hardcore con netherita entera, Proteccion IV
+    // y manzana de Notch (18 corazones contando la absorcion): un golpe fuerte
+    // les quita 3,5 / 5 / 7,5 / 11 corazones (6, 4, 3 y 2 golpes para matarlos;
+    // sin la manzana, en la fase IV basta uno); los de area 2,5 / 4 / 5,5 / 8;
+    // los que duran, 1 / 1,5 / 2 / 3 por segundo. Los tipos de dano no escalan
+    // con la dificultad.
+    public static final float[] DANO_CUCHILLA = {31, 39, 49, 61};
+    /** Por segundo mientras un tornado te tiene atrapado (pasa la armadura). */
+    public static final float[] DANO_TORNADO = {7, 10, 14, 21};
     /** Cuando el tornado revienta y te lanza. */
-    public static final float DANO_ESTALLIDO = 13.0F;
-    public static final float DANO_RAFAGA = 16.0F;
+    public static final float[] DANO_ESTALLIDO = {27, 37, 44, 55};
+    public static final float[] DANO_RAFAGA = {34, 42, 53, 70};
     /**
      * El viento corta y se mete por las juntas: contra armadura sus golpes
      * pegan hasta un 30 % mas (con una de diamante o netherita entera).
      */
     private static final float PERFORA_MAXIMO = 0.3F;
-    /** El golpe del Juicio: 11 menos por cada nucleo roto (no sube con la fase). */
-    public static final float DANO_JUICIO = 44.0F;
-    public static final float JUICIO_POR_NUCLEO = 11.0F;
+    /**
+     * El golpe del Juicio al marcado (pasa la armadura): con los cuatro nucleos
+     * en pie mata aunque lleve la manzana de Notch; cada nucleo roto le quita
+     * un cuarto. A los de alrededor, la mitad.
+     */
+    public static final float[] DANO_JUICIO = {139, 139, 139, 174};
+    public static final float JUICIO_POR_NUCLEO = 0.25F;
 
     /** Bloques entre el suelo y la base de la caja al volar: el torax queda a unos 9. */
     public static final double ALTURA_VUELO = 3.0;
@@ -318,9 +326,9 @@ public class AeralisEntity extends Monster {
         return dano * (1.0F + Math.min(PERFORA_MAXIMO, armadura * 0.012F + dureza * 0.01F));
     }
 
-    /** El dano de un ataque en la fase actual: el base y +9 por cada fase. */
-    public float dano(float base) {
-        return base + DANO_POR_FASE * (Mth.clamp(fase(), 1, 4) - 1);
+    /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV. */
+    public float dano(float[] porFase) {
+        return porFase[Mth.clamp(fase(), 1, 4) - 1];
     }
 
     @Override
@@ -1377,7 +1385,7 @@ public class AeralisEntity extends Monster {
         // La explosion de presion donde este el marcado (lanzado al cielo).
         Vec3 p = presa != null && presa.isAlive() ? presa.position().add(0, 1, 0)
                 : (ciclon != null ? ciclon.position().add(0, 6, 0) : puntoMundo(AeralisGeometria.NUCLEO_JUICIO));
-        float dano = Math.max(0.0F, DANO_JUICIO - JUICIO_POR_NUCLEO * nucleosRotos);
+        float dano = dano(DANO_JUICIO) * Math.max(0.0F, 1.0F - JUICIO_POR_NUCLEO * nucleosRotos);
         DamageSource fuente = AeralisDanos.fuente(nivel, AeralisDanos.JUICIO, this, this);
         if (presa != null && presa.isAlive() && dano > 0) {
             presa.hurtServer(nivel, fuente, dano);

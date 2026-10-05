@@ -67,7 +67,7 @@ import java.util.UUID;
  * <pre>
  *   fase I    100-75 %   Rompeolas (tres olas), Remolino, Burbujas bomba
  *   fase II    75-50 %   + Molino de cadenas, Arpon (un gancho por cada 10)
- *   fase III   50-25 %   + Mirada del Abismo
+ *   fase III   50-25 %   + Mirada del Abismo (mata de un golpe: solo salva un totem)
  *   fase IV    25-0 %    las costillas se abren: todo mas seguido y cada
  *                        25 s cae de rodillas agotado (dano doble)
  * </pre>
@@ -102,17 +102,27 @@ public class NereaEntity extends Monster {
      */
     public static final float VIDA = 12500.0F;
     private static final float VIDA_VANILLA = 1024.0F;
-    /** Lo que suma cada fase a todos sus ataques: +8 en la II, +16 en la III, +24 en la IV. */
-    public static final float DANO_POR_FASE = 8.0F;
-    /** Lo que quita el Remolino por segundo a quien arrastra (sin escalar con la fase). */
-    private static final float DANO_REMOLINO = 10.0F;
-
-    // --- Numeros del boceto: se ajustan aqui tras las pruebas ---
-    private static final float DANO_ROMPEOLAS = 12.0F;
-    private static final float DANO_MOLINO = 10.0F;
-    private static final float DANO_GANCHO = 6.0F;
-    private static final float DANO_ESTOCADA = 14.0F;
-    private static final float DANO_MIRADA = 18.0F;
+    // --- Danos por fase (I, II, III, IV) ---
+    // Pensados para 40 jugadores en hardcore con netherita entera, Proteccion IV
+    // y manzana de Notch (18 corazones contando la absorcion): un golpe fuerte
+    // les quita 3,5 / 5 / 7,5 / 11 corazones (6, 4, 3 y 2 golpes para matarlos;
+    // sin la manzana, en la fase IV basta uno); los de area 2,5 / 4 / 5,5 / 8;
+    // los que duran, 1 / 1,5 / 2 / 3 por segundo. Los tipos de dano no escalan
+    // con la dificultad.
+    private static final float[] DANO_ROMPEOLAS = {44, 55, 69, 91};
+    private static final float[] DANO_ESTOCADA = {44, 55, 69, 91};
+    private static final float[] DANO_MOLINO = {36, 48, 58, 72};
+    private static final float[] DANO_GANCHO = {36, 48, 58, 72};
+    /** La burbuja bomba, en 4 bloques. */
+    public static final float[] DANO_BURBUJA = {36, 48, 58, 72};
+    /** Lo que quita el Remolino por segundo a quien arrastra (pasa la armadura). */
+    private static final float[] DANO_REMOLINO = {7, 10, 14, 21};
+    /**
+     * La Mirada mata: pasa la armadura, el escudo, los encantamientos, los
+     * efectos y la resistencia. Solo un totem de la inmortalidad te salva (y
+     * lo gasta). Se esquiva escondiendose tras un bloque o rompiendole los ojos.
+     */
+    private static final float MIRADA_MATA = 10000.0F;
 
     private static final double LARGO_OLA = 34.0;
     private static final int TICKS_OLA = 14;
@@ -307,8 +317,9 @@ public class NereaEntity extends Monster {
     }
 
     /** El dano de un ataque en la fase actual: el base y +8 por cada fase. */
-    private float dano(float base) {
-        return base + DANO_POR_FASE * (Mth.clamp(fase(), 1, 4) - 1);
+    /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV. */
+    public float dano(float[] porFase) {
+        return porFase[Mth.clamp(fase(), 1, 4) - 1];
     }
 
     @Override
@@ -893,8 +904,8 @@ public class NereaEntity extends Monster {
                 corriente(p, NereaGeometria.REMOLINO_SUELTA - t + 80, fase() >= 3 ? 1 : 0);
             }
             if ((t - NereaGeometria.REMOLINO_TIRA) % 20 == 0) {
-                // Y ahoga: 10 por segundo mientras te arrastra.
-                p.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.REMOLINO, this, this), DANO_REMOLINO);
+                // Y ahoga: cada segundo mientras te arrastra.
+                p.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.REMOLINO, this, this), dano(DANO_REMOLINO));
             }
             Vec3 hacia = new Vec3(getX() - p.getX(), 0, getZ() - p.getZ());
             double d = hacia.length();
@@ -1174,7 +1185,7 @@ public class NereaEntity extends Monster {
             Vec3 fin = presa.getEyePosition().add(0, -0.3, 0);
             BlockHitResult choque = nivel.clip(new ClipContext(ojos, fin, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
             if (choque.getType() == HitResult.Type.MISS) {
-                presa.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.MIRADA, this, this), dano(DANO_MIRADA));
+                presa.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.MIRADA, this, this), MIRADA_MATA);
                 nivel.playSound(null, fin.x, fin.y, fin.z, AtalayaSonidos.NEREA_MIRADA_IMPACTO, SoundSource.HOSTILE, 3.0F, 1.0F);
                 nivel.sendParticles(AtalayaParticulas.NEREA_OJO, fin.x, fin.y, fin.z, 24, 0.4, 0.5, 0.4, 0.3);
             } else {
