@@ -109,6 +109,13 @@ public final class AtalayaSonidos {
     public static SoundEvent AERALIS_JADEO;
     public static SoundEvent AERALIS_LIBERACION;
     public static SoundEvent AERALIS_DISOLVER;
+    // El remake de octubre de 2026 (aeralis_mejoras_sonidos.py)
+    public static SoundEvent AERALIS_PICADO_AVISO;
+    public static SoundEvent AERALIS_PICADO;
+    public static SoundEvent AERALIS_POSADA;
+    public static SoundEvent AERALIS_ESCAMAS;
+    public static SoundEvent AERALIS_ESCAMAS_DESCARGA;
+    public static SoundEvent AERALIS_VIENTO_VUELTA;
 
     // Rajang, el Jaguar de Jade (rajang_sonidos.py)
     public static SoundEvent RAJANG_AMBIENTE;
@@ -257,6 +264,12 @@ public final class AtalayaSonidos {
         AERALIS_JADEO = registrar("aeralis.jadeo");
         AERALIS_LIBERACION = registrar("aeralis.liberacion");
         AERALIS_DISOLVER = registrar("aeralis.disolver");
+        AERALIS_PICADO_AVISO = registrar("aeralis.picado_aviso");
+        AERALIS_PICADO = registrar("aeralis.picado");
+        AERALIS_POSADA = registrar("aeralis.posada");
+        AERALIS_ESCAMAS = registrar("aeralis.escamas");
+        AERALIS_ESCAMAS_DESCARGA = registrar("aeralis.escamas_descarga");
+        AERALIS_VIENTO_VUELTA = registrar("aeralis.viento_vuelta");
         RAJANG_AMBIENTE = registrar("rajang.ambiente");
         RAJANG_DORMIDO = registrar("rajang.dormido");
         RAJANG_PASO = registrar("rajang.paso");

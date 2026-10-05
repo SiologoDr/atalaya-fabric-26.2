@@ -35,8 +35,10 @@ RETRASADAS = {
     **{f'pata{i}_{n}_tibia': (2.8, 0.4) for i in range(3) for n in ('izq', 'der')},
 }
 SIMULADAS = {
-    'cinta_izq': ((0, 96.0, 0), dict(g=60.0, roce=2.6, k=6.0)),
-    'cinta_der': ((0, 84.0, 0), dict(g=60.0, roce=2.6, k=6.0)),
+    'cinta_izq': ((0, float(vj.TAM_CINTA[1]), 0), dict(g=60.0, roce=2.6, k=6.0)),
+    'cinta_der': ((0, float(vj.TAM_CINTA[1]), 0), dict(g=60.0, roce=2.6, k=6.0)),
+    'cinta_izq2': ((0, float(vj.TAM_CINTA_C[1]), 0), dict(g=60.0, roce=3.0, k=7.0)),
+    'cinta_der2': ((0, float(vj.TAM_CINTA_C[1]), 0), dict(g=60.0, roce=3.0, k=7.0)),
 }
 
 

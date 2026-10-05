@@ -91,7 +91,7 @@ public class RajangBarraHud implements HudElement {
 
         int fase = Mth.clamp(r.fase(), 1, 4);
         int x0 = (g.guiWidth() - ANCHO) / 2;
-        int y0 = 5 + (NereaBarraHud.visible ? ALTO + 6 : 0) + (AeralisBarraHud.visible ? ALTO + 6 : 0);
+        int y0 = 5 + (NereaBarraHud.visible ? NereaBarraHud.ALTO + 6 : 0) + (AeralisBarraHud.visible ? AeralisBarraHud.ALTO + 6 : 0);
         g.blit(RenderPipelines.GUI_TEXTURED, MARCO, x0, y0, 0.0F, 0.0F, ANCHO, ALTO, ANCHO, ALTO, ANCHO, ALTO, 0xFFFFFFFF);
 
         int hx = x0 + HUECO_X;

@@ -3,6 +3,8 @@ package com.atalaya.entity;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -47,14 +49,23 @@ public class CuchillaVientoEntity extends Entity {
     private double recorrido;
     private final Set<UUID> golpeados = new HashSet<>();
 
+    /** La fase de su duena (el color) y si es de las altas (blancas, hay que apartarse). */
+    private static final EntityDataAccessor<Integer> DATA_FASE =
+            SynchedEntityData.defineId(CuchillaVientoEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_ALTA =
+            SynchedEntityData.defineId(CuchillaVientoEntity.class, EntityDataSerializers.BOOLEAN);
+
     public CuchillaVientoEntity(EntityType<? extends CuchillaVientoEntity> tipo, Level nivel) {
         super(tipo, nivel);
         this.noPhysics = true;
     }
 
     public static CuchillaVientoEntity lanzar(ServerLevel nivel, AeralisEntity duena, Vec3 desde, float rumbo,
-                                              double alturaObjetivo, double bajada, double velocidad, float dano) {
+                                              double alturaObjetivo, double bajada, double velocidad, float dano,
+                                              boolean alta) {
         CuchillaVientoEntity c = new CuchillaVientoEntity(AtalayaEntities.CUCHILLA_VIENTO, nivel);
+        c.entityData.set(DATA_FASE, duena.fase());
+        c.entityData.set(DATA_ALTA, alta);
         c.duena = duena;
         c.alturaObjetivo = alturaObjetivo;
         c.bajada = bajada;
@@ -70,6 +81,16 @@ public class CuchillaVientoEntity extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder datos) {
+        datos.define(DATA_FASE, 1);
+        datos.define(DATA_ALTA, false);
+    }
+
+    public int getFase() {
+        return entityData.get(DATA_FASE);
+    }
+
+    public boolean isAlta() {
+        return entityData.get(DATA_ALTA);
     }
 
     @Override

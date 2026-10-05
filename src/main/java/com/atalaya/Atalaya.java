@@ -6,6 +6,7 @@ import com.atalaya.aturdimiento.AturdimientoManager;
 import com.atalaya.command.AtalayaCommand;
 import com.atalaya.config.LibroRecetas;
 import com.atalaya.effect.AturdimientoEffect;
+import com.atalaya.effect.ParalisisEffect;
 import com.atalaya.net.AtalayaRed;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import com.atalaya.lluvia.LluviaManager;
@@ -97,6 +98,7 @@ public class Atalaya implements ModInitializer {
         MarcaVendavalEffect.registrar();
         BendicionVientosEffect.registrar();
         PesoTierraEffect.registrar();
+        ParalisisEffect.registrar();
         BendicionTierraEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();

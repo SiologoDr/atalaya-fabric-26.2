@@ -126,6 +126,7 @@ public class AtalayaClient implements ClientModInitializer {
         // Aeralis: malla y animaciones generadas desde vendaval_juego*.py, y lo
         // suyo: cuchillas, tornados, rafagas y nucleos (dibujados a mano).
         ModelLayerRegistry.registerModelLayer(AeralisModel.CAPA, AeralisMalla::crear);
+        ModelLayerRegistry.registerModelLayer(AeralisModel.CAPA_AURA, AeralisMalla::crearAura);
         EntityRendererRegistry.register(AtalayaEntities.AERALIS, AeralisRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.CUCHILLA_VIENTO, CuchillaVientoRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.TORNADO_AERALIS, TornadoAeralisRenderer::new);

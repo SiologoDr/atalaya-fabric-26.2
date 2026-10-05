@@ -48,7 +48,7 @@ public class NereaBarraHud implements HudElement {
     // Medidas del marco (nerea_barra_marco.png, 208x26). Compacto: con 30 o
     // 40 jugadores la pelea se mira hacia arriba, y la barra no debe taparla.
     private static final int ANCHO = 208;
-    private static final int ALTO = 26;
+    public static final int ALTO = 26;
     private static final int HUECO_X = 28;
     private static final int HUECO_Y = 9;
     private static final int HUECO_ANCHO = 172;

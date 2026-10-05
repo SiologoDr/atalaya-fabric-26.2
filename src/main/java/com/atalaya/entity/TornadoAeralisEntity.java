@@ -17,7 +17,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -35,10 +34,16 @@ import java.util.List;
  *   y te lanza por los aires (13 de dano +9 por fase, mas la caida). Un
  *   companero te saca rompiendolo con 3 golpes (flechas, tridentes o a
  *   espadazos): te deja en el suelo con suavidad.</li>
- *   <li><b>Ciclon</b> (el Juicio): gigante, alrededor del marcado. Lo levanta
+ *   <li><b>Ciclon</b> (el Juicio): gigante, uno solo, que atrapa a un tercio de
+ *   los que pelean (los de menos vida) y los arrastra hasta el. Los levanta
  *   despacio y aparta a los demas. No se rompe a golpes: lo debilitan los
  *   cuatro nucleos de viento.</li>
  * </ul>
+ *
+ * Desde la fase II, un tornado roto a golpes le devuelve su viento a Aeralis
+ * ({@link AeralisEntity#vientoDeVuelta}): al juntar bastantes, se sacude 1 s.
+ * A los que tenia dentro los suelta con suavidad, pero la caida duele: desde
+ * octubre de 2026 en todo ataque hay dano de caida (tambien en el Juicio).
  */
 public class TornadoAeralisEntity extends Entity {
 
@@ -46,7 +51,7 @@ public class TornadoAeralisEntity extends Entity {
     public static final int NACER = 20;
     private static final int VIDA = 240;
     private static final int ATRAPA = 60;
-    private static final int GOLPES = 3;
+    public static final int GOLPES = 3;
     private static final double RADIO = 1.9;
     /** Cuanto mas grande dibuja (y mide) el ciclon del Juicio. */
     public static final float ESCALA_CICLON = 3.0F;
@@ -59,6 +64,11 @@ public class TornadoAeralisEntity extends Entity {
     /** Se esta deshaciendo: el cliente lo desvanece. */
     private static final EntityDataAccessor<Boolean> DATA_DESHACE =
             SynchedEntityData.defineId(TornadoAeralisEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DATA_FASE =
+            SynchedEntityData.defineId(TornadoAeralisEntity.class, EntityDataSerializers.INT);
+    /** Los golpes que lleva (el cliente apaga un anillo por golpe). */
+    private static final EntityDataAccessor<Integer> DATA_GOLPES =
+            SynchedEntityData.defineId(TornadoAeralisEntity.class, EntityDataSerializers.INT);
 
     /** Solo cliente: tick en que empezo a deshacerse. */
     public int inicioDeshacer = -1;
@@ -71,9 +81,6 @@ public class TornadoAeralisEntity extends Entity {
     private int deshaciendo;
     private float rumbo;
     private final List<LivingEntity> atrapados = new ArrayList<>();
-    /** Los que solto con suavidad: no se hacen dano al caer mientras se deshace. */
-    private final List<LivingEntity> liberados = new ArrayList<>();
-    private @Nullable LivingEntity marcado;
 
     public TornadoAeralisEntity(EntityType<? extends TornadoAeralisEntity> tipo, Level nivel) {
         super(tipo, nivel);
@@ -84,6 +91,7 @@ public class TornadoAeralisEntity extends Entity {
         TornadoAeralisEntity t = new TornadoAeralisEntity(AtalayaEntities.TORNADO_AERALIS, nivel);
         t.duena = duena;
         t.fase = fase;
+        t.entityData.set(DATA_FASE, fase);
         t.rumbo = nivel.getRandom().nextFloat() * Mth.TWO_PI;
         t.setPos(donde.x, donde.y, donde.z);
         nivel.addFreshEntity(t);
@@ -92,19 +100,26 @@ public class TornadoAeralisEntity extends Entity {
         return t;
     }
 
-    /** El ciclon del Juicio, alrededor del marcado. */
-    public static TornadoAeralisEntity ciclon(ServerLevel nivel, AeralisEntity duena, LivingEntity marcado) {
+    /** El ciclon del Juicio: nace en medio de los juzgados y los atrapa a todos. */
+    public static TornadoAeralisEntity ciclon(ServerLevel nivel, AeralisEntity duena, List<LivingEntity> juzgados) {
         TornadoAeralisEntity t = new TornadoAeralisEntity(AtalayaEntities.TORNADO_AERALIS, nivel);
         t.duena = duena;
         t.fase = duena.fase();
-        t.marcado = marcado;
+        t.entityData.set(DATA_FASE, t.fase);
         t.vida = Integer.MAX_VALUE;
-        double y = AeralisEntity.sueloBajo(nivel, marcado.getX(), marcado.getY(), marcado.getZ());
-        t.setPos(marcado.getX(), y, marcado.getZ());
+        Vec3 medio = Vec3.ZERO;
+        for (LivingEntity v : juzgados) {
+            medio = medio.add(v.position());
+        }
+        medio = medio.scale(1.0 / juzgados.size());
+        double y = AeralisEntity.sueloBajo(nivel, medio.x, medio.y + 2, medio.z);
+        t.setPos(medio.x, y, medio.z);
         t.entityData.set(DATA_CICLON, true);
         t.refreshDimensions();
         nivel.addFreshEntity(t);
-        t.atrapar(marcado);
+        for (LivingEntity v : juzgados) {
+            t.atrapar(v);
+        }
         return t;
     }
 
@@ -113,6 +128,16 @@ public class TornadoAeralisEntity extends Entity {
         datos.define(DATA_CICLON, false);
         datos.define(DATA_FUERZA, 1.0F);
         datos.define(DATA_DESHACE, false);
+        datos.define(DATA_GOLPES, 0);
+        datos.define(DATA_FASE, 1);
+    }
+
+    public int getFase() {
+        return entityData.get(DATA_FASE);
+    }
+
+    public int getGolpes() {
+        return entityData.get(DATA_GOLPES);
     }
 
     public boolean isCiclon() {
@@ -157,10 +182,7 @@ public class TornadoAeralisEntity extends Entity {
             return;
         }
         if (deshaciendo > 0) {
-            for (LivingEntity v : liberados) {
-                v.resetFallDistance();
-            }
-            // El ciclon aguanta mas: el marcado cae desde muy alto y llega al suelo sin hacerse dano.
+            // El ciclon tarda mas en deshacerse.
             if (++deshaciendo > (isCiclon() ? 110 : 50)) {
                 discard();
             }
@@ -245,7 +267,7 @@ public class TornadoAeralisEntity extends Entity {
                 continue;
             }
             float k = Mth.clamp(dentro / (float) ATRAPA, 0.0F, 1.0F);
-            girar(v, i, 0.5 + 5.0 * k, 1.1);
+            girar(v, i, 3, 0.5 + 5.0 * k, 1.1);
             if (dentro > 0 && dentro % 20 == 0) {
                 v.hurtServer(nivel, fuente, duena != null ? duena.dano(AeralisEntity.DANO_TORNADO) : AeralisEntity.DANO_TORNADO[0]);
             }
@@ -258,16 +280,21 @@ public class TornadoAeralisEntity extends Entity {
 
     private void tickCiclon(ServerLevel nivel) {
         float fuerza = getFuerza();
-        // El marcado sube despacio en el centro, dando vueltas.
-        if (marcado != null && marcado.isAlive() && !marcado.isRemoved()) {
-            int dentro = tickCount - inicioAtrapa;
-            float k = Mth.clamp(dentro / 200.0F, 0.0F, 1.0F);
-            girar(marcado, 0, 1.0 + 9.0 * k * (0.5F + 0.5F * fuerza), 0.7);
+        // Los juzgados: los arrastra hasta el y suben despacio dando vueltas,
+        // repartidos alrededor del eje y a distintas alturas.
+        atrapados.removeIf(v -> !v.isAlive() || v.isRemoved());
+        int n = atrapados.size();
+        int dentro = tickCount - inicioAtrapa;
+        float k = Mth.clamp(dentro / 200.0F, 0.0F, 1.0F);
+        double radioGiro = Math.min(3.5, 0.7 + 0.35 * (n - 1));
+        for (int i = 0; i < n; i++) {
+            double alto = 1.0 + 9.0 * k * (0.5F + 0.5F * fuerza) + (i % 3) * 1.4;
+            girar(atrapados.get(i), i, n, alto, radioGiro);
         }
         // Y aparta a los demas: un muro de viento que empuja hacia fuera.
         double radio = 6.5 * fuerza;
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(2), duena::esPresa)) {
-            if (v == marcado) {
+            if (atrapados.contains(v)) {
                 continue;
             }
             double d = AeralisEntity.horizontal(position(), v.position());
@@ -280,9 +307,9 @@ public class TornadoAeralisEntity extends Entity {
         }
     }
 
-    /** Lleva a v en espiral alrededor del eje, a la altura dada. */
-    private void girar(LivingEntity v, int i, double altura, double radio) {
-        double a = tickCount * 0.45 + i * (Math.PI * 2 / 3);
+    /** Lleva a v (el i de n que lleva) en espiral alrededor del eje, a la altura dada. */
+    private void girar(LivingEntity v, int i, int n, double altura, double radio) {
+        double a = tickCount * 0.45 + i * (Math.PI * 2 / Math.max(3, n));
         Vec3 destino = new Vec3(getX() + Math.cos(a) * radio, getY() + altura, getZ() + Math.sin(a) * radio);
         Vec3 vel = destino.subtract(v.position()).scale(0.4);
         if (vel.length() > 1.2) {
@@ -324,7 +351,7 @@ public class TornadoAeralisEntity extends Entity {
         discard();
     }
 
-    /** Lo rompen o se le acaba el tiempo: se deshace y deja a los suyos en el suelo con suavidad. */
+    /** Lo rompen o se le acaba el tiempo: se deshace y suelta a los suyos con suavidad (la caida duele). */
     public void deshacer(boolean roto) {
         if (deshaciendo > 0 || isRemoved()) {
             return;
@@ -345,28 +372,25 @@ public class TornadoAeralisEntity extends Entity {
     private void soltar(boolean deGolpe) {
         for (LivingEntity v : atrapados) {
             if (!deGolpe) {
+                // La caida cuenta desde donde los suelta.
                 v.setDeltaMovement(0, 0.05, 0);
                 v.hurtMarked = true;
                 v.resetFallDistance();
-                liberados.add(v);
             }
         }
         atrapados.clear();
-        marcado = null;
     }
 
-    /** Juicio: tira al marcado hacia el cielo justo antes del golpe. */
+    /** Juicio: tira a los juzgados hacia el cielo justo antes del golpe. */
     public void lanzarAlCielo() {
-        if (marcado != null && marcado.isAlive()) {
-            marcado.setDeltaMovement(0, 1.6, 0);
-            marcado.hurtMarked = true;
+        for (LivingEntity v : atrapados) {
+            if (v.isAlive()) {
+                Vec3 fuera = AeralisEntity.horizontalHacia(position(), v.position());
+                v.setDeltaMovement(fuera.x * 0.2, 1.6, fuera.z * 0.2);
+                v.hurtMarked = true;
+            }
         }
-        LivingEntity m = marcado;
         atrapados.clear();
-        marcado = null;
-        if (m != null) {
-            liberados.add(m);
-        }
         deshaciendo = 1;
         entityData.set(DATA_DESHACE, true);
     }
@@ -394,13 +418,32 @@ public class TornadoAeralisEntity extends Entity {
             return false;
         }
         golpes++;
+        entityData.set(DATA_GOLPES, golpes);
         nivel.sendParticles(AtalayaParticulas.AERALIS_JIRON, true, true, getX(), getY() + 2.0, getZ(), 6, 0.6, 1.2, 0.6, 0.12);
         nivel.playSound(null, getX(), getY() + 2, getZ(), AtalayaSonidos.AERALIS_INMUNE, SoundSource.HOSTILE, 1.5F,
                 0.8F + 0.2F * golpes);
         if (golpes >= GOLPES) {
-            deshacer(true);
+            romperse(nivel);
         }
         return true;
+    }
+
+    /** Roto a golpes: se deshace y, desde la fase II, su viento vuelve a Aeralis. */
+    private void romperse(ServerLevel nivel) {
+        deshacer(true);
+        if (duena != null && !duena.isRemoved()) {
+            duena.vientoDeVuelta(nivel, position());
+        }
+    }
+
+    /** Para probar: como si le hubieran dado los tres golpes. */
+    public void romper(ServerLevel nivel) {
+        if (isRemoved() || deshaciendo > 0 || isCiclon()) {
+            return;
+        }
+        golpes = GOLPES;
+        entityData.set(DATA_GOLPES, golpes);
+        romperse(nivel);
     }
 
     // ------------------------------------------------------------------

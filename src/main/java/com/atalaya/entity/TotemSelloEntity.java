@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
  * jaguar) que brilla mientras alimenta el sello. Esta en lo alto de una
  * plataforma de tierra: hay que subir saltando por las piedras y romperlo.
  *
- * Aguanta 6 golpes, y uno mas por cada 4 jugadores; cualquier golpe cuenta
+ * Aguanta 10 golpes, sean cuantos sean los jugadores; cualquier golpe cuenta
  * (espada, flecha, tridente). Roto, se le apagan los glifos y se parte en dos.
  * Roto, se queda roto hasta que acaba el Sello: hay que romper los cuatro
  * antes de que se acabe el tiempo.

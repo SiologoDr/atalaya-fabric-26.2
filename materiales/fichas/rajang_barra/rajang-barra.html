@@ -1,0 +1,152 @@
+<title>Barra de Rajang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+  /* Una columna: arriba la barra en partida (antes / despues con la misma foto), debajo cada estado
+     de la barra a 4x, antes a la izquierda y despues a la derecha. Jade y oro, como su armadura. */
+  :root {
+    --fondo: #08130d;        /* jade casi negro */
+    --losa: #10211a;
+    --borde: #23402f;
+    --texto: #e6f5ec;
+    --apagado: #94b3a2;
+    --jade: #58c886;         /* fase I */
+    --oro: #e2b443;
+    --furia: #7cff3a;
+    --display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --cuerpo: "Montserrat", "Segoe UI", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --fondo: #eef5f0; --losa: #ffffff; --borde: #c8dccf; --texto: #10241a; --apagado: #4d6b5b;
+      --jade: #1d7a48; --oro: #8a6200; --furia: #2f8a00;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --fondo: #eef5f0; --losa: #ffffff; --borde: #c8dccf; --texto: #10241a; --apagado: #4d6b5b;
+    --jade: #1d7a48; --oro: #8a6200; --furia: #2f8a00;
+    color-scheme: light;
+  }
+
+  body { background: var(--fondo); color: var(--texto); font-family: var(--cuerpo); font-size: 16px; line-height: 1.6; }
+  .pagina { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: grid; gap: 56px; }
+  h1, h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.8rem); }
+  h2 { font-size: clamp(1.4rem, 3.2vw, 2rem); }
+  p { margin: 0; max-width: 70ch; }
+  .antetitulo { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--jade); }
+  header { display: grid; gap: 14px; }
+  .estado { border: 1px solid var(--oro); border-radius: 4px; padding: 14px 16px; display: grid; gap: 6px; max-width: 78ch; }
+  .estado strong { color: var(--oro); font-family: var(--display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+
+  section { display: grid; gap: 20px; }
+  figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--borde); }
+  img.pixel { image-rendering: pixelated; background: #1b2a22; }
+  .etiqueta { font-family: var(--display); font-size: 0.82rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .antes { color: var(--apagado); }
+  .despues { color: var(--jade); }
+  .par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  .estado-barra { display: grid; gap: 10px; padding-block: 14px; border-top: 1px solid var(--borde); }
+  .estado-barra h3 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media (max-width: 760px) { .par { grid-template-columns: 1fr; } }
+
+  ul.lista { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 72ch; }
+  ul.lista li::marker { color: var(--jade); }
+  .nota { background: var(--losa); border: 1px solid var(--borde); border-radius: 4px; padding: 14px 16px; color: var(--apagado); max-width: 78ch; }
+  .nota strong { color: var(--texto); }
+</style>
+
+<div class="pagina">
+
+  <header>
+    <span class="antetitulo">Atalaya · Jefe de tierra · Vista previa del HUD</span>
+    <h1>Barra de Rajang</h1>
+    <p>La barra de Aeralis cambió con su remake. Para que las tres barras vayan a juego, esta es la de Rajang con el mismo estilo.</p>
+    <div class="estado" role="status">
+      <strong>Solo vista previa · 5 de octubre de 2026 · tótems corregidos</strong>
+      <span>Todavía no está en el juego. Las fotos «después» son fotos reales de las escenas de Rajang con la barra nueva puesta encima, al tamaño del juego. Si te gusta, la paso al juego.</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="partida">
+    <h2 id="partida">En partida</h2>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · Fase I</span><img src="img/antes_fase1.png" alt="Rajang en fase I con la barra de hoy" width="854" height="480"></figure>
+      <figure><span class="etiqueta despues">Después · Fase I</span><img src="img/partida_fase1.png" alt="La misma foto con la barra nueva: cresta de cristales de jade y emblema de espiral de oro" width="854" height="480"></figure>
+    </div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · durante el Sello</span><img src="img/antes_sello.png" alt="El Sello de la Tierra con la barra de hoy" width="854" height="480"></figure>
+      <figure><span class="etiqueta despues">Después · durante el Sello</span><img src="img/partida_sello.png" alt="El Sello con la barra nueva: los cuatro tótems del Sello bajo la barra, dos rotos, y la losa del tiempo" width="854" height="480"></figure>
+    </div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · Furia de Jade</span><img src="img/antes_furia.png" alt="La Furia de Jade con la barra de hoy" width="854" height="480"></figure>
+      <figure><span class="etiqueta despues">Después · Furia de Jade</span><img src="img/partida_furia.png" alt="La Furia con la barra nueva en verde vivo" width="854" height="480"></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="cambia">
+    <h2 id="cambia">Qué cambia</h2>
+    <ul class="lista">
+      <li><strong>Mismo tamaño que la de Aeralis</strong> (240 × 44), así las tres barras se ven de la misma familia.</li>
+      <li><strong>El emblema</strong> es la placa de oro en espiral de su armadura, sobre un disco de jade. En cada fase se agrieta más y las grietas brillan con el color de la fase.</li>
+      <li><strong>Encima de la barra, la cresta de cristales de jade</strong> de su lomo (en Aeralis va un ala). Cambia de color con la fase.</li>
+      <li><strong>El relleno trae su color</strong> (roca con la veta de energía), con el frente encendido y el rastro claro al recibir daño.</li>
+      <li><strong>Las muescas siguen siendo colmillos</strong>, ahora con la punta encendida. Al pasarlas se parten.</li>
+      <li><strong>Durante el Sello</strong>, debajo: los cuatro <strong>tótems del Sello</strong>, dibujados como en el juego (la columna de piedra verde con sus glifos encendidos y las bandas de oro). Los rotos pierden el tramo de arriba y se les apagan los glifos. Al lado, la losa del tiempo, que se pone roja al final.</li>
+      <li><strong>Con la Furia</strong>, todo en verde vivo y el rótulo FURIA.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="estados">
+    <h2 id="estados">Cada estado, de cerca</h2>
+    <div class="estado-barra">
+      <h3>Fase I</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_1.png" alt="Barra de hoy en fase I" width="960" height="176"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_1.png" alt="Barra nueva en fase I" width="960" height="176"></figure>
+      </div>
+    </div>
+    <div class="estado-barra">
+      <h3>Fase II</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_2.png" alt="Barra de hoy en fase II" width="960" height="176"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_2.png" alt="Barra nueva en fase II" width="960" height="176"></figure>
+      </div>
+    </div>
+    <div class="estado-barra">
+      <h3>Fase III, durante el Sello</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_3.png" alt="Barra de hoy en fase III con el Sello" width="960" height="176"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_3.png" alt="Barra nueva en fase III con los tótems del Sello y la losa del tiempo" width="960" height="176"></figure>
+      </div>
+    </div>
+    <div class="estado-barra">
+      <h3>Fase IV</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_4.png" alt="Barra de hoy en fase IV" width="960" height="176"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_4.png" alt="Barra nueva en fase IV, emblema muy agrietado" width="960" height="176"></figure>
+      </div>
+    </div>
+    <div class="estado-barra">
+      <h3>Furia de Jade</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_furia.png" alt="Barra de hoy con la Furia" width="960" height="176"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_furia.png" alt="Barra nueva con la Furia en verde vivo" width="960" height="176"></figure>
+      </div>
+    </div>
+    <div class="estado-barra">
+      <h3>Liberado</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_libre.png" alt="Barra de hoy al liberarlo" width="960" height="176"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_libre.png" alt="Barra nueva al liberarlo, en oro" width="960" height="176"></figure>
+      </div>
+    </div>
+  </section>
+
+  <p class="nota"><strong>Lo que no cambia:</strong> cómo funciona la barra. Solo cambia el dibujo. Si la de Nerea o la de Aeralis están a la vista, la de Rajang sigue yendo debajo.</p>
+
+</div>

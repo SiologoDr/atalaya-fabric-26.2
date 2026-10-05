@@ -759,6 +759,74 @@ brillo = eolica(d, 330.0, (2, 3, 4, 5, 6), 1.2, 1.5) * np.interp(t, [0, 0.6, 1.4
 polvo = granos(d, 120 * np.interp(t, [0, 0.5, d], [0, 1, 0]))
 guardar('disolver', reverb(mezclar(pico(rafaga_tibia, 0.8), pico(brillo, 0.3), pico(polvo, 0.15)), 0.35, 2.4, 9000))
 
+# ======================================================================
+#  REMAKE DE OCTUBRE DE 2026: el Picado, la Posada, las Escamas y la
+#  Corriente. Con su propia semilla, para que aeralis_mejoras_sonidos.py
+#  los saque igual sin rehacer los demas.
+# ======================================================================
+rng = np.random.default_rng(20261005)
+
+# PICADO_AVISO: sube y pliega las alas mientras se enciende la linea. Una
+# batida enorme, el viento que crece y canta mas agudo y la quitina tensa.
+d = 1.7
+t = t_(d)
+crece = viento(d, [(0, 350), (0.7, 1400), (1, 2600)], 1.1, 0.4) * np.interp(t, [0, 0.3, d - 0.1, d], [0.2, 0.5, 1, 0])
+canta = aullido(d, [(0, 600), (1, 1700)], 20) * np.interp(t, [0, 0.5, d - 0.1, d], [0, 0.4, 1, 0])
+tension = chirrido(d, (30, 95), ((3000, 9), (4300, 11), (5800, 13))) * np.interp(t, [0, 0.4, d], [0, 0.3, 1])
+guardar('picado_aviso', reverb(mezclar(pico(aletazo(1.7, 1.3), 0.9), en(0.45, pico(aletazo(1.3, 0.8), 0.5)),
+                                       pico(crece, 0.7), pico(canta, 0.3), pico(tension, 0.3)), 0.3, 2.2), limite=0.6)
+
+# PICADO: se lanza. El aire rasgado de una tormenta que cae en picado (la
+# banda baja con el Doppler), el silbido de las alas plegadas y su chillido.
+d = 2.2
+t = t_(d)
+rasga = filtro_mov(ruido(d, 'rosa'), curva(n_(d), [(0, 2600), (0.4, 1500), (1, 420)]), 'band', 0.9)
+rasga *= np.interp(t, [0, 0.12, 0.9, d], [0, 1, 0.8, 0])
+guardar('picado', reverb(mezclar(pico(pasada(d, 3400, 500, 1.6, 0.55), 0.9), pico(rasga, 0.7),
+                                 pico(aullido(d, [(0, 2100), (1, 900)], 26) * campana_env(d, 1.6), 0.25),
+                                 pico(boom(44, 26, 0.4), 0.35)), 0.25, 1.8), limite=0.6)
+
+# POSADA: se estrella al final de la linea. El golpe contra el suelo, la
+# onda de aire que barre, el polvo que cae y la coraza que cruje al quedar
+# posada; un trueno lejano debajo.
+alas_ = mezclar(*[en(0.05 + 0.09 * k, pico(aletazo(1.2, 0.8), 0.55 - 0.08 * k)) for k in range(4)])
+golpe = mezclar(pico(estallido(1.3, 2.6), 1.0), pico(boom(48, 20, 0.45), 0.8), alas_, en(0.25, pico(trueno(2.4, 0.5), 0.3)),
+                en(0.9, pico(crujir_quitina(1.4, 1.0), 0.25)))
+guardar('posada', reverb(golpe, 0.3, 2.6, 6000), limite=0.5)
+
+# ESCAMAS: sacude las alas y suelta las escamas. Un aleteo rapido que
+# tiembla, la quitina que vibra y una lluvia de chispas finas que cae.
+d = 2.6
+t = t_(d)
+sacude = mezclar(*[en(0.08 * k, pico(aletazo(0.7, 0.8), 0.55 + 0.05 * (k % 3))) for k in range(10)])
+vibra = chirrido(d, (60, 110), ((3300, 10), (4800, 12), (6900, 14))) * np.interp(t, [0, 0.5, 1.0, d], [0, 1, 0.5, 0])
+chispas = granos(d, 2400 * np.interp(t, [0, 0.85, 1.0, d], [0, 0, 1, 0.2])) * 0.8
+zumba = eolica(d, 470.0, (2, 3, 5, 7), 1.5, 1.6) * np.interp(t, [0, 0.9, 1.4, d], [0, 0, 1, 0])
+guardar('escamas', reverb(mezclar(pico(sacude, 0.8), pico(vibra, 0.3), pico(chispas, 0.45), pico(zumba, 0.18)),
+                          0.35, 2.2, 9000), limite=0.6)
+
+# ESCAMAS_DESCARGA: una mancha de escamas se descarga. Un chasquido
+# electrico seco, el zumbido que se corta y un retumbo pequeno.
+for i in range(3):
+    d = 0.9
+    t = t_(d)
+    crack = mezclar(*[en(rng.uniform(0, 0.05), pa(ruido(0.01), 1800) * caida(0.01, 0.002) * rng.uniform(0.4, 1))
+                      for _ in range(18)])
+    zum = np.sin(2 * np.pi * (120 + 15 * i) * t) * (0.5 + 0.5 * np.sign(np.sin(2 * np.pi * (120 + 15 * i) * 3 * t)))
+    zum = bp(zum, 200, 3000) * caida(d, 0.12, 0.002)
+    guardar('escamas_descarga', reverb(mezclar(pico(crack, 1.0), pico(zum, 0.35), pico(boom(70, 40, 0.12), 0.4)), 0.2, 1.2),
+            i + 1, limite=0.6)
+
+# VIENTO DE VUELTA: un tornado roto le devuelve su viento a Aeralis. El aire
+# que sube de golpe y canta hacia arriba, hacia ella.
+for i in range(3):
+    d = 1.8
+    t = t_(d)
+    sube = viento(d, [(0, 300), (0.5, 1100 + 100 * i), (1, 1900)], 0.9, 0.5) * np.interp(t, [0, 0.25, 1.2, d], [0, 1, 0.7, 0])
+    canta = aullido(d, [(0, 500 + 40 * i), (1, 1300 + 60 * i)], 18) * campana_env(d, 1.5)
+    guardar('viento_vuelta', reverb(mezclar(pico(sube, 0.9), pico(canta, 0.3), pico(granos(d, 60 * np.exp(-t / 0.6)), 0.2)),
+                                0.3, 1.8, 7000), i + 1)
+
 # ----------------------------------------------------------------------
 #  sounds.json: los eventos aeralis.* con sus variantes y subtitulo
 # ----------------------------------------------------------------------

@@ -20,6 +20,16 @@ public class AeralisRenderState extends LivingEntityRenderState {
     public final AnimationState agotada = new AnimationState();
     public final AnimationState tambaleo = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
+    public final AnimationState picadoAviso = new AnimationState();
+    public final AnimationState picado = new AnimationState();
+    public final AnimationState posada = new AnimationState();
+    public final AnimationState escamas = new AnimationState();
+    /** La Furia del Vendaval: el aura de rayos. */
+    public boolean furia;
+    /** La linea del Picado: lo que mide por delante (0: no hay), lo llenado (0 a 1) y el suelo bajo ella (bloques, negativo). */
+    public float picadoLargo;
+    public float picadoLleno;
+    public float picadoSuelo;
 
     public int estado;
     /** Peso del vuelo: se mezcla con los ataques en vez de saltar. */

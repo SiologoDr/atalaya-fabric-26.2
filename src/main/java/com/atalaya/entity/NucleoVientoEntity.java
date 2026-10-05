@@ -21,10 +21,10 @@ import org.jspecify.annotations.Nullable;
  * cielo que gira, flotando sobre el suelo, y alimenta el ciclon del marcado
  * (se ve la corriente de luz que va de uno a otro).
  *
- * Hay cuatro repartidos por la arena. Cada uno aguanta 6 golpes, y uno mas por
- * cada 4 jugadores; cualquier golpe cuenta (espada, flecha, tridente). Cada
- * nucleo roto quita 11 al golpe del Juicio; con los cuatro, el ciclon se
- * deshace y Aeralis cae aturdida.
+ * Hay cuatro repartidos por la arena. Cada uno aguanta 10 golpes, sean cuantos
+ * sean los jugadores; cualquier golpe cuenta (espada, flecha, tridente). Con los
+ * cuatro, el ciclon se deshace y Aeralis cae aturdida; si no, el marcado muere
+ * (salvo totem) y ella entra en la Furia del Vendaval.
  */
 public class NucleoVientoEntity extends Entity {
 
@@ -39,6 +39,12 @@ public class NucleoVientoEntity extends Entity {
 
     private @Nullable AeralisEntity duena;
 
+    private static final EntityDataAccessor<Integer> DATA_FASE =
+            SynchedEntityData.defineId(NucleoVientoEntity.class, EntityDataSerializers.INT);
+    /** La id de Aeralis: el cliente tiende el rayo del cristal a su pecho. */
+    private static final EntityDataAccessor<Integer> DATA_DUENA =
+            SynchedEntityData.defineId(NucleoVientoEntity.class, EntityDataSerializers.INT);
+
     public NucleoVientoEntity(EntityType<? extends NucleoVientoEntity> tipo, Level nivel) {
         super(tipo, nivel);
         this.noPhysics = true;
@@ -48,6 +54,8 @@ public class NucleoVientoEntity extends Entity {
         NucleoVientoEntity n = new NucleoVientoEntity(AtalayaEntities.NUCLEO_VIENTO, nivel);
         n.duena = duena;
         n.entityData.set(DATA_AGUANTA, aguanta);
+        n.entityData.set(DATA_FASE, duena.fase());
+        n.entityData.set(DATA_DUENA, duena.getId());
         n.setPos(donde.x, donde.y, donde.z);
         nivel.addFreshEntity(n);
         nivel.playSound(null, donde.x, donde.y, donde.z, AtalayaSonidos.AERALIS_NUCLEO, SoundSource.HOSTILE, 2.5F, 1.0F);
@@ -60,6 +68,16 @@ public class NucleoVientoEntity extends Entity {
     protected void defineSynchedData(SynchedEntityData.Builder datos) {
         datos.define(DATA_GOLPES, 0);
         datos.define(DATA_AGUANTA, 6);
+        datos.define(DATA_FASE, 1);
+        datos.define(DATA_DUENA, -1);
+    }
+
+    public int getFase() {
+        return entityData.get(DATA_FASE);
+    }
+
+    public int getIdDuena() {
+        return entityData.get(DATA_DUENA);
     }
 
     public int getGolpes() {

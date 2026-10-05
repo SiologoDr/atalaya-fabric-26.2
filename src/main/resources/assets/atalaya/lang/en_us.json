@@ -162,6 +162,7 @@
   "item.atalaya.colmillo_jade": "Jade Fang",
   "item.atalaya.huevo_rajang": "Rajang Spawn Egg",
   "effect.atalaya.peso_tierra": "Weight of the Earth",
+  "effect.atalaya.paralisis": "Paralysis",
   "effect.atalaya.bendicion_tierra": "Blessing of the Earth",
   "death.attack.atalaya.rajang_garra": "%1$s was impaled by %2$s's Earthen Claw",
   "death.attack.atalaya.rajang_terremoto": "%1$s was launched by a pillar of %2$s's Ancestral Quake",
@@ -225,5 +226,13 @@
   "subtitles.atalaya.rajang.escalon_cae": "A step falls",
   "subtitles.atalaya.rajang.totem_pulso": "An earth pulse",
   "entity.atalaya.plataforma_sello": "Seal Platform",
-  "chat.atalaya.totem": "%s used a Totem of Undying %s"
+  "chat.atalaya.totem": "%s used a Totem of Undying %s",
+  "death.attack.atalaya.aeralis_picado": "%1$s was flung skyward by %2$s's dive",
+  "death.attack.atalaya.aeralis_escamas": "%1$s was zapped by %2$s's scales",
+  "subtitles.atalaya.aeralis.picado_aviso": "Aeralis readies a dive",
+  "subtitles.atalaya.aeralis.picado": "Aeralis dives",
+  "subtitles.atalaya.aeralis.posada": "Aeralis crashes down",
+  "subtitles.atalaya.aeralis.escamas": "Aeralis shakes her wings",
+  "subtitles.atalaya.aeralis.escamas_descarga": "Scales discharge",
+  "subtitles.atalaya.aeralis.viento_vuelta": "Wind returns to Aeralis"
 }

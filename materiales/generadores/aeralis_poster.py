@@ -362,20 +362,18 @@ def barra_jefe(escala):
         return Image.fromarray(a.astype(np.uint8))
     color = (0xB0, 0x7C, 0xFF)
     vida = 0.42
-    lienzo = Image.new('RGBA', (208, 26 + 7), (0, 0, 0, 0))
-    y0 = 7
-    lienzo.alpha_composite(tex('aeralis_barra_marco'), (0, y0))
-    viento = tenir(tex('aeralis_barra_viento'), color)
-    lleno = round(172 * vida)
+    lienzo = Image.new('RGBA', (240, 44), (0, 0, 0, 0))
+    lienzo.alpha_composite(tex(f'aeralis_barra_marco_{FASE}'))
+    relleno = tex(f'aeralis_barra_relleno_{FASE}')
+    lleno = round(190 * vida)
     for x in range(0, lleno, 64):
-        trozo = viento.crop((0, 0, min(64, lleno - x), 8))
-        lienzo.alpha_composite(trozo, (28 + x, y0 + 9))
+        lienzo.alpha_composite(relleno.crop((0, 0, min(64, lleno - x), 9)), (40 + x, 22))
     for corte in (0.75, 0.5, 0.25):
-        nombre = 'aeralis_barra_pluma_rota' if vida < corte else 'aeralis_barra_pluma'
-        lienzo.alpha_composite(tex(nombre), (28 + round(172 * corte) - 3, y0 + 7))
-    lienzo.alpha_composite(tex(f'aeralis_barra_nucleo_{FASE}'), (13 - 8, y0 + 13 - 8))
-    lienzo.alpha_composite(tex('aeralis_barra_nombre'), (28, y0 + 7 - 10))
-    lienzo.alpha_composite(tenir(tex(f'aeralis_barra_fase_{FASE}'), color), (28 + 172 - 64 + 1, y0 + 7 - 10))
+        ojo = tex('aeralis_barra_ojo_apagado') if vida < corte else tenir(tex('aeralis_barra_ojo'), color)
+        lienzo.alpha_composite(ojo, (40 + round(190 * corte) - 3, 29))
+    lienzo.alpha_composite(tex(f'aeralis_barra_nucleo_{FASE}'), (19 - 12, 26 - 12))
+    lienzo.alpha_composite(tex('aeralis_barra_nombre'), (100, 9))
+    lienzo.alpha_composite(tenir(tex(f'aeralis_barra_fase_{FASE}'), color), (40 + 190 - 64 + 1, 8))
     return lienzo.resize((lienzo.width * escala, lienzo.height * escala), Image.NEAREST)
 
 

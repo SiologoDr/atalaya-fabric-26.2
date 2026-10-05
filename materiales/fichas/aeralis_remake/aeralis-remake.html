@@ -1,0 +1,397 @@
+<title>Aeralis, Reina del Vendaval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,600&display=swap">
+<style>
+  /* Ficha de remake a una columna: cada lamina compara el antes (el juego de hoy) con el despues
+     (renders con la malla y las texturas que irian al juego), en el cielo de tormenta de la cima
+     y con los cuatro colores de fase de su barra. */
+  :root {
+    --cielo: #0d1220;         /* fondo: el cielo de tormenta de noche */
+    --losa: #151d30;          /* superficies */
+    --borde: #283550;         /* bordes y filetes */
+    --texto: #e4ecf8;
+    --apagado: #9aa8c2;
+    --brisa: #5fd2ff;         /* fase I */
+    --rafaga: #8f9bff;        /* fase II */
+    --tempestad: #b98cff;     /* fase III */
+    --ojo: #ff6fdf;           /* fase IV */
+    --oro: #ffc23a;           /* liberada */
+    --peligro: #ff7a59;
+    --display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --cuerpo: "Montserrat", "Segoe UI", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --cielo: #eef2f8; --losa: #ffffff; --borde: #cfd8e6; --texto: #131a2a; --apagado: #52607a;
+      --brisa: #0a78a8; --rafaga: #3c48b8; --tempestad: #6b3cc0; --ojo: #b4148e; --oro: #9a6a00; --peligro: #c2410c;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --cielo: #eef2f8; --losa: #ffffff; --borde: #cfd8e6; --texto: #131a2a; --apagado: #52607a;
+    --brisa: #0a78a8; --rafaga: #3c48b8; --tempestad: #6b3cc0; --ojo: #b4148e; --oro: #9a6a00; --peligro: #c2410c;
+    color-scheme: light;
+  }
+
+  body { background: var(--cielo); color: var(--texto); font-family: var(--cuerpo); font-size: 16px; line-height: 1.6; }
+  .pagina { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: grid; gap: 60px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; line-height: 1.1; margin: 0; letter-spacing: 0.01em; }
+  h1 { font-size: clamp(2.4rem, 6vw, 4.1rem); text-transform: uppercase; }
+  h2 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); text-transform: uppercase; }
+  h3 { font-size: 1.02rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--apagado); font-weight: 500; }
+  p { margin: 0; max-width: 70ch; }
+  .antetitulo { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--brisa); }
+  .epiteto { font-style: italic; font-weight: 600; font-size: 1.2rem; color: var(--apagado); }
+  .fases-raya { display: flex; height: 4px; width: 160px; }
+  .fases-raya span { flex: 1; }
+  .f1 { background: var(--brisa); } .f2 { background: var(--rafaga); } .f3 { background: var(--tempestad); } .f4 { background: var(--ojo); }
+
+  header.cabecera { display: grid; gap: 14px; }
+  .estado { border: 1px solid var(--brisa); border-radius: 4px; padding: 14px 16px; display: grid; gap: 6px; max-width: 78ch; }
+  .estado strong { color: var(--brisa); font-family: var(--display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+  .pruebas { border-left: 3px solid var(--borde); padding-left: 16px; color: var(--apagado); font-style: italic; max-width: 74ch; display: grid; gap: 8px; }
+  .pruebas strong { color: var(--texto); font-style: normal; }
+
+  .resumen { display: grid; border-top: 1px solid var(--borde); }
+  .resumen a { display: grid; grid-template-columns: 104px 1fr auto; gap: 16px; align-items: baseline; padding: 12px 4px;
+    border-bottom: 1px solid var(--borde); color: inherit; text-decoration: none; }
+  .resumen a:hover, .resumen a:focus-visible { background: var(--losa); outline: none; }
+  .resumen .que { font-weight: 600; }
+  .resumen .donde { color: var(--apagado); font-size: 0.85rem; white-space: nowrap; }
+  .chip { font-family: var(--display); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;
+    padding: 2px 8px; border-radius: 3px; justify-self: start; border: 1px solid currentColor; }
+  .chip.nuevo { color: var(--ojo); }
+  .chip.cambio { color: var(--brisa); }
+  .chip.hud { color: var(--oro); }
+
+  section.lamina { display: grid; gap: 22px; scroll-margin-top: 20px; }
+  .titulo-lamina { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+  figure { margin: 0; display: grid; gap: 8px; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--borde); }
+  figcaption { font-size: 0.85rem; color: var(--apagado); }
+  .etiqueta { font-family: var(--display); font-size: 0.82rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .etiqueta.antes { color: var(--apagado); }
+  .etiqueta.despues { color: var(--brisa); }
+  .par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  .par > * { min-width: 0; }
+  .apilado { display: grid; gap: 18px; }
+  .dos { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; }
+  .dos > * { min-width: 0; display: grid; gap: 12px; align-content: start; }
+  @media (max-width: 820px) { .par, .dos { grid-template-columns: 1fr; } .resumen a { grid-template-columns: 1fr; gap: 4px; } }
+
+  ul.lista { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; max-width: 72ch; }
+  ul.lista li::marker { color: var(--brisa); }
+  dl.ficha { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; }
+  dl.ficha dt { color: var(--apagado); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+  dl.ficha dd { margin: 0; font-variant-numeric: tabular-nums; }
+  @media (max-width: 460px) { dl.ficha { grid-template-columns: 1fr; gap: 2px; } dl.ficha dd { margin-bottom: 10px; } }
+  .igual { color: var(--apagado); font-size: 0.92rem; }
+
+  .tabla { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  th { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--apagado); }
+  td.fase { font-family: var(--display); font-weight: 700; white-space: nowrap; }
+
+  .nota { background: var(--losa); border: 1px solid var(--borde); border-radius: 4px; padding: 14px 16px; font-size: 0.93rem; color: var(--apagado); }
+  .nota strong { color: var(--texto); }
+
+  ol.preguntas { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: p; }
+  ol.preguntas li { counter-increment: p; display: grid; grid-template-columns: 34px 1fr; gap: 12px; background: var(--losa);
+    border: 1px solid var(--borde); border-radius: 4px; padding: 14px 16px; }
+  ol.preguntas li::before { content: counter(p); font-family: var(--display); font-weight: 700; font-size: 1.4rem; color: var(--brisa); line-height: 1.2; }
+  ol.preguntas li > div { display: grid; gap: 4px; min-width: 0; }
+  .defecto { color: var(--apagado); font-size: 0.92rem; }
+  .defecto strong { color: var(--texto); }
+  a { color: var(--brisa); }
+  a:focus-visible { outline: 2px solid var(--brisa); outline-offset: 2px; }
+</style>
+
+<div class="pagina">
+
+  <header class="cabecera">
+    <span class="antetitulo">Atalaya · Jefe del viento · Propuesta de remake</span>
+    <h1>Aeralis, Reina del Vendaval</h1>
+    <div class="fases-raya" aria-hidden="true"><span class="f1"></span><span class="f2"></span><span class="f3"></span><span class="f4"></span></div>
+    <p class="epiteto">Calma la tormenta. Apaga el ojo de su pecho.</p>
+    <div class="estado" role="status">
+      <strong>Propuesta · 5 de octubre de 2026</strong>
+      <span>Todavía no hay nada en el juego. Los «antes» son fotos del juego de hoy y renders de su malla con sus texturas. Los «después» se hicieron con la misma cámara, la misma luz y el mismo sistema de piezas y texturas del juego, así que si se aprueba pasa al juego tal cual.</span>
+    </div>
+    <div class="pruebas">
+      <p>De las pruebas en grupo: <strong>«Es un boss complejo… tira habilidades que te hacen consumir tótem con más facilidad… sus ataques no dejan que un jugador se acerque mucho… en diseño siento que es muy top».</strong></p>
+      <p>Así que se mantienen la dificultad y lo llamativo. Lo que cambia: que imponga más, que sus ataques se lean de lejos y que haya forma de llegar a ella.</p>
+    </div>
+  </header>
+
+  <nav class="resumen" aria-label="Lo que cambia">
+    <a href="#cuerpo"><span class="chip cambio">Cambio</span><span class="que">El cuerpo: alas de 35 bloques, halo, corona y melena de nubes</span><span class="donde">todas las fases</span></a>
+    <a href="#fases"><span class="chip cambio">Cambio</span><span class="que">Las cuatro fases, con jirones, rayos y el halo encendido</span><span class="donde">I a IV</span></a>
+    <a href="#barra"><span class="chip hud">HUD</span><span class="que">La barra de vida y el icono de la Marca</span><span class="donde">siempre</span></a>
+    <a href="#aleteo"><span class="chip cambio">Cambio</span><span class="que">Aleteo Cortante: medias lunas que se leen, bajas y altas de distinto color</span><span class="donde">desde la I</span></a>
+    <a href="#tornados"><span class="chip cambio">Cambio</span><span class="que">Tornados: el embudo se ve, con el aro de agarre y los tres golpes</span><span class="donde">desde la I</span></a>
+    <a href="#caceria"><span class="chip cambio">Cambio</span><span class="que">Cacería del Vendaval: las ráfagas pasan a ser polillas de viento</span><span class="donde">desde la II</span></a>
+    <a href="#juicio"><span class="chip cambio">Cambio</span><span class="que">Juicio del Ciclón: núcleos de cristal atados a ella con un rayo</span><span class="donde">desde la III</span></a>
+    <a href="#picado"><span class="chip nuevo">Nuevo</span><span class="que">Picado del Vendaval, y se posa: la ventana para la espada</span><span class="donde">desde la II</span></a>
+    <a href="#escamas"><span class="chip nuevo">Nuevo</span><span class="que">Escamas de Tormenta: el suelo se carga donde caen</span><span class="donde">desde la III</span></a>
+    <a href="#corriente"><span class="chip nuevo">Nuevo</span><span class="que">Corrientes ascendentes: el tornado roto te sube hasta ella</span><span class="donde">desde la II</span></a>
+  </nav>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="cuerpo">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>El cuerpo</h2></div>
+    <div class="apilado">
+      <figure><span class="etiqueta antes">Antes · la de hoy</span>
+        <img src="img/heroica_antes.jpg" alt="Aeralis de hoy sobre la cima: alas grises y claras, cuerpo fino" width="1600" height="900">
+      </figure>
+      <figure><span class="etiqueta despues">Después · la misma cámara</span>
+        <img src="img/heroica_despues.jpg" alt="Aeralis del remake sobre la cima: alas enormes de tormenta con ocelos de ciclón, halo detrás y corona de púas" width="1600" height="900">
+      </figure>
+    </div>
+    <div class="dos">
+      <div>
+        <h3>Qué cambia</h3>
+        <ul class="lista">
+          <li><strong>Alas mucho más grandes:</strong> unos 35 bloques de envergadura (hoy, 22). Son de tormenta: oscuras junto al cuerpo y claras hacia fuera, con nubes que giran hacia ocelos de ciclón más grandes y el filo entero encendido en el color de la fase.</li>
+          <li>La <strong>costa</strong> de cada ala es una vara de quitina de verdad, no un dibujo plano, así que el ala se lee como una estructura.</li>
+          <li>Un <strong>halo de viento</strong> de 14 bloques detrás de la espalda, que gira.</li>
+          <li><strong>Corona</strong> de siete púas con la punta encendida, colmillos más largos y antenas de pluma que barren hacia atrás como cuernos.</li>
+          <li><strong>Melena de nubes</strong> alrededor del cuello, con mechones abiertos.</li>
+          <li>Las <strong>patas de delante son de presa</strong>, con cuchilla, como una mantis.</li>
+          <li>El <strong>ojo de la tormenta</strong> del pecho es mayor y lleva un marco de ocho púas. El abdomen tiene juntas que brillan y cuatro cintas de viento.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Lo que trae el tamaño</h3>
+        <dl class="ficha">
+          <dt>Envergadura</dt><dd>22 → unos 35 bloques</dd>
+          <dt>Alto</dt><dd>17 → unos 24 bloques, con las alas en alto</dd>
+          <dt>Vuelo</dt><dd>4,5 bloques más alta: el tórax a unos 15 en vez de 9, para que las colas de las alas no rocen el suelo</dd>
+          <dt>Caja de golpe</dt><dd>la misma, solo el cuerpo: las alas siguen sin caja</dd>
+        </dl>
+        <p class="nota">Volar más alto apenas cambia nada: hoy ya solo baja al alcance de la espada aturdida o agotada. Para llegar a ella están el <a href="#picado">Picado</a> y las <a href="#corriente">Corrientes ascendentes</a>.</p>
+      </div>
+    </div>
+    <div class="apilado">
+      <figure><span class="etiqueta antes">Antes · frente, perfil y espalda</span>
+        <img src="img/vistas_antes.jpg" alt="Vistas de frente, perfil y espalda de la Aeralis de hoy" width="1800" height="640" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después · a la misma escala</span>
+        <img src="img/vistas_despues.jpg" alt="Vistas de frente, perfil y espalda del remake" width="1800" height="640" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">La escala, en bloques</span>
+        <img src="img/escala.jpg" alt="El remake, un jugador y la Aeralis de hoy junto a una regla en bloques" width="1600" height="760" loading="lazy">
+        <figcaption>A la izquierda el remake; en el centro, un jugador; a la derecha, la de hoy. Cada raya es un bloque.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="fases">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Las cuatro fases</h2></div>
+    <div class="apilado">
+      <figure><span class="etiqueta antes">Antes</span>
+        <img src="img/fases_antes.jpg" alt="Las cuatro fases de la Aeralis de hoy" width="1600" height="560" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después</span>
+        <img src="img/fases_despues.jpg" alt="Las cuatro fases del remake, de cian a magenta" width="1600" height="560" loading="lazy">
+      </figure>
+    </div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Fase</th><th>Color</th><th>Lo que se ve en el remake</th></tr></thead>
+        <tbody>
+          <tr><td class="fase" style="color: var(--brisa)">I · Brisa</td><td>cian</td><td>Las alas limpias, el filo encendido y el halo tenue.</td></tr>
+          <tr><td class="fase" style="color: var(--rafaga)">II · Ráfaga</td><td>añil</td><td>El viento empieza a llevarse el margen de las alas, en jirones.</td></tr>
+          <tr><td class="fase" style="color: var(--tempestad)">III · Tempestad</td><td>violeta</td><td>Rayos por las venas de las alas y por la banda del halo.</td></tr>
+          <tr><td class="fase" style="color: var(--ojo)">IV · Ojo de la tormenta</td><td>magenta</td><td>Las alas rasgadas, el halo hecho un anillo de rayos y el ojo del pecho al rojo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure><span class="etiqueta despues">Después · la fase IV sobre la cima</span>
+      <img src="img/heroica_despues_f4.jpg" alt="El remake en la fase IV, magenta, sobre la cima" width="1600" height="900" loading="lazy">
+    </figure>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="barra">
+    <div class="titulo-lamina"><span class="chip hud">HUD</span><h2>La barra de vida y los efectos</h2></div>
+    <figure>
+      <img src="img/barra.jpg" alt="Arriba la barra de hoy en sus cuatro fases y liberada; debajo la del remake, y en la última fila durante el Juicio del Ciclón con los núcleos que quedan" width="3780" height="578" loading="lazy">
+      <figcaption>Arriba la de hoy y debajo el remake, en las cuatro fases y liberada. En la última fila, durante el Juicio del Ciclón. Ampliadas a ×3.</figcaption>
+    </figure>
+    <div class="dos">
+      <div>
+        <h3>La barra</h3>
+        <ul class="lista">
+          <li>El emblema es mayor: el ojo de la tormenta en espiral, con la corona de púas del remake.</li>
+          <li>Del emblema sale un ala por encima del marco, con su ocelo y el filo encendido.</li>
+          <li>El relleno lleva el color de la fase dentro de la imagen, de la tormenta oscura al filo claro, y su frente brilla.</li>
+          <li>Las muescas de fase son ojos de tormenta que se apagan al pasarlos.</li>
+          <li><strong>Nuevo:</strong> durante el Juicio del Ciclón salen cuatro cristales bajo la barra, uno por núcleo, y se apagan al romperlos. Así todos saben cuántos quedan.</li>
+        </ul>
+      </div>
+      <figure>
+        <img src="img/iconos.jpg" alt="El icono de la Marca del Vendaval de hoy, una espiral, junto al nuevo, una polilla de viento, y la Bendición de los Vientos" width="960" height="330" loading="lazy">
+        <figcaption>La Marca del Vendaval pasa de espiral a <strong>polilla de viento</strong>, la misma que persigue a la presa en la Cacería, con el mismo azul, así que se sigue reconociendo. La Bendición de los Vientos se queda como está.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="aleteo">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Aleteo Cortante</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span>
+        <img src="img/juego_aleteo_2.jpg" alt="En el juego hoy: el aleteo, con cuchillas finas y blancas que casi no se ven" width="854" height="480" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después</span>
+        <img src="img/ataque_aleteo.jpg" alt="Medias lunas de viento de color con su estela, y el abanico marcado en el suelo" width="1600" height="900" loading="lazy">
+      </figure>
+    </div>
+    <ul class="lista">
+      <li>Las cuchillas pasan a ser <strong>medias lunas</strong> con el filo casi blanco y una estela que se deshace.</li>
+      <li>Las <strong>bajas</strong> van en el color de la fase (se saltan) y las <strong>altas</strong> en blanco (hay que apartarse): se distinguen de un vistazo.</li>
+      <li>El abanico se marca en el suelo 0,4 s antes y el ala que va a cortar se enciende.</li>
+    </ul>
+    <p class="igual">El daño, el número de cuchillas y el escudo se quedan igual: 31 / 39 / 49 / 61.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="tornados">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Tornados</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span>
+        <img src="img/juego_tornados.jpg" alt="En el juego hoy: el aviso de los tornados es polvo gris y el embudo casi no se ve" width="854" height="480" loading="lazy">
+        <figcaption>Hoy el aviso es polvo gris y el embudo casi no se ve contra el cielo. En la foto ni sale.</figcaption>
+      </figure>
+      <figure><span class="etiqueta despues">Después · fase III</span>
+        <img src="img/ataque_tornados.jpg" alt="Tres tornados de dos capas en violeta, con escombros, tres anillos de luz y un aro en el suelo" width="1600" height="900" loading="lazy">
+      </figure>
+    </div>
+    <ul class="lista">
+      <li>Embudo de dos capas en el color de la fase, con escombros que giran: se ve de lejos.</li>
+      <li>Un <strong>aro en el suelo</strong> marca hasta dónde atrapa.</li>
+      <li><strong>Tres anillos de luz</strong> son sus tres golpes: con cada golpe se apaga uno.</li>
+      <li>Desde la III lleva rayos dentro.</li>
+      <li>Al romperlo deja una <a href="#corriente">Corriente ascendente</a> (nuevo).</li>
+    </ul>
+    <p class="igual">Cuántos salen, lo que persiguen, el daño y los 3 golpes para deshacerlos se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="caceria">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Cacería del Vendaval</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span>
+        <img src="img/juego_caceria_rafagas.jpg" alt="En el juego hoy: las ráfagas son remolinos azules pequeños" width="854" height="480" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después · fase II</span>
+        <img src="img/ataque_caceria.jpg" alt="Polillas de viento con estela que vuelan hacia la presa, marcada con una espiral y un ojo de luz" width="1600" height="900" loading="lazy">
+      </figure>
+    </div>
+    <ul class="lista">
+      <li>La marca es una <strong>espiral bajo la presa y un ojo de luz encima</strong>, con un hilo de viento desde Aeralis: todos ven a quién persigue.</li>
+      <li>Las ráfagas pasan a ser <strong>polillas de viento</strong> con estela. Igual que hoy, se revientan en el aire con 1 + jugadores/12 golpes.</li>
+    </ul>
+    <p class="igual">El daño (34 / 42 / 53 / 70), la explosión de 3,5 bloques y la marca que vuelve si la leche la borra se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="juicio">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Juicio del Ciclón</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span>
+        <img src="img/juego_juicio_2.jpg" alt="En el juego hoy: un círculo en el suelo y cuatro cubos azules pequeños colgando de hilos" width="854" height="480" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después · fase IV</span>
+        <img src="img/ataque_juicio.jpg" alt="Un ciclón oscuro con rayos, cuatro cristales de tormenta sobre pedestales atados al pecho de Aeralis con un rayo" width="1600" height="900" loading="lazy">
+      </figure>
+    </div>
+    <ul class="lista">
+      <li>El ciclón se oscurece y lleva rayos dentro.</li>
+      <li>Los cuatro núcleos son <strong>cristales de tormenta</strong> sobre pedestales de roca. Cada uno está <strong>atado a su pecho con un rayo</strong>, y el rayo se corta al romperlo.</li>
+      <li>La <a href="#barra">barra</a> muestra los núcleos que quedan.</li>
+    </ul>
+    <p class="igual">El daño al atrapado (139 / 139 / 139 / 174), los golpes de cada núcleo y el aturdimiento con daño doble se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="picado">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Picado del Vendaval</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta despues">Marca la línea y se lanza</span>
+        <img src="img/nuevo_picado.jpg" alt="Aeralis en el aire, con las alas plegadas, lanzándose sobre una línea de galones de luz en el suelo" width="1600" height="900" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Al acabar, se posa</span>
+        <img src="img/nuevo_posada.jpg" alt="Aeralis posada en el suelo con las alas cerradas hacia arriba y jugadores a su alrededor" width="1600" height="900" loading="lazy">
+      </figure>
+    </div>
+    <div class="dos">
+      <div>
+        <p>Sube, marca en el suelo una línea de galones de luz hacia su presa y se lanza en picado por ella con las alas plegadas. A quien pille lo lanza por los aires. Al final <strong>se posa</strong> como una polilla en reposo, con las alas cerradas hacia arriba y jadeando: es la <strong>ventana para la espada</strong> que pedía el grupo.</p>
+      </div>
+      <dl class="ficha">
+        <dt>Desde</dt><dd>la fase II</dd>
+        <dt>Aviso</dt><dd>la línea, de unos 35 bloques: 1,2 s (0,8 en la IV)</dd>
+        <dt>Picado</dt><dd>unos 30 bloques/s por la línea</dd>
+        <dt>Daño</dt><dd>45 / 56 / 70 (fases II a IV), contra armadura, y te lanza unos 8 bloques. No mata.</dd>
+        <dt>Posada</dt><dd>3 s en el suelo con daño doble</dd>
+        <dt>Enfriamiento</dt><dd>20 s, menos en cada fase</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="escamas">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Escamas de Tormenta</h2></div>
+    <figure>
+      <img src="img/nuevo_escamas.jpg" alt="Aeralis con las alas en alto suelta una nube de escamas que brillan; en el suelo, manchas de luz que descargan rayos" width="1600" height="900" loading="lazy">
+    </figure>
+    <div class="dos">
+      <p>Las polillas sueltan escamas. Sube y sacude las alas sobre la cima: cae una nube de escamas que brillan y, donde se posan, el suelo se carga y descarga. Obliga a moverse, y junto a los tornados aprieta mucho.</p>
+      <dl class="ficha">
+        <dt>Desde</dt><dd>la fase III</dd>
+        <dt>Aviso</dt><dd>1,5 s sacudiendo las alas; luego caen durante 2 s</dd>
+        <dt>Manchas</dt><dd>de 2,5 bloques, en un área de 30; se cargan 1 s y descargan</dd>
+        <dt>Daño</dt><dd>20 / 28 (fases III y IV) y Lentitud 2 s</dd>
+        <dt>Duran</dt><dd>6 s</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="corriente">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Corrientes ascendentes</h2></div>
+    <figure>
+      <img src="img/nuevo_corriente.jpg" alt="Una columna de viento que sube donde había un tornado; un jugador vuela dentro hasta la altura de Aeralis" width="1600" height="900" loading="lazy">
+    </figure>
+    <div class="dos">
+      <p>No es un ataque: es la respuesta del grupo a «no deja acercarse». Cada tornado que rompéis deja durante unos segundos una corriente que sube. Quien entra vuela hasta su altura y planea, con tiempo para pegarle al cuerpo con la espada.</p>
+      <dl class="ficha">
+        <dt>Desde</dt><dd>la fase II</dd>
+        <dt>Sale</dt><dd>donde se rompe un tornado (3 golpes)</dd>
+        <dt>Dura</dt><dd>6 s</dd>
+        <dt>Efecto</dt><dd>te sube unos 15 bloques y te deja caída lenta 4 s</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="preguntas">
+    <h2>Lo que hay que decidir</h2>
+    <p>Si no dices otra cosa, se hace lo que pone «por defecto» en cada una.</p>
+    <ol class="preguntas">
+      <li><div><strong>¿El cuerpo nuevo tal cual (alas de 35, halo, corona, melena, patas de presa)?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+      <li><div><strong>¿Vuela 4,5 bloques más alta para que las alas grandes no rocen el suelo?</strong><span class="defecto">Por defecto: <strong>sí</strong>. La otra opción es plegar más las alas de abajo, que se ven menos.</span></div></li>
+      <li><div><strong>Picado: ¿desde la fase II, sin matar, y posada 3 s con daño doble?</strong><span class="defecto">Por defecto: <strong>sí</strong>. Si lo queréis mortal (que gaste tótem) como la Embestida de Rajang, se cambia.</span></div></li>
+      <li><div><strong>Escamas de Tormenta: ¿desde la fase III, con Lentitud 2 s?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+      <li><div><strong>¿Corrientes ascendentes al romper un tornado?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+      <li><div><strong>¿Más daño por fase, como se hizo con Rajang?</strong><span class="defecto">Por defecto: <strong>no</strong>. Ya es el jefe más difícil. Los ataques nuevos se reparten el turno con los de ahora, así que la presión se queda parecida.</span></div></li>
+      <li><div><strong>¿La barra y el icono de la Marca nuevos?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+    </ol>
+  </section>
+
+</div>

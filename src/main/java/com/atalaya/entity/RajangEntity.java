@@ -1405,7 +1405,8 @@ public class RajangEntity extends Monster {
         Vec3 f = frente();
         double giro = Math.atan2(f.z, f.x) + Math.PI / 4;
         double sube = SELLO_ALTO / (SELLO_PIEDRAS + 1.0);
-        int aguanta = 6 + jugadoresGrupo / 4;
+        // Cada totem aguanta 10 golpes, sean cuantos sean los jugadores.
+        int aguanta = 10;
         for (int i = 0; i < 4; i++) {
             double a = giro + i * Math.PI / 2;
             double x = c.x + Math.cos(a) * SELLO_RADIO;

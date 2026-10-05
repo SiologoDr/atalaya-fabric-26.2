@@ -20,7 +20,8 @@ import net.minecraft.util.Mth;
  *   - la inercia: se inclina hacia donde avanza y se ladea en los giros;
  *   - el ojo de la tormenta del pecho, que gira cada vez mas rapido con la
  *     fase, se detiene en el silencio del Juicio y gira despacio, limpio, al
- *     quedar liberada.
+ *     quedar liberada; y el halo de viento de la espalda, que gira al reves,
+ *     mas despacio.
  *
  * Se pinta translucida: las alas son de viento y se ve el cielo a traves.
  */
@@ -28,9 +29,13 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
 
     public static final ModelLayerLocation CAPA = new ModelLayerLocation(
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "aeralis"), "main");
+    /** La misma malla hinchada, para el aura de la Furia. */
+    public static final ModelLayerLocation CAPA_AURA = new ModelLayerLocation(
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "aeralis"), "aura");
 
     private final ModelPart cuerpo;
     private final ModelPart nucleo;
+    private final ModelPart halo;
 
     private final KeyframeAnimation vuelo;
     private final KeyframeAnimation avance;
@@ -48,11 +53,16 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
     private final KeyframeAnimation agotada;
     private final KeyframeAnimation tambaleo;
     private final KeyframeAnimation liberacion;
+    private final KeyframeAnimation picadoAviso;
+    private final KeyframeAnimation picado;
+    private final KeyframeAnimation posada;
+    private final KeyframeAnimation escamas;
 
     public AeralisModel(ModelPart raiz) {
         super(raiz, RenderTypes::entityTranslucent);
         this.cuerpo = raiz.createPartLookup().apply("cuerpo");
         this.nucleo = raiz.createPartLookup().apply("nucleo");
+        this.halo = raiz.createPartLookup().apply("halo");
         this.vuelo = AeralisAnimaciones.VUELO.bake(raiz);
         this.avance = AeralisAnimaciones.AVANCE.bake(raiz);
         this.dormida = AeralisAnimaciones.DORMIDA.bake(raiz);
@@ -69,6 +79,10 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
         this.agotada = AeralisAnimaciones.AGOTADA.bake(raiz);
         this.tambaleo = AeralisAnimaciones.TAMBALEO.bake(raiz);
         this.liberacion = AeralisAnimaciones.LIBERACION.bake(raiz);
+        this.picadoAviso = AeralisAnimaciones.PICADO_AVISO.bake(raiz);
+        this.picado = AeralisAnimaciones.PICADO.bake(raiz);
+        this.posada = AeralisAnimaciones.POSADA.bake(raiz);
+        this.escamas = AeralisAnimaciones.ESCAMAS.bake(raiz);
     }
 
     @Override
@@ -96,6 +110,10 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
             aturdida.apply(s.aturdida, s.ageInTicks, s.ritmo);
             agotada.apply(s.agotada, s.ageInTicks, s.ritmo);
             tambaleo.apply(s.tambaleo, s.ageInTicks, s.ritmo);
+            picadoAviso.apply(s.picadoAviso, s.ageInTicks, s.ritmo);
+            picado.apply(s.picado, s.ageInTicks, 1.0F);
+            posada.apply(s.posada, s.ageInTicks, 1.0F);
+            escamas.apply(s.escamas, s.ageInTicks, s.ritmo);
         }
         liberacion.apply(s.liberacion, s.ageInTicks);
 
@@ -115,5 +133,6 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
             vel = 0.05F + 0.035F * s.fase;
         }
         nucleo.zRot += s.ageInTicks * vel;
+        halo.zRot -= s.ageInTicks * vel * 0.25F;
     }
 }

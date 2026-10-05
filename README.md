@@ -1005,8 +1005,17 @@ barra lleva:
 - nombre y "FASE I-IV" en letras de píxel;
 - rastro blanco del daño.
 
-Las barras **se apilan**: Nerea arriba, Aeralis 32 px más abajo y Rajang debajo.
-Cada una enseña el jefe despierto más cercano.
+La de **Aeralis** cambió con su remake (octubre de 2026): mide 240×44, lleva un
+marco, un relleno y un emblema por fase con el color ya pintado, un ala que sale
+del emblema por encima, el frente del relleno encendido, ojos de tormenta en las
+muescas y, debajo, una raya fina que se llena con el **viento de vuelta** (en el
+Juicio, en su lugar, cuatro cristales con los núcleos que quedan).
+La de Rajang al mismo estilo está **solo en propuesta**
+(`rajang_remake_hud.py`, ficha en `materiales/fichas/rajang_barra/`).
+
+Las barras **se apilan**: Nerea arriba, Aeralis debajo y Rajang debajo de las
+dos (cada una usa el `ALTO` de las de encima). Cada una enseña el jefe despierto
+más cercano.
 
 **Lo que se ve y lo que pega van juntos.** `<Jefe>Geometria.java` guarda los ticks
 de cada golpe y los puntos del cuerpo (ojos, manos, puntas). Se genera desde las
@@ -1082,15 +1091,23 @@ medio entre los dos.
 
 > *Calma la tormenta. Apaga el ojo de su pecho.*
 
-Una polilla de tormenta erguida, de unos 17 bloques de alto y **22 de
-envergadura**:
+Una polilla de tormenta erguida. Desde el **remake de octubre de 2026** mide
+unos 24 bloques de alto y **38 de envergadura** (antes, 17 y 22):
 
-- quitina azul pizarra, ojos de hielo y colmillos;
-- antenas plumosas con la punta encendida;
-- seis patas;
-- cuatro alas de viento translúcidas, con ocelos en espiral.
+- alas de tormenta, oscuras junto al cuerpo y claras hacia fuera, con ocelos de
+  ciclón y el filo encendido en el color de la fase; la costa de cada ala es una
+  vara de quitina;
+- un halo de viento detrás de la espalda que gira;
+- corona de siete púas, colmillos largos y antenas de pluma hacia atrás;
+- melena de nubes en el cuello;
+- patas de delante de presa, como una mantis;
+- abdomen con juntas que brillan y cuatro cintas de viento (con física).
 
-En el pecho lleva el **ojo de la tormenta**, que gira más deprisa en cada fase.
+En el pecho lleva el **ojo de la tormenta**, con un marco de ocho púas, que gira
+más deprisa en cada fase. Cuando se posa o cae, cierra las alas hacia arriba.
+
+La malla sale de `vendaval_juego.py`; la de antes del remake está en
+`vendaval_juego_v1.py` (la usa la ficha para el «antes»).
 
 Se dibujaron tres versiones:
 
@@ -1103,11 +1120,12 @@ B y C salen de imágenes de referencia. Ganó la A.
 **Vuela.** No tiene gravedad ni choques: con 22 bloques de alas, chocar con cada
 árbol la frenaría.
 
-- Va a unos 3 bloques del suelo, con el tórax a 9.
+- Va a unos 7,5 bloques del suelo (con 38 de alas, más bajo las arrastraba).
 - Rodea al objetivo a 12 bloques y de vez en cuando hace una pasada rasante.
 - Las alas no tienen caja de golpe, así que se le pega al cuerpo, sobre todo con
   arcos, ballestas y tridentes.
-- Solo baja al alcance de la espada cuando está aturdida o agotada.
+- Solo baja al alcance de la espada cuando está aturdida, agotada o **posada**
+  después del Picado.
 
 | | |
 |---|---|
@@ -1122,18 +1140,46 @@ lo heredó.
 | Fase | Nombre | Color | Qué se añade |
 |---|---|---|---|
 | I | Brisa | cian | Aleteo Cortante, Tornados |
-| II | Ráfaga | añil | la Cacería del Vendaval |
-| III | Tempestad | violeta | Juicio del Ciclón; rayos en las alas y truenos |
+| II | Ráfaga | añil | la Cacería del Vendaval, el Picado; el viento de vuelta |
+| III | Tempestad | violeta | Juicio del Ciclón, Escamas de Tormenta; rayos en las alas y truenos |
 | IV | Ojo de la tormenta | magenta | todo más seguido; cada 25 s cae **agotada** (daño doble) |
 
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
 | **Aleteo Cortante** | de 3 a 10 cuchillas de viento en abanico, a ras de suelo, alternando bajas y altas | 31 / 39 / 49 / 61 | **saltar las bajas y apartarse de las altas**. El escudo la para de frente |
-| **Tornados** | de 3 a 9 tornados que nacen junto a los jugadores y los persiguen 12 s. Atrapan, suben en espiral y revientan a los 3 s | 7 / 10 / 14 / 21 por segundo, más el estallido: 27 / 37 / 44 / 55 | **3 golpes** de lo que sea lo deshacen y sueltan a la víctima sin daño de caída |
+| **Tornados** | de 3 a 9 tornados que nacen junto a los jugadores y los persiguen 12 s. Atrapan, suben en espiral y revientan a los 3 s | 7 / 10 / 14 / 21 por segundo, más el estallido: 27 / 37 / 44 / 55 | **3 golpes** de lo que sea lo deshacen y sueltan a la víctima con suavidad, pero **la caída duele** |
 | **Cacería del Vendaval** | marca a una presa 15 s y le tira ráfagas que la persiguen. La marca no se quita: si la leche la borra, vuelve. Si nadie se queda cerca de la presa, acelera | 34 / 42 / 53 / 70, explota en 3,5 bloques | **reventar la ráfaga** en el aire (1 + jugadores/12 golpes) o ponerse delante |
-| **Juicio del Ciclón** | se hace el silencio (corta todos sus sonidos) y sube al centro. Un ciclón atrapa al jugador con **menos vida** y aparecen **cuatro núcleos** | 139 / 139 / 139 / 174 al atrapado, atravesando armadura y escudo; la mitad a quien esté a 8 bloques. Cada núcleo roto le quita un 25 % | **romper los cuatro núcleos** (6 + jugadores/4 golpes cada uno). Así cae aturdida 5 s, con daño doble |
+| **Juicio del Ciclón** | se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos** | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos** (**10 golpes** cada uno). Así cae aturdida 5 s, con daño doble |
+| **Picado del Vendaval** (nuevo) | sube y marca en el suelo la línea por donde se va a lanzar (36 a 60 bloques, galones que se encienden). Se lanza en picado a 45 bloques/s | a quien pille, **la muerte salvo tótem** (pasa armadura, escudo, encantamientos y efectos) y lo **lanza al cielo** (unos 24 bloques): la caída duele | **salir de la línea**. Al final **se posa 3 s** y recibe **daño doble**: la ventana de la espada |
+| **Escamas de Tormenta** (nuevo) | sacude las alas y suelta escamas en un círculo de 15 bloques. Cada mancha se carga y descarga cada 1,5 s durante 6 s | 20 / 20 / 20 / 28 por descarga y **Parálisis 2 s**: ni andar ni saltar, pero sí pegar, el inventario y usar objetos. No te vuelve a paralizar hasta 1 s después de soltarte, para que puedas salir de la mancha | **no pisar las manchas** mientras brillan |
+| **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya fina bajo su barra lo cuenta: con **10** en la fase II, **20** en la III y **30** en la IV, **cae aturdida 5 s** con daño doble, como tras el Juicio (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
 
 Mientras dura el Juicio es inmune.
+
+**La Furia del Vendaval.** Es la Furia de Jade de Rajang en Aeralis: si el
+Juicio sale mal, a los que queden se la encuentran con un aura de rayos violetas
+en zigzag que le corren por encima (`AeralisFuriaLayer`). No usa la capa del
+creeper como Rajang, porque sus alas son láminas recortadas y esa capa pintaba
+rectángulos: va sobre el mismo atlas que su piel, en cuatro cuadros que se
+alternan. Con la Furia ataca un 25 % más rápido, pega un 35 % más, espera un 35 %
+menos entre ataques y vuela un 10 % más deprisa; en la barra, el rótulo dice
+FURIA y la tormenta late. **Se le va cuando la derriban**: los cuatro núcleos de
+otro Juicio o el viento de vuelta lleno.
+
+**En todos sus ataques la caída duele.** Antes, el tornado roto y el Juicio
+dejaban caer a la víctima sin daño; ahora la caída cuenta desde donde te suelta o
+desde lo más alto al que te lanza (el Picado, el estallido del tornado, el
+Juicio, las cuchillas altas). En Rajang ya era así: ningún ataque quita el daño
+de caída; solo las plataformas del Sello, al bajar, no dejan que te rompas las
+piernas.
+
+**Cómo se ven los ataques desde el remake.** Las cuchillas del Aleteo son medias
+lunas grandes: las bajas del color de la fase y las altas blancas. Los tornados
+tienen embudo de aire (no una red) en el color de la fase, el aro del suelo hasta
+donde atrapan y tres anillos de luz, uno por golpe que les falta; desde la III
+llevan rayos dentro. Las ráfagas de la Cacería son polillas de viento. Los
+núcleos del Juicio son cristales de ocho caras con una columna de luz que sube y
+un rayo que los ata a su pecho. La Marca del Vendaval tiene icono de polilla.
 
 ### Rajang, el Jaguar de Jade
 
@@ -1196,7 +1242,7 @@ entre un ataque y otro (enfriamientos ×0,84, ×0,72 y ×0,6).
 | **Garra Terrestre** | zarpazo en abanico de 125° que te **empuja unos 6 bloques** y una fila de picos de roca que corre hasta la presa. La avisan una grieta y un hexágono. Cada pico te **lanza unos 10 bloques** y te deja el **Peso 3 s** | 34 / 45 / 59 / 80 | salir del frente y del hexágono. El escudo para el zarpazo |
 | **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 8 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores (pegan a 2,5–3,2 bloques de su centro), que **lanzan unos 10 bloques** y dejan el Peso 3 s. Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 40 / 49 / 63 | apartarse del hexágono y no pegarle con la Piel puesta |
 | **Embestida de Jade** | se agazapa y rasca el suelo mientras una **flecha** en el suelo marca por dónde va a cargar (1,15 s en la fase I, 0,75 s en la IV; al llenarse, el rumbo queda fijo). Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
-| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** (1 s), se cae y vuelve a los 3 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (6 + jugadores/4 golpes cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
+| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** (1 s), se cae y vuelve a los 3 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (**10 golpes** cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
 | **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s | salir del círculo: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
 | **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás 1,2 s (es de reflejos) | encima (4,8 a 5,7 bloques): **mata**; cerca (hasta 12): 60 / 77 | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
 | **Salto** (fase IV) | salta en parábola sobre la presa | 80 en 6,5 bloques | apartarse cuando despega |
@@ -1320,7 +1366,7 @@ Los scripts de cada jefe:
 | Jefe | Boceto y ficha | Juego | Recursos | Promo |
 |---|---|---|---|---|
 | Nerea | `nerea_modelo`, `nerea_b_modelo`, `nerea_c_modelo`, `nerea_escenas`, `nerea_v2`, `nerea_c_escenas` | `nerea_juego`, `nerea_fisica`, `nerea_juego_anim` | `nerea_extras`, `nerea_hud`, `nerea_sonidos` | `nerea_poster`, `video/nerea_teaser` |
-| Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas` | `vendaval_juego`, `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_hud`, `aeralis_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
+| Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas`, `viento_remake_escenas`, `viento_remake_hud`, `viento_remake_iconos` | `vendaval_juego` (y `vendaval_juego_v1`, el de antes), `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_mejoras_extras`, `aeralis_hud`, `aeralis_sonidos`, `aeralis_mejoras_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
 | Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas`, `rajang_mejoras_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_mejoras_extras`, `rajang_hud`, `rajang_sonidos`, `rajang_mejoras_sonidos` | `rajang_poster`, `video/rajang_teaser` |
 
 Los nombres de los scripts del boceto van por **elemento** (`viento_`,
@@ -1461,7 +1507,7 @@ El esquema es siempre el mismo:
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
-| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `aturdida`, `agotada`, `fase`, `liberar` |
+| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
@@ -1681,6 +1727,25 @@ python materiales/generadores/rajang_escenas_juego.py . run/saves/<mundo> [--aut
 - Para entrar directo al mundo:
   `gradlew runClient --args="--quickPlaySingleplayer <mundo>"`.
 
+Las de **Aeralis** van igual, con `aeralis_escenas_juego.py`
+(`materiales/escenas/atalaya_escenas_aeralis/`):
+
+```bash
+python materiales/generadores/aeralis_escenas_juego.py . run/saves/<mundo> [--auto[=escena]]
+```
+
+- `/function escenas_aeralis:recorrido` (todas, unos 2 minutos y medio),
+  `/function escenas_aeralis:<escena>` y `/function escenas_aeralis:parar`.
+- Escenas: `cuerpo` (la cámara la rodea: frente, perfil, espalda, abajo, arriba
+  y tres cuartos), `fases`, `aleteo`, `tornados`, `viento`, `caceria`,
+  `picado`, `escamas`, `juicio` (9 maniquíes: el ciclón atrapa a 3; se deja
+  fallar para ver los tótems y la Furia) y `furia` (el aura desde tres lados).
+- Las cámaras de los ataques van a 40-55 bloques: con 38 bloques de alas se come
+  el plano. Los cambios de fase van separados, porque mientras se tambalea no se
+  puede forzar otro.
+- Cada comando corta lo que haya en marcha de su pack; las escenas de Rajang
+  no las toca.
+
 ---
 
 ## ⚠️ Mappings de Mojang, no Yarn
@@ -1830,7 +1895,7 @@ src/main/               código común (servidor + cliente)
 │   ├── effect/AturdimientoEffect   la cara visible de estar clavado
 │   ├── effect/MarcadoEffect        la maldición del Vigía
 │   ├── effect/CorrienteAbismal, BendicionMareas    los de Nerea
-│   ├── effect/MarcaVendaval, BendicionVientos      los de Aeralis
+│   ├── effect/MarcaVendaval, BendicionVientos, Paralisis   los de Aeralis
 │   ├── effect/PesoTierra, BendicionTierra          los de Rajang
 │   ├── lluvia/LluviaManager        las DOS mecánicas de lluvia, en un bucle
 │   ├── hidratacion/Hidratacion     el dato pegado al jugador (persiste y sincroniza)

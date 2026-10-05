@@ -1,7 +1,12 @@
 """
-Animaciones de Aeralis, la Mariposa del Vendaval, escritas pose a pose y pasadas por
+Animaciones de Aeralis, la Reina del Vendaval, escritas pose a pose y pasadas por
 fisica (vendaval_fisica.py: retraso de cabeza, antenas, abdomen y alas de
-abajo; las cintas como pendulos).
+abajo; las cuatro cintas como pendulos).
+
+Desde el remake (octubre de 2026) las alas son tan grandes que en el suelo no
+caben abiertas: todo lo que pasa en el suelo (dormida, aturdida, agotada,
+posada tras el Picado y la liberacion) la deja como una polilla en reposo, con
+las alas cerradas hacia arriba, el cuerpo agachado y el abdomen tumbado detras.
 
 Convenciones (todo SE SUMA a la postura de reposo):
   rot   grados (x, y, z), como degreeVec
@@ -208,9 +213,13 @@ def pose_avance(s):
 anim('VUELO', T_VUELO, muestreada(pose_vuelo, T_VUELO, 16), loop=True)
 anim('AVANCE', T_AVANCE, muestreada(pose_avance, T_AVANCE, 16), loop=True)
 
-# --- Dormida: posada y envuelta en sus alas, como en un capullo, la cabeza gacha ---
-_dorm = sumar(alas(74, -26, (62, -18), giro=6), antenas(-24, -6), patas(18, 12), abdomen(-10),
-              cuerpo(x=4, sube=-10), {'cabeza': r(28), 'torax': r(10)})
+# --- En el suelo: las alas cerradas hacia arriba, como una polilla en reposo;
+#     el cuerpo agachado hasta que las patas tocan y el abdomen tumbado detras ---
+_plegadas = alas(-12, 80, (-34, 64))
+_suelo = sumar(_plegadas, cuerpo(sube=-46), abdomen(62, 12), patas(26, 14, -16), {'torax': r(6)})
+
+# --- Dormida: posada con las alas cerradas, la cabeza gacha ---
+_dorm = sumar(_suelo, antenas(-24, -6), {'cabeza': r(28)})
 anim('DORMIDA', 6.0, [(0, _dorm, 'c'), (1.4, sumar(_dorm, antenas(6, 2)), 'c'), (1.6, _dorm, 'c'),
                       (3.0, sumar(_dorm, {'torax': r(3), 'cabeza': r(3)}, alas(-2, -3)), 'c'),
                       (4.2, _dorm, 'c'), (4.35, sumar(_dorm, alas2((-8, 8), (0, 0))), 'c'), (4.6, _dorm, 'c'),
@@ -333,8 +342,8 @@ anim('JUICIO_GOLPE', 1.7, _cl)
 
 # --- Aturdida: los cuatro nucleos rotos. Se derrumba en el suelo con las
 #     alas caidas, se retuerce, intenta batir y no puede ---
-_at = sumar(alas(-6, -48, (-4, -36), giro=12), antenas(36, -10), abdomen(-10), patas(24, 26, 20),
-            cuerpo(x=6, sube=-10), {'torax': r(30), 'cabeza': r(34)})
+_at = sumar(alas(-24, 54, (-20, 42), giro=8), antenas(36, -10), abdomen(62, 12), patas(26, 14, -16),
+            cuerpo(x=6, sube=-46), {'torax': r(18), 'cabeza': r(34)})
 anim('ATURDIDA', 5.0, [(0, N, 'c'),
                        (0.25, sumar(alas(-30, 30, giro=-20), cuerpo(sube=4), {'cabeza': r(-20)}), 'c'),
                        (0.6, _at, 'c'),
@@ -349,8 +358,8 @@ anim('ATURDIDA', 5.0, [(0, N, 'c'),
 
 # --- Agotada (fase IV): se estrella, rebota, las alas planas en el suelo y
 #     jadea; luego se arranca con dos batidas ---
-_ag = sumar(alas(22, -60, (16, -48), giro=10), antenas(44, -12), abdomen(-14), patas(20, 36, 18),
-            cuerpo(x=6, sube=-12), {'torax': r(42), 'cabeza': r(30)})
+_ag = sumar(alas(-20, 50, (-18, 40), giro=10), antenas(44, -12), abdomen(64, 14), patas(26, 14, -16),
+            cuerpo(x=8, sube=-46), {'torax': r(24), 'cabeza': r(30)})
 _cl = [(0, N, 'c'),
        (0.15, sumar(alas(-20, 40, giro=-16), cuerpo(sube=6), {'cabeza': r(-14)}), 'c'),
        (0.3, _ag, 'l'),
@@ -382,8 +391,8 @@ anim('TAMBALEO', 2.6, _cl)
 
 # --- Liberacion: el ultimo chillido, baja planeando con batidas lentas, se
 #     posa y abre las alas al sol, respirando despacio ---
-_li_abre = sumar(alas(22, 24, (18, 16), giro=-6), antenas(-14, 16), patas(10, 8), cuerpo(sube=-6),
-                 {'cabeza': r(-16), 'torax': r(-4)})
+_li_abre = sumar(alas(-16, 62, (-14, 48), giro=-6), antenas(-14, 16), abdomen(56, 10), patas(26, 14, -16),
+                 cuerpo(sube=-46), {'cabeza': r(-16), 'torax': r(-4)})
 anim('LIBERACION', 10.0, [(0, N, 'c'),
                           (0.4, sumar(alas(-34, 34, giro=-12), colmillos(30), {'cabeza': r(-30)}), 'c'),
                           (1.2, sumar(alas(-10, 20), {'cabeza': r(-10)}), 'c'),
@@ -396,6 +405,48 @@ anim('LIBERACION', 10.0, [(0, N, 'c'),
                           (6.5, sumar(_li_abre, alas(4, 4), {'cabeza': r(-2)}), 'c'),
                           (8.0, sumar(_li_abre, alas(-2, -2)), 'c'),
                           (10.0, _li_abre, 'c')])
+
+
+# --- Picado del Vendaval: el aviso. Sube con dos batidas mientras la linea se
+#     marca en el suelo, pliega las alas hacia atras y se inclina hacia su presa ---
+T_PICADO_AVISO = 1.4
+_pi_plegada = sumar(alas(62, -8, (66, 6), giro=10), antenas(-30, 6), colmillos(26), abdomen(-12, -18),
+                    patas(-34, -24, 16), cuerpo(x=62), {'cabeza': r(-30), 'torax': r(-4)})
+anim('PICADO_AVISO', T_PICADO_AVISO, [(0, N, 'c'),
+                                      (0.3, sumar(alas(-34, 32, giro=-12), cuerpo(sube=10), {'cabeza': r(-10)}), 'c'),
+                                      (0.6, sumar(alas(40, -16, giro=14), cuerpo(sube=18)), 'c'),
+                                      (0.85, sumar(alas(-30, 36, giro=-12), cuerpo(sube=22), {'cabeza': r(-16)}), 'c'),
+                                      (1.15, sumar(alas(30, 10), cuerpo(x=30, sube=16), {'cabeza': r(-20)}), 'c'),
+                                      (T_PICADO_AVISO, _pi_plegada, 'c')])
+# --- El picado en si: plegada, con el viento haciendole vibrar las alas ---
+anim('PICADO', 0.5, [(0, _pi_plegada, 'c'), (0.125, sumar(_pi_plegada, alas(2, 3)), 'c'),
+                     (0.25, _pi_plegada, 'c'), (0.375, sumar(_pi_plegada, alas(-2, -2)), 'c'),
+                     (0.5, _pi_plegada, 'c')], loop=True)
+# --- Posada: se estrella al final de la linea, se queda en el suelo con las
+#     alas cerradas jadeando (la ventana de la espada) y se arranca ---
+T_POSADA = 3.4
+_po_choque = sumar(alas(-10, 50, (-8, 36), giro=8), colmillos(30), abdomen(70, 16), patas(34, 20, -10),
+                   cuerpo(x=18, sube=-56), {'cabeza': r(36), 'torax': r(20)})
+_cl = [(0, _pi_plegada, 'c'), (0.12, _po_choque, 'l'), (0.4, sumar(_suelo, {'cabeza': r(20)}), 'c')]
+for k in range(5):
+    tt = 0.8 + k * 0.42
+    _cl.append((round(tt, 3), sumar(_suelo, {'torax': r(-5 if k % 2 == 0 else 2), 'cabeza': r(18 if k % 2 == 0 else 24)},
+                                    abdomen(4 if k % 2 == 0 else 0)), 'c'))
+_cl += [(2.95, sumar(alas(-30, 30, giro=-10), cuerpo(sube=-24), {'torax': r(10)}), 'c'),
+        (3.2, sumar(alas(40, -14, giro=14), cuerpo(sube=-8)), 'l'),
+        (T_POSADA, N, 'c')]
+anim('POSADA', T_POSADA, _cl)
+# --- Escamas de Tormenta: sube con las alas en alto y las sacude; caen las escamas ---
+T_ESCAMAS = 2.6
+T_ESCAMAS_SUELTA = 0.9
+_es_alto = sumar(alas(-8, 64, (-6, 46), giro=-8), antenas(-20, 18), colmillos(20), abdomen(-10), patas(-20, -12),
+                 cuerpo(sube=16), {'cabeza': r(-22), 'torax': r(-14)})
+_cl = [(0, N, 'c'), (0.3, sumar(alas(-20, 30), cuerpo(sube=8)), 'c'), (0.7, _es_alto, 'c')]
+temblor(_es_alto, 0.75, 2.2, 0.06, {'ala_sup_izq': {'rot': (0, 4, -4)}, 'ala_sup_der': {'rot': (0, -4, 4)},
+                                     'ala_inf_izq': {'rot': (0, 3, -3)}, 'ala_inf_der': {'rot': (0, -3, 3)},
+                                     'torax': {'rot': (1.5, 0, 0)}}, _cl)
+_cl += [(2.35, sumar(alas(16, 10), cuerpo(sube=4)), 'c'), (T_ESCAMAS, N, 'c')]
+anim('ESCAMAS', T_ESCAMAS, _cl)
 
 
 # ----------------------------------------------------------------------
@@ -501,7 +552,7 @@ def java_anims():
          'import net.minecraft.client.animation.Keyframe;',
          'import net.minecraft.client.animation.KeyframeAnimations;', '',
          '/**',
-         ' * Las animaciones de Aeralis, la Mariposa del Vendaval. GENERADO por',
+         ' * Las animaciones de Aeralis, la Reina del Vendaval. GENERADO por',
          ' * materiales/generadores/vendaval_juego_anim.py (poses) y vendaval_fisica.py',
          ' * (retraso de cabeza, antenas y abdomen; cintas como pendulos). No se editan a',
          ' * mano: el servidor saca de las mismas poses los puntos y los ticks de cada golpe',
@@ -582,10 +633,14 @@ def java_geometria():
         'BOCA_MARCA': p_bloques('MARCA', T_MARCA, 'cabeza', (0, -4, -16)),
         'NUCLEO_JUICIO': p_bloques('JUICIO_GOLPE', T_JUICIO, 'nucleo'),
         'NUCLEO_TORNADOS': p_bloques('TORNADOS', T_TORNADOS, 'nucleo'),
-        'PUNTA_ALA_IZQ_ALETEO': p_bloques('ALETEO', T_ALETEO, 'ala_sup_izq', (W * 0.9, -H * 0.3, 0)),
-        'PUNTA_ALA_DER_ALETEO': p_bloques('ALETEO', T_ALETEO, 'ala_sup_der', (-W * 0.9, -H * 0.3, 0)),
-        'PUNTA_ALA_IZQ': p_bloques(None, 0, 'ala_sup_izq', (W * 0.9, -H * 0.3, 0)),
-        'PUNTA_ALA_DER': p_bloques(None, 0, 'ala_sup_der', (-W * 0.9, -H * 0.3, 0)),
+        'PUNTA_ALA_IZQ_ALETEO': p_bloques('ALETEO', T_ALETEO, 'ala_sup_izq', (W * 0.95, -H * 0.27, 0)),
+        'PUNTA_ALA_DER_ALETEO': p_bloques('ALETEO', T_ALETEO, 'ala_sup_der', (-W * 0.95, -H * 0.27, 0)),
+        'PUNTA_ALA_IZQ': p_bloques(None, 0, 'ala_sup_izq', (W * 0.95, -H * 0.27, 0)),
+        'PUNTA_ALA_DER': p_bloques(None, 0, 'ala_sup_der', (-W * 0.95, -H * 0.27, 0)),
+        'NUCLEO_PICADO': p_bloques('PICADO', 0, 'nucleo'),
+        'CABEZA_PICADO': p_bloques('PICADO', 0, 'cabeza', (0, -12, -10)),
+        'NUCLEO_POSADA': p_bloques('POSADA', 1.0, 'nucleo'),
+        'NUCLEO_ESCAMAS': p_bloques('ESCAMAS', T_ESCAMAS_SUELTA, 'nucleo'),
         'PUNTA_ABDOMEN': p_bloques(None, 0, 'punta', (0, 9, 0)),
     }
 
@@ -606,6 +661,9 @@ def java_geometria():
         'DURACION_TAMBALEO': tick(ANIMS['TAMBALEO']['dur']),
         'DURACION_LIBERACION': tick(ANIMS['LIBERACION']['dur']), 'LIBERACION_OJOS_ORO': tick(3.5),
         'PERIODO_VUELO': tick(ANIMS['VUELO']['dur']), 'VUELO_GOLPE': 1,
+        'DURACION_PICADO_AVISO': tick(T_PICADO_AVISO), 'PERIODO_PICADO': tick(ANIMS['PICADO']['dur']),
+        'DURACION_POSADA': tick(T_POSADA), 'POSADA_CHOQUE': tick(0.12), 'POSADA_ALZA': tick(2.95),
+        'DURACION_ESCAMAS': tick(T_ESCAMAS), 'ESCAMAS_SUELTA': tick(T_ESCAMAS_SUELTA), 'ESCAMAS_ACABA': tick(2.2),
     }
     L = ['package com.atalaya.entity;', '',
          'import net.minecraft.world.phys.Vec3;', '',

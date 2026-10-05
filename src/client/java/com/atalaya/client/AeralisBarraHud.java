@@ -3,6 +3,7 @@ package com.atalaya.client;
 import com.atalaya.Atalaya;
 import com.atalaya.entity.AeralisEntity;
 import com.atalaya.entity.AeralisGeometria;
+import com.atalaya.entity.NucleoVientoEntity;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -14,45 +15,69 @@ import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * La barra de jefe de Aeralis, propia (aeralis_hud.py): marco de marmol de
- * nube con dos alitas, el ojo de la tormenta de la fase en el emblema (cada
- * vez mas agrietado), viento que corre dentro con el color de la fase (cielo,
- * anil, violeta, magenta), un rastro blanco que se queda atras al recibir dano
- * y tres plumas en las muescas de fase, que se rasgan cuando la vida pasa por
- * ellas. "AERALIS" y la fase, en letras de pixel.
+ * La barra de jefe de Aeralis, propia (aeralis_hud.py), desde el remake de
+ * octubre de 2026: un ala de tormenta sale del emblema por encima del marco de
+ * nube; el emblema es el ojo de la tormenta de la fase con la corona de puas;
+ * dentro corre la tormenta en el color de la fase (cielo, anil, violeta,
+ * magenta), con su frente encendido y un rastro blanco que se queda atras al
+ * recibir dano; las muescas de fase son ojos de tormenta que se apagan al
+ * pasarlos. "AERALIS" y la fase, en letras de pixel.
  *
- * Misma composicion y medidas que la de Nerea. Si las dos estan a la vista, la
- * de Aeralis va debajo.
+ * Desde la fase II, una raya fina bajo la barra se llena con el viento de los
+ * tornados rotos (10, 20 o 30 segun la fase); llena, Aeralis cae aturdida 5 s.
+ * Con la Furia del Vendaval (el Juicio fallido), la tormenta late en violeta
+ * vivo y el rotulo dice FURIA.
+ * Durante el Juicio del Ciclon, en su lugar, cuatro cristales: los nucleos que
+ * quedan en pie. Si la de Nerea esta a la vista, la de Aeralis va
+ * debajo; la de Rajang, debajo de las dos.
  */
 public class AeralisBarraHud implements HudElement {
 
-    private static final Identifier MARCO = tex("aeralis_barra_marco");
-    private static final Identifier VIENTO = tex("aeralis_barra_viento");
-    private static final Identifier PLUMA = tex("aeralis_barra_pluma");
-    private static final Identifier PLUMA_ROTA = tex("aeralis_barra_pluma_rota");
-    private static final Identifier[] NUCLEOS = {tex("aeralis_barra_nucleo_1"), tex("aeralis_barra_nucleo_2"),
-            tex("aeralis_barra_nucleo_3"), tex("aeralis_barra_nucleo_4")};
-    private static final Identifier NUCLEO_LIBRE = tex("aeralis_barra_nucleo_libre");
+    private static final Identifier[] MARCOS = new Identifier[5];
+    private static final Identifier[] RELLENOS = new Identifier[5];
+    private static final Identifier[] NUCLEOS = new Identifier[5];
+    private static final Identifier OJO = tex("aeralis_barra_ojo");
+    private static final Identifier OJO_APAGADO = tex("aeralis_barra_ojo_apagado");
+    private static final Identifier CRISTAL = tex("aeralis_barra_cristal");
+    private static final Identifier CRISTAL_ROTO = tex("aeralis_barra_cristal_roto");
     private static final Identifier NOMBRE = tex("aeralis_barra_nombre");
     private static final Identifier[] FASES = {tex("aeralis_barra_fase_1"), tex("aeralis_barra_fase_2"),
             tex("aeralis_barra_fase_3"), tex("aeralis_barra_fase_4")};
     private static final Identifier LIBRE = tex("aeralis_barra_libre");
+    private static final Identifier FURIA = tex("aeralis_barra_furia");
+    /** El violeta electrico de la Furia del Vendaval. */
+    private static final int COLOR_FURIA = 0xC56BFF;
+
+    static {
+        String[] claves = {"1", "2", "3", "4", "libre"};
+        for (int i = 0; i < 5; i++) {
+            MARCOS[i] = tex("aeralis_barra_marco_" + claves[i]);
+            RELLENOS[i] = tex("aeralis_barra_relleno_" + claves[i]);
+            NUCLEOS[i] = tex("aeralis_barra_nucleo_" + claves[i]);
+        }
+    }
+
     private static final int NOMBRE_ANCHO = 48;
     private static final int ROTULO_ANCHO = 64;
     private static final int LETRAS_ALTO = 10;
 
-    /** Color del viento en cada fase, y el oro de la liberacion. */
+    /** Color de cada fase (el de los rotulos, las muescas y los cristales) y el oro de la liberacion. */
     private static final int[] COLOR_FASE = {0x5FD2FF, 0x7F8CFF, 0xB07CFF, 0xFF4FD8};
+    private static final int[] CLARO_FASE = {0xF2FFFF, 0xEEF0FF, 0xFFF7D6, 0xFFFFFF};
     private static final int ORO = 0xFFC23A;
 
-    private static final int ANCHO = 208;
-    private static final int ALTO = 26;
-    private static final int HUECO_X = 28;
-    private static final int HUECO_Y = 9;
-    private static final int HUECO_ANCHO = 172;
-    private static final int HUECO_ALTO = 8;
-    private static final int EMBLEMA = 13;
-    private static final int NUCLEO = 16;
+    /** Las medidas de aeralis_hud.py. ALTO lo usa la barra de Rajang para ir debajo. */
+    private static final int ANCHO = 240;
+    public static final int ALTO = 44;
+    private static final int HUECO_X = 40;
+    private static final int HUECO_Y = 22;
+    private static final int HUECO_ANCHO = 190;
+    private static final int HUECO_ALTO = 9;
+    private static final int EMBLEMA_X = 19;
+    private static final int EMBLEMA_Y = 26;
+    private static final int NUCLEO = 24;
+    /** La raya del viento de vuelta, bajo las muescas. */
+    private static final int VIENTO_Y = 38;
 
     private float fantasma = 1.0F;
     private int ultimo = -1;
@@ -85,9 +110,10 @@ public class AeralisBarraHud implements HudElement {
         fantasma = vida > fantasma ? vida : fantasma + (vida - fantasma) * 0.04F;
 
         int fase = Mth.clamp(a.fase(), 1, 4);
+        int i = libre ? 4 : fase - 1;
         int x0 = (g.guiWidth() - ANCHO) / 2;
-        int y0 = 5 + (NereaBarraHud.visible ? ALTO + 6 : 0);
-        g.blit(RenderPipelines.GUI_TEXTURED, MARCO, x0, y0, 0.0F, 0.0F, ANCHO, ALTO, ANCHO, ALTO, ANCHO, ALTO, 0xFFFFFFFF);
+        int y0 = 5 + (NereaBarraHud.visible ? NereaBarraHud.ALTO + 6 : 0);
+        g.blit(RenderPipelines.GUI_TEXTURED, MARCOS[i], x0, y0, 0.0F, 0.0F, ANCHO, ALTO, ANCHO, ALTO, ANCHO, ALTO, 0xFFFFFFFF);
 
         int hx = x0 + HUECO_X;
         int hy = y0 + HUECO_Y;
@@ -97,38 +123,82 @@ public class AeralisBarraHud implements HudElement {
             g.fill(hx + lleno, hy, hx + rastro, hy + HUECO_ALTO, 0xD8F4FFFF);
         }
         int color = 0xFF000000 | (libre ? ORO : COLOR_FASE[fase - 1]);
-        if (fase == 4 && !libre) {
+        int tinte = 0xFFFFFFFF;
+        boolean furia = a.tieneFuria() && !libre;
+        if (furia) {
+            // Con la Furia, la tormenta y el rotulo laten deprisa.
+            float k = 0.8F + 0.25F * Mth.sin((a.tickCount + parcial) * 0.45F);
+            color = 0xFF000000 | escalar(COLOR_FURIA, k);
+            tinte = 0xFF000000 | escalar(0xFFE6FF, 0.9F + 0.15F * Mth.sin((a.tickCount + parcial) * 0.45F));
+        } else if (fase == 4 && !libre) {
             // En la ultima fase la tormenta parpadea con los rayos.
-            float k = ((a.tickCount / 3) % 9 == 0) ? 1.25F : 0.85F + 0.15F * Mth.sin((a.tickCount + parcial) * 0.4F);
-            color = 0xFF000000 | escalar(COLOR_FASE[3], k);
+            float k = ((a.tickCount / 3) % 9 == 0) ? 1.2F : 0.88F + 0.12F * Mth.sin((a.tickCount + parcial) * 0.4F);
+            tinte = 0xFF000000 | escalar(0xFFFFFF, k);
         }
-        // El viento corre hacia la derecha.
+        // La tormenta corre hacia la derecha.
         int desplaza = 64 - (int) ((a.tickCount + parcial) * 1.2F) % 64;
         for (int x = 0; x < lleno; ) {
             int u = (x + desplaza) % 64;
             int w = Math.min(64 - u, lleno - x);
-            g.blit(RenderPipelines.GUI_TEXTURED, VIENTO, hx + x, hy, u, 0.0F, w, HUECO_ALTO, w, HUECO_ALTO, 64, HUECO_ALTO, color);
+            g.blit(RenderPipelines.GUI_TEXTURED, RELLENOS[i], hx + x, hy, u, 0.0F, w, HUECO_ALTO, w, HUECO_ALTO, 64, HUECO_ALTO, tinte);
             x += w;
+        }
+        if (lleno >= 2) {
+            // El frente encendido.
+            g.fill(hx + lleno - 2, hy, hx + lleno, hy + HUECO_ALTO, 0xFF000000 | (libre ? 0xFFFBE0 : CLARO_FASE[fase - 1]));
         }
         for (float corte : new float[]{0.75F, 0.5F, 0.25F}) {
             int ex = hx + Math.round(HUECO_ANCHO * corte) - 3;
-            g.blit(RenderPipelines.GUI_TEXTURED, vida < corte ? PLUMA_ROTA : PLUMA, ex, hy - 2, 0.0F, 0.0F,
-                    6, 12, 6, 12, 6, 12, 0xFFFFFFFF);
+            boolean pasado = vida < corte;
+            g.blit(RenderPipelines.GUI_TEXTURED, pasado ? OJO_APAGADO : OJO, ex, hy + HUECO_ALTO - 2, 0.0F, 0.0F,
+                    7, 7, 7, 7, 7, 7, pasado ? 0xFFFFFFFF : color);
         }
-        Identifier nucleo = libre ? NUCLEO_LIBRE : NUCLEOS[fase - 1];
-        int cx = x0 + EMBLEMA - NUCLEO / 2;
-        int cy = y0 + EMBLEMA - NUCLEO / 2;
+        int e = a.getEstado();
+        boolean juicio = e == AeralisEntity.JUICIO_SUBE || e == AeralisEntity.JUICIO_SOSTIENE || e == AeralisEntity.JUICIO_GOLPE;
+        if (!libre && !juicio && fase >= 2) {
+            // El viento de vuelta: apenas se ve.
+            int vy = y0 + VIENTO_Y;
+            g.fill(hx, vy, hx + HUECO_ANCHO, vy + 2, 0x50101826);
+            float k = Mth.clamp(a.getViento() / (float) AeralisEntity.vientoNecesario(fase), 0.0F, 1.0F);
+            int w = Math.round(HUECO_ANCHO * k);
+            if (w > 0) {
+                g.fill(hx, vy, hx + w, vy + 2, 0xA0000000 | COLOR_FASE[fase - 1]);
+            }
+        }
+        // Los nucleos del Juicio que quedan en pie.
+        if (!libre && juicio) {
+            int quedan = nucleosEnPie(mc, a);
+            if (quedan > 0 || e != AeralisEntity.JUICIO_SUBE) {
+                for (int k = 0; k < 4; k++) {
+                    boolean enPie = k < quedan;
+                    g.blit(RenderPipelines.GUI_TEXTURED, enPie ? CRISTAL : CRISTAL_ROTO, hx + 70 + k * 16 - 2, y0 + 35, 0.0F, 0.0F,
+                            5, 9, 5, 9, 5, 9, enPie ? color : 0xFFFFFFFF);
+                }
+            }
+        }
+        int cx = x0 + EMBLEMA_X - NUCLEO / 2;
+        int cy = y0 + EMBLEMA_Y - NUCLEO / 2;
         if (!libre && a.hurtTime > 0) {
             cx += (a.hurtTime % 2 == 0) ? 1 : -1;   // tiembla al recibir el golpe
         }
-        g.blit(RenderPipelines.GUI_TEXTURED, nucleo, cx, cy, 0.0F, 0.0F, NUCLEO, NUCLEO, NUCLEO, NUCLEO,
-                NUCLEO, NUCLEO, 0xFFFFFFFF);
+        g.blit(RenderPipelines.GUI_TEXTURED, NUCLEOS[i], cx, cy, 0.0F, 0.0F, NUCLEO, NUCLEO, NUCLEO, NUCLEO, NUCLEO, NUCLEO,
+                0xFFFFFFFF);
 
-        int ly = y0 + 7 - LETRAS_ALTO;
-        g.blit(RenderPipelines.GUI_TEXTURED, NOMBRE, hx, ly, 0.0F, 0.0F, NOMBRE_ANCHO, LETRAS_ALTO,
+        g.blit(RenderPipelines.GUI_TEXTURED, NOMBRE, x0 + 100, y0 + 9, 0.0F, 0.0F, NOMBRE_ANCHO, LETRAS_ALTO,
                 NOMBRE_ANCHO, LETRAS_ALTO, NOMBRE_ANCHO, LETRAS_ALTO, 0xFFFFFFFF);
-        g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, ly,
+        g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, y0 + 8,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
+    }
+
+    /** Los nucleos de viento de esta Aeralis que quedan a la vista (en pie). */
+    private static int nucleosEnPie(Minecraft mc, AeralisEntity a) {
+        int n = 0;
+        for (Entity e : mc.level.entitiesForRendering()) {
+            if (e instanceof NucleoVientoEntity nv && !nv.isRemoved() && nv.getIdDuena() == a.getId()) {
+                n++;
+            }
+        }
+        return Math.min(4, n);
     }
 
     private static int escalar(int rgb, float k) {

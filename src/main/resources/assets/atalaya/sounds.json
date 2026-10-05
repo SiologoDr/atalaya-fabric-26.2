@@ -942,5 +942,45 @@
     "sounds": [
       "atalaya:rajang/totem_pulso"
     ]
+  },
+  "aeralis.picado_aviso": {
+    "subtitle": "subtitles.atalaya.aeralis.picado_aviso",
+    "sounds": [
+      "atalaya:aeralis/picado_aviso"
+    ]
+  },
+  "aeralis.picado": {
+    "subtitle": "subtitles.atalaya.aeralis.picado",
+    "sounds": [
+      "atalaya:aeralis/picado"
+    ]
+  },
+  "aeralis.posada": {
+    "subtitle": "subtitles.atalaya.aeralis.posada",
+    "sounds": [
+      "atalaya:aeralis/posada"
+    ]
+  },
+  "aeralis.escamas": {
+    "subtitle": "subtitles.atalaya.aeralis.escamas",
+    "sounds": [
+      "atalaya:aeralis/escamas"
+    ]
+  },
+  "aeralis.escamas_descarga": {
+    "subtitle": "subtitles.atalaya.aeralis.escamas_descarga",
+    "sounds": [
+      "atalaya:aeralis/escamas_descarga1",
+      "atalaya:aeralis/escamas_descarga2",
+      "atalaya:aeralis/escamas_descarga3"
+    ]
+  },
+  "aeralis.viento_vuelta": {
+    "subtitle": "subtitles.atalaya.aeralis.viento_vuelta",
+    "sounds": [
+      "atalaya:aeralis/viento_vuelta1",
+      "atalaya:aeralis/viento_vuelta2",
+      "atalaya:aeralis/viento_vuelta3"
+    ]
   }
 }

@@ -31,6 +31,10 @@ public final class AeralisDanos {
     public static final ResourceKey<DamageType> ESTALLIDO = clave("aeralis_estallido");
     public static final ResourceKey<DamageType> RAFAGA = clave("aeralis_rafaga");
     public static final ResourceKey<DamageType> JUICIO = clave("aeralis_juicio");
+    /** El Picado del Vendaval (no mata: lanza por los aires). */
+    public static final ResourceKey<DamageType> PICADO = clave("aeralis_picado");
+    /** La descarga de una mancha de Escamas de Tormenta. */
+    public static final ResourceKey<DamageType> ESCAMAS = clave("aeralis_escamas");
 
     private AeralisDanos() {
     }

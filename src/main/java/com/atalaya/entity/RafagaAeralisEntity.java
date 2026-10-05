@@ -2,6 +2,8 @@ package com.atalaya.entity;
 
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -42,6 +44,9 @@ public class RafagaAeralisEntity extends ThrowableProjectile {
     private int golpes;
     private float dano = AeralisEntity.DANO_RAFAGA[0];
 
+    private static final EntityDataAccessor<Integer> DATA_FASE =
+            SynchedEntityData.defineId(RafagaAeralisEntity.class, EntityDataSerializers.INT);
+
     public RafagaAeralisEntity(EntityType<? extends RafagaAeralisEntity> tipo, Level nivel) {
         super(tipo, nivel);
     }
@@ -52,6 +57,7 @@ public class RafagaAeralisEntity extends ThrowableProjectile {
         r.setOwner(duena);
         r.blanco = blanco;
         r.fase = fase;
+        r.entityData.set(DATA_FASE, fase);
         r.acelerada = acelerada;
         r.aguanta = aguanta;
         r.dano = dano;
@@ -64,6 +70,11 @@ public class RafagaAeralisEntity extends ThrowableProjectile {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder datos) {
+        datos.define(DATA_FASE, 1);
+    }
+
+    public int getFase() {
+        return entityData.get(DATA_FASE);
     }
 
     @Override

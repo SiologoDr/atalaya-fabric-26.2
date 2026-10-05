@@ -162,6 +162,7 @@
   "item.atalaya.colmillo_jade": "Colmillo de Jade",
   "item.atalaya.huevo_rajang": "Huevo generador de Rajang",
   "effect.atalaya.peso_tierra": "Peso de la Tierra",
+  "effect.atalaya.paralisis": "Parálisis",
   "effect.atalaya.bendicion_tierra": "Bendición de la tierra",
   "death.attack.atalaya.rajang_garra": "%1$s fue empalado por la Garra Terrestre de %2$s",
   "death.attack.atalaya.rajang_terremoto": "%1$s salió volando por un pilar del Terremoto de %2$s",
@@ -225,5 +226,13 @@
   "subtitles.atalaya.rajang.escalon_cae": "Se cae un escalón",
   "subtitles.atalaya.rajang.totem_pulso": "Un pulso de tierra",
   "entity.atalaya.plataforma_sello": "Plataforma del Sello",
-  "chat.atalaya.totem": "%s ha usado un tótem de la inmortalidad %s"
+  "chat.atalaya.totem": "%s ha usado un tótem de la inmortalidad %s",
+  "death.attack.atalaya.aeralis_picado": "%1$s fue lanzado al cielo por el picado de %2$s",
+  "death.attack.atalaya.aeralis_escamas": "%1$s fue fulminado por las escamas de %2$s",
+  "subtitles.atalaya.aeralis.picado_aviso": "Aeralis se prepara para el picado",
+  "subtitles.atalaya.aeralis.picado": "Aeralis se lanza en picado",
+  "subtitles.atalaya.aeralis.posada": "Aeralis se estrella contra el suelo",
+  "subtitles.atalaya.aeralis.escamas": "Aeralis sacude las alas",
+  "subtitles.atalaya.aeralis.escamas_descarga": "Descarga de escamas",
+  "subtitles.atalaya.aeralis.viento_vuelta": "El viento vuelve a Aeralis"
 }

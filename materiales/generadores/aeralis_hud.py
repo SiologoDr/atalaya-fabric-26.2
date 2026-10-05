@@ -1,27 +1,34 @@
 """
-La barra de jefe de Aeralis, la Mariposa del Vendaval, pintada pixel a pixel
-(nada de la de vanilla). Misma composicion que la de Nerea, con lo suyo:
+La barra de jefe de Aeralis del remake (octubre de 2026), pintada pixel a pixel
+(nada de la de vanilla). Las piezas (en grises lo que tine el juego):
 
-  aeralis_barra_marco.png        el marco: marmol de nube con dos alitas encima y
-                                 el hueco redondo del emblema (208x26)
-  aeralis_barra_viento.png       el relleno: viento que corre, en grises para
-                                 tenirlo con el color de cada fase (64x8)
-  aeralis_barra_nucleo_N.png     el emblema: el ojo de la tormenta de cada fase,
-                                 cada vez mas agrietado por los rayos, y el
-                                 liberado en oro (16x16)
-  aeralis_barra_pluma*.png       las muescas de fase: una pluma entera o rasgada
+  aeralis_barra_marco_N.png      el marco de cada fase (240x44): el ala que sale
+                                 del emblema por encima de la barra (con su ocelo y
+                                 el filo encendido), otra pequena detras, la nube de
+                                 tormenta del marco, el hueco del relleno y el aro
+                                 del emblema con la corona de puas; y el liberado
+  aeralis_barra_relleno_N.png    el relleno de cada fase (64x9, se repite y corre):
+                                 la tormenta oscura abajo, el color y el filo claro
+                                 arriba, con vetas de viento
+  aeralis_barra_nucleo_N.png     el ojo de la tormenta del emblema (24x24)
+  aeralis_barra_ojo*.png         las muescas de fase: un ojo de tormenta en grises
+                                 (se tine) o apagado al pasarlo (7x7)
+  aeralis_barra_cristal*.png     los nucleos del Juicio bajo la barra, en pie (en
+                                 grises) o rotos (5x9)
   aeralis_barra_nombre.png       "AERALIS" en letras de pixel
   aeralis_barra_fase_N.png       "FASE I".."FASE IV" y aeralis_barra_libre.png
+
+La antigua (marco de 208x26 con dos alitas, viento en grises y plumas) se quito;
+su diseno de propuesta esta en viento_remake_hud.py.
 
 Uso: python aeralis_hud.py <raiz del proyecto> [vista_previa.png]
 """
 from PIL import Image
-import math, os, sys, random
+import math, os, sys
 
 RAIZ = sys.argv[1]
 GUI = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/gui')
 os.makedirs(GUI, exist_ok=True)
-rnd = random.Random(19)
 
 
 def hexc(s, a=255):
@@ -29,130 +36,170 @@ def hexc(s, a=255):
     return (int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16), a)
 
 
-NUBE = [hexc(c) for c in ('1c2232', '323c52', '56627c', '8592ac', 'b8c4d8', 'e2e8f2')]
-CIELO = [hexc(c) for c in ('2a4a78', '4f8fc0', '8fd6ff', 'cfeeff', 'f4fbff')]
-PLATA = [hexc(c) for c in ('5a6274', '8a93a6', 'b8c0d0', 'dde3ee', 'f6f8fc')]
+NUBE = [hexc(c) for c in ('0e121c', '1c2232', '323c52', '56627c', '8592ac', 'c8d2e2')]
+RAMPAS = {
+    1: ('10283c', '1d4f74', '2f86b8', '5fd2ff', 'a8ecff', 'f2ffff'),
+    2: ('141838', '242c70', '3e4cb0', '7f8cff', 'bcc4ff', 'eef0ff'),
+    3: ('1c1238', '3a2470', '6c48b8', 'b07cff', 'dcc0ff', 'fff7d6'),
+    4: ('2a0a26', '5c1452', 'a42c8c', 'ff4fd8', 'ffb0ee', 'ffffff'),
+    'libre': ('5a3a10', '9a6a1a', 'd6a032', 'ffc23a', 'ffe9a8', 'fffbe0'),
+}
 
-# --------------------------------------------------------------- marco
-W, H = 208, 26
-BX0, BX1, BY0, BY1 = 28, 199, 9, 16
-EC, ER = 13.0, 12.6
-m = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-p = m.load()
-for y in range(H):
-    for x in range(W):
-        dentro_barra = BX0 - 3 <= x <= BX1 + 3 and BY0 - 3 <= y <= BY1 + 3
-        d = math.hypot(x + 0.5 - EC, y + 0.5 - EC)
-        if dentro_barra or d <= ER:
-            borde = (x in (BX0 - 3, BX1 + 3) or y in (BY0 - 3, BY1 + 3)) and dentro_barra and d > ER - 1
-            if d <= ER and d > ER - 1.2:
-                p[x, y] = NUBE[0]
-            elif d <= ER - 1.2 and d > ER - 3.0:
-                k = 5 if (y + 0.5 < EC - 3) else 4 if y + 0.5 < EC + 3 else 3
-                p[x, y] = NUBE[k] if rnd.random() > 0.15 else NUBE[k - 1]
-            elif d <= ER - 3.0:
-                p[x, y] = hexc('0a0e18')
-            elif borde:
-                p[x, y] = NUBE[0]
-            elif BX0 <= x <= BX1 and BY0 <= y <= BY1:
-                p[x, y] = hexc('070a12')
+# Medidas (las mismas en AeralisBarraHud)
+NW, NH = 240, 44
+HX0, HX1, HY0, HY1 = 40, 230, 22, 31
+EC = (19, 26)
+ER = 15.5
+NUCLEO = 24
+
+
+def dentro(poly, x, y):
+    c = False
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % len(poly)]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1 + 1e-9) + x1:
+            c = not c
+    return c
+
+
+def marco(clave):
+    R = [hexc(c) for c in RAMPAS[clave]]
+    im = Image.new('RGBA', (NW, NH), (0, 0, 0, 0))
+    px = im.load()
+
+    def pon(x, y, c):
+        if 0 <= x < NW and 0 <= y < NH:
+            px[x, y] = c
+
+    def ala(poly, ocelo, raiz):
+        pts = {(x, y) for y in range(NH) for x in range(NW) if dentro(poly, x + 0.5, y + 0.5)}
+        largo = max(math.hypot(x - raiz[0], y - raiz[1]) for x, y in pts)
+        for (x, y) in pts:
+            vec = sum((x + dx, y + dy) in pts for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            d = math.hypot(x - raiz[0], y - raiz[1]) / largo
+            if (x, y - 1) not in pts:
+                pon(x, y, NUBE[0])
+            elif vec < 4:
+                pon(x, y, R[4])
             else:
-                k = 5 if y < BY0 - 1 else 3 if y > BY1 + 1 else 4
-                # vetas de marmol: lineas diagonales mas oscuras
-                if (x * 2 + y * 5) % 23 == 0:
-                    k -= 2
-                p[x, y] = NUBE[k] if rnd.random() > 0.18 else NUBE[k - 1]
-# remaches de plata
-for x in range(BX0 + 10, BX1 - 4, 22):
-    for dx in (0, 1):
-        p[x + dx, BY0 - 2] = PLATA[4] if dx == 0 else PLATA[2]
-        p[x + dx, BY1 + 2] = PLATA[3] if dx == 0 else PLATA[1]
-# dos alitas sobre el marco (la izquierda queda libre para el nombre y la derecha para la fase)
-for cx in (98, 120):
-    for k in range(6):
-        for dx in range(-k, k + 1):
-            yy = BY0 - 3 - (5 - k)
-            xa, xb = cx - 6 + k, cx + 6 - k
-            if 0 <= yy < H:
-                p[xa, yy] = CIELO[3] if k > 2 else PLATA[3]
-                p[xb, yy] = CIELO[3] if k > 2 else PLATA[3]
-    p[cx, BY0 - 4] = PLATA[4]
-    p[cx, BY0 - 5] = CIELO[4]
-# la punta derecha: un ala que se deshace en viento
-for k in range(7):
-    p[BX1 + 4 + k // 2, BY0 - 3 + k] = PLATA[3]
-    p[BX1 + 4 + k // 2, BY1 + 3 - k] = PLATA[2]
-for k in range(4):
-    p[min(W - 1, BX1 + 7 + k), BY0 + 3] = CIELO[3][:3] + (200 - k * 45,)
-m.save(os.path.join(GUI, 'aeralis_barra_marco.png'))
+                c = NUBE[1] if d < 0.3 else R[1] if d < 0.55 else R[2] if d < 0.8 else R[3]
+                if (x * 2 + y * 3) % 9 == 0 and d > 0.4:
+                    c = R[4]
+                pon(x, y, (*c[:3], 240))
+        ox, oy, orad = ocelo
+        for dy in range(-orad, orad + 1):
+            for dx in range(-orad, orad + 1):
+                dd = math.hypot(dx, dy)
+                if dd <= orad + 0.4 and (ox + dx, oy + dy) in pts:
+                    pon(ox + dx, oy + dy, R[5] if dd < orad * 0.4 else R[3] if dd < orad * 0.75 else NUBE[0])
 
-# --------------------------------------------------------------- viento (relleno)
-aw, ah = 64, 8
-a = Image.new('RGBA', (aw, ah), (0, 0, 0, 0))
-p = a.load()
-for y in range(ah):
-    for x in range(aw):
-        t = y / (ah - 1)
-        v = 225 - 95 * t
-        # estelas de viento: rayas largas y finas que corren
-        if (x + y * 9) % 21 < 7 and y in (1, 3, 5):
-            v = 255
-        elif (x * 3 + y * 7) % 31 == 0:
-            v = min(255, v + 40)
-        p[x, y] = (int(v), int(v), int(v), 255)
-a.save(os.path.join(GUI, 'aeralis_barra_viento.png'))
-
-# --------------------------------------------------------------- emblema: el ojo de la tormenta
-COLORES = {1: ('f2ffff', '5fd2ff'), 2: ('eef0ff', '7f8cff'), 3: ('fff7d6', 'b07cff'), 4: ('ffffff', 'ff4fd8'),
-           'libre': ('fffbe0', 'ffc23a')}
-GRIETAS = {1: 0, 2: 2, 3: 4, 4: 7, 'libre': 0}
-S = 16
-for clave, (c1, c2) in COLORES.items():
-    r = random.Random(str(clave))
-    im = Image.new('RGBA', (S, S), (0, 0, 0, 0))
-    q = im.load()
-    a1, b1 = hexc(c1), hexc(c2)
-    for j in range(S):
-        for i in range(S):
-            dx, dy = i + 0.5 - S / 2, j + 0.5 - S / 2
-            if abs(dx) + abs(dy) > S / 2 - 0.5:
+    ala([(30, 21), (38, 13), (52, 6), (70, 2), (88, 1), (92, 4), (88, 10), (80, 15), (66, 19), (48, 22)], (70, 9, 3), (30, 21))
+    ala([(10, 16), (6, 10), (1, 6), (0, 9), (2, 15), (6, 19)], (4, 11, 1), (10, 16))
+    # el marco de nube de tormenta y el hueco vacio
+    for y in range(HY0 - 3, HY1 + 3):
+        for x in range(HX0 - 8, HX1 + 3):
+            if HX0 <= x < HX1 and HY0 <= y < HY1:
+                pon(x, y, (*NUBE[0][:3], 255))
                 continue
-            if abs(dx) + abs(dy) > S / 2 - 1.8:
-                q[i, j] = (16, 20, 34, 255)
-                continue
-            d = math.hypot(dx, dy) / (S / 2 - 1)
-            ang = math.atan2(dy, dx)
-            brazo = (ang - 2.4 * math.log(max(d, 0.08))) % math.pi
-            if brazo < 1.1 or d < 0.16:
-                q[i, j] = tuple(int(a1[k] + (b1[k] - a1[k]) * min(1.0, d * 1.2)) for k in range(3)) + (255,)
+            if y in (HY0 - 3, HY1 + 2) or x in (HX0 - 8, HX1 + 2):
+                pon(x, y, NUBE[0])
+            elif y == HY0 - 2:
+                pon(x, y, NUBE[4])
+            elif y == HY1 + 1:
+                pon(x, y, NUBE[1])
             else:
-                q[i, j] = (22, 28, 48, 255)
-    for _ in range(GRIETAS[clave]):
-        x, y = r.randrange(4, 12), r.randrange(4, 12)
-        for _ in range(r.randint(2, 4)):
-            if 0 <= x < S and 0 <= y < S and q[x, y][3] and q[x, y][:3] != (16, 20, 34):
-                q[x, y] = (255, 250, 220, 255) if clave == 4 else (12, 10, 22, 255)
-            x += r.choice((-1, 0, 1))
-            y += r.choice((-1, 1))
-    im.save(os.path.join(GUI, f'aeralis_barra_nucleo_{clave}.png'))
-
-
-# --------------------------------------------------------------- muescas: una pluma, entera o rasgada
-def pluma(rota):
-    im = Image.new('RGBA', (6, 12), (0, 0, 0, 0))
-    q = im.load()
-    for y in range(12):
-        for x in range(6):
-            ancho = 2.6 * math.sin(math.pi * (y + 0.5) / 12)
-            if abs(x + 0.5 - 3) <= ancho:
-                if rota and 4 <= y <= 7 and x >= 3:
-                    continue                           # rasgada por el viento
-                q[x, y] = PLATA[4] if x == 2 or x == 3 else PLATA[2] if x < 3 else PLATA[1]
+                pon(x, y, NUBE[2] if (x + y) % 5 else NUBE[3])
+    # la corona de puas y el aro del emblema (el ojo va aparte)
+    for k in range(5):
+        ang = math.radians(-90 + (k - 2) * 28)
+        for q in range(4):
+            x = round(EC[0] + math.cos(ang) * (ER + q))
+            y = round(EC[1] + math.sin(ang) * (ER + q))
+            pon(x, y, R[4] if q == 3 else NUBE[1])
+            pon(x + 1, y, NUBE[0] if q < 3 else R[3])
+    for y in range(NH):
+        for x in range(40):
+            d = math.hypot(x + 0.5 - EC[0], y + 0.5 - EC[1])
+            if d <= ER:
+                pon(x, y, NUBE[0] if d > ER - 1.2 else R[4] if d > ER - 2.6 else NUBE[1] if d > ER - 3.6 else NUBE[0])
     return im
 
 
-pluma(False).save(os.path.join(GUI, 'aeralis_barra_pluma.png'))
-pluma(True).save(os.path.join(GUI, 'aeralis_barra_pluma_rota.png'))
+def relleno(clave):
+    R = [hexc(c) for c in RAMPAS[clave]]
+    w, h = 64, HY1 - HY0
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    px = im.load()
+    for y in range(h):
+        for x in range(w):
+            c = R[[4, 3, 3, 2, 2, 2, 1, 1, 0][min(8, y)]]
+            if (x + y * 2) % 16 < 3 and 1 <= y <= 6:
+                c = R[4]
+            px[x, y] = c
+    return im
+
+
+def nucleo(clave):
+    R = [hexc(c) for c in RAMPAS[clave]]
+    im = Image.new('RGBA', (NUCLEO, NUCLEO), (0, 0, 0, 0))
+    px = im.load()
+    c0 = NUCLEO / 2
+    rmax = ER - 3.6
+    for y in range(NUCLEO):
+        for x in range(NUCLEO):
+            d = math.hypot(x + 0.5 - c0, y + 0.5 - c0)
+            if d > rmax:
+                continue
+            a = math.atan2(y + 0.5 - c0, x + 0.5 - c0)
+            brazo = (a - 2.6 * math.log(max(d, 0.5) / rmax)) % (2 * math.pi / 3) < 0.95
+            px[x, y] = R[5] if d < 2.2 else (R[3] if d < 6 else R[2]) if brazo else NUBE[0]
+    return im
+
+
+def ojo(apagado):
+    im = Image.new('RGBA', (7, 7), (0, 0, 0, 0))
+    px = im.load()
+    for dy in range(-3, 4):
+        for dx in range(-3, 4):
+            d = abs(dx) + abs(dy)
+            if d > 3:
+                continue
+            if apagado:
+                c = NUBE[1] if d < 3 else NUBE[0]
+            else:
+                v = [255, 205, 130, 40][d]
+                c = (v, v, v, 255)
+            px[3 + dx, 3 + dy] = c
+    return im
+
+
+def cristal(roto):
+    im = Image.new('RGBA', (5, 9), (0, 0, 0, 0))
+    px = im.load()
+    for dy in range(-4, 5):
+        semi = 2 - abs(dy) // 2
+        for dx in range(-semi, semi + 1):
+            borde = abs(dx) == semi or abs(dy) == 4
+            if roto:
+                c = NUBE[0] if borde else NUBE[2]
+            else:
+                v = 255 if dx == 0 and dy < 0 else 60 if borde else 190
+                c = (v, v, v, 255)
+            px[2 + dx, 4 + dy] = c
+    return im
+
+
+for clave in (1, 2, 3, 4, 'libre'):
+    marco(clave).save(os.path.join(GUI, f'aeralis_barra_marco_{clave}.png'))
+    relleno(clave).save(os.path.join(GUI, f'aeralis_barra_relleno_{clave}.png'))
+    nucleo(clave).save(os.path.join(GUI, f'aeralis_barra_nucleo_{clave}.png'))
+ojo(False).save(os.path.join(GUI, 'aeralis_barra_ojo.png'))
+ojo(True).save(os.path.join(GUI, 'aeralis_barra_ojo_apagado.png'))
+cristal(False).save(os.path.join(GUI, 'aeralis_barra_cristal.png'))
+cristal(True).save(os.path.join(GUI, 'aeralis_barra_cristal_roto.png'))
+for viejo in ('aeralis_barra_marco.png', 'aeralis_barra_viento.png', 'aeralis_barra_pluma.png', 'aeralis_barra_pluma_rota.png'):
+    if os.path.exists(os.path.join(GUI, viejo)):
+        os.remove(os.path.join(GUI, viejo))
 
 # --------------------------------------------------------------- letras en pixel
 GLIFOS = {
@@ -165,6 +212,7 @@ GLIFOS = {
     'F': ["######", "##....", "##....", "#####.", "##....", "##....", "##...."],
     'V': ["##..##", "##..##", "##..##", "##..##", ".####.", ".####.", "..##.."],
     'B': ["#####.", "##..##", "##..##", "#####.", "##..##", "##..##", "#####."],
+    'U': ["##..##", "##..##", "##..##", "##..##", "##..##", "##..##", ".####."],
     ' ': ["..", "..", "..", "..", "..", "..", ".."],
 }
 
@@ -219,20 +267,24 @@ ANCHO_FASE = 64
 for n, romano in ((1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV')):
     palabra('FASE ' + romano, gris, BORDE, SOMBRA, ANCHO_FASE, True).save(os.path.join(GUI, f'aeralis_barra_fase_{n}.png'))
 palabra('LIBRE', gris, BORDE, SOMBRA, ANCHO_FASE, True).save(os.path.join(GUI, 'aeralis_barra_libre.png'))
-print('nombre', nombre.size, 'fase', (ANCHO_FASE, 10))
+# La Furia del Vendaval (el Juicio fallido): en grises, el juego lo tine y lo hace latir.
+palabra('FURIA', gris, BORDE, SOMBRA, ANCHO_FASE, True).save(os.path.join(GUI, 'aeralis_barra_furia.png'))
+print('barra', (NW, NH), '| nombre', nombre.size, '| fase', (ANCHO_FASE, 10))
 
 if len(sys.argv) > 2:
-    prev = Image.new('RGBA', (208 * 4, 26 * 4 + 120), (90, 110, 150, 255))
-    marco = Image.open(os.path.join(GUI, 'aeralis_barra_marco.png'))
-    prev.alpha_composite(marco.resize((832, 104), Image.NEAREST), (0, 30))
-    prev.alpha_composite(nombre.resize((nombre.width * 4, 40), Image.NEAREST), (28 * 4, 0))
-    x = 4
-    for clave in (1, 2, 3, 4, 'libre'):
-        im = Image.open(os.path.join(GUI, f'aeralis_barra_nucleo_{clave}.png')).resize((64, 64), Image.NEAREST)
-        prev.alpha_composite(im, (x, 140))
-        x += 80
-    prev.alpha_composite(Image.open(os.path.join(GUI, 'aeralis_barra_viento.png')).resize((192, 24), Image.NEAREST), (x + 10, 150))
-    prev.alpha_composite(Image.open(os.path.join(GUI, 'aeralis_barra_pluma.png')).resize((24, 48), Image.NEAREST), (x + 220, 140))
-    prev.alpha_composite(Image.open(os.path.join(GUI, 'aeralis_barra_pluma_rota.png')).resize((24, 48), Image.NEAREST), (x + 250, 140))
+    # La barra montada como en el juego, en las cuatro fases y liberada, a x3.
+    K = 3
+    filas = []
+    for clave, vida in ((1, 0.92), (2, 0.66), (3, 0.41), (4, 0.18), ('libre', 0.0)):
+        b = Image.open(os.path.join(GUI, f'aeralis_barra_marco_{clave}.png')).copy()
+        rel = Image.open(os.path.join(GUI, f'aeralis_barra_relleno_{clave}.png'))
+        lleno = round((HX1 - HX0) * vida)
+        for x in range(0, lleno, 64):
+            b.alpha_composite(rel.crop((0, 0, min(64, lleno - x), rel.height)), (HX0 + x, HY0))
+        b.alpha_composite(Image.open(os.path.join(GUI, f'aeralis_barra_nucleo_{clave}.png')), (EC[0] - NUCLEO // 2, EC[1] - NUCLEO // 2))
+        filas.append(b.resize((NW * K, NH * K), Image.NEAREST))
+    prev = Image.new('RGBA', (NW * K + 20, (NH * K + 10) * len(filas) + 10), (40, 56, 92, 255))
+    for k, f in enumerate(filas):
+        prev.alpha_composite(f, (10, 10 + k * (NH * K + 10)))
     prev.save(sys.argv[2])
     print('ok')
