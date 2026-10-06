@@ -2,6 +2,8 @@ package com.atalaya.entity;
 
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -28,6 +30,9 @@ import org.jspecify.annotations.Nullable;
  * que empuja. La salida es reventarla ANTES, desde lejos: una flecha, un
  * tridente o una bola de nieve la pinchan sin dano para nadie. Si la revientas
  * de un espadazo, en cambio, te explota en la cara.
+ *
+ * Desde el remake lleva el corazon maldito dentro y marca en el suelo, con un
+ * aro de espuma, hasta donde llega su reventon (BurbujaNereaRenderer).
  */
 public class BurbujaNereaEntity extends ThrowableProjectile {
 
@@ -37,8 +42,11 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
     private static final double GIRO = 0.09;
     private static final int VIDA = 120;
     private static final double RADIO = 5.5;
-    /** La fase del jefe al soltarla: mas rapida y mas grande cuanto mas avanzada. */
-    private int fase = 1;
+    /** La fase del jefe al soltarla: mas rapida y mas grande cuanto mas avanzada. El cliente la usa para el aro. */
+    private static final EntityDataAccessor<Integer> DATA_FASE =
+            SynchedEntityData.defineId(BurbujaNereaEntity.class, EntityDataSerializers.INT);
+    /** Lo que quita al reventar (el de la fase, y mas con la Furia). */
+    private float dano;
 
     private @Nullable LivingEntity blanco;
 
@@ -47,11 +55,12 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
     }
 
     public static BurbujaNereaEntity lanzar(ServerLevel nivel, NereaEntity nerea, Vec3 desde, Vec3 frente,
-                                            @Nullable LivingEntity blanco, int fase) {
+                                            @Nullable LivingEntity blanco, int fase, float dano) {
         BurbujaNereaEntity b = new BurbujaNereaEntity(AtalayaEntities.BURBUJA_NEREA, nivel);
         b.setOwner(nerea);
         b.blanco = blanco;
-        b.fase = fase;
+        b.entityData.set(DATA_FASE, fase);
+        b.dano = dano;
         b.setPos(desde.x, desde.y, desde.z);
         // Sale disparada hacia delante y abriendose en abanico: no en fila.
         Vec3 v = frente.scale(0.6).add((nivel.getRandom().nextDouble() - 0.5) * 0.35, 0.08,
@@ -63,6 +72,16 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder datos) {
+        datos.define(DATA_FASE, 1);
+    }
+
+    public int getFase() {
+        return entityData.get(DATA_FASE);
+    }
+
+    /** Hasta donde llega el reventon en la fase dada (bloques). */
+    public static double radio(int fase) {
+        return RADIO + 0.75 * (Math.clamp(fase, 1, 4) - 1);
     }
 
     @Override
@@ -97,7 +116,7 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
                 v = v.scale(1.0 - GIRO).add(hacia.normalize().scale(VELOCIDAD * GIRO));
             }
         }
-        double vel = VELOCIDAD * (1.0 + 0.1 * (fase - 1));
+        double vel = VELOCIDAD * (1.0 + 0.1 * (getFase() - 1));
         double l = v.length();
         if (l > 1.0E-4) {
             v = v.scale(Math.min(vel, Math.max(l, vel * 0.6)) / l);
@@ -164,7 +183,7 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
             return;
         }
         Vec3 c = position().add(0, 0.45, 0);
-        double radio = RADIO + 0.75 * (fase - 1);
+        double radio = radio(getFase());
         nivel.playSound(null, c.x, c.y, c.z, AtalayaSonidos.NEREA_BURBUJA_REVIENTA, SoundSource.HOSTILE, 2.5F, 1.0F);
         nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, c.x, getY() + 0.1, c.z, 0, 1.6, radio, 0.0, 1.0);
         nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, c.x, c.y, c.z, 30, 1.0, 0.7, 1.0, 0.1);
@@ -179,7 +198,7 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
             if (v instanceof Player p && (p.isCreative() || p.isSpectator())) {
                 continue;
             }
-            v.hurtServer(nivel, fuente, NereaEntity.DANO_BURBUJA[Math.clamp(fase, 1, 4) - 1]);
+            v.hurtServer(nivel, fuente, dano);
             Vec3 fuera = v.position().subtract(c);
             Vec3 h = new Vec3(fuera.x, 0, fuera.z);
             h = h.lengthSqr() < 1.0E-4 ? new Vec3(0, 0, 0) : h.normalize();

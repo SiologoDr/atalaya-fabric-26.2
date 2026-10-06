@@ -982,5 +982,39 @@
       "atalaya:aeralis/viento_vuelta2",
       "atalaya:aeralis/viento_vuelta3"
     ]
+  },
+  "nerea.geiser_aviso": {
+    "subtitle": "subtitles.atalaya.nerea.geiser_aviso",
+    "sounds": [
+      "atalaya:nerea/geiser_aviso1",
+      "atalaya:nerea/geiser_aviso2",
+      "atalaya:nerea/geiser_aviso3"
+    ]
+  },
+  "nerea.geiser": {
+    "subtitle": "subtitles.atalaya.nerea.geiser",
+    "sounds": [
+      "atalaya:nerea/geiser1",
+      "atalaya:nerea/geiser2"
+    ]
+  },
+  "nerea.marea_alza": {
+    "subtitle": "subtitles.atalaya.nerea.marea_alza",
+    "sounds": [
+      "atalaya:nerea/marea_alza"
+    ]
+  },
+  "nerea.marea": {
+    "subtitle": "subtitles.atalaya.nerea.marea",
+    "sounds": [
+      "atalaya:nerea/marea1",
+      "atalaya:nerea/marea2"
+    ]
+  },
+  "nerea.furia": {
+    "subtitle": "subtitles.atalaya.nerea.furia",
+    "sounds": [
+      "atalaya:nerea/furia"
+    ]
   }
 }

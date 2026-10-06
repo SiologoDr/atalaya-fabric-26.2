@@ -876,6 +876,182 @@ retira = pb(ruido(d, 'rosa'), 2000) * caida(d, 1.1, 0.25)
 campanitas = mezclar(*[en(q * 0.18, modos(f, 1.2, CRISTAL, 0.5)) for q, f in enumerate((784, 988, 1175, 1319, 1568, 1976, 2349))])
 guardar('disolver', reverb(mezclar(pico(espuma, 0.6), pico(retira, 0.35), pico(campanitas, 0.28)), 0.35, 2.0, 8000))
 
+# ======================================================================
+#  REMAKE DE OCTUBRE DE 2026: el Geiser del Abismo, la Gran Marea y la
+#  Furia de las Mareas. Con su propia semilla, para que
+#  nerea_mejoras_sonidos.py los saque igual sin rehacer los demas.
+# ======================================================================
+rng = np.random.default_rng(20261007)
+
+
+def a_largo(x, n):
+    """Recorta o rellena con silencio hasta n muestras."""
+    return np.pad(x, (0, max(0, n - len(x))))[:n]
+
+
+def lluvia(dur, tasa):
+    """El agua que vuelve a caer: gotas (cada una con su plink) a un ritmo
+    que cambia. Como goteo, pero un chaparron entero."""
+    n = n_(dur)
+    tasa = np.broadcast_to(np.asarray(tasa, dtype=float), (n,))
+    out = np.zeros(n + n_(0.3))
+    for i in np.nonzero(rng.random(n) < tasa / SR)[0]:
+        g = gota(amp=rng.uniform(0.15, 1.0))
+        out[i:i + len(g)] += g[:len(out) - i]
+    return np.trim_zeros(out, 'b')
+
+
+def sorber(dur, tasa0, tasa1, rmin=0.6, rmax=4.0):
+    """Burbujas al reves: el agua que se va sorbida, o que se traga. Lo que
+    se oye va de tasa0 a tasa1 burbujas por segundo."""
+    n = n_(dur)
+    return a_largo(nube(dur, rampa(dur, 1.0, tasa1, tasa0), rmin, rmax), n)[::-1]
+
+
+def presion_sube(dur, f0, f1, armonicos=6):
+    """La presion que sube de tono: un zumbido grave y armonico, como el de
+    la Mirada, para la tension antes de que reviente algo."""
+    f = curva(n_(dur), [(0, f0), (1, f1)])
+    return bp(sum(np.sin(2 * np.pi * np.cumsum(f * h) / SR) / h for h in range(1, armonicos + 1)), 40, 700)
+
+
+def borboton(fuerza=1.0):
+    """Un borboton del fondo: una bocanada de burbujas, un gorgoteo hondo y
+    el golpe sordo del agua que se levanta."""
+    dd = 0.32
+    tt = t_(dd)
+    whump = np.sin(2 * np.pi * np.cumsum(68 * (0.6 + 0.4 * np.exp(-tt / 0.04))) / SR) * caida(dd, 0.05, 0.004)
+    return fuerza * mezclar(pico(nube(dd, 1500 * np.exp(-tt / 0.08), 0.9, 5.0), 0.6),
+                            pico(burbuja(rng.uniform(12, 18), 0.18, 1.0, 1.2), 0.7), pico(whump, 0.5))
+
+
+# GEISER_AVISO: clava el tridente y bajo los pies se abre un remolino
+# oscuro. El fondo empieza a hervir: borbotones cada vez mas seguidos,
+# gorgoteos hondos, un retumbo que crece y late cada vez mas deprisa, la
+# roca que cruje, la presion que sube de tono y el silbido del agua que
+# empuja por las grietas. Acaba en lo mas tenso, justo antes de reventar.
+for i in range(3):
+    d = 1.5 + 0.1 * i
+    n = n_(d)
+    t = t_(d)
+    k = t / d
+    borbotones = np.zeros(n + n_(1.0))
+    s, paso_ = 0.04, 0.48 - 0.03 * i
+    while s < d - 0.12:
+        b = borboton(0.25 + 0.75 * s / d)
+        i0 = n_(s)
+        borbotones[i0:i0 + len(b)] += b[:len(borbotones) - i0]
+        s += paso_
+        paso_ = max(0.09, paso_ * 0.7)
+    glugs = a_largo(nube(d, 4 + (26 + 4 * i) * k ** 1.3, 8.0, 20.0, beta=1.5, xi=0.14, amortigua=1.3), n) * (0.3 + 0.7 * k)
+    hervor = a_largo(nube(d, 30 + 2200 * k ** 2.4, 0.8, 4.0), n)
+    late = 1 + 0.5 * np.sin(2 * np.pi * np.cumsum(3 + 9 * k ** 1.5) / SR)
+    retumbo = filtro_mov(ruido(d, 'marron'), 70 + 200 * k ** 1.5, 'low', 0.9) * (0.06 + 0.94 * k ** 2) * late
+    sube = presion_sube(d, 36 + 3 * i, 72 + 4 * i) * k ** 2.5
+    silba = filtro_mov(ruido(d), curva(n, [(0, 500), (1, 3200)]), 'band', 1.2) * k ** 3
+    roca = crujir(d, (12, 60), ((160, 18), (350, 22), (620, 26)), 1.0) * k ** 1.5
+    aviso = mezclar(pico(a_largo(borbotones, n), 0.8), pico(glugs, 0.6), pico(hervor, 0.45), pico(retumbo, 0.6),
+                    pico(sube, 0.3), pico(silba, 0.3), pico(roca, 0.15))
+    guardar('geiser_aviso', reverb(aviso, 0.2, 1.2, 2500)[:n] * ventana(d, 0.02, 0.05), i + 1, limite=0.6)
+
+# GEISER: revienta. El estampido sordo de la presion que se suelta y la
+# roca que salta, la columna de agua que sube rugiendo (el soplo sube de
+# tono), la cresta que se deshace en rocio, el agua que se desploma a
+# trozos y la lluvia de gotas que sigue cayendo.
+for i in range(2):
+    d = 2.2
+    n = n_(d)
+    estampido = mezclar(pico(pa(ruido(0.025), 700) * caida(0.025, 0.005), 0.9), pico(boom(84 - 8 * i, 28, 0.25), 1.0),
+                        pico(rajar(10, 0.05, 300, 3500), 0.45), pico(chapuzon(1.6, 0.5), 0.5))
+    dc = 0.8
+    tc = t_(dc)
+    forma = np.interp(tc, [0, 0.03, 0.35, dc], [0.5, 0.9, 1.0, 0.0])
+    barrido = curva(n_(dc), [(0, 240 + 40 * i), (0.6, 2000), (1, 5000)])
+    soplo = mezclar(pico(filtro_mov(ruido(dc, 'rosa'), barrido, 'band', 2.5), 1.0),
+                    pico(filtro_mov(ruido(dc, 'rosa'), barrido * 2.3, 'band', 3.0), 0.5)) * forma
+    chorro_ = mezclar(pico(nube(dc, 3000 * forma ** 2, 0.5, 5.0), 1.0), pico(ruido(dc, 'rosa') * forma ** 2, 0.5))
+    chorro_ = filtro_mov(a_largo(chorro_, n_(dc)), barrido * 2 + 600, 'low', 0.7)
+    rocio = pa(ruido(0.7), 3000) * np.interp(t_(0.7), [0, 0.12, 0.35, 0.7], [0, 1, 0.4, 0])
+    grave = pb(ruido(0.5, 'marron'), 150) * caida(0.5, 0.09, 0.01)
+    cae = mezclar(pico(chapuzon(2.3), 1.0), en(0.1, pico(chapuzon(1.6), 0.6)), en(0.22, pico(chapuzon(1.0), 0.45)))
+    tl = t_(1.4)
+    gotas = mezclar(pico(lluvia(1.4, 900 * np.exp(-tl / 0.4) + 20), 1.0), pico(pa(ruido(1.4), 3500) * np.exp(-tl / 0.35), 0.25))
+    geiser = mezclar(estampido, pico(soplo, 1.0), pico(chorro_, 0.45), pico(grave, 0.3), en(0.42, pico(rocio, 0.35)),
+                     en(0.66 + 0.05 * i, pico(cae, 1.0)), en(0.76, pico(gotas, 0.5)))
+    guardar('geiser', reverb(geiser, 0.15, 1.3, 4500)[:n] * ventana(d, 0.001, 0.3), i + 1, limite=0.5)
+
+# MAREA_ALZA: alza el tridente y el mar se retira antes de la ola. El agua
+# que se va sorbida por el fondo (la resaca sobre la grava, gorgoteos que
+# desaguan), un retumbo hondo que crece y, lejos, el rugido de la ola que
+# se levanta. La tension sube hasta el final.
+d = 2.6
+n = n_(d)
+t = t_(d)
+k = t / d
+alza = mezclar(pico(zumbido(0.9, [(0, 240), (0.6, 1100), (1, 1700)], 1.2), 0.3), pico(cadena(0.7, 7), 0.15),
+               en(0.25, goteo(1.3, 8, 0.0, 0.22, False)))
+dr = 1.9
+tr = t_(dr)
+se_va = np.interp(tr, [0, 0.2, dr], [0, 1, 0]) ** 1.4
+resaca = filtro_mov(ruido(dr, 'rosa'), curva(n_(dr), [(0, 3600), (0.35, 1600), (1, 350)]), 'low', 0.8) * se_va
+grava = mezclar(*[en(rng.uniform(0, dr) ** 1.6 / dr ** 0.6, bp(ruido(0.005), 1800, 6500) * caida(0.005, 0.001) * rng.uniform(0.2, 1))
+                  for _ in range(70)])
+desague = nube(dr, rampa(dr, 1.0, 14, 3), 10.0, 24.0, beta=1.4, xi=0.15, amortigua=1.5)
+retumbo = pb(ruido(d, 'marron'), 110) * (0.03 + 0.97 * k ** 1.8)
+rugir = filtro_mov(pa(ruido(d, 'rosa'), 150), curva(n, [(0, 500), (1, 1600)]), 'low', 0.8) * k ** 1.6
+rugir = reverb(rugir * (1 + 0.3 * np.sin(2 * np.pi * 0.9 * t)), 0.65, 2.6, 1500)[:n]
+tension = presion_sube(d, 40, 60) * k ** 2.5
+siseo = pa(ruido(dr), 1800) * se_va ** 1.5 * (1 + 0.3 * suave(n_(dr), 8))
+se_retira = mezclar(alza, pico(resaca, 0.45), pico(siseo, 0.25), pico(sorber(dr, 1800, 30) * se_va, 0.32), pico(grava, 0.2),
+                    pico(desague, 0.3))
+alzada = mezclar(0.7 * se_retira, pico(retumbo, 0.45), pico(rugir, 1.0), pico(tension, 0.25))
+guardar('marea_alza', reverb(alzada, 0.25, 1.8, 2500)[:n] * ventana(d, 0.005, 0.1), limite=0.6)
+
+# MAREA: la Gran Marea. Se la oye venir de lejos (el rugido crece y se
+# aclara al acercarse), rompe con un estruendo que hace temblar el suelo y
+# se deshace en una cola larga de espuma que sisea y se retira.
+for i in range(2):
+    d = 4.5
+    n = n_(d)
+    t = t_(d)
+    cresta = 1.7 + 0.2 * i
+    acerca = np.clip(t / cresta, 0, 1)
+    tras = np.maximum(0.0, t - cresta)
+    antes = t < cresta
+    rugir = filtro_mov(pa(ruido(d, 'rosa'), 110), 400 + 5600 * acerca ** 2, 'low', 0.7) * np.where(antes, acerca ** 2.2, np.exp(-tras / 0.5))
+    trueno = pb(ruido(d, 'marron'), 120) * np.where(antes, acerca ** 2, np.exp(-tras / 0.5))
+    choque = mezclar(pico(pa(ruido(0.03), 500) * caida(0.03, 0.006), 0.8), pico(boom(46, 20, 0.5), 1.0),
+                     pico(bp(ruido(0.7), 80, 9000) * caida(0.7, 0.16, 0.003), 1.0),
+                     pico(chapuzon(2.6), 0.9), en(0.22, pico(chapuzon(1.8), 0.6)), en(0.5, pico(chapuzon(1.2), 0.4)))
+    espuma = nube(d, np.where(antes, 0.0, 6000 * np.exp(-tras / 1.5)), 0.22, 1.1, beta=1.6)
+    medias = nube(d, np.where(antes, 0.0, 500 * np.exp(-tras / 1.0)), 1.2, 5.0)
+    siseo = pa(ruido(d), 2000) * np.where(antes, 0.0, np.exp(-tras / 1.4)) * (1 + 0.35 * suave(n, 5))
+    retira = filtro_mov(ruido(d, 'rosa'), 400 + 2800 * np.exp(-tras / 1.1), 'low', 0.8) * np.where(antes, 0.0, np.exp(-tras / 1.3))
+    marea = mezclar(pico(rompiente(d, cresta, 1.0), 0.6), pico(rugir, 0.6), pico(trueno, 0.35), en(cresta - 0.02, choque),
+                    pico(espuma, 0.7), pico(medias, 0.3), pico(siseo, 0.55), pico(retira, 0.4), goteo(2.2, 16, cresta + 0.3, 0.25))
+    guardar('marea', reverb(marea, 0.3, 2.4, 4000)[:n] * ventana(d, 0.01, 0.9), i + 1, limite=0.5)
+
+# FURIA: entra en la Furia de las Mareas. Traga agua, suelta un estampido
+# hondo de presion, el mar se le arremolina alrededor y ruge con su voz de
+# siempre, pero mas alta y mas rabiosa, con un grunido de garganta debajo
+# y las cadenas sacudiendose.
+d = 3.5
+di = 0.4
+traga = mezclar(pico(sorber(di, 60, 2000), 0.7), pico(zumbido(di, [(0, 300), (1, 1300)], 1.3) * rampa(di, 1.5), 0.45),
+                pico(pb(ruido(di, 'marron'), 200) * rampa(di, 2.0), 0.3))
+golpe = mezclar(pico(boom(46, 18, 0.5, 2.0), 1.0), pico(pb(ruido(0.7, 'marron'), 260) * caida(0.7, 0.16, 0.004), 0.6),
+                pico(chapuzon(2.4), 0.55))
+do = 3.0
+oleada = flanger(pa(torrente(do, 2600, 6.0, 3600), 150), rampa(do, 1.0, 0.6, 1.4), 1.2, 6.0, 0.7)
+oleada *= np.interp(t_(do), [0, 0.25, 1.4, 2.5, do], [0, 1, 0.8, 0.35, 0])
+dv = 2.3
+rabia = garganta(curva(n_(dv), [(0, 34), (0.25, 48), (0.7, 45), (1, 30)]), dv, VOCAL_O, 0.9, 0.8, 0.05, 0.4)
+rabia = sumergir(rabia * ventana(dv, 0.15, 0.9), 1400, 0.35)
+furia = mezclar(pico(traga, 0.55), en(di - 0.04, pico(golpe, 0.6)), en(di, pico(oleada, 0.35)),
+                en(di + 0.06, pico(rugido(2.8, 54, 96, sirena=1.6, agua=1.4), 1.0)), en(di + 0.15, pico(rabia, 0.18)),
+                en(di + 0.1, pico(cadena(1.6, 18), 0.22)), goteo(0.9, 8, 2.5, 0.2))
+guardar('furia', reverb(furia, 0.2, 2.0, 3000)[:n_(d)] * ventana(d, 0.005, 0.6), limite=0.55)
+
 # ----------------------------------------------------------------------
 #  sounds.json: los eventos nerea.* con sus variantes y subtitulo
 # ----------------------------------------------------------------------

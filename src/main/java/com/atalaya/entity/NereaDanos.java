@@ -25,6 +25,10 @@ import org.jspecify.annotations.Nullable;
  *   tridente  La estocada del Arpon: esta si la para el escudo
  *   remolino  El Remolino, 10 por segundo: te ahoga, no hay armadura ni
  *             escudo que valga (solo la antorcha, que te saca de el)
+ *   geiser    El Geiser del Abismo: te lanza al cielo desde abajo (el escudo
+ *             no sirve)
+ *   marea     La Gran Marea: la pared de agua que cruza la arena; no la para
+ *             el escudo, pero no mata (deja medio corazon)
  * </pre>
  */
 public final class NereaDanos {
@@ -35,6 +39,8 @@ public final class NereaDanos {
     public static final ResourceKey<DamageType> MIRADA = clave("nerea_mirada");
     public static final ResourceKey<DamageType> TRIDENTE = clave("nerea_tridente");
     public static final ResourceKey<DamageType> REMOLINO = clave("nerea_remolino");
+    public static final ResourceKey<DamageType> GEISER = clave("nerea_geiser");
+    public static final ResourceKey<DamageType> MAREA = clave("nerea_marea");
 
     private NereaDanos() {
     }

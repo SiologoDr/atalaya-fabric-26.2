@@ -44,6 +44,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,13 +67,23 @@ import java.util.UUID;
  * guardaba.
  *
  * <pre>
- *   fase I    100-75 %   Rompeolas (tres olas), Remolino, Burbujas bomba
- *   fase II    75-50 %   + Molino de cadenas, Arpon (un gancho por cada 10)
- *   fase III   50-25 %   + Mirada del Abismo (mata de un golpe: solo salva un totem;
- *                        mientras mira es inmune, solo se le para dandole en los ojos)
+ *   fase I    100-75 %   Rompeolas (paredes de agua), Remolino, Burbujas bomba
+ *   fase II    75-50 %   + Molino de cadenas, Arpon (un ancla por cada 10),
+ *                        Geiser del Abismo (uno bajo cada jugador)
+ *   fase III   50-25 %   + Mirada del Abismo a un tercio del grupo (mata de un
+ *                        golpe: solo salva un totem; mientras mira es inmune y
+ *                        solo se la para rompiendole los dos ojos, 10 impactos
+ *                        cada uno), Gran Marea (una ola de lado a lado con un hueco)
  *   fase IV    25-0 %    las costillas se abren: todo mas seguido y cada
  *                        25 s cae de rodillas agotado (dano doble)
  * </pre>
+ *
+ * Si la Mirada sale (no le rompen los ojos a tiempo), entra en la Furia de las
+ * Mareas: un 25 % mas rapida, un 35 % mas de dano y un 35 % menos de espera
+ * entre ataques. Se le quita al derribarla: romperle los ojos en otra Mirada.
+ *
+ * Desde el remake de octubre de 2026 mide unos 15 bloques (la malla, a x2,4) y
+ * todo lo que hace se ve de mar: paredes de agua, remolinos, espuma y geiseres.
  *
  * Como el Vigia, el estado vive en un numero sincronizado y el cliente arranca
  * la animacion que toca al verlo cambiar. Los ticks de cada golpe y los puntos
@@ -95,6 +107,8 @@ public class NereaEntity extends Monster {
     public static final int ATURDIDO = 11;
     public static final int TAMBALEO = 12;
     public static final int AGOTADO = 13;
+    public static final int GEISER = 14;
+    public static final int MAREA = 15;
 
     /**
      * Vida EFECTIVA: 12 500, la misma con cualquier numero de jugadores. La de
@@ -118,12 +132,33 @@ public class NereaEntity extends Monster {
     public static final float[] DANO_BURBUJA = {36, 48, 58, 72};
     /** Lo que quita el Remolino por segundo a quien arrastra (pasa la armadura). */
     private static final float[] DANO_REMOLINO = {7, 10, 14, 21};
+    /** El Geiser del Abismo (desde la fase II: la I no lo usa). */
+    private static final float[] DANO_GEISER = {36, 36, 44, 58};
+    /** La Gran Marea (desde la III): fuerte, pero no mata. */
+    private static final float[] DANO_MAREA = {60, 60, 60, 80};
     /**
      * La Mirada mata: pasa la armadura, el escudo, los encantamientos, los
      * efectos y la resistencia. Solo un totem de la inmortalidad te salva (y
      * lo gasta). Se esquiva escondiendose tras un bloque o rompiendole los ojos.
      */
     private static final float MIRADA_MATA = 10000.0F;
+    /** Impactos que aguanta cada ojo, sean cuantos sean (como los totems de Rajang y los nucleos de Aeralis). */
+    public static final int GOLPES_OJO = 10;
+
+    // --- La Furia de las Mareas (si la Mirada sale) ---
+    private static final float FURIA_RITMO = 1.25F;
+    private static final float FURIA_DANO = 1.35F;
+    private static final float FURIA_ENFRIA = 0.65F;
+    private static final double FURIA_ANDA = 1.1;
+
+    // --- La Gran Marea: lo que avanza por tick, lo que recorre, de lado a lado, su alto y el hueco ---
+    public static final float MAREA_VEL = 0.55F;
+    public static final float MAREA_LARGO = 46.0F;
+    public static final float MAREA_ANCHO = 80.0F;
+    public static final float MAREA_ALTO = 9.0F;
+    public static final float MAREA_HUECO = 5.0F;
+    /** Hasta donde puede caer el hueco, a un lado o al otro de su rumbo. */
+    private static final float MAREA_HUECO_LADO = 14.0F;
 
     private static final double LARGO_OLA = 34.0;
     private static final int TICKS_OLA = 14;
@@ -135,7 +170,8 @@ public class NereaEntity extends Monster {
     public static final double RADIO_MOLINO = 21.0;
     /** Cuanto se alargan (y engordan) las cadenas del molino del modelo: 14,5 bloques x 1,45. */
     public static final float ESCALA_MOLINO = 1.45F;
-    private static final double MOLINO_PIES = 2.8;
+    /** Pegado a sus pies no llega la cadena. */
+    public static final double MOLINO_PIES = 4.2;
     private static final int ESPERA_GANCHO = 40;
     private static final int CADA_AGOTADO = 500;
 
@@ -153,6 +189,18 @@ public class NereaEntity extends Monster {
     /** Ojos apagados a flechazos: bit 0 el izquierdo, bit 1 el derecho. */
     private static final EntityDataAccessor<Integer> DATA_OJOS =
             SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.INT);
+    /** Impactos en cada ojo en esta Mirada: los 8 bits bajos el izquierdo, los siguientes el derecho (la barra los pinta). */
+    private static final EntityDataAccessor<Integer> DATA_GOLPES_OJOS =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.INT);
+    /** A quienes mira la Mirada: sus ids separados por comas (no hay serializador de listas de numeros). */
+    private static final EntityDataAccessor<String> DATA_MIRADA =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.STRING);
+    /** La Furia de las Mareas. */
+    private static final EntityDataAccessor<Boolean> DATA_FURIA =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Donde cae el hueco de la Gran Marea (bloques a un lado de su rumbo): el cliente lo marca en el suelo. */
+    private static final EntityDataAccessor<Float> DATA_HUECO =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.FLOAT);
 
     // --- Solo cliente ---
     public final AnimationState reposo = new AnimationState();
@@ -169,6 +217,8 @@ public class NereaEntity extends Monster {
     public final AnimationState aturdido = new AnimationState();
     public final AnimationState tambaleo = new AnimationState();
     public final AnimationState agotado = new AnimationState();
+    public final AnimationState geiser = new AnimationState();
+    public final AnimationState marea = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
     /** Tick del cliente en que empezo el estado actual. */
     public int inicioEstado;
@@ -187,7 +237,6 @@ public class NereaEntity extends Monster {
     /** Por cuanto se multiplica el dano que recibe (la vida efectiva). */
     private float factorGrupo = VIDA_VANILLA / VIDA;
     private int jugadoresGrupo = 1;
-    private int golpesPorOjo = 3;
     private int t;
     private int duracion;
     /** Lo rapido que va el estado actual: los ataques se aceleran con cada fase. */
@@ -200,6 +249,8 @@ public class NereaEntity extends Monster {
     private int enfMolino;
     private int enfArpon = 40;
     private int enfMirada = 120;
+    private int enfGeiser = 60;
+    private int enfMarea = 200;
     private int relojAgotado = CADA_AGOTADO;
     private int ultimoAvisoInmune;
     private int golpesOjoIzq;
@@ -213,6 +264,11 @@ public class NereaEntity extends Monster {
     private Vec3[] olaOrigenes = new Vec3[0];
     private Vec3[] olaDirs = new Vec3[0];
     private @Nullable LivingEntity presa;
+    /** A quienes mira la Mirada (un tercio del grupo). */
+    private final List<LivingEntity> mirados = new ArrayList<>();
+    /** El ultimo DATA_MIRADA leido (cliente) y sus ids: para no partir la cadena en cada fotograma. */
+    private String miradaLeida = "";
+    private int[] idsMirada = new int[0];
 
     public NereaEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -241,6 +297,10 @@ public class NereaEntity extends Monster {
         datos.define(DATA_FASE, 1);
         datos.define(DATA_OBJETIVO, -1);
         datos.define(DATA_OJOS, 0);
+        datos.define(DATA_GOLPES_OJOS, 0);
+        datos.define(DATA_MIRADA, "");
+        datos.define(DATA_FURIA, false);
+        datos.define(DATA_HUECO, 0.0F);
     }
 
     @Override
@@ -273,6 +333,45 @@ public class NereaEntity extends Monster {
         return entityData.get(DATA_OJOS);
     }
 
+    /** Impactos que lleva el ojo (0 el izquierdo, 1 el derecho) en esta Mirada. */
+    public int getGolpesOjo(int ojo) {
+        return (entityData.get(DATA_GOLPES_OJOS) >> (ojo * 8)) & 255;
+    }
+
+    public boolean tieneFuria() {
+        return entityData.get(DATA_FURIA);
+    }
+
+    /** Donde cae el hueco de la Gran Marea, en bloques a un lado de su rumbo (como OlaNereaEntity.lado). */
+    public float getHueco() {
+        return entityData.get(DATA_HUECO);
+    }
+
+    /** Los ids de a quienes mira la Mirada. */
+    public int[] getIdsMirada() {
+        String s = entityData.get(DATA_MIRADA);
+        if (!s.equals(miradaLeida)) {
+            miradaLeida = s;
+            String[] partes = s.isEmpty() ? new String[0] : s.split(",");
+            int[] ids = new int[partes.length];
+            for (int i = 0; i < partes.length; i++) {
+                ids[i] = Integer.parseInt(partes[i]);
+            }
+            idsMirada = ids;
+        }
+        return idsMirada;
+    }
+
+    /** Si la Mirada mira a esta entidad. */
+    public boolean esMirado(int id) {
+        for (int i : getIdsMirada()) {
+            if (i == id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** I a IV segun la vida que le queda. */
     public int fase() {
         return entityData.get(DATA_FASE);
@@ -290,21 +389,24 @@ public class NereaEntity extends Monster {
     private void ponerEstado(int estado, int dur) {
         entityData.set(DATA_ESTADO, estado);
         t = 0;
-        ritmoEstado = ritmo(estado, fase());
+        ritmoEstado = ritmo(estado, fase(), tieneFuria());
         duracion = (int) Math.ceil(dur / ritmoEstado);
     }
 
     /**
-     * Lo rapido que van los ataques en cada fase: x1, x1,12, x1,25 y x1,4. El
-     * cliente usa el mismo numero para la velocidad de la animacion, asi que lo
-     * que se ve y lo que pega siguen yendo juntos.
+     * Lo rapido que van los ataques en cada fase: x1, x1,12, x1,25 y x1,4, y un
+     * 25 % mas con la Furia (menos la Mirada: romperle los ojos tiene que seguir
+     * siendo posible). La Gran Marea avisa siempre lo mismo, para que de tiempo
+     * a llegar al hueco. El cliente usa el mismo numero para la velocidad de la
+     * animacion, asi que lo que se ve y lo que pega siguen yendo juntos.
      */
-    public static float ritmo(int estado, int fase) {
-        return switch (estado) {
-            case ROMPEOLAS, BURBUJAS, MOLINO, ARPON_LANZAR, ARPON_TIRAR, MIRADA ->
+    public static float ritmo(int estado, int fase, boolean furia) {
+        float k = switch (estado) {
+            case ROMPEOLAS, BURBUJAS, MOLINO, ARPON_LANZAR, ARPON_TIRAR, MIRADA, GEISER ->
                     new float[]{1.0F, 1.0F, 1.12F, 1.25F, 1.4F}[Mth.clamp(fase, 1, 4)];
             default -> 1.0F;
         };
+        return furia && k > 1.0F && estado != MIRADA ? k * FURIA_RITMO : k;
     }
 
     /** Ticks de animacion transcurridos en el estado (los reales por el ritmo). */
@@ -317,10 +419,10 @@ public class NereaEntity extends Monster {
         return (t - 1) * ritmoEstado < k && t * ritmoEstado >= k;
     }
 
-    /** El dano de un ataque en la fase actual: el base y +8 por cada fase. */
-    /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV. */
+    /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV; con la Furia, un 35 % mas. */
     public float dano(float[] porFase) {
-        return porFase[Mth.clamp(fase(), 1, 4) - 1];
+        float d = porFase[Mth.clamp(fase(), 1, 4) - 1];
+        return tieneFuria() ? d * FURIA_DANO : d;
     }
 
     @Override
@@ -334,7 +436,7 @@ public class NereaEntity extends Monster {
 
     private AnimationState[] acciones() {
         return new AnimationState[]{dormido, despertar, rompeolas, remolino, burbujas, molino, arponLanzar,
-                arponEspera, arponTirar, mirada, aturdido, tambaleo, agotado};
+                arponEspera, arponTirar, mirada, aturdido, tambaleo, agotado, geiser, marea};
     }
 
     private @Nullable AnimationState animacionDe(int estado) {
@@ -352,6 +454,8 @@ public class NereaEntity extends Monster {
             case ATURDIDO -> aturdido;
             case TAMBALEO -> tambaleo;
             case AGOTADO -> agotado;
+            case GEISER -> geiser;
+            case MAREA -> marea;
             default -> null;
         };
     }
@@ -365,7 +469,7 @@ public class NereaEntity extends Monster {
             a.stop();
         }
         inicioEstado = tickCount;
-        ritmoCliente = ritmo(getEstado(), fase());
+        ritmoCliente = ritmo(getEstado(), fase(), tieneFuria());
         AnimationState actual = animacionDe(getEstado());
         if (actual != null) {
             actual.start(tickCount);
@@ -393,8 +497,7 @@ public class NereaEntity extends Monster {
         float objetivoPeso = getEstado() == LIBRE && !muriendo ? 1.0F : 0.0F;
         pesoLibre = objetivoPeso > pesoLibre ? Math.min(objetivoPeso, pesoLibre + 0.2F) : Math.max(objetivoPeso, pesoLibre - 0.25F);
         if (muriendo && !liberacion.isStarted()) {
-            for (AnimationState a : new AnimationState[]{dormido, despertar, rompeolas, remolino, burbujas, molino,
-                    arponLanzar, arponEspera, arponTirar, mirada, aturdido, tambaleo, agotado}) {
+            for (AnimationState a : acciones()) {
                 a.stop();
             }
             liberacion.start(tickCount);
@@ -406,9 +509,9 @@ public class NereaEntity extends Monster {
         if (e == MIRADA && (tickCount - inicioEstado) * ritmoCliente >= NereaGeometria.MIRADA_FIJA - 8) {
             // Luz que el abismo le mete en los ojos: nace alrededor y va hacia ellos.
             for (Vec3 ojo : new Vec3[]{puntoMundo(NereaGeometria.OJO_IZQ_MIRADA), puntoMundo(NereaGeometria.OJO_DER_MIRADA)}) {
-                double dx = (random.nextDouble() - 0.5) * 2.4;
-                double dy = (random.nextDouble() - 0.5) * 2.4;
-                double dz = (random.nextDouble() - 0.5) * 2.4;
+                double dx = (random.nextDouble() - 0.5) * 3.6;
+                double dy = (random.nextDouble() - 0.5) * 3.6;
+                double dz = (random.nextDouble() - 0.5) * 3.6;
                 level().addParticle(AtalayaParticulas.NEREA_OJO, ojo.x + dx, ojo.y + dy, ojo.z + dz,
                         -dx * 0.12, -dy * 0.12, -dz * 0.12);
             }
@@ -424,14 +527,23 @@ public class NereaEntity extends Monster {
         if (e != DORMIDO) {
             for (int i = 0; i < aura; i++) {
                 if (random.nextInt(3) == 0) {
-                    Vec3 a = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 3.0, 1.0 + random.nextDouble() * 7.0,
-                            (random.nextDouble() - 0.5) * 2.0));
+                    Vec3 a = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 4.5, 1.5 + random.nextDouble() * 10.5,
+                            (random.nextDouble() - 0.5) * 3.0));
                     level().addParticle(AtalayaParticulas.NEREA_CORAZON, a.x, a.y, a.z, 0, 0.03 + random.nextDouble() * 0.03, 0);
                 }
             }
         }
+        if (tieneFuria() && e != DORMIDO) {
+            // La Furia: burbujas que le suben por el cuerpo y motas de luz del abismo.
+            for (int i = 0; i < 2; i++) {
+                Vec3 a = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 5.0, 0.5 + random.nextDouble() * 12.0,
+                        (random.nextDouble() - 0.5) * 3.5));
+                level().addParticle(i == 0 ? AtalayaParticulas.NEREA_BURBUJA : AtalayaParticulas.NEREA_OJO, a.x, a.y, a.z,
+                        0, 0.05 + random.nextDouble() * 0.04, 0);
+            }
+        }
         if (e == DORMIDO && tickCount % 9 == 0) {
-            Vec3 b = puntoMundo(new Vec3(0, 4.3, 2.0));
+            Vec3 b = puntoMundo(new Vec3(0, 6.45, 3.0));
             level().addParticle(AtalayaParticulas.NEREA_BURBUJA, b.x + random.nextGaussian() * 0.2, b.y,
                     b.z + random.nextGaussian() * 0.2, 0, 0.05, 0);
         }
@@ -466,6 +578,8 @@ public class NereaEntity extends Monster {
         if (enfMolino > 0) enfMolino--;
         if (enfArpon > 0) enfArpon--;
         if (enfMirada > 0) enfMirada--;
+        if (enfGeiser > 0) enfGeiser--;
+        if (enfMarea > 0) enfMarea--;
 
         int e = getEstado();
         t++;
@@ -484,6 +598,8 @@ public class NereaEntity extends Monster {
             case ATURDIDO -> tickAturdido(nivel);
             case TAMBALEO -> tickTambaleo();
             case AGOTADO -> tickAgotado(nivel);
+            case GEISER -> tickGeiser(nivel, objetivo);
+            case MAREA -> tickMarea(nivel);
             default -> {
             }
         }
@@ -500,12 +616,23 @@ public class NereaEntity extends Monster {
         int e = getEstado();
         if (e == MIRADA || e == ATURDIDO || e == ARPON_TIRAR || e == ARPON_ESPERA) {
             entityData.set(DATA_OBJETIVO, -1);
-            entityData.set(DATA_OJOS, 0);
+            olvidarMirada();
         }
         soltarGancho();
         presa = null;
         ponerEstado(LIBRE, 0);
         respiro = new int[]{0, 18, 14, 10, 6}[fase()];
+        if (tieneFuria()) {
+            respiro = (int) (respiro * FURIA_ENFRIA);
+        }
+    }
+
+    /** Se acabo la Mirada: nadie mirado y los ojos enteros otra vez. */
+    private void olvidarMirada() {
+        mirados.clear();
+        entityData.set(DATA_MIRADA, "");
+        entityData.set(DATA_OJOS, 0);
+        entityData.set(DATA_GOLPES_OJOS, 0);
     }
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
@@ -525,7 +652,7 @@ public class NereaEntity extends Monster {
         if (respiro <= 0 && elegirAtaque(nivel, objetivo)) {
             return;
         }
-        if (horizontal(position(), objetivo.position()) > 7.0) {
+        if (horizontal(position(), objetivo.position()) > 9.0) {
             // Hacia el objetivo, pero sin pasar de donde llegan las cadenas.
             Vec3 c = Vec3.atBottomCenterOf(centro);
             Vec3 destino = objetivo.position();
@@ -535,7 +662,8 @@ public class NereaEntity extends Monster {
             }
             Vec3 punto = new Vec3(c.x + desde.x, getY(), c.z + desde.z);
             if (horizontal(position(), punto) > 1.0) {
-                getMoveControl().setWantedPosition(punto.x, punto.y, punto.z, fase() == 4 ? 1.3 : 1.0);
+                getMoveControl().setWantedPosition(punto.x, punto.y, punto.z,
+                        (fase() == 4 ? 1.3 : 1.0) * (tieneFuria() ? FURIA_ANDA : 1.0));
             }
         }
     }
@@ -550,8 +678,9 @@ public class NereaEntity extends Monster {
         if (fase >= 2 && enfMolino <= 0 && !jugadoresEnAnillo(nivel).isEmpty()) opciones.add(new int[]{MOLINO, 6});
         LivingEntity lejano = fase >= 2 && enfArpon <= 0 ? presaArpon(nivel) : null;
         if (lejano != null) opciones.add(new int[]{ARPON_LANZAR, 3});
-        LivingEntity mirado = fase >= 3 && enfMirada <= 0 ? presaMirada(nivel) : null;
-        if (mirado != null) opciones.add(new int[]{MIRADA, 4});
+        if (fase >= 3 && enfMirada <= 0 && !presasMirada(nivel).isEmpty()) opciones.add(new int[]{MIRADA, 4});
+        if (fase >= 2 && enfGeiser <= 0 && !jugadores(nivel, 40, 0).isEmpty()) opciones.add(new int[]{GEISER, 4});
+        if (fase >= 3 && enfMarea <= 0 && !jugadores(nivel, MAREA_LARGO, 0).isEmpty()) opciones.add(new int[]{MAREA, 3});
         if (opciones.isEmpty()) {
             return false;
         }
@@ -573,7 +702,7 @@ public class NereaEntity extends Monster {
                 setTarget(cerca.get(random.nextInt(cerca.size())));
             }
         }
-        iniciar(nivel, elegido, elegido == ARPON_LANZAR ? lejano : mirado);
+        iniciar(nivel, elegido, elegido == ARPON_LANZAR ? lejano : null);
         return true;
     }
 
@@ -581,6 +710,9 @@ public class NereaEntity extends Monster {
     private void iniciar(ServerLevel nivel, int ataque, @Nullable LivingEntity presaElegida) {
         // Cada fase todo vuelve antes: en la IV, con un 40 % menos de espera.
         float k = new float[]{1.0F, 1.0F, 0.85F, 0.72F, 0.6F}[Mth.clamp(fase(), 1, 4)];
+        if (tieneFuria()) {
+            k *= FURIA_ENFRIA;
+        }
         switch (ataque) {
             case ROMPEOLAS -> {
                 enfRompeolas = (int) (60 * k);
@@ -626,20 +758,42 @@ public class NereaEntity extends Monster {
                 sonido(AtalayaSonidos.NEREA_ARPON_LANZAR, 3.0F);
             }
             case MIRADA -> {
-                if (presaElegida == null) {
+                // A un tercio de los que pelean: los de menos vida que tiene a la vista.
+                List<LivingEntity> elegidos = presasMirada(nivel);
+                if (elegidos.isEmpty() && presaElegida != null) {
+                    elegidos = List.of(presaElegida);
+                }
+                if (elegidos.isEmpty()) {
                     return;
                 }
                 enfMirada = (int) (480 * k);
-                presa = presaElegida;
+                olvidarMirada();
+                mirados.addAll(elegidos);
                 golpesOjoIzq = 0;
                 golpesOjoDer = 0;
-                // Con mas gente disparando, los ojos aguantan mas impactos.
-                golpesPorOjo = 3 + jugadoresGrupo / 6;
-                entityData.set(DATA_OJOS, 0);
-                entityData.set(DATA_OBJETIVO, presaElegida.getId());
+                anotarMirados();
+                entityData.set(DATA_OBJETIVO, elegidos.get(0).getId());
                 ponerEstado(MIRADA, NereaGeometria.DURACION_MIRADA);
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 6.0F);
                 sonido(AtalayaSonidos.NEREA_MIRADA_CARGA, 3.0F);
+            }
+            case GEISER -> {
+                enfGeiser = (int) (260 * k);
+                ponerEstado(GEISER, NereaGeometria.DURACION_GEISER);
+                sonido(AtalayaSonidos.NEREA_ROMPEOLAS_ALZAR, 3.0F);
+            }
+            case MAREA -> {
+                enfMarea = (int) (520 * k);
+                // Se vuelve hacia donde hay mas gente y decide donde cae el hueco.
+                Vec3 hacia = centroPresas(nivel, MAREA_LARGO);
+                if (hacia != null) {
+                    fijarRumbo(rumboHacia(hacia));
+                }
+                rumbo = yBodyRot;
+                entityData.set(DATA_HUECO, (random.nextFloat() * 2.0F - 1.0F) * MAREA_HUECO_LADO);
+                ponerEstado(MAREA, NereaGeometria.DURACION_MAREA);
+                sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
+                sonido(AtalayaSonidos.NEREA_RUGIDO, 5.0F);
             }
             default -> {
             }
@@ -694,6 +848,17 @@ public class NereaEntity extends Monster {
                 hurtServer(nivel, nivel.damageSources().genericKill(), Float.MAX_VALUE);
                 return true;
             }
+            case "furia" -> {
+                ponerFuria(nivel, !tieneFuria());
+                return true;
+            }
+            case "ojo" -> {
+                // Un impacto en el primer ojo que siga encendido, como una flecha (solo durante la Mirada).
+                if (getEstado() == MIRADA) {
+                    golpearOjo(nivel, (getOjosRotos() & 1) == 0 ? 0 : 1);
+                }
+                return true;
+            }
             default -> {
             }
         }
@@ -706,6 +871,8 @@ public class NereaEntity extends Monster {
             case "mirada" -> MIRADA;
             case "agotado" -> AGOTADO;
             case "aturdido" -> ATURDIDO;
+            case "geiser" -> GEISER;
+            case "marea" -> MAREA;
             default -> -1;
         };
         if (ataque < 0) {
@@ -718,13 +885,14 @@ public class NereaEntity extends Monster {
         cortarSonido(nivel, AtalayaSonidos.NEREA_MIRADA_RAYO);
         soltarGancho();
         entityData.set(DATA_OBJETIVO, -1);
-        entityData.set(DATA_OJOS, 0);
+        olvidarMirada();
         // Pasa por LIBRE para que el cliente vea el cambio aunque repita ataque.
         ponerEstado(LIBRE, 0);
         if (ataque == AGOTADO) {
             empezarAgotado();
         } else if (ataque == ATURDIDO) {
             entityData.set(DATA_OJOS, 3);
+            entityData.set(DATA_GOLPES_OJOS, GOLPES_OJO | (GOLPES_OJO << 8));
             ponerEstado(ATURDIDO, NereaGeometria.DURACION_ATURDIDO);
             sonido(AtalayaSonidos.NEREA_ATURDIDO, 3.0F);
         } else {
@@ -769,13 +937,13 @@ public class NereaEntity extends Monster {
     private void tickDespertar(ServerLevel nivel) {
         if (t == 42) {
             // El rugido empuja: aparta a quien se acerco a despertarlo.
-            for (Player p : jugadores(nivel, 13, 0)) {
+            for (Player p : jugadores(nivel, 16, 0)) {
                 Vec3 fuera = horizontalHacia(position(), p.position());
                 p.setDeltaMovement(fuera.x * 1.2, 0.5, fuera.z * 1.2);
                 p.hurtMarked = true;
             }
-            golpeSuelo(nivel, position(), 2.4F, 13.0F, 16, 0);
-            anillo(nivel, AtalayaParticulas.NEREA_ESPUMA, 4.0, 36, 0.45);
+            golpeSuelo(nivel, position(), 2.4F, 16.0F, 16, 0);
+            anillo(nivel, AtalayaParticulas.NEREA_ESPUMA, 6.0, 44, 0.45);
         }
         if (t == 1) {
             // La pelea empieza de verdad: cuenta al grupo (ganchos, golpes por
@@ -814,6 +982,8 @@ public class NereaEntity extends Monster {
                 float abre = (w - (olas - 1) / 2.0F) * ABANICO_OLAS;
                 olaOrigenes[w] = p;
                 olaDirs[w] = enRumbo(yBodyRot + abre, 1).subtract(position());
+                // La pared de agua que se ve: avanza con el golpe (golpearLinea, abajo).
+                OlaNereaEntity.ola(nivel, this, p, olaDirs[w], 2.6F, 3.4F, (float) (LARGO_OLA / TICKS_OLA), (float) LARGO_OLA);
             }
             // El asta al caer: lo que estaba debajo, de sus pies a la punta.
             golpearLinea(nivel, position(), olaDirs[0], 3.0, punta + 1.0, 1.4);
@@ -910,7 +1080,7 @@ public class NereaEntity extends Monster {
             }
             Vec3 hacia = new Vec3(getX() - p.getX(), 0, getZ() - p.getZ());
             double d = hacia.length();
-            if (d < 3.5) {
+            if (d < 5.0) {
                 continue;
             }
             Vec3 dir = hacia.scale(1.0 / d);
@@ -966,7 +1136,7 @@ public class NereaEntity extends Monster {
                 LivingEntity blanco = blancosBurbujas.remove(blancosBurbujas.size() - 1);
                 Vec3 hacia = horizontalHacia(position(), blanco.position());
                 BurbujaNereaEntity.lanzar(nivel, this, c.add(random.nextGaussian() * 0.5, random.nextGaussian() * 0.4,
-                        random.nextGaussian() * 0.5), frente().add(hacia).normalize(), blanco, fase());
+                        random.nextGaussian() * 0.5), frente().add(hacia).normalize(), blanco, fase(), dano(DANO_BURBUJA));
             }
             nivel.sendParticles(AtalayaParticulas.NEREA_CORAZON, c.x, c.y, c.z, 3, 0.3, 0.3, 0.3, 0.02);
         }
@@ -1070,7 +1240,7 @@ public class NereaEntity extends Monster {
             ganchos.clear();
             enganchados.clear();
             for (LivingEntity b : blancos) {
-                ganchos.add(GanchoNereaEntity.lanzar(nivel, this, mano, b.getEyePosition().add(0, -0.4, 0)));
+                ganchos.add(GanchoNereaEntity.lanzar(nivel, this, mano, b));
             }
             ponerEstado(ARPON_ESPERA, ESPERA_GANCHO);
         }
@@ -1133,7 +1303,7 @@ public class NereaEntity extends Monster {
                     continue;
                 }
                 double a = yBodyRot * Mth.DEG_TO_RAD + (i - (enganchados.size() - 1) / 2.0) * 0.5;
-                Vec3 destino = punta.add(Math.cos(a) * 0.9 * (i == 0 ? 0 : 1), 0, Math.sin(a) * 0.9 * (i == 0 ? 0 : 1));
+                Vec3 destino = punta.add(Math.cos(a) * 1.3 * (i == 0 ? 0 : 1), 0, Math.sin(a) * 1.3 * (i == 0 ? 0 : 1));
                 Vec3 dif = new Vec3(destino.x - v.getX(), 0, destino.z - v.getZ());
                 double d = dif.length();
                 if (d > 0.6) {
@@ -1151,8 +1321,8 @@ public class NereaEntity extends Monster {
         if (cruza(NereaGeometria.ARPON_ESTOCADA)) {
             Vec3 p = puntoMundo(NereaGeometria.PUNTA_ESTOCADA);
             nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_ESTOCADA, SoundSource.HOSTILE, 4.0F, 1.0F);
-            golpeSuelo(nivel, p, 2.8F, 6.5F, 24, 20);
-            AABB zona = new AABB(p, p).inflate(5.0, 0, 5.0).expandTowards(0, 3, 0).expandTowards(0, -1, 0);
+            golpeSuelo(nivel, p, 2.8F, 9.0F, 24, 20);
+            AABB zona = new AABB(p, p).inflate(6.5, 0, 6.5).expandTowards(0, 3, 0).expandTowards(0, -1, 0);
             for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, zona, this::esPresa)) {
                 v.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.TRIDENTE, this, this), dano(DANO_ESTOCADA));
             }
@@ -1172,30 +1342,59 @@ public class NereaEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickMirada(ServerLevel nivel) {
-        if (presa == null || !presa.isAlive() || presa.isRemoved()) {
+        int antes = mirados.size();
+        mirados.removeIf(v -> !v.isAlive() || v.isRemoved());
+        if (mirados.isEmpty()) {
             cortarSonido(nivel, AtalayaSonidos.NEREA_MIRADA_RAYO);
             terminar(nivel);
             return;
         }
-        girarHacia(presa.position(), ta() < NereaGeometria.MIRADA_FIJA ? 10.0F : 2.5F + fase() * 0.6F);
+        if (mirados.size() != antes) {
+            anotarMirados();
+        }
+        // Se vuelve hacia ellos (al medio del grupo), mas despacio una vez fija.
+        Vec3 medio = Vec3.ZERO;
+        for (LivingEntity v : mirados) {
+            medio = medio.add(v.position());
+        }
+        medio = medio.scale(1.0 / mirados.size());
+        girarHacia(medio, ta() < NereaGeometria.MIRADA_FIJA ? 10.0F : 2.5F + fase() * 0.6F);
         if (cruza(NereaGeometria.MIRADA_FIJA)) {
             sonido(AtalayaSonidos.NEREA_MIRADA_RAYO, 4.0F);
         }
         if (t == duracion - 2) {
             Vec3 ojos = puntoMundo(NereaGeometria.OJO_IZQ_MIRADA).add(puntoMundo(NereaGeometria.OJO_DER_MIRADA)).scale(0.5);
-            Vec3 fin = presa.getEyePosition().add(0, -0.3, 0);
-            BlockHitResult choque = nivel.clip(new ClipContext(ojos, fin, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-            if (choque.getType() == HitResult.Type.MISS) {
-                presa.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.MIRADA, this, this), MIRADA_MATA);
-                nivel.playSound(null, fin.x, fin.y, fin.z, AtalayaSonidos.NEREA_MIRADA_IMPACTO, SoundSource.HOSTILE, 3.0F, 1.0F);
-                nivel.sendParticles(AtalayaParticulas.NEREA_OJO, fin.x, fin.y, fin.z, 24, 0.4, 0.5, 0.4, 0.3);
-            } else {
-                // Escondido tras un bloque: el rayo revienta contra el.
-                Vec3 p = choque.getLocation();
-                nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_MIRADA_IMPACTO, SoundSource.HOSTILE, 3.0F, 1.0F);
-                nivel.sendParticles(AtalayaParticulas.NEREA_OJO, p.x, p.y, p.z, 20, 0.3, 0.3, 0.3, 0.3);
+            for (LivingEntity v : mirados) {
+                Vec3 fin = v.getEyePosition().add(0, -0.3, 0);
+                BlockHitResult choque = nivel.clip(new ClipContext(ojos, fin, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+                if (choque.getType() == HitResult.Type.MISS) {
+                    v.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.MIRADA, this, this), MIRADA_MATA);
+                    nivel.playSound(null, fin.x, fin.y, fin.z, AtalayaSonidos.NEREA_MIRADA_IMPACTO, SoundSource.HOSTILE, 3.0F, 1.0F);
+                    nivel.sendParticles(AtalayaParticulas.NEREA_OJO, true, true, fin.x, fin.y, fin.z, 24, 0.4, 0.5, 0.4, 0.3);
+                    nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, fin.x, fin.y, fin.z, 16, 0.4, 0.5, 0.4, 0.4);
+                } else {
+                    // Escondido tras un bloque: el chorro revienta contra el.
+                    Vec3 p = choque.getLocation();
+                    nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_MIRADA_IMPACTO, SoundSource.HOSTILE, 3.0F, 1.0F);
+                    nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, p.x, p.y, p.z, 20, 0.3, 0.3, 0.3, 0.2);
+                    nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, p.x, p.y, p.z, 14, 0.3, 0.3, 0.3, 0.4);
+                }
             }
+            // No le han roto los ojos: la Mirada ha salido y entra en Furia.
+            ponerFuria(nivel, true);
         }
+    }
+
+    /** Escribe en DATA_MIRADA a quienes mira: el cliente pinta los chorros y les cierra la vista. */
+    private void anotarMirados() {
+        StringBuilder sb = new StringBuilder();
+        for (LivingEntity v : mirados) {
+            if (!sb.isEmpty()) {
+                sb.append(',');
+            }
+            sb.append(v.getId());
+        }
+        entityData.set(DATA_MIRADA, sb.toString());
     }
 
     /** Una flecha (o lo que sea que vuela) que pasa por un ojo encendido. */
@@ -1205,7 +1404,7 @@ public class NereaEntity extends Monster {
         Vec3 dir = v.lengthSqr() > 1.0E-4 ? v.normalize() : null;
         int ojos = getOjosRotos();
         int mejor = -1;
-        double mejorD = 1.0;
+        double mejorD = 1.6;
         Vec3[] pos = {puntoMundo(NereaGeometria.OJO_IZQ_MIRADA), puntoMundo(NereaGeometria.OJO_DER_MIRADA)};
         for (int i = 0; i < 2; i++) {
             if ((ojos & (1 << i)) != 0) {
@@ -1230,30 +1429,142 @@ public class NereaEntity extends Monster {
         if (mejor < 0) {
             return false;
         }
-        Vec3 ojo = pos[mejor];
-        int golpes = mejor == 0 ? ++golpesOjoIzq : ++golpesOjoDer;
-        nivel.sendParticles(AtalayaParticulas.NEREA_SELLO, ojo.x, ojo.y, ojo.z, 6, 0.1, 0.1, 0.1, 0.15);
-        nivel.playSound(null, ojo.x, ojo.y, ojo.z, AtalayaSonidos.NEREA_SELLO_GOLPE, SoundSource.HOSTILE, 2.0F,
-                1.0F + 0.6F * golpes / golpesPorOjo);
-        if (golpes >= golpesPorOjo) {
-            int rotos = ojos | (1 << mejor);
-            entityData.set(DATA_OJOS, rotos);
-            nivel.playSound(null, ojo.x, ojo.y, ojo.z, AtalayaSonidos.NEREA_OJO_ROTO, SoundSource.HOSTILE, 3.0F, 1.0F);
-            nivel.sendParticles(AtalayaParticulas.NEREA_OJO, ojo.x, ojo.y, ojo.z, 18, 0.2, 0.2, 0.2, 0.25);
-            if (rotos == 3) {
-                // Los dos apagados: la mirada se rompe y se queda aturdido.
-                cortarSonido(nivel, AtalayaSonidos.NEREA_MIRADA_RAYO);
-                presa = null;
-                ponerEstado(ATURDIDO, NereaGeometria.DURACION_ATURDIDO);
-                sonido(AtalayaSonidos.NEREA_ATURDIDO, 3.0F);
-            }
-        }
+        golpearOjo(nivel, mejor);
         return true;
+    }
+
+    /**
+     * Un impacto en un ojo (0 el izquierdo): se raja; con GOLPES_OJO se rompe.
+     * Con los dos rotos la Mirada se corta, cae aturdida y se le va la Furia.
+     */
+    private void golpearOjo(ServerLevel nivel, int cual) {
+        int ojos = getOjosRotos();
+        if ((ojos & (1 << cual)) != 0) {
+            return;
+        }
+        Vec3 ojo = puntoMundo(cual == 0 ? NereaGeometria.OJO_IZQ_MIRADA : NereaGeometria.OJO_DER_MIRADA);
+        int golpes = cual == 0 ? ++golpesOjoIzq : ++golpesOjoDer;
+        entityData.set(DATA_GOLPES_OJOS, Math.min(255, golpesOjoIzq) | (Math.min(255, golpesOjoDer) << 8));
+        nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, ojo.x, ojo.y, ojo.z, 8, 0.15, 0.15, 0.15, 0.25);
+        nivel.sendParticles(AtalayaParticulas.NEREA_SELLO, true, true, ojo.x, ojo.y, ojo.z, 6, 0.1, 0.1, 0.1, 0.15);
+        nivel.playSound(null, ojo.x, ojo.y, ojo.z, AtalayaSonidos.NEREA_SELLO_GOLPE, SoundSource.HOSTILE, 2.0F,
+                1.0F + 0.6F * golpes / GOLPES_OJO);
+        if (golpes < GOLPES_OJO) {
+            return;
+        }
+        int rotos = ojos | (1 << cual);
+        entityData.set(DATA_OJOS, rotos);
+        nivel.playSound(null, ojo.x, ojo.y, ojo.z, AtalayaSonidos.NEREA_OJO_ROTO, SoundSource.HOSTILE, 3.0F, 1.0F);
+        nivel.sendParticles(AtalayaParticulas.NEREA_OJO, true, true, ojo.x, ojo.y, ojo.z, 18, 0.2, 0.2, 0.2, 0.25);
+        nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, ojo.x, ojo.y, ojo.z, 12, 0.3, 0.3, 0.3, 0.1);
+        if (rotos == 3) {
+            // Los dos apagados: la Mirada se rompe, cae aturdida y la Furia se le va.
+            cortarSonido(nivel, AtalayaSonidos.NEREA_MIRADA_RAYO);
+            mirados.clear();
+            entityData.set(DATA_MIRADA, "");
+            presa = null;
+            ponerFuria(nivel, false);
+            ponerEstado(ATURDIDO, NereaGeometria.DURACION_ATURDIDO);
+            sonido(AtalayaSonidos.NEREA_ATURDIDO, 3.0F);
+        }
+    }
+
+    /** La Furia de las Mareas: se prende cuando sale la Mirada y se apaga al derribarla. */
+    private void ponerFuria(ServerLevel nivel, boolean si) {
+        if (tieneFuria() == si) {
+            return;
+        }
+        entityData.set(DATA_FURIA, si);
+        Vec3 c = puntoMundo(NereaGeometria.CORAZON);
+        if (si) {
+            sonido(AtalayaSonidos.NEREA_FURIA, 8.0F);
+            // Revienta en agua desde el corazon y una onda recorre el suelo.
+            nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, c.x, c.y, c.z, 70, 2.5, 3.5, 2.5, 0.2);
+            nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, c.x, c.y, c.z, 60, 2.0, 3.0, 2.0, 0.5);
+            nivel.sendParticles(AtalayaParticulas.NEREA_OJO, true, true, c.x, c.y, c.z, 40, 2.5, 4.0, 2.5, 0.15);
+            nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, true, true, getX(), getY() + 0.12, getZ(), 0, 2.8, 24.0, 0.0, 1.0);
+        } else {
+            nivel.sendParticles(AtalayaParticulas.NEREA_BURBUJA, true, true, c.x, c.y, c.z, 50, 2.5, 4.0, 2.5, 0.05);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  Geiser del Abismo: clava el tridente y bajo cada uno se abre un
+    //  remolino que a los 1,5 s revienta en una columna de agua
+    // ------------------------------------------------------------------
+
+    private void tickGeiser(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (ta() < NereaGeometria.GEISER_GOLPE - 2 && objetivo != null) {
+            girarHacia(objetivo.position(), 12.0F);
+        } else {
+            fijarRumbo(yBodyRot);
+        }
+        if (!cruza(NereaGeometria.GEISER_GOLPE)) {
+            return;
+        }
+        Vec3 p = puntoMundo(NereaGeometria.PUNTA_GEISER);
+        nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_ESTOCADA, SoundSource.HOSTILE, 4.0F, 0.8F);
+        golpeSuelo(nivel, p, 2.4F, 9.0F, 20, 24);
+        float d = dano(DANO_GEISER);
+        for (LivingEntity b : blancosGeiser(nivel)) {
+            GeiserNereaEntity.brotar(nivel, this, new Vec3(b.getX(), sueloBajo(nivel, b), b.getZ()), d, fase());
+        }
+    }
+
+    /** Bajo quien se abren los geiseres: cada jugador a menos de 40 bloques (sin jugadores, lo vivo de alrededor), hasta 40. */
+    private List<LivingEntity> blancosGeiser(ServerLevel nivel) {
+        List<LivingEntity> out = new ArrayList<>(jugadores(nivel, 40, 0));
+        if (out.isEmpty()) {
+            out.addAll(nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(40, 12, 40), this::esPresa));
+        }
+        return out.size() > 40 ? out.subList(0, 40) : out;
+    }
+
+    /** El suelo bajo alguien (hasta 8 bloques mas abajo): si salta, el geiser se abre igual donde pisaba. */
+    private static double sueloBajo(ServerLevel nivel, LivingEntity v) {
+        if (v.onGround()) {
+            return v.getY();
+        }
+        BlockHitResult choque = nivel.clip(new ClipContext(v.position(), v.position().add(0, -8, 0), ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE, v));
+        return choque.getType() == HitResult.Type.MISS ? v.getY() : choque.getLocation().y;
+    }
+
+    // ------------------------------------------------------------------
+    //  Gran Marea: alza el tridente, el mar se retira y vuelve en una ola de
+    //  lado a lado de la arena con un solo hueco, marcado antes en el suelo
+    // ------------------------------------------------------------------
+
+    private void tickMarea(ServerLevel nivel) {
+        fijarRumbo(rumbo);
+        if (cruza(NereaGeometria.MAREA_LANZA)) {
+            Vec3 p = puntoMundo(NereaGeometria.PUNTA_MAREA);
+            nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_ROMPEOLAS_GOLPE, SoundSource.HOSTILE, 6.0F, 0.7F);
+            sonido(AtalayaSonidos.NEREA_MAREA, 8.0F);
+            golpeSuelo(nivel, p, 3.2F, 16.0F, 30, 40);
+            OlaNereaEntity.marea(nivel, this, position(), frente(), dano(DANO_MAREA), getHueco());
+        }
+    }
+
+    /** El medio de los jugadores a menos de "radio" bloques (sin jugadores, de lo vivo), o null si no hay nadie. */
+    private @Nullable Vec3 centroPresas(ServerLevel nivel, double radio) {
+        List<LivingEntity> todos = new ArrayList<>(jugadores(nivel, radio, 0));
+        if (todos.isEmpty()) {
+            todos.addAll(nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(radio, 12, radio), this::esPresa));
+        }
+        if (todos.isEmpty()) {
+            return null;
+        }
+        Vec3 c = Vec3.ZERO;
+        for (LivingEntity v : todos) {
+            c = c.add(v.position());
+        }
+        return c.scale(1.0 / todos.size());
     }
 
     private void tickAturdido(ServerLevel nivel) {
         if (t % 8 == 0) {
-            Vec3 c = puntoMundo(new Vec3(0, 7.2, 1.8));
+            Vec3 c = puntoMundo(new Vec3(0, 10.8, 2.7));
             nivel.sendParticles(AtalayaParticulas.NEREA_SELLO, c.x, c.y, c.z, 2, 0.6, 0.2, 0.6, 0.02);
         }
     }
@@ -1298,7 +1609,7 @@ public class NereaEntity extends Monster {
         nivel.playSound(null, pecho.x, pecho.y, pecho.z, AtalayaSonidos.NEREA_SELLO_ROTO, SoundSource.HOSTILE, 4.0F, 0.8F);
         nivel.sendParticles(AtalayaParticulas.NEREA_CHISPA, pecho.x, pecho.y, pecho.z, 30, 0.9, 0.9, 0.9, 0.35);
         nivel.sendParticles(AtalayaParticulas.NEREA_CORAZON, pecho.x, pecho.y, pecho.z, 14, 0.5, 0.5, 0.5, 0.15);
-        nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, getX(), getY() + 0.12, getZ(), 0, 2.6, 13.0, 0.0, 1.0);
+        nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, true, true, getX(), getY() + 0.12, getZ(), 0, 2.6, 18.0, 0.0, 1.0);
         int e = getEstado();
         if (e == DORMIDO || e == DESPERTAR) {
             return;
@@ -1307,7 +1618,7 @@ public class NereaEntity extends Monster {
         soltarGancho();
         presa = null;
         entityData.set(DATA_OBJETIVO, -1);
-        entityData.set(DATA_OJOS, 0);
+        olvidarMirada();
         if (e != TAMBALEO) {
             ponerEstado(TAMBALEO, NereaGeometria.DURACION_TAMBALEO);
             sonido(AtalayaSonidos.NEREA_TAMBALEO, 6.0F);
@@ -1381,8 +1692,8 @@ public class NereaEntity extends Monster {
         Vec3 p = puntoMundo(NereaGeometria.PECHO);
         if (causante != null) {
             Vec3 fuera = horizontalHacia(position(), causante.position());
-            double y = Mth.clamp(causante.getEyeY(), getY() + 0.5, getY() + 8.0);
-            p = new Vec3(getX() + fuera.x * 1.6, y, getZ() + fuera.z * 1.6);
+            double y = Mth.clamp(causante.getEyeY(), getY() + 0.5, getY() + 12.0);
+            p = new Vec3(getX() + fuera.x * 2.4, y, getZ() + fuera.z * 2.4);
         }
         nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_INMUNE, SoundSource.HOSTILE, 1.5F,
                 0.9F + random.nextFloat() * 0.2F);
@@ -1408,6 +1719,7 @@ public class NereaEntity extends Monster {
     public void die(DamageSource fuente) {
         super.die(fuente);
         entityData.set(DATA_OBJETIVO, -1);
+        entityData.set(DATA_MIRADA, "");
         soltarGancho();
     }
 
@@ -1442,9 +1754,9 @@ public class NereaEntity extends Monster {
         }
         if (deathTime >= NereaGeometria.DURACION_LIBERACION) {
             golpeSuelo(nivel, position(), 1.2F, 8.0F, 0, 30);
-            nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, getX(), getY() + 3.0, getZ(), 60, 1.4, 2.5, 1.4, 0.05);
-            nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, getX(), getY() + 4.0, getZ(), 50, 1.4, 2.5, 1.4, 0.2);
-            nivel.sendParticles(AtalayaParticulas.NEREA_LUZ, getX(), getY() + 4.0, getZ(), 50, 1.4, 3.0, 1.4, 0.05);
+            nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, getX(), getY() + 4.5, getZ(), 80, 2.1, 3.75, 2.1, 0.05);
+            nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, getX(), getY() + 6.0, getZ(), 70, 2.1, 3.75, 2.1, 0.2);
+            nivel.sendParticles(AtalayaParticulas.NEREA_LUZ, getX(), getY() + 6.0, getZ(), 70, 2.1, 4.5, 2.1, 0.05);
             remove(RemovalReason.KILLED);
         }
     }
@@ -1503,7 +1815,7 @@ public class NereaEntity extends Monster {
         return d.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : d.normalize();
     }
 
-    private boolean esPresa(LivingEntity v) {
+    boolean esPresa(LivingEntity v) {
         if (v == this || v instanceof NereaEntity || !v.isAlive()) {
             return false;
         }
@@ -1546,17 +1858,36 @@ public class NereaEntity extends Monster {
         return mejor;
     }
 
-    private @Nullable LivingEntity presaMirada(ServerLevel nivel) {
-        List<Player> vistos = new ArrayList<>();
-        Vec3 ojos = puntoMundo(NereaGeometria.OJO_IZQ_MIRADA);
-        for (Player p : jugadores(nivel, 48, 4)) {
-            BlockHitResult choque = nivel.clip(new ClipContext(ojos, p.getEyePosition(), ClipContext.Block.COLLIDER,
-                    ClipContext.Fluid.NONE, this));
-            if (choque.getType() == HitResult.Type.MISS) {
-                vistos.add(p);
+    /**
+     * A quienes mira la Mirada: un tercio de los que pelean (redondeando hacia
+     * arriba: 30 jugadores, 10; 4, 2; uno solo, 1), los de menos vida de entre
+     * los que tiene a la vista. Sin jugadores (maniquies de pruebas), lo vivo
+     * de alrededor.
+     */
+    private List<LivingEntity> presasMirada(ServerLevel nivel) {
+        List<LivingEntity> todos = new ArrayList<>(jugadores(nivel, 48, 4));
+        if (todos.isEmpty()) {
+            for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(48, 16, 48), this::esPresa)) {
+                double d = horizontal(position(), v.position());
+                if (d >= 4 && d <= 48) {
+                    todos.add(v);
+                }
             }
         }
-        return vistos.isEmpty() ? null : vistos.get(random.nextInt(vistos.size()));
+        int cuantos = (todos.size() + 2) / 3;
+        Vec3 ojos = puntoMundo(NereaGeometria.OJO_IZQ_MIRADA).add(puntoMundo(NereaGeometria.OJO_DER_MIRADA)).scale(0.5);
+        List<LivingEntity> vistos = new ArrayList<>();
+        for (LivingEntity v : todos) {
+            BlockHitResult choque = nivel.clip(new ClipContext(ojos, v.getEyePosition(), ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE, this));
+            if (choque.getType() == HitResult.Type.MISS) {
+                vistos.add(v);
+            }
+        }
+        // A igual vida, cualquiera: se barajan antes de ordenar.
+        Collections.shuffle(vistos, new java.util.Random(random.nextLong()));
+        vistos.sort(Comparator.comparingDouble(LivingEntity::getHealth));
+        return new ArrayList<>(vistos.subList(0, Math.min(cuantos, vistos.size())));
     }
 
     /**
@@ -1639,10 +1970,10 @@ public class NereaEntity extends Monster {
         playSound(AtalayaSonidos.NEREA_PASO, 2.0F, 0.9F + random.nextFloat() * 0.2F);
     }
 
-    /** Una pisada cada 2,3 bloques: las zancadas de un gigante. */
+    /** Una pisada cada 3,4 bloques: las zancadas de un gigante. */
     @Override
     protected float nextStep() {
-        return moveDist + 2.3F;
+        return moveDist + 3.4F;
     }
 
     @Override
@@ -1688,6 +2019,7 @@ public class NereaEntity extends Monster {
         salida.putFloat("factor_grupo", factorGrupo);
         salida.putInt("jugadores_grupo", jugadoresGrupo);
         salida.putInt("fase", fase());
+        salida.putBoolean("furia", tieneFuria());
     }
 
     @Override
@@ -1697,6 +2029,7 @@ public class NereaEntity extends Monster {
         factorGrupo = entrada.getFloatOr("factor_grupo", VIDA_VANILLA / VIDA);
         jugadoresGrupo = entrada.getIntOr("jugadores_grupo", 1);
         entityData.set(DATA_FASE, entrada.getIntOr("fase", 1));
+        entityData.set(DATA_FURIA, entrada.getBooleanOr("furia", false));
         ponerEstado(entrada.getBooleanOr("dormido", true) ? DORMIDO : LIBRE, 0);
     }
 }

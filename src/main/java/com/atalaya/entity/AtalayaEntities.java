@@ -51,6 +51,8 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_NEREA = clave("nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_BURBUJA_NEREA = clave("burbuja_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_GANCHO_NEREA = clave("gancho_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_OLA_NEREA = clave("ola_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_GEISER_NEREA = clave("geiser_nerea");
 
     /** Nerea, Guardian de los Mares: el jefe elemental del agua. */
     public static EntityType<NereaEntity> NEREA;
@@ -58,6 +60,10 @@ public final class AtalayaEntities {
     public static EntityType<BurbujaNereaEntity> BURBUJA_NEREA;
     /** El gancho del Arpon. */
     public static EntityType<GanchoNereaEntity> GANCHO_NEREA;
+    /** Las paredes de agua del Rompeolas y de la Gran Marea (desde el remake). */
+    public static EntityType<OlaNereaEntity> OLA_NEREA;
+    /** Los geiseres del Geiser del Abismo (desde el remake). */
+    public static EntityType<GeiserNereaEntity> GEISER_NEREA;
 
     public static final ResourceKey<EntityType<?>> CLAVE_AERALIS = clave("aeralis");
     public static final ResourceKey<EntityType<?>> CLAVE_CUCHILLA_VIENTO = clave("cuchilla_viento");
@@ -262,16 +268,17 @@ public final class AtalayaEntities {
     }
 
     private static void registrarNerea() {
-        // La caja es mas estrecha que los hombros (4,3 de lado a lado) y mas
-        // baja que la corona de coral (9,7): lo que importa es que tape el
-        // cuerpo para pegarle, no cada rama. Se ve desde lejos: con 30 o 40
-        // jugadores alrededor, la pelea ocupa mucho.
+        // La caja es mas estrecha que los hombros (6,5 de lado a lado desde el
+        // remake, que la hizo de unos 15 bloques) y mas baja que la corona de
+        // coral: lo que importa es que tape el cuerpo para pegarle, no cada
+        // rama. Se ve desde lejos: con 30 o 40 jugadores alrededor, la pelea
+        // ocupa mucho.
         NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_NEREA,
                 EntityType.Builder.of(NereaEntity::new, MobCategory.MONSTER)
-                        .sized(3.4F, 8.8F)
-                        .eyeHeight(7.8F)
+                        .sized(5.1F, 13.2F)
+                        .eyeHeight(11.7F)
                         .fireImmune()
-                        .clientTrackingRange(20)
+                        .clientTrackingRange(24)
                         .build(CLAVE_NEREA));
         FabricDefaultAttributeRegistry.register(NEREA, NereaEntity.crearAtributos());
 
@@ -289,6 +296,24 @@ public final class AtalayaEntities {
                         .clientTrackingRange(10)
                         .updateInterval(1)
                         .build(CLAVE_GANCHO_NEREA));
+        // Las olas y los geiseres no se mueven (el frente de la ola sale de su
+        // edad): no hace falta mandar su posicion cada tick.
+        OLA_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_OLA_NEREA,
+                EntityType.Builder.<OlaNereaEntity>of(OlaNereaEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .updateInterval(20)
+                        .build(CLAVE_OLA_NEREA));
+        GEISER_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_GEISER_NEREA,
+                EntityType.Builder.<GeiserNereaEntity>of(GeiserNereaEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(12)
+                        .updateInterval(20)
+                        .build(CLAVE_GEISER_NEREA));
     }
 
     private static void registrarVigia() {

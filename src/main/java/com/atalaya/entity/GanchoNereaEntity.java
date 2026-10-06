@@ -19,12 +19,14 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * El gancho del Arpon: el garfio de hueso del extremo de la cadena-latigo.
+ * El ancla del Arpon (desde el remake de octubre de 2026; antes, un garfio de
+ * hueso): la del extremo de la cadena-latigo.
  *
- * Vuela recto hacia el jugador mas lejano. Si lo alcanza, Nerea decide
- * ({@link NereaEntity#alEngancharGancho}): un escudo de frente lo hace
- * rebotar; si no, se queda clavado y lo arrastra hasta la punta del tridente.
- * La cadena que lo une a la mano la pinta su renderer.
+ * Vuela recto hacia el jugador mas lejano, con una estela de espuma y
+ * burbujas, y marca con un aro de espuma el suelo de a quien va. Si lo
+ * alcanza, Nerea decide ({@link NereaEntity#alEngancharGancho}): un escudo de
+ * frente la hace rebotar; si no, se queda clavada y lo arrastra hasta la punta
+ * del tridente. La cadena que la une a la mano la pinta su renderer.
  */
 public class GanchoNereaEntity extends ThrowableProjectile {
 
@@ -34,6 +36,9 @@ public class GanchoNereaEntity extends ThrowableProjectile {
     /** A quien lleva enganchado (id de entidad), para que el cliente lo pinte encima. */
     private static final EntityDataAccessor<Integer> DATA_ENGANCHADO =
             SynchedEntityData.defineId(GanchoNereaEntity.class, EntityDataSerializers.INT);
+    /** A quien va (id de entidad): el cliente le marca el suelo con un aro mientras vuela. */
+    private static final EntityDataAccessor<Integer> DATA_BLANCO =
+            SynchedEntityData.defineId(GanchoNereaEntity.class, EntityDataSerializers.INT);
 
     private @Nullable LivingEntity enganchado;
 
@@ -41,9 +46,11 @@ public class GanchoNereaEntity extends ThrowableProjectile {
         super(tipo, nivel);
     }
 
-    public static GanchoNereaEntity lanzar(ServerLevel nivel, NereaEntity nerea, Vec3 desde, Vec3 hacia) {
+    public static GanchoNereaEntity lanzar(ServerLevel nivel, NereaEntity nerea, Vec3 desde, LivingEntity blanco) {
+        Vec3 hacia = blanco.getEyePosition().add(0, -0.4, 0);
         GanchoNereaEntity g = new GanchoNereaEntity(AtalayaEntities.GANCHO_NEREA, nivel);
         g.setOwner(nerea);
+        g.entityData.set(DATA_BLANCO, blanco.getId());
         g.setPos(desde.x, desde.y, desde.z);
         Vec3 d = hacia.subtract(desde);
         g.shoot(d.x, d.y, d.z, VELOCIDAD, 0.0F);
@@ -54,10 +61,15 @@ public class GanchoNereaEntity extends ThrowableProjectile {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder datos) {
         datos.define(DATA_ENGANCHADO, -1);
+        datos.define(DATA_BLANCO, -1);
     }
 
     public int getIdEnganchado() {
         return entityData.get(DATA_ENGANCHADO);
+    }
+
+    public int getIdBlanco() {
+        return entityData.get(DATA_BLANCO);
     }
 
     @Override
@@ -86,7 +98,16 @@ public class GanchoNereaEntity extends ThrowableProjectile {
             return;
         }
         super.tick();
-        if (!level().isClientSide() && tickCount > VUELO) {
+        if (level().isClientSide()) {
+            // La estela: espuma y burbujas que deja el ancla por donde pasa.
+            Vec3 v = getDeltaMovement();
+            for (int i = 0; i < 3; i++) {
+                double k = random.nextDouble();
+                level().addParticle(i == 0 ? AtalayaParticulas.NEREA_ESPUMA : AtalayaParticulas.NEREA_BURBUJA,
+                        getX() - v.x * k + random.nextGaussian() * 0.15, getY() - v.y * k + random.nextGaussian() * 0.15,
+                        getZ() - v.z * k + random.nextGaussian() * 0.15, 0, 0.02, 0);
+            }
+        } else if (tickCount > VUELO) {
             fallar();
         }
     }

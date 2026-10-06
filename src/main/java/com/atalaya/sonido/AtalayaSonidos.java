@@ -75,6 +75,12 @@ public final class AtalayaSonidos {
     public static SoundEvent NEREA_LATIDO;
     public static SoundEvent NEREA_LIBERACION;
     public static SoundEvent NEREA_DISOLVER;
+    // El remake de octubre de 2026: el Geiser del Abismo, la Gran Marea y la Furia.
+    public static SoundEvent NEREA_GEISER_AVISO;
+    public static SoundEvent NEREA_GEISER;
+    public static SoundEvent NEREA_MAREA_ALZA;
+    public static SoundEvent NEREA_MAREA;
+    public static SoundEvent NEREA_FURIA;
 
     public static SoundEvent AERALIS_AMBIENTE;
     public static SoundEvent AERALIS_ALETEO;
@@ -230,6 +236,11 @@ public final class AtalayaSonidos {
         NEREA_LATIDO = registrar("nerea.latido");
         NEREA_LIBERACION = registrar("nerea.liberacion");
         NEREA_DISOLVER = registrar("nerea.disolver");
+        NEREA_GEISER_AVISO = registrar("nerea.geiser_aviso");
+        NEREA_GEISER = registrar("nerea.geiser");
+        NEREA_MAREA_ALZA = registrar("nerea.marea_alza");
+        NEREA_MAREA = registrar("nerea.marea");
+        NEREA_FURIA = registrar("nerea.furia");
 
         AERALIS_AMBIENTE = registrar("aeralis.ambiente");
         AERALIS_ALETEO = registrar("aeralis.aleteo");

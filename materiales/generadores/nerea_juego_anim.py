@@ -352,6 +352,33 @@ anim('LIBERACION', 10.0, [(0, N, 'c'), (0.3, _li_grito, 'l'), (1.0, con(_li_grit
                           (7.2, _li_ofrece, 'c'), (10.0, _li_ofrece, 'c')])
 
 
+# --- Geiser del Abismo (remake): alza el tridente con las dos manos y clava el
+#     cuento en el suelo; bajo los pies de los jugadores se abre el abismo ---
+T_GEISER = 0.55
+_ge_alza = mezcla({'pelvis': P(0, -1, 1), 'torso': r(-7), 'cuello': r(-3), 'cabeza': r(-8), 'mandibula': r(18)},
+                  brazo('der', -150, 10, -24), brazo('izq', -140, -16, -30), en_el_aire('izq', 6.5, -4))
+_ge_clava = mezcla({'pelvis': P(0, 6, -2), 'torso': r(22), 'cabeza': r(10), 'mandibula': r(30)},
+                   brazo('der', -36, 8, -46), brazo('izq', -40, -10, -56), apoyo('izq', 7, SUELO, -10))
+anim('GEISER', 1.6, [(0, N, 'c'), (0.32, _ge_alza, 'c'), (T_GEISER, _ge_clava, 'l'), (0.8, _ge_clava, 'c'),
+                     (1.15, con(_ge_clava, torso=r(16), pelvis=P(0, 4, -1)), 'c'), (1.6, N, 'c')])
+
+# --- La Gran Marea (remake): alza el tridente al cielo con los brazos abiertos
+#     y el mar se retira; al bajarlo de un tajo, la ola sale hacia delante ---
+T_MAREA = 2.0
+_ma_alza = mezcla({'pelvis': P(0, -1.5, 1), 'torso': r(-9), 'cuello': r(-4), 'cabeza': r(-14), 'mandibula': r(32)},
+                  brazo('der', -172, 8, -8), brazo('izq', -120, -60, -20))
+_ma_baja = mezcla({'pelvis': P(0, 6, -5), 'torso': r(26, -4), 'cabeza': r(12), 'mandibula': r(36),
+                   'tridente': r(*T_EMP)},
+                  brazo('der', -58, 6, -44), brazo('izq', -30, -40, -20), apoyo('izq', 7, SUELO, -13))
+_claves = [(0, N, 'c'), (0.5, _ma_alza, 'c')]
+for k in range(1, 5):
+    _claves.append((0.5 + 0.3 * k, con(_ma_alza, torso=r(-9 + (1.5 if k % 2 else -1.5), 0, 0.8 if k % 2 else -0.8),
+                                        mandibula=r(30 + 4 * (k % 2))), 'c'))
+_claves += [(1.78, mezcla(_ma_alza, {'torso': r(-12)}, brazo('der', -180, 8, -4)), 'c'), (T_MAREA, _ma_baja, 'l'),
+            (2.4, _ma_baja, 'c'), (3.0, N, 'c')]
+anim('MAREA', 3.0, _claves)
+
+
 # ----------------------------------------------------------------------
 #  De poses a canales
 # ----------------------------------------------------------------------
@@ -551,7 +578,8 @@ def p_bloques(anim_nombre, s, pieza, local=(0, 0, 0)):
 
 
 def punta_tridente(anim_nombre, s):
-    return p_bloques(anim_nombre, s, 'tridente', (0, 70, 0))
+    # la punta central del tridente largo del remake
+    return p_bloques(anim_nombre, s, 'tridente', (0, 90, 0))
 
 
 T_IMPACTO = 0.5
@@ -574,7 +602,9 @@ def java_geometria():
         'MANO_IZQ_REMOLINO': p_bloques('REMOLINO', 2.0, 'mano_izq', (0, 4, 0)),
         'PUNTA_ROMPEOLAS': punta_tridente('ROMPEOLAS', T_IMPACTO),
         'PUNTA_ESTOCADA': punta_tridente('ARPON_TIRAR', T_ESTOCADA),
-        'PUNTA_REMOLINO': p_bloques('REMOLINO', 1.0, 'tridente', (0, -26, 0)),
+        'PUNTA_REMOLINO': p_bloques('REMOLINO', 1.0, 'tridente', (0, -30, 0)),
+        'PUNTA_GEISER': p_bloques('GEISER', T_GEISER, 'tridente', (0, -30, 0)),
+        'PUNTA_MAREA': punta_tridente('MAREA', T_MAREA),
     }
 
     def tick(s):
@@ -593,6 +623,8 @@ def java_geometria():
         'DURACION_TAMBALEO': tick(ANIMS['TAMBALEO']['dur']),
         'DURACION_AGOTADO': tick(ANIMS['AGOTADO']['dur']),
         'DURACION_LIBERACION': tick(ANIMS['LIBERACION']['dur']), 'LIBERACION_OJOS_ORO': tick(3.5),
+        'DURACION_GEISER': tick(ANIMS['GEISER']['dur']), 'GEISER_GOLPE': tick(T_GEISER),
+        'DURACION_MAREA': tick(ANIMS['MAREA']['dur']), 'MAREA_LANZA': tick(T_MAREA),
     }
     L = ['package com.atalaya.entity;', '',
          'import net.minecraft.world.phys.Vec3;', '',
@@ -664,6 +696,10 @@ LUCES = [((-0.5, 0.8, -0.6), (1.0, 0.97, 0.9), 0.85, 'llave'), ((0.7, 0.3, 0.6),
 
 def render_pose(pose, tex, emis, uv, alto, W=300, H=360, guinada=-30, ojo=(9, 6.0, -13), objetivo=(0, 4.6, 0), fov=50,
                 suelo=True):
+    # la camara de las hojas se penso para 10 bloques: crece con la escala del remake
+    k = nj.ESCALA / 1.6
+    ojo = tuple(c * k for c in ojo)
+    objetivo = tuple(c * k for c in objetivo)
     cam = nm.vr.Camara(ojo=ojo, objetivo=objetivo, fov=fov, ancho=W, alto=H)
     lz = nm.vr.Lienzo(W, H)
     M = nm.vr.entidad_a_mundo(0, 0, 0, guinada, nj.ESCALA)

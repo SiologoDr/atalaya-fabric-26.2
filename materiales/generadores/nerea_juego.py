@@ -10,14 +10,21 @@ y nerea_juego_anim.py importa este modulo para animar y para sacar los puntos
 que usa el servidor (ojos, corazon, mano, punta del tridente).
 
 Unidades: pixeles de modelo, Y hacia abajo, el frente mira a -Z, pies en y=24.
-El renderer escala x1,6: un pixel de modelo son 0,1 bloques en el mundo.
+El renderer escala x2,4: un pixel de modelo son 0,15 bloques en el mundo.
+
+Desde el remake de octubre de 2026 (_remake, al final de construir) mide unos
+15 bloques en vez de 10 y lleva la venera de nacar detras de la cabeza, la
+corona y los corales mas largos, la barba y la capa de algas, las espinas del
+lomo, la caracola del hombro, el ancla en la cadena, el tridente largo con su
+espiral de espuma y los brazos, piernas y ojos mas gruesos. La malla de antes
+esta en nerea_juego_v1.py (la usa la ficha para el antes).
 """
 import math, random, os, sys
 import numpy as np
 from PIL import Image
 import nerea_modelo as nm
 
-ESCALA = 1.6
+ESCALA = 2.4
 
 # ----------------------------------------------------------------------
 #  Materiales: los del boceto, mas los que el juego necesita aparte
@@ -48,6 +55,53 @@ VENAS_FASE = {1: 0.0, 2: 0.0025, 3: 0.006, 4: 0.012}
 CORAL_MUERTO = {1: 0.0, 2: 0.2, 3: 0.5, 4: 0.85}
 CORALES = {'coral_r', 'coral_n', 'coral_p', 'alga'}
 CON_VENAS = {'prisma', 'prisma_osc', 'hueso', 'abismo'}
+
+# --- Los materiales del remake (losetas 16x16, como nerea_modelo.py) ---
+NACAR = nm._rampa('6a4862', 'a0788e', 'd0a6bc', 'f0d2e2', 'fff4fa')
+ALGA_OSC = nm._rampa('0c200e', '143214', '1e4a1a', '2a6222', '3a7a2e')
+
+
+def _nacar(x, y, r):
+    # bandas de nacar con un reflejo iridiscente (rosa y turquesa)
+    b = [1, 2, 3, 3, 2][(y // 3) % 5]
+    if r.random() < 0.12:
+        b = 4
+    c = NACAR[b]
+    if (x + y * 2) % 11 == 0:
+        c = (c[0] - 20, c[1] + 18, c[2] + 22)
+    elif (x * 3 + y) % 13 == 0:
+        c = (c[0] + 24, c[1] - 6, c[2] + 4)
+    return tuple(max(0, min(255, v)) for v in c)
+
+
+def _nacar_osc(x, y, r):
+    # el surco entre lomos de la venera: el mismo nacar, mas apagado y rosado
+    c = _nacar(x, y, r)
+    return tuple(max(0, min(255, int(v))) for v in (c[0] * 0.78 + 12, c[1] * 0.66, c[2] * 0.74))
+
+
+def _alga_osc(x, y, r):
+    b = r.choice([1, 2, 2, 3])
+    if x in (0, 15):
+        b = 0
+    elif x == 8 and r.random() < 0.7:
+        b = 4                       # el nervio de la hoja
+    return ALGA_OSC[b]
+
+
+MAT.update({
+    'concha': nm._loseta(30, _nacar),
+    'concha_osc': nm._loseta(35, _nacar_osc),
+    'alga_osc': nm._loseta(31, _alga_osc),
+    'perla': nm._loseta(33, nm.emisivo('ffffff', '9fe8ff')),
+    'espuma': nm._loseta(34, nm.emisivo('f0ffff', '3fe0ff')),
+    'nacar_luz': nm._loseta(36, nm.emisivo('fff4fa', 'ff9ac8')),
+})
+EMISIVOS |= {'perla', 'espuma', 'nacar_luz'}
+BRILLO.update({'perla': ('ffffff', '9fe8ff'), 'espuma': ('f0ffff', '3fe0ff'), 'nacar_luz': ('fff4fa', 'ff9ac8')})
+BRILLO_LIBRE.update({'perla': ('fffbe0', 'ffd86a'), 'espuma': ('fff6d0', 'ffcf5a'), 'nacar_luz': ('fffbe0', 'ffd86a')})
+# la maldicion tambien le sube por la concha
+CON_VENAS |= {'concha', 'concha_osc'}
 
 
 class Parte:
@@ -200,10 +254,10 @@ def construir():
             (-3.6, 6, -3.6, 7.2, 8, 7.2, 'prisma')])
         parte('mano_' + n, 'antebrazo_' + n, (0, 15, 0), cajas=[(-3.5, 0, -3.5, 7, 6, 7, 'hueso')])
 
-    # la cadena-latigo de la mano izquierda, con el gancho del Arpon al final
+    # la cadena-latigo de la mano izquierda, con el ancla del Arpon al final
     cadena('cadena_mano', 'mano_izq', (0, 5, 0), (0, 20, 5), 1.3)
     largo = float(np.linalg.norm([0, 15, 5]))
-    parte('gancho_mano', 'cadena_mano', (0, largo, 0), cajas=GANCHO)
+    ancla('gancho_mano', 'cadena_mano', (0, largo, 0))
 
     # el tridente: en reposo, vertical y con las puntas arriba (el giro exacto
     # sale de la postura del brazo, al final de construir)
@@ -223,6 +277,10 @@ def construir():
     # bloques. Solo se ven durante el ataque.
     for n, (ini, fin) in MOLINO_CADENAS.items():
         cadena('molino_' + n, 'pelvis', ini, fin, 1.6)
+        # y en la punta, un ancla que barre el suelo
+        ancla('ancla_molino_' + n, 'molino_' + n, (0, float(np.linalg.norm(np.array(fin) - np.array(ini))), 0))
+
+    _remake()
 
     # El tridente, a plomo en el puno: su eje +Y ha de apuntar arriba en el mundo.
     Rm = matrices()['mano_der'][:3, :3]
@@ -238,17 +296,127 @@ def giro_empunar():
     return (-180.0 - rx, 0.0, 180.0 - rz)
 
 
-# El gancho: tres garfios de hueso alrededor de un anillo de oxido.
-GANCHO = [
-    (-1.5, 0, -1.5, 3, 3, 3, 'oxido'),
-    (-0.75, 3, -0.75, 1.5, 6, 1.5, 'hueso'),
-    (-4.5, 7, -0.75, 9, 1.5, 1.5, 'hueso'),
-    (-4.5, 3.5, -0.75, 1.5, 4, 1.5, 'hueso'),
-    (3, 3.5, -0.75, 1.5, 4, 1.5, 'hueso'),
-    (-0.75, 7, -4.5, 1.5, 1.5, 9, 'hueso'),
-    (-0.75, 3.5, -4.5, 1.5, 4, 1.5, 'hueso'),
-    (-0.75, 3.5, 3, 1.5, 4, 1.5, 'hueso'),
-]
+# El ancla (desde el remake, en lugar del gancho de hueso): la argolla, la cana
+# de prismarina con percebes, el cepo de oxido y la cruz; los dos brazos con sus
+# unas van aparte (ancla()). El eje va en +Y local: la argolla en 0, la cruz al
+# fondo. Las mismas cajas pinta GanchoNereaRenderer para el Arpon.
+ANCLA = [
+    (-2.6, -2.5, -0.9, 5.2, 3, 1.8, 'oxido'),           # la argolla
+    (-1.3, 0, -1.3, 2.6, 13, 2.6, 'prisma_osc'),        # la cana
+    (-1.1, 2.5, -8, 2.2, 2.2, 16, 'oxido'),             # el cepo, de fondo
+    (-2, 12, -2, 4, 3.5, 4, 'prisma_osc'),              # la cruz
+    (-1, 5, 1.2, 2, 2, 2, 'percebe'), (0.6, 9, -2.2, 2, 2, 1.5, 'percebe')]
+ANCLA_BRAZO = [(-1.2, 0, -1.2, 2.4, 11, 2.4, 'prisma_osc'),
+               (-3.4, 7, -1.4, 6.8, 6, 2.8, 'prisma_osc')]   # la una
+
+
+def ancla(nombre, padre, pivote, rot=(0, 0, 0)):
+    """Un ancla entera: la cana y, desde la cruz, los dos brazos hacia atras."""
+    parte(nombre, padre, pivote, rot, ANCLA)
+    for s, lado in ((1, 'a'), (-1, 'b')):
+        parte(f'{nombre}_{lado}', nombre, (0, 14, 0), (0, 0, s * 128), ANCLA_BRAZO)
+
+
+def _escalar_y(nombre, k):
+    """Alarga una pieza (y sus hijos) a lo largo de su Y local: cajas y pivotes."""
+    p = PARTES[nombre]
+    p.cajas = [(c[0], c[1] * k, c[2], c[3], c[4] * k, c[5], c[6]) for c in p.cajas]
+    for h in p.hijos:
+        h.pivote = (h.pivote[0], h.pivote[1] * k, h.pivote[2])
+        _escalar_y(h.nombre, k)
+
+
+def _escalar(nombre, k):
+    """Agranda las cajas de una pieza alrededor de su pivote."""
+    p = PARTES[nombre]
+    p.cajas = [tuple(v * k for v in c[:6]) + (c[6],) for c in p.cajas]
+
+
+def _engordar(nombre, k):
+    """Engorda una pieza (x y z de sus cajas) sin alargarla: las piernas siguen
+    midiendo lo mismo para la cinematica inversa de nerea_fisica.py."""
+    p = PARTES[nombre]
+    p.cajas = [(c[0] * k, c[1], c[2] * k, c[3] * k, c[4], c[5] * k, c[6]) for c in p.cajas]
+
+
+def _remake():
+    """El remake de octubre de 2026, sobre la malla de siempre."""
+    # --- La corona: puas y cuernos de coral mucho mas largos
+    for i in range(6):
+        _escalar_y(f'puas_{i}', 1.9)
+    for n in ('corona_c1', 'corona_c2', 'corona_c3', 'corona_c4'):
+        _escalar_y(n, 1.7)
+    for n in [k for k in ORDEN if k.startswith('coral_h')]:     # (las ramas, dos veces: como en la ficha)
+        _escalar_y(n, 1.5)
+
+    # --- La venera: costillas anchas que se solapan (lomos y surcos alternos),
+    # con el filo encendido, y una perla que brilla en el centro
+    parte('concha', 'cabeza', (0, -8, 10), (10, 0, 0), [(-4, -4, -1.2, 8, 8, 2.4, 'concha_osc')])
+    for i in range(15):
+        a = -70 + i * 10
+        lomo = i % 2 == 0
+        largo = 30 if lomo else 28
+        ancho = 5.6
+        parte(f'concha_r{i}', 'concha', (0, 0, 0.0 if lomo else 0.6), (0, 0, a), [
+            (-ancho / 2, -largo, -0.7 if lomo else -0.5, ancho, largo, 1.4 if lomo else 1.0,
+             'concha' if lomo else 'concha_osc'),
+            (-ancho / 2 - 0.2, -largo - 1.4, -0.8, ancho + 0.4, 1.6, 1.6, 'nacar_luz')])
+    parte('perla', 'concha', (0, 0, -1.8), cajas=[(-2.4, -2.4, -1.4, 4.8, 4.8, 2.8, 'perla')])
+
+    # --- La barba: algas de la mandibula, como tentaculos
+    for i, x in enumerate((-4.5, -2.5, -0.5, 1.5, 3.5)):
+        largo = (20, 27, 32, 26, 19)[i]
+        parte(f'barba_{i}', 'mandibula', (x + 0.5, 3.6, -11.2), (14, 0, (i - 2) * 5),
+              [(-1.2, 0, 0, 2.6, largo, 0, 'alga')])
+
+    # --- La capa de algas: de los hombros al suelo, por la espalda
+    for i, x in enumerate((-11, -5.5, 0, 5.5, 11)):
+        largo = (52, 60, 64, 60, 52)[i]
+        parte(f'capa_{i}', 'torso', (x, -27, 8.2), (24, 0, (i - 2) * -3), [(-3, 0, 0, 6, largo, 0, 'alga_osc')])
+
+    # --- Espinas de hueso por el lomo, entre las algas de la capa
+    for i, y in enumerate((-26, -20, -14)):
+        parte(f'espina_{i}', 'torso', (0, y, 8), (-55, 0, 0), [(-1.1, -12 + i * 2, -1.1, 2.2, 12 - i * 2, 2.2, 'hueso')])
+
+    # --- Hombreras mas grandes y la caracola del hombro izquierdo
+    for n in ('hombro_izq', 'hombro_der'):
+        _escalar(n, 1.3)
+    parte('caracola', 'hombro_izq', (1, -7, 0), (0, 0, 18), [
+        (-7, -5, -7, 14, 5, 14, 'concha'),
+        (-5.5, -9.5, -5.5, 11, 4.5, 11, 'concha'),
+        (-4, -13, -4, 8, 3.5, 8, 'concha'),
+        (-2.6, -16, -2.6, 5.2, 3, 5.2, 'concha'),
+        (-1.3, -19.5, -1.3, 2.6, 3.5, 2.6, 'concha'),
+        (6.5, -4, -1, 5, 2, 2, 'concha'), (-1, -8, 5, 2, 2, 5, 'concha'),
+        (-9.5, -7, -1, 4, 2, 2, 'concha'), (-1, -3, -10, 2, 2, 4, 'concha')])
+
+    # --- El tridente: mas largo, puntas mas grandes y la espiral de espuma
+    PARTES['tridente'].cajas = [
+        (-1.3, -30, -1.3, 2.6, 96, 2.6, 'prisma_osc'),
+        (-2, 64, -2, 4, 4, 4, 'punta'),
+        (-11, 67, -2, 22, 3.5, 4, 'prisma'),
+        (-1.8, 70, -1.8, 3.6, 20, 3.6, 'punta'),
+        (-10.5, 70, -1.5, 3, 14, 3, 'punta'),
+        (7.5, 70, -1.5, 3, 14, 3, 'punta'),
+        (-4.5, 81, -1, 2.5, 4, 2, 'punta'),
+        (2, 81, -1, 2.5, 4, 2, 'punta'),
+        (-11.5, 81, -1, 2, 4, 2, 'punta'), (9.5, 81, -1, 2, 4, 2, 'punta')]
+    espiral = []
+    for k in range(26):
+        a = k * 0.62
+        y = -22 + k * 3.3
+        espiral.append((math.cos(a) * 3.2 - 0.8, y, math.sin(a) * 3.2 - 0.8, 1.6, 1.6, 1.6, 'espuma'))
+    parte('espiral', 'tridente', (0, 0, 0), cajas=espiral)
+
+    # --- Brazos y piernas mas gruesos (iban flacos bajo las hombreras nuevas),
+    # ojos mas grandes y algas del faldon mas largas
+    for n in ('brazo', 'antebrazo', 'mano', 'pierna', 'espinilla', 'pie'):
+        for lado in ('izq', 'der'):
+            _engordar(f'{n}_{lado}', 1.22)
+    for n in ('ojo_izq', 'ojo_der'):
+        _escalar(n, 1.35)
+    for n in ('algas_del', 'algas_tras'):
+        _escalar_y(n, 1.35)
 
 # Se rellenan en nerea_juego_anim.py con la cinematica de la pose del molino
 # (inicio en la mano, fin en el suelo), en el espacio de la pelvis.
@@ -361,6 +529,7 @@ def pintar_atlas(uv, alto, fase=1):
     tabla_fase = dict(BRILLO)
     tabla_fase['ojo'] = OJOS_FASE[fase]
     tabla_fase['punta'] = PUNTAS_FASE[fase]
+    tabla_fase['espuma'] = PUNTAS_FASE[fase]      # la espiral del tridente, del color de la fase
     hechas = set()
     for n in ORDEN:
         for c in PARTES[n].cajas:
@@ -451,6 +620,7 @@ def java_malla(uv, alto):
     L.append('package com.atalaya.client;')
     L.append('')
     L.append('import net.minecraft.client.model.geom.PartPose;')
+    L.append('import net.minecraft.client.model.geom.builders.CubeDeformation;')
     L.append('import net.minecraft.client.model.geom.builders.CubeListBuilder;')
     L.append('import net.minecraft.client.model.geom.builders.LayerDefinition;')
     L.append('import net.minecraft.client.model.geom.builders.MeshDefinition;')
@@ -467,6 +637,15 @@ def java_malla(uv, alto):
     L.append('    }')
     L.append('')
     L.append('    public static LayerDefinition crear() {')
+    L.append('        return crear(CubeDeformation.NONE);')
+    L.append('    }')
+    L.append('')
+    L.append('    /** La misma malla hinchada: la capa del aura de la Furia (como las de Rajang y Aeralis). */')
+    L.append('    public static LayerDefinition crearAura() {')
+    L.append('        return crear(new CubeDeformation(1.2F));')
+    L.append('    }')
+    L.append('')
+    L.append('    private static LayerDefinition crear(CubeDeformation infla) {')
     L.append('        MeshDefinition malla = new MeshDefinition();')
     L.append('        PartDefinition p_root = malla.getRoot();')
     for n in ORDEN:
@@ -475,11 +654,36 @@ def java_malla(uv, alto):
         cub = 'CubeListBuilder.create()'
         for c in p.cajas:
             u, v = uv[clave(c)]
-            cub += f'\n                .texOffs({u}, {v}).addBox({f(c[0])}, {f(c[1])}, {f(c[2])}, {f(c[3])}, {f(c[4])}, {f(c[5])})'
+            cub += f'\n                .texOffs({u}, {v}).addBox({f(c[0])}, {f(c[1])}, {f(c[2])}, {f(c[3])}, {f(c[4])}, {f(c[5])}, infla)'
         rx, ry, rz = [r * D2R for r in p.rot]
         pose = f'PartPose.offsetAndRotation({f(p.pivote[0])}, {f(p.pivote[1])}, {f(p.pivote[2])}, {f(rx)}, {f(ry)}, {f(rz)})'
         decl = f'PartDefinition {var(n)} = ' if p.hijos else ''
         L.append(f'        {decl}{padre}.addOrReplaceChild("{n}", {cub},\n                {pose});')
+    L.append(f'        return LayerDefinition.create(malla, {ANCHO_ATLAS}, {alto});')
+    L.append('    }')
+    # El ancla del Arpon suelta (GanchoNereaRenderer): las mismas cajas y el
+    # mismo atlas que la de la mano, girada para que su eje +Y vaya a +Z (el
+    # sentido de vuelo) y centrada: la cruz y las unas delante, la argolla detras.
+    ancla = PARTES['gancho_mano']
+
+    def cubos(p):
+        cub = 'CubeListBuilder.create()'
+        for c in p.cajas:
+            u, v = uv[clave(c)]
+            cub += f'\n                .texOffs({u}, {v}).addBox({f(c[0])}, {f(c[1])}, {f(c[2])}, {f(c[3])}, {f(c[4])}, {f(c[5])}, infla)'
+        return cub
+    L.append('')
+    L.append('    /** El ancla del Arpon cuando vuela: la de la mano, con la cruz por delante (+Z). */')
+    L.append('    public static LayerDefinition crearAncla() {')
+    L.append('        CubeDeformation infla = CubeDeformation.NONE;')
+    L.append('        MeshDefinition malla = new MeshDefinition();')
+    L.append('        PartDefinition p_root = malla.getRoot();')
+    L.append(f'        PartDefinition p_ancla = p_root.addOrReplaceChild("ancla", {cubos(ancla)},\n'
+             f'                PartPose.offsetAndRotation(0F, 0F, -6.5F, {f(math.pi / 2)}, 0F, 0F));')
+    for h in ancla.hijos:
+        rx, ry, rz = [r * D2R for r in h.rot]
+        L.append(f'        p_ancla.addOrReplaceChild("{h.nombre}", {cubos(h)},\n'
+                 f'                PartPose.offsetAndRotation({f(h.pivote[0])}, {f(h.pivote[1])}, {f(h.pivote[2])}, {f(rx)}, {f(ry)}, {f(rz)}));')
     L.append(f'        return LayerDefinition.create(malla, {ANCHO_ATLAS}, {alto});')
     L.append('    }')
     L.append('}')

@@ -16,21 +16,23 @@ public final class NereaGeometria {
     private NereaGeometria() {
     }
 
-    public static final Vec3 OJO_IZQ = new Vec3(0.375, 7.796, 1.627);
-    public static final Vec3 OJO_DER = new Vec3(-0.375, 7.796, 1.627);
-    public static final Vec3 OJO_IZQ_MIRADA = new Vec3(0.403, 7.187, 2.313);
-    public static final Vec3 OJO_DER_MIRADA = new Vec3(-0.347, 7.194, 2.313);
-    public static final Vec3 CORAZON = new Vec3(0.000, 5.574, 0.928);
-    public static final Vec3 CORAZON_BURBUJAS = new Vec3(0.000, 5.019, 1.515);
-    public static final Vec3 CORAZON_AGOTADO = new Vec3(0.000, 3.757, 1.325);
-    public static final Vec3 PECHO = new Vec3(0.000, 5.433, 1.285);
-    public static final Vec3 BOCA = new Vec3(0.000, 6.991, 1.496);
-    public static final Vec3 MANO_IZQ_LANZAR = new Vec3(1.008, 6.318, 4.427);
-    public static final Vec3 MANO_IZQ_ESPERA = new Vec3(0.792, 4.715, 4.313);
-    public static final Vec3 MANO_IZQ_REMOLINO = new Vec3(1.476, 8.020, 3.643);
-    public static final Vec3 PUNTA_ROMPEOLAS = new Vec3(-0.343, 0.152, 10.576);
-    public static final Vec3 PUNTA_ESTOCADA = new Vec3(-1.064, 0.153, 3.817);
-    public static final Vec3 PUNTA_REMOLINO = new Vec3(-1.826, -0.158, 1.615);
+    public static final Vec3 OJO_IZQ = new Vec3(0.562, 11.694, 2.441);
+    public static final Vec3 OJO_DER = new Vec3(-0.562, 11.694, 2.441);
+    public static final Vec3 OJO_IZQ_MIRADA = new Vec3(0.604, 10.781, 3.470);
+    public static final Vec3 OJO_DER_MIRADA = new Vec3(-0.521, 10.790, 3.470);
+    public static final Vec3 CORAZON = new Vec3(0.000, 8.361, 1.392);
+    public static final Vec3 CORAZON_BURBUJAS = new Vec3(0.000, 7.529, 2.273);
+    public static final Vec3 CORAZON_AGOTADO = new Vec3(0.000, 5.636, 1.988);
+    public static final Vec3 PECHO = new Vec3(0.000, 8.150, 1.927);
+    public static final Vec3 BOCA = new Vec3(0.000, 10.486, 2.243);
+    public static final Vec3 MANO_IZQ_LANZAR = new Vec3(1.511, 9.477, 6.640);
+    public static final Vec3 MANO_IZQ_ESPERA = new Vec3(1.188, 7.072, 6.469);
+    public static final Vec3 MANO_IZQ_REMOLINO = new Vec3(2.214, 12.030, 5.465);
+    public static final Vec3 PUNTA_ROMPEOLAS = new Vec3(-0.165, -0.994, 18.581);
+    public static final Vec3 PUNTA_ESTOCADA = new Vec3(-1.596, -2.771, 5.727);
+    public static final Vec3 PUNTA_REMOLINO = new Vec3(-2.738, -0.837, 2.422);
+    public static final Vec3 PUNTA_GEISER = new Vec3(-2.575, -0.968, 4.391);
+    public static final Vec3 PUNTA_MAREA = new Vec3(-0.810, -2.222, 18.237);
 
     public static final int DURACION_DESPERTAR = 64;
     public static final int DURACION_ROMPEOLAS = 21;
@@ -56,11 +58,15 @@ public final class NereaGeometria {
     public static final int DURACION_AGOTADO = 90;
     public static final int DURACION_LIBERACION = 200;
     public static final int LIBERACION_OJOS_ORO = 70;
+    public static final int DURACION_GEISER = 32;
+    public static final int GEISER_GOLPE = 11;
+    public static final int DURACION_MAREA = 60;
+    public static final int MAREA_LANZA = 40;
 
     /** La mano izquierda (donde nace la cadena del gancho), tick a tick, en el espacio del cuerpo. */
-    public static final float[][] MANO_ARPON_LANZAR = {{1.74F, 2.68F, 0.61F}, {1.92F, 5.83F, 3.67F}, {1.52F, 9.64F, 0.61F}, {1.23F, 9.72F, -0.07F}, {1.07F, 9.68F, 0.15F}, {1.01F, 9.56F, 0.67F}, {1.01F, 9.47F, 0.92F}, {1.06F, 9.52F, 0.78F}, {1.21F, 9.61F, 0.54F}, {1.34F, 9.68F, 0.27F}, {1.39F, 9.71F, 0.08F}, {1.23F, 9.71F, 0.00F}, {0.97F, 9.68F, -0.01F}, {0.75F, 9.64F, 0.03F}, {0.74F, 9.64F, -0.00F}, {0.94F, 9.71F, -0.35F}, {1.47F, 9.63F, 0.32F}, {0.55F, 5.16F, 4.78F}, {0.21F, 3.60F, 4.43F}, {0.32F, 3.60F, 4.32F}, {0.48F, 3.94F, 4.37F}, {0.66F, 4.38F, 4.41F}, {0.78F, 4.67F, 4.40F}};
-    public static final float[][] MANO_ARPON_ESPERA = {{0.78F, 4.68F, 4.41F}, {0.78F, 4.67F, 4.40F}, {0.78F, 4.66F, 4.40F}, {0.78F, 4.65F, 4.39F}, {0.79F, 4.63F, 4.38F}, {0.79F, 4.62F, 4.38F}, {0.79F, 4.60F, 4.37F}, {0.80F, 4.59F, 4.37F}, {0.80F, 4.58F, 4.36F}, {0.80F, 4.57F, 4.36F}, {0.80F, 4.57F, 4.36F}, {0.80F, 4.58F, 4.36F}, {0.80F, 4.59F, 4.36F}, {0.80F, 4.60F, 4.37F}, {0.79F, 4.61F, 4.37F}, {0.79F, 4.62F, 4.38F}, {0.79F, 4.64F, 4.39F}, {0.78F, 4.65F, 4.39F}, {0.78F, 4.66F, 4.40F}, {0.78F, 4.67F, 4.40F}, {0.78F, 4.68F, 4.41F}};
-    public static final float[][] MANO_ARPON_TIRAR = {{0.78F, 4.68F, 4.40F}, {0.87F, 3.67F, 3.12F}, {0.92F, 4.12F, 2.43F}, {0.87F, 4.38F, 2.11F}, {1.27F, 3.79F, 1.95F}, {1.91F, 3.35F, 1.70F}, {2.31F, 3.36F, 1.66F}, {2.61F, 3.64F, 1.80F}, {2.86F, 3.91F, 1.92F}, {2.93F, 3.66F, 2.01F}, {2.94F, 3.22F, 2.07F}, {2.95F, 2.77F, 2.01F}, {2.97F, 2.36F, 1.91F}, {2.99F, 2.10F, 1.82F}, {3.07F, 2.09F, 1.79F}, {3.02F, 2.20F, 1.70F}, {2.92F, 2.26F, 1.61F}, {2.77F, 2.33F, 1.46F}, {2.58F, 2.41F, 1.27F}, {2.35F, 2.49F, 1.07F}, {2.11F, 2.56F, 0.88F}, {1.89F, 2.63F, 0.72F}, {1.74F, 2.68F, 0.61F}};
+    public static final float[][] MANO_ARPON_LANZAR = {{2.61F, 4.01F, 0.92F}, {2.88F, 8.74F, 5.50F}, {2.29F, 14.46F, 0.91F}, {1.85F, 14.58F, -0.10F}, {1.60F, 14.52F, 0.22F}, {1.52F, 14.34F, 1.00F}, {1.51F, 14.21F, 1.38F}, {1.60F, 14.29F, 1.17F}, {1.81F, 14.42F, 0.81F}, {2.02F, 14.52F, 0.41F}, {2.08F, 14.57F, 0.13F}, {1.85F, 14.57F, 0.00F}, {1.45F, 14.53F, -0.01F}, {1.13F, 14.46F, 0.04F}, {1.11F, 14.46F, -0.00F}, {1.42F, 14.57F, -0.52F}, {2.20F, 14.45F, 0.48F}, {0.83F, 7.74F, 7.16F}, {0.31F, 5.40F, 6.64F}, {0.48F, 5.40F, 6.49F}, {0.72F, 5.92F, 6.55F}, {0.99F, 6.57F, 6.61F}, {1.17F, 7.00F, 6.60F}};
+    public static final float[][] MANO_ARPON_ESPERA = {{1.16F, 7.02F, 6.61F}, {1.17F, 7.01F, 6.60F}, {1.17F, 6.99F, 6.60F}, {1.17F, 6.97F, 6.59F}, {1.18F, 6.95F, 6.58F}, {1.19F, 6.92F, 6.57F}, {1.19F, 6.90F, 6.56F}, {1.20F, 6.88F, 6.55F}, {1.20F, 6.87F, 6.54F}, {1.20F, 6.86F, 6.54F}, {1.20F, 6.86F, 6.54F}, {1.20F, 6.86F, 6.54F}, {1.20F, 6.88F, 6.55F}, {1.19F, 6.89F, 6.55F}, {1.19F, 6.91F, 6.56F}, {1.18F, 6.94F, 6.57F}, {1.18F, 6.96F, 6.58F}, {1.17F, 6.98F, 6.59F}, {1.17F, 7.00F, 6.60F}, {1.17F, 7.01F, 6.60F}, {1.16F, 7.02F, 6.61F}};
+    public static final float[][] MANO_ARPON_TIRAR = {{1.16F, 7.02F, 6.61F}, {1.30F, 5.51F, 4.69F}, {1.38F, 6.18F, 3.64F}, {1.31F, 6.57F, 3.17F}, {1.91F, 5.68F, 2.92F}, {2.86F, 5.03F, 2.55F}, {3.47F, 5.03F, 2.49F}, {3.91F, 5.45F, 2.70F}, {4.29F, 5.86F, 2.88F}, {4.40F, 5.50F, 3.02F}, {4.40F, 4.84F, 3.10F}, {4.43F, 4.16F, 3.02F}, {4.45F, 3.55F, 2.86F}, {4.49F, 3.16F, 2.73F}, {4.60F, 3.14F, 2.68F}, {4.53F, 3.30F, 2.55F}, {4.38F, 3.38F, 2.41F}, {4.16F, 3.50F, 2.19F}, {3.87F, 3.62F, 1.91F}, {3.52F, 3.73F, 1.61F}, {3.16F, 3.84F, 1.32F}, {2.84F, 3.94F, 1.09F}, {2.61F, 4.01F, 0.92F}};
 
     /** Donde esta la mano del gancho a los tantos ticks de un estado del arpon. */
     public static Vec3 manoArpon(float[][] tabla, float tick, boolean bucle) {

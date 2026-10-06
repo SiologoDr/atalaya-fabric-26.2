@@ -39,14 +39,20 @@ REPOSO_PIE = -4.0
 #  modo 'muelle': vuelve a su reposo respecto al padre, empujado por la inercia
 SIMULADAS = {
     'cadena_mano': ((0, 24.0, 0), 'cuelga', dict(g=98.0, roce=2.2, k=4.0)),
-    'algas_del': ((0, 13.0, 0), 'cuelga', dict(g=40.0, roce=5.0, k=30.0)),
-    'algas_tras': ((0, 13.0, 0), 'cuelga', dict(g=40.0, roce=5.0, k=30.0)),
+    'algas_del': ((0, 17.5, 0), 'cuelga', dict(g=40.0, roce=5.0, k=30.0)),
+    'algas_tras': ((0, 17.5, 0), 'cuelga', dict(g=40.0, roce=5.0, k=30.0)),
 }
-for _c, _alto in (('corona_c1', 10), ('corona_c2', 8), ('corona_c3', 7), ('corona_c4', 6)):
+# (desde el remake la corona y los corales son mas largos: x1,7 y x1,5)
+for _c, _alto in (('corona_c1', 17), ('corona_c2', 13.6), ('corona_c3', 11.9), ('corona_c4', 10.2)):
     SIMULADAS[_c] = ((0, -_alto, 0), 'muelle', dict(g=0.0, roce=7.0, k=260.0))
 for _n in ('izq', 'der'):
-    for _c, _alto in (('coral_h1_', 9), ('coral_h2_', 6), ('coral_h3_', 7)):
+    for _c, _alto in (('coral_h1_', 13.5), ('coral_h2_', 9), ('coral_h3_', 10.5)):
         SIMULADAS[_c + _n] = ((0, -_alto, 0), 'muelle', dict(g=0.0, roce=7.0, k=220.0))
+# La barba y la capa de algas del remake: cuelgan y ondean como en el agua.
+for _i, _largo in enumerate((20, 27, 32, 26, 19)):
+    SIMULADAS[f'barba_{_i}'] = ((0, _largo, 0), 'cuelga', dict(g=30.0, roce=4.0, k=24.0))
+for _i, _largo in enumerate((52, 60, 64, 60, 52)):
+    SIMULADAS[f'capa_{_i}'] = ((0, _largo, 0), 'cuelga', dict(g=26.0, roce=3.6, k=18.0))
 
 # --- piezas con retraso: (frecuencia en Hz, amortiguamiento) ---
 RETRASADAS = {
