@@ -1,0 +1,402 @@
+<title>Nerea, Guardián de los Mares</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,600&display=swap">
+<style>
+  /* Ficha de remake a una columna, como la de Aeralis: cada lamina compara el antes (fotos del
+     juego de hoy y renders de su malla) con el despues (renders con la malla y las texturas que
+     irian al juego), en el fondo del mar y con los colores de fase de su barra. */
+  :root {
+    --mar: #041a22;           /* fondo: el fondo del mar */
+    --losa: #0b2a33;
+    --borde: #1d4652;
+    --texto: #e2f4f6;
+    --apagado: #93b6bd;
+    --f1: #3fe0ff;            /* fase I, cian */
+    --f2: #9a6bff;            /* fase II, violeta */
+    --f3: #d43cff;            /* fase III, magenta */
+    --f4: #ff2050;            /* fase IV, rojo */
+    --nacar: #f0b8d4;         /* la venera */
+    --furia: #20f0b0;
+    --oro: #ffc23a;
+    --display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --cuerpo: "Montserrat", "Segoe UI", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --mar: #eef6f7; --losa: #ffffff; --borde: #c7dde1; --texto: #0d2a30; --apagado: #4b6a72;
+      --f1: #0a7f9a; --f2: #5b3cc4; --f3: #9a1fb8; --f4: #c0123a; --nacar: #a2477a; --furia: #0b8a64; --oro: #9a6a00;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --mar: #eef6f7; --losa: #ffffff; --borde: #c7dde1; --texto: #0d2a30; --apagado: #4b6a72;
+    --f1: #0a7f9a; --f2: #5b3cc4; --f3: #9a1fb8; --f4: #c0123a; --nacar: #a2477a; --furia: #0b8a64; --oro: #9a6a00;
+    color-scheme: light;
+  }
+
+  body { background: var(--mar); color: var(--texto); font-family: var(--cuerpo); font-size: 16px; line-height: 1.6; }
+  .pagina { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; display: grid; gap: 60px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; line-height: 1.1; margin: 0; letter-spacing: 0.01em; }
+  h1 { font-size: clamp(2.4rem, 6vw, 4.1rem); text-transform: uppercase; }
+  h2 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); text-transform: uppercase; }
+  h3 { font-size: 1.02rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--apagado); font-weight: 500; }
+  p { margin: 0; max-width: 70ch; }
+  .antetitulo { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--f1); }
+  .epiteto { font-style: italic; font-weight: 600; font-size: 1.2rem; color: var(--apagado); }
+  .fases-raya { display: flex; height: 4px; width: 160px; }
+  .fases-raya span { flex: 1; }
+  .f1 { background: var(--f1); } .f2 { background: var(--f2); } .f3 { background: var(--f3); } .f4 { background: var(--f4); }
+
+  header.cabecera { display: grid; gap: 14px; }
+  .estado { border: 1px solid var(--f1); border-radius: 4px; padding: 14px 16px; display: grid; gap: 6px; max-width: 78ch; }
+  .estado strong { color: var(--f1); font-family: var(--display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+
+  .resumen { display: grid; border-top: 1px solid var(--borde); }
+  .resumen a { display: grid; grid-template-columns: 104px 1fr auto; gap: 16px; align-items: baseline; padding: 12px 4px;
+    border-bottom: 1px solid var(--borde); color: inherit; text-decoration: none; }
+  .resumen a:hover, .resumen a:focus-visible { background: var(--losa); outline: none; }
+  .resumen .que { font-weight: 600; }
+  .resumen .donde { color: var(--apagado); font-size: 0.85rem; white-space: nowrap; }
+  .chip { font-family: var(--display); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;
+    padding: 2px 8px; border-radius: 3px; justify-self: start; border: 1px solid currentColor; }
+  .chip.nuevo { color: var(--f3); }
+  .chip.cambio { color: var(--f1); }
+  .chip.hud { color: var(--oro); }
+  .chip.furia { color: var(--furia); }
+
+  section.lamina { display: grid; gap: 22px; scroll-margin-top: 20px; }
+  .titulo-lamina { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+  figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--borde); }
+  img.pixel { image-rendering: pixelated; background: #12333c; }
+  figcaption { font-size: 0.85rem; color: var(--apagado); }
+  .etiqueta { font-family: var(--display); font-size: 0.82rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .etiqueta.antes { color: var(--apagado); }
+  .etiqueta.despues { color: var(--f1); }
+  .par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  .apilado { display: grid; gap: 18px; }
+  .dos { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; }
+  .dos > * { min-width: 0; display: grid; gap: 12px; align-content: start; }
+  @media (max-width: 820px) { .par, .dos { grid-template-columns: 1fr; } .resumen a { grid-template-columns: 1fr; gap: 4px; } }
+
+  ul.lista { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; max-width: 72ch; }
+  ul.lista li::marker { color: var(--f1); }
+  dl.ficha { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; }
+  dl.ficha dt { color: var(--apagado); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+  dl.ficha dd { margin: 0; font-variant-numeric: tabular-nums; }
+  @media (max-width: 460px) { dl.ficha { grid-template-columns: 1fr; gap: 2px; } dl.ficha dd { margin-bottom: 10px; } }
+  .igual { color: var(--apagado); font-size: 0.92rem; }
+
+  .tabla { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  th { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--apagado); }
+  td.fase { font-family: var(--display); font-weight: 700; white-space: nowrap; }
+
+  .nota { background: var(--losa); border: 1px solid var(--borde); border-radius: 4px; padding: 14px 16px; font-size: 0.93rem; color: var(--apagado); }
+  .nota strong { color: var(--texto); }
+  .barra-fila { display: grid; gap: 10px; padding-block: 12px; border-top: 1px solid var(--borde); }
+  .barra-fila h3 { color: var(--texto); }
+
+  ol.preguntas { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: p; }
+  ol.preguntas li { counter-increment: p; display: grid; grid-template-columns: 34px 1fr; gap: 12px; background: var(--losa);
+    border: 1px solid var(--borde); border-radius: 4px; padding: 14px 16px; }
+  ol.preguntas li::before { content: counter(p); font-family: var(--display); font-weight: 700; font-size: 1.4rem; color: var(--f1); line-height: 1.2; }
+  ol.preguntas li > div { display: grid; gap: 4px; min-width: 0; }
+  .defecto { color: var(--apagado); font-size: 0.92rem; }
+  .defecto strong { color: var(--texto); }
+  a { color: var(--f1); }
+  a:focus-visible { outline: 2px solid var(--f1); outline-offset: 2px; }
+</style>
+
+<div class="pagina">
+
+  <header class="cabecera">
+    <span class="antetitulo">Atalaya · Jefe del mar · Propuesta de remake</span>
+    <h1>Nerea, Guardián de los Mares</h1>
+    <div class="fases-raya" aria-hidden="true"><span class="f1"></span><span class="f2"></span><span class="f3"></span><span class="f4"></span></div>
+    <p class="epiteto">Rompe sus cadenas. Libera su corazón.</p>
+    <div class="estado" role="status">
+      <strong>Propuesta · 5 de octubre de 2026</strong>
+      <span>Todavía no hay nada en el juego. Los «antes» son fotos del juego de hoy y renders de su malla con su piel. Los «después» están hechos con la misma cámara, la misma luz y el mismo sistema de piezas y texturas del juego, así que si se aprueba pasa al juego tal cual, como se hizo con Aeralis.</span>
+    </div>
+    <p>Lo mismo que con Aeralis y Rajang: que imponga más, que sus ataques se vean (hoy casi todo son partículas), una barra como las otras dos y la Furia si el golpe cooperativo sale mal. Lo que la hace Nerea se queda: el tridente, las cadenas, el corazón entre costillas, la Mirada del Abismo y los mismos números de daño.</p>
+  </header>
+
+  <nav class="resumen" aria-label="Lo que cambia">
+    <a href="#cuerpo"><span class="chip cambio">Cambio</span><span class="que">El cuerpo: 15 bloques, venera de nácar, capa de algas, ancla y tridente de espuma</span><span class="donde">todas las fases</span></a>
+    <a href="#fases"><span class="chip cambio">Cambio</span><span class="que">Las cuatro fases: la maldición también sube por la concha</span><span class="donde">I a IV</span></a>
+    <a href="#barra"><span class="chip hud">HUD</span><span class="que">La barra de vida, como las de Aeralis y Rajang, con los ojos de la Mirada</span><span class="donde">siempre</span></a>
+    <a href="#rompeolas"><span class="chip cambio">Cambio</span><span class="que">Rompeolas: olas de agua de verdad, con el hueco para pasar</span><span class="donde">desde la I</span></a>
+    <a href="#remolino"><span class="chip cambio">Cambio</span><span class="que">Remolino: la espiral marca hasta dónde tira; la antorcha te mete en una burbuja</span><span class="donde">desde la I</span></a>
+    <a href="#burbujas"><span class="chip cambio">Cambio</span><span class="que">Burbujas bomba: el corazón late dentro y el suelo marca hasta dónde revientan</span><span class="donde">desde la I</span></a>
+    <a href="#molino"><span class="chip cambio">Cambio</span><span class="que">Molino de cadenas: anclas en las puntas y el alcance en el suelo</span><span class="donde">desde la II</span></a>
+    <a href="#arpon"><span class="chip cambio">Cambio</span><span class="que">Arpón: el ancla vuela con su estela; el blanco se marca en el suelo</span><span class="donde">desde la II</span></a>
+    <a href="#mirada"><span class="chip cambio">Cambio</span><span class="que">Mirada del Abismo: ojos que se rajan con cada impacto</span><span class="donde">desde la III</span></a>
+    <a href="#geiser"><span class="chip nuevo">Nuevo</span><span class="que">Géiser del Abismo: el suelo revienta bajo los pies y te lanza al cielo</span><span class="donde">desde la II</span></a>
+    <a href="#marea"><span class="chip nuevo">Nuevo</span><span class="que">La Gran Marea: una ola cruza la arena y solo hay un hueco</span><span class="donde">desde la III</span></a>
+    <a href="#furia"><span class="chip furia">Furia</span><span class="que">Furia de las Mareas, si la Mirada sale mal</span><span class="donde">desde la III</span></a>
+  </nav>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="cuerpo">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>El cuerpo</h2></div>
+    <div class="apilado">
+      <figure><span class="etiqueta antes">Antes · la de hoy</span>
+        <img src="img/heroica_antes.jpg" alt="La Nerea de hoy en el fondo del mar, con el tridente en alto y jugadores alrededor" width="1600" height="900">
+      </figure>
+      <figure><span class="etiqueta despues">Después · la misma cámara</span>
+        <img src="img/heroica_despues.jpg" alt="La Nerea del remake, mucho más grande, con la venera de nácar detrás de la cabeza y el tridente con espiral de espuma" width="1600" height="900">
+      </figure>
+    </div>
+    <div class="dos">
+      <div>
+        <h3>Qué cambia</h3>
+        <ul class="lista">
+          <li><strong>Más grande:</strong> de unos 10 bloques a unos 15. Hoy, de lejos, parece un jugador con armadura; ahora se ve como un gigante.</li>
+          <li>Una <strong>venera de nácar</strong> detrás de la cabeza, como el halo de un dios del mar, con el filo encendido y una perla que brilla en el centro.</li>
+          <li><strong>Corona</strong> de púas y cuernos de coral mucho más largos, y los corales de los hombros más grandes.</li>
+          <li>Una <strong>barba de algas</strong> que le cuelga de la mandíbula, y una <strong>capa de algas</strong> desde los hombros hasta el suelo, con tres espinas de hueso por el lomo.</li>
+          <li>Una <strong>caracola</strong> enorme de hombrera, y hombreras, brazos y piernas más gruesos.</li>
+          <li>El gancho de la cadena-látigo pasa a ser un <strong>ancla</strong> de verdad.</li>
+          <li>El <strong>tridente</strong> es más largo, con las puntas más grandes y una espiral de espuma que le sube por el asta y brilla.</li>
+          <li>Los <strong>ojos</strong> más grandes (son los que se rompen en la Mirada).</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Lo que trae el tamaño</h3>
+        <dl class="ficha">
+          <dt>Alto</dt><dd>unos 10 → unos 15 bloques</dd>
+          <dt>Caja de golpe</dt><dd>3,4 × 8,8 → 5,1 × 13,2: crece con ella</dd>
+          <dt>Ojos</dt><dd>a unos 12 bloques del suelo: la Mirada sigue siendo a flechazos</dd>
+          <dt>Vida y daño</dt><dd>los mismos: 12 500, y cada ataque igual</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="apilado">
+      <figure><span class="etiqueta antes">Antes · frente, perfil y espalda</span>
+        <img src="img/vistas_antes.jpg" alt="Vistas de frente, perfil y espalda de la Nerea de hoy" width="1800" height="680" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después · a la misma escala</span>
+        <img src="img/vistas_despues.jpg" alt="Vistas del remake: de frente con la venera, de perfil con las espinas y de espalda con la capa de algas" width="1800" height="680" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">La escala, en bloques</span>
+        <img src="img/escala.jpg" alt="El remake, la Nerea de hoy y un jugador junto a una regla en bloques" width="1600" height="820" loading="lazy">
+        <figcaption>A la izquierda, un jugador; en el centro, la de hoy; a la derecha, el remake. Cada raya son dos bloques.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="fases">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Las cuatro fases</h2></div>
+    <div class="apilado">
+      <figure><span class="etiqueta antes">Antes</span>
+        <img src="img/fases_antes.jpg" alt="Las cuatro fases de la Nerea de hoy" width="1800" height="620" loading="lazy">
+      </figure>
+      <figure><span class="etiqueta despues">Después</span>
+        <img src="img/fases_despues.jpg" alt="Las cuatro fases del remake: los ojos de cian a rojo, las cadenas que saltan y la maldición que sube por la concha" width="1800" height="620" loading="lazy">
+      </figure>
+    </div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Fase</th><th>Ojos</th><th>Lo que se ve</th></tr></thead>
+        <tbody>
+          <tr><td class="fase" style="color: var(--f1)">I</td><td>cian</td><td>Las cuatro cadenas, el corazón entero y la concha limpia.</td></tr>
+          <tr><td class="fase" style="color: var(--f2)">II</td><td>violeta</td><td>Salta una cadena; el coral empieza a morir y aparecen las primeras venas, también en la concha.</td></tr>
+          <tr><td class="fase" style="color: var(--f3)">III</td><td>magenta</td><td>Quedan dos cadenas; el corazón rajado; el tridente y la espiral se tiñen.</td></tr>
+          <tr><td class="fase" style="color: var(--f4)">IV</td><td>rojo</td><td>Las costillas se abren, el corazón al aire y la maldición por todo el cuerpo y la concha.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure><span class="etiqueta despues">Después · la fase IV</span>
+      <img src="img/heroica_despues_f4.jpg" alt="El remake en la fase IV, con las venas magenta por todo el cuerpo" width="1600" height="900" loading="lazy">
+    </figure>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="barra">
+    <div class="titulo-lamina"><span class="chip hud">HUD</span><h2>La barra de vida</h2></div>
+    <p>Del mismo tamaño y estilo que la de Aeralis (y la que se propuso para Rajang), así que las tres van a juego.</p>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_rompeolas_2.jpg" alt="La barra de hoy en el juego" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después · fase II</span><img src="img/partida_fase2.png" alt="La misma foto con la barra nueva: una ola que sale del emblema" width="854" height="480" loading="lazy"></figure>
+    </div>
+    <div class="barra-fila"><h3>Fase I</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_1.png" alt="Barra de hoy, fase I" width="960" height="176" loading="lazy"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_1.png" alt="Barra nueva, fase I" width="960" height="176" loading="lazy"></figure>
+      </div>
+    </div>
+    <div class="barra-fila"><h3>Fase III, durante la Mirada</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_3.png" alt="Barra de hoy, fase III" width="960" height="176" loading="lazy"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_3.png" alt="Barra nueva en la Mirada: un ojo rajado, el otro roto y la losa del tiempo" width="960" height="176" loading="lazy"></figure>
+      </div>
+    </div>
+    <div class="barra-fila"><h3>Fase IV</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Antes</span><img class="pixel" src="img/barra_antes_4.png" alt="Barra de hoy, fase IV" width="960" height="176" loading="lazy"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_4.png" alt="Barra nueva, fase IV" width="960" height="176" loading="lazy"></figure>
+      </div>
+    </div>
+    <div class="barra-fila"><h3>Furia de las Mareas</h3>
+      <div class="par">
+        <figure><span class="etiqueta antes">Hoy no existe</span><img class="pixel" src="img/barra_antes_furia.png" alt="Barra de hoy" width="960" height="176" loading="lazy"></figure>
+        <figure><span class="etiqueta despues">Después</span><img class="pixel" src="img/barra_nueva_furia.png" alt="Barra nueva con la Furia, verde abismo" width="960" height="176" loading="lazy"></figure>
+      </div>
+    </div>
+    <figure><span class="etiqueta despues">En el juego, durante la Mirada</span>
+      <img src="img/partida_mirada.png" alt="La barra nueva en el juego durante la Mirada del Abismo" width="854" height="480" loading="lazy">
+    </figure>
+    <ul class="lista">
+      <li>El emblema es el <strong>corazón maldito entre las costillas</strong>, con un aro de prismarina y cuatro eslabones de óxido. En cada fase se raja y se apaga; en la IV las costillas se abren.</li>
+      <li>De él sale <strong>una ola</strong> que rompe hacia la derecha por encima del marco (en Aeralis es un ala). Va en el color de la fase.</li>
+      <li>El relleno es agua con su cresta de espuma, con el frente encendido y el rastro claro al recibir daño.</li>
+      <li>Las muescas son <strong>eslabones</strong> que se parten al pasarlos.</li>
+      <li><strong>Nuevo:</strong> durante la Mirada, debajo, los <strong>dos ojos</strong> (se rajan con cada impacto y se apagan al romperse) y la <strong>losa del tiempo</strong> que le queda al rayo, roja al final. Como los tótems de Rajang y los cristales de Aeralis.</li>
+      <li>Con la Furia, todo en verde abismo y el rótulo FURIA.</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="rompeolas">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Rompeolas</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_rompeolas_2.jpg" alt="Hoy: espuma de partículas a ras de suelo" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después · fase II</span><img src="img/rompeolas.jpg" alt="Tres olas de agua en abanico, de más de dos bloques, con la cresta de espuma; un jugador a salvo entre dos" width="1600" height="900" loading="lazy"></figure>
+    </div>
+    <ul class="lista">
+      <li>Las olas pasan a ser <strong>paredes de agua</strong> de unos 4 bloques, con la cresta de espuma, en el color de la fase. Hoy son espuma a ras de suelo y casi no se ve hacia dónde van.</li>
+      <li>Antes de salir, un <strong>surco de galones</strong> marca en el suelo por dónde va cada una.</li>
+      <li>Se ve el <strong>hueco</strong> entre ola y ola: ahí no pega.</li>
+    </ul>
+    <p class="igual">El daño (44 / 55 / 69 / 91), el número de olas y que saltar no vale se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="remolino">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Remolino</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_remolino.jpg" alt="Hoy: un círculo de partículas blancas alrededor" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después</span><img src="img/remolino.jpg" alt="Una espiral de espuma en el suelo, el agua que sube alrededor y un jugador con antorcha dentro de una burbuja dorada" width="1600" height="900" loading="lazy"></figure>
+    </div>
+    <ul class="lista">
+      <li>Una <strong>espiral de espuma en el suelo</strong> marca hasta dónde tira.</li>
+      <li>Estelas de agua van de cada jugador hacia ella: se ve que tira.</li>
+      <li>Quien lleva una <strong>antorcha</strong> queda dentro de una <strong>burbuja de aire dorada</strong>: se ve que está a salvo.</li>
+    </ul>
+    <p class="igual">Los 4,4 s, el daño por segundo y la Corriente Abismal se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="burbujas">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Burbujas bomba</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_burbujas.jpg" alt="Hoy: burbujas pequeñas y claras" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después</span><img src="img/burbujas.jpg" alt="Pompas con un corazón rojo latiendo dentro, aros rojos en el suelo y una que revienta en espuma de un flechazo" width="1600" height="900" loading="lazy"></figure>
+    </div>
+    <ul class="lista">
+      <li>Cada burbuja lleva <strong>el corazón latiendo dentro</strong>, más deprisa cuanto más cerca está de reventar.</li>
+      <li>Bajo cada una, <strong>un aro rojo en el suelo</strong> marca hasta dónde revienta.</li>
+      <li>Pinchada de un flechazo, revienta en <strong>espuma</strong> (sin daño): se distingue de la que explota.</li>
+    </ul>
+    <p class="igual">Una por jugador, el daño y que cualquier proyectil la pincha se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="molino">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Molino de cadenas</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_molino.jpg" alt="Hoy: dos cadenas finas de óxido" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después · fase II</span><img src="img/molino.jpg" alt="Dos cadenas gruesas con un ancla en cada punta, estelas de agua y un aro en el suelo; un jugador salta la cadena" width="1600" height="900" loading="lazy"></figure>
+    </div>
+    <ul class="lista">
+      <li>Cadenas más gruesas, con <strong>un ancla en cada punta</strong> y una estela de agua detrás.</li>
+      <li>Un <strong>aro en el suelo</strong> marca el alcance (14 bloques): fuera, a salvo.</li>
+    </ul>
+    <p class="igual">Las dos vueltas, el daño y que hay que saltarla o pegarse a sus pies se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="arpon">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Arpón</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_arpon_2.jpg" alt="Hoy: un gancho pequeño con una línea" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después · fase II</span><img src="img/arpon.jpg" alt="El ancla vuela con su cadena y una estela de agua hacia un jugador marcado con un aro en el suelo" width="1600" height="900" loading="lazy"></figure>
+    </div>
+    <ul class="lista">
+      <li>Lanza <strong>el ancla</strong> (la de su cadena) con una estela de agua.</li>
+      <li>Un <strong>aro bajo el blanco</strong> avisa a quién va: le da tiempo a girar el escudo.</li>
+    </ul>
+    <p class="igual">A quién va (los más lejanos), el arrastre, la Estocada y el daño se quedan igual.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="mirada">
+    <div class="titulo-lamina"><span class="chip cambio">Cambio</span><h2>Mirada del Abismo</h2></div>
+    <div class="par">
+      <figure><span class="etiqueta antes">Antes · en el juego</span><img src="img/juego_mirada.jpg" alt="Hoy: un rayo fino desde los ojos" width="854" height="480" loading="lazy"></figure>
+      <figure><span class="etiqueta despues">Después · fase III</span><img src="img/mirada.jpg" alt="Los ojos grandes con un aro y grietas de luz, el rayo doble hacia un jugador escondido tras un bloque y flechas hacia los ojos" width="1600" height="900" loading="lazy"></figure>
+    </div>
+    <ul class="lista">
+      <li>Los ojos crecen, con <strong>un aro de luz</strong> alrededor: se ven a qué apuntar.</li>
+      <li>Con cada impacto <strong>se rajan</strong>: se ve cuánto les falta. La <a href="#barra">barra</a> también lo cuenta.</li>
+      <li>El rayo doble es más grueso, del color de la fase.</li>
+    </ul>
+    <p class="igual">Que mata salvo tótem, esconderse tras un bloque y romper los dos ojos para aturdirla se quedan igual. Si sale mal, además, <a href="#furia">entra en Furia</a>.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="geiser">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>Géiser del Abismo</h2></div>
+    <figure><img src="img/geiser.jpg" alt="Remolinos oscuros bajo tres jugadores y una columna de agua que lanza a otro al cielo" width="1600" height="900" loading="lazy"></figure>
+    <ul class="lista">
+      <li>Desde la fase II. Clava el tridente y, bajo varios jugadores, se abre <strong>un remolino oscuro</strong> en el suelo: 1,5 s de aviso.</li>
+      <li>Revienta en una <strong>columna de agua</strong> que lanza al cielo (unos 12 bloques): daño, y la caída duele.</li>
+      <li><strong>Cómo se sale:</strong> salir del remolino antes de que reviente.</li>
+      <li>Es para los que se quedan quietos disparando a los ojos o tapándose: los obliga a moverse.</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="marea">
+    <div class="titulo-lamina"><span class="chip nuevo">Nuevo</span><h2>La Gran Marea</h2></div>
+    <figure><img src="img/marea.jpg" alt="Una pared de agua de lado a lado de la arena que avanza hacia los jugadores, con un solo hueco marcado en el suelo" width="1600" height="900" loading="lazy"></figure>
+    <ul class="lista">
+      <li>Desde la fase III. Alza el tridente y levanta <strong>una ola de unos 9 bloques</strong> que cruza la arena de lado a lado.</li>
+      <li>Solo hay <strong>un hueco</strong>, marcado en el suelo con galones de espuma desde que alza el tridente.</li>
+      <li>A quien pilla: daño fuerte y lo arrastra con la ola unos 8 bloques. La caída también cuenta.</li>
+      <li><strong>Cómo se sale:</strong> correr al hueco. Con 30 o 40 jugadores, el hueco se llena: hay que moverse pronto.</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="furia">
+    <div class="titulo-lamina"><span class="chip furia">Furia</span><h2>Furia de las Mareas</h2></div>
+    <figure><img src="img/furia.jpg" alt="Nerea envuelta en un aura de agua del abismo, cian y magenta, con motas que suben" width="1600" height="900" loading="lazy"></figure>
+    <ul class="lista">
+      <li>Igual que la Furia de Jade de Rajang y la del Vendaval de Aeralis.</li>
+      <li>Si en la Mirada <strong>no rompen los dos ojos</strong> a tiempo, el rayo dispara (mata al blanco salvo tótem) y Nerea entra en Furia: un <strong>aura de agua del abismo</strong> la envuelve.</li>
+      <li>Con la Furia: ataca un 25 % más rápido, pega un 35 % más y espera un 35 % menos entre ataques.</li>
+      <li>Se le va cuando la derriban: los dos ojos de otra Mirada (cae aturdida con daño doble).</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="lamina" id="preguntas">
+    <h2>Preguntas</h2>
+    <p>Si no dices otra cosa, se hace lo que pone «por defecto» en cada una.</p>
+    <ol class="preguntas">
+      <li><div><strong>¿El cuerpo nuevo tal cual (15 bloques, venera, capa de algas, ancla, tridente de espuma)?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+      <li><div><strong>Ojos de la Mirada: ¿10 impactos fijos cada uno, como los cristales de Aeralis y los tótems de Rajang?</strong><span class="defecto">Por defecto: <strong>sí</strong>. Hoy son 3 + jugadores/6.</span></div></li>
+      <li><div><strong>Mirada: ¿sigue apuntando a un solo jugador?</strong><span class="defecto">Por defecto: <strong>sí</strong>. Si queréis que, como el ciclón de Aeralis, vaya a un tercio de los que pelean (varios rayos), se cambia.</span></div></li>
+      <li><div><strong>Géiser del Abismo desde la II y Gran Marea desde la III?</strong><span class="defecto">Por defecto: <strong>sí</strong>, con la Gran Marea sin matar (daño fuerte y arrastre).</span></div></li>
+      <li><div><strong>¿La Furia como la de los otros dos?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+      <li><div><strong>¿La barra nueva?</strong><span class="defecto">Por defecto: <strong>sí</strong>.</span></div></li>
+    </ol>
+  </section>
+
+</div>
