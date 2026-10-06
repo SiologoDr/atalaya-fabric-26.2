@@ -64,10 +64,11 @@ public final class ArmadurasJefes {
     private static final double VIDA_POR_PIEZA = 1.0;
 
     /**
-     * El material de las espadas: el de la netherite con mas aguante y mas
-     * filo. Una espada hace 10 de dano (la de netherite, 8) y aguanta 3046 usos.
+     * El material de las espadas: el de la netherite con mas aguante y el doble
+     * de filo. Una espada hace 16 de dano (la de netherite, 8: el doble) y
+     * aguanta 3046 usos.
      */
-    public static final ToolMaterial ESPADA = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 3046, 9.0F, 6.0F, 18,
+    public static final ToolMaterial ESPADA = new ToolMaterial(BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 3046, 9.0F, 12.0F, 18,
             ItemTags.NETHERITE_TOOL_MATERIALS);
 
     public static final Map<Tema, Item[]> PIEZAS = new EnumMap<>(Tema.class);

@@ -248,17 +248,18 @@
   "item.atalaya.mareas_leggings": "Leggings of the Tides",
   "item.atalaya.mareas_boots": "Boots of the Tides",
   "item.atalaya.mareas_sword": "Sword of the Tides",
-  "item.atalaya.mareas_sword.efecto": "On hit: Abyssal Current (3 s)",
+  "item.atalaya.mareas_sword.efecto": "On hit (5%): Abyssal Current (3 s). Not on bosses",
   "item.atalaya.jade_helmet": "Jade Helmet",
   "item.atalaya.jade_chestplate": "Jade Chestplate",
   "item.atalaya.jade_leggings": "Jade Leggings",
   "item.atalaya.jade_boots": "Jade Boots",
   "item.atalaya.jade_sword": "Jade Sword",
-  "item.atalaya.jade_sword.efecto": "On hit: Weight of the Earth (2 s)",
+  "item.atalaya.jade_sword.efecto": "On hit (5%): Weight of the Earth (2 s). Not on bosses",
   "item.atalaya.vendaval_helmet": "Helmet of the Gale",
   "item.atalaya.vendaval_chestplate": "Chestplate of the Gale",
   "item.atalaya.vendaval_leggings": "Leggings of the Gale",
   "item.atalaya.vendaval_boots": "Boots of the Gale",
   "item.atalaya.vendaval_sword": "Sword of the Gale",
-  "item.atalaya.vendaval_sword.efecto": "On hit: wind gust; critical: Paralysis (1 s)"
+  "item.atalaya.vendaval_sword.efecto": "On hit (5%): wind gust and Paralysis (1 s). Not on bosses",
+  "subtitles.atalaya.espada.golpe": "Sword strikes"
 }

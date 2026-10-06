@@ -85,6 +85,10 @@ public final class AtalayaSonidos {
     public static SoundEvent MUSICA_NEREA;
     public static SoundEvent MUSICA_AERALIS;
     public static SoundEvent MUSICA_RAJANG;
+    // El clink de las espadas de los jefes al golpear (armaduras_sonidos.py).
+    public static SoundEvent ESPADA_MAREAS_GOLPE;
+    public static SoundEvent ESPADA_JADE_GOLPE;
+    public static SoundEvent ESPADA_VENDAVAL_GOLPE;
     // Los acentos de cada pista: los golpes gordos, la Furia (y los grandes momentos) y el cambio de fase.
     public static SoundEvent MUSICA_NEREA_GOLPE;
     public static SoundEvent MUSICA_NEREA_GRANDE;
@@ -258,6 +262,9 @@ public final class AtalayaSonidos {
         MUSICA_NEREA = registrar("musica.nerea");
         MUSICA_AERALIS = registrar("musica.aeralis");
         MUSICA_RAJANG = registrar("musica.rajang");
+        ESPADA_MAREAS_GOLPE = registrar("espada.mareas_golpe");
+        ESPADA_JADE_GOLPE = registrar("espada.jade_golpe");
+        ESPADA_VENDAVAL_GOLPE = registrar("espada.vendaval_golpe");
         MUSICA_NEREA_GOLPE = registrar("musica.nerea.golpe");
         MUSICA_NEREA_GRANDE = registrar("musica.nerea.grande");
         MUSICA_NEREA_FASE = registrar("musica.nerea.fase");

@@ -1338,16 +1338,17 @@ de los encantamientos. Las mallas, las animaciones y las texturas salen de
 `armaduras_jefes.py` (genera `ArmaduraJefeMalla.java`); los iconos y las
 espadas, de `armaduras_iconos.py`.
 
-**Las espadas** hacen 10 de daño (la de netherite, 8), aguantan 3046 usos y en
-la mano se ven grandes y animadas (su sprite de 32×32); en el inventario, su
-icono. Al golpear sueltan su tajo (una media luna del color del tema) y lo de su
-jefe:
+**Las espadas** hacen 16 de daño, el doble que la de netherite (8), aguantan
+3046 usos y en la mano se ven grandes y animadas (su sprite de 32×32); en el
+inventario, su icono. Al golpear sueltan su tajo (una media luna del color del
+tema) y, con un **5 % de suerte**, lo de su jefe. Eso solo a los bichos normales:
+a los jefes (los tres elementales, el Wither y el dragón) no les hace nada.
 
-| Espada | Al golpear |
+| Espada | Al golpear (5 %) |
 |---|---|
 | de las Mareas | Corriente Abismal 3 s y agua que salpica |
 | de Jade | Peso de la Tierra 2 s y esquirlas de jade |
-| del Vendaval | una racha que lo echa atrás; si el golpe es crítico, Parálisis 1 s |
+| del Vendaval | una racha que lo echa atrás y Parálisis 1 s |
 
 ---
 

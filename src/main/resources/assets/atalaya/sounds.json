@@ -1088,5 +1088,29 @@
     "sounds": [
       "atalaya:musica/rajang_fase"
     ]
+  },
+  "espada.mareas_golpe": {
+    "subtitle": "subtitles.atalaya.espada.golpe",
+    "sounds": [
+      "atalaya:espada/mareas_golpe1",
+      "atalaya:espada/mareas_golpe2",
+      "atalaya:espada/mareas_golpe3"
+    ]
+  },
+  "espada.jade_golpe": {
+    "subtitle": "subtitles.atalaya.espada.golpe",
+    "sounds": [
+      "atalaya:espada/jade_golpe1",
+      "atalaya:espada/jade_golpe2",
+      "atalaya:espada/jade_golpe3"
+    ]
+  },
+  "espada.vendaval_golpe": {
+    "subtitle": "subtitles.atalaya.espada.golpe",
+    "sounds": [
+      "atalaya:espada/vendaval_golpe1",
+      "atalaya:espada/vendaval_golpe2",
+      "atalaya:espada/vendaval_golpe3"
+    ]
   }
 }

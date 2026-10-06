@@ -103,6 +103,9 @@ def material(letra, T, i, j, w, h, rnd):
     borde = i == 0 or j == 0 or i == w - 1 or j == h - 1
     if letra == '.':
         return None, None, None
+    if letra in 'QLlVv':
+        # Solo luz (el halo del pecho): no se pinta en la piel, solo en el brillo.
+        return 'luz', None, {'Q': L[4], 'L': L[3], 'l': L[2], 'V': D[3], 'v': D[2]}[letra]
     if letra in 'Mm':
         # Placa con bisel: el canto de arriba y la izquierda claros, abajo y a la derecha hondos.
         k = 3 if letra == 'M' else 2
@@ -240,7 +243,8 @@ def parte(tema, pieza, nombre, padre, pivote=(0, 0, 0), giro=(0, 0, 0), cajas=()
 
 
 def anim(tema, pieza, nombre, eje, amplitud, frecuencia, fase=0.0, andar=0.0):
-    """eje: 0 xRot, 1 yRot, 2 zRot, 3 y (flota), 4 giro continuo en Y, 5 xRot que sube al andar."""
+    """eje: 0 xRot, 1 yRot, 2 zRot, 3 y (flota), 4 giro continuo en Y, 5 xRot que sube al andar,
+    6 yRot que se pliega al andar, 7 giro continuo en Z (en su plano), 8 late (escala)."""
     ANIMS[tema].setdefault(pieza, []).append((nombre, eje, amplitud, frecuencia, fase, andar))
 
 
@@ -261,6 +265,108 @@ def con_banda(filas_base, alto, ancho, bandas):
     return filas
 
 
+# ----------------------------------------------------------------------
+#  Piezas comunes de las pecheras (desde la segunda version, que Juan vio
+#  "robusta" y poco imponente): hombreras de tres laminas en abanico que se
+#  abren hacia fuera y abajo, una gola alta que enmarca la cabeza y el emblema
+#  del pecho en relieve. La silueta en V (hombros anchos que suben) es lo que
+#  la hace imponente; el torso va algo menos hinchado.
+# ----------------------------------------------------------------------
+INFLA_TORSO = 0.85
+
+
+def lamina_caras(base, borde, w, d):
+    """Una lamina: la cara de arriba con su ribete y los cantos del ribete."""
+    arriba = [borde * w] + [borde + base * (w - 2) + borde for _ in range(d - 2)] + [borde * w]
+    return {'up': arriba, 'north': borde, 'south': borde, 'west': borde, 'east': borde, 'down': 'm'}
+
+
+def hombreras(T, base, borde):
+    """Las tres laminas de cada hombro (devuelve el nombre de la de arriba de cada lado)."""
+    for lado, brazo, s in (('izq', 'left_arm', 1), ('der', 'right_arm', -1)):
+        parte(T, 'pechera', f'lamina_{lado}_0', brazo, (s * 0.8, -3.4, 0), (0, 0, s * -12), [
+            caja(-3.5, -1, -3.5, 7, 1, 7, lamina_caras(base, borde, 7, 7))])
+        parte(T, 'pechera', f'lamina_{lado}_1', brazo, (s * 3.1, -2.3, 0), (0, 0, s * -38), [
+            caja(-2.5, -0.5, -3, 5, 1, 6, lamina_caras(base, borde, 5, 6))])
+        parte(T, 'pechera', f'lamina_{lado}_2', brazo, (s * 4.4, -0.2, 0), (0, 0, s * -62), [
+            caja(-2, -0.5, -2.5, 4, 1, 5, lamina_caras(base, borde, 4, 5))])
+
+
+def halo_mareas(n=9):
+    """Un aro de agua alrededor de la venera, con cuatro gotas que giran con el."""
+    c = (n - 1) / 2
+    filas = []
+    for j in range(n):
+        f = ''
+        for i in range(n):
+            d = math.hypot(i - c, j - c)
+            a = math.atan2(j - c, i - c)
+            if abs(d - 3.9) < 0.55:
+                gota = abs(((a + math.pi / 4) % (math.pi / 2)) - math.pi / 4) < 0.28
+                f += 'Q' if gota else ('L' if (i + j) % 2 else 'l')
+            else:
+                f += '.'
+        filas.append(f)
+    return filas
+
+
+def rayos_jade(n=9):
+    """Ocho rayos de sol, largos y cortos, alrededor del disco (que no se tapa)."""
+    c = (n - 1) / 2
+    filas = [['.'] * n for _ in range(n)]
+    for k in range(8):
+        a = k * math.pi / 4
+        largo = 4.4 if k % 2 == 0 else 3.6
+        for r in (3.0, 3.6, 4.2):
+            if r > largo:
+                continue
+            x, y = int(round(c + math.cos(a) * r)), int(round(c + math.sin(a) * r))
+            if 0 <= x < n and 0 <= y < n:
+                filas[y][x] = 'L' if r < 3.5 else 'l'
+    return [''.join(f) for f in filas]
+
+
+def espiral_vendaval(n=9):
+    """El ojo de la tormenta: dos brazos en espiral que se cierran hacia el centro."""
+    c = (n - 1) / 2
+    filas = []
+    for j in range(n):
+        f = ''
+        for i in range(n):
+            d = math.hypot(i - c, j - c)
+            if d < 1.6 or d > 4.5:
+                f += '.'
+                continue
+            a = math.atan2(j - c, i - c)
+            brazo = (a - 2.2 * math.log(d)) % math.pi
+            f += ('L' if brazo < 0.45 and d < 3 else 'V' if brazo < 0.75 else 'v' if brazo < 1.1 else '.')
+        filas.append(f)
+    return filas
+
+
+def halo_pecho(T, dibujo, giro, latido, frec):
+    """El halo de luz del emblema del pecho: delante del emblema, gira y late."""
+    n = len(dibujo)
+    parte(T, 'pechera', 'halo_pecho', 'body', (0, 4.6, -3.75), (0, 0, 0), [
+        caja(-n / 2, -n / 2, 0, n, n, 0, {'north': dibujo, 'south': [f[::-1] for f in dibujo]})])
+    anim(T, 'pechera', 'halo_pecho', 7, giro, 0.0, 0.0, 0.0)
+    anim(T, 'pechera', 'halo_pecho', 8, latido, frec, 0.0, 0.0)
+
+
+def gola(T, base, borde):
+    """La gola: alta por detras y los lados, baja delante; enmarca la cabeza."""
+    parte(T, 'pechera', 'gola_detras', 'body', (0, 0.2, 2.6), (-18, 0, 0), [
+        caja(-4.5, -4, -0.5, 9, 4, 1, {'south': [borde * 9] + [borde + base * 7 + borde] * 3,
+                                       'north': base, 'up': borde, 'down': 'm', 'west': borde, 'east': borde})])
+    for lado, s in (('izq', 1), ('der', -1)):
+        parte(T, 'pechera', f'gola_{lado}', 'body', (s * 4.4, 0.2, 0.6), (-8, 0, s * -14), [
+            caja(-0.5, -3, -2.5, 1, 3, 4, {'west': [borde * 4] + [borde + base * 2 + borde] * 2,
+                                          'east': [borde * 4] + [borde + base * 2 + borde] * 2,
+                                          'up': borde, 'down': 'm', 'north': borde, 'south': borde})])
+    parte(T, 'pechera', 'gola_delante', 'body', (0, 0.2, -2.9), (12, 0, 0), [
+        caja(-3, -1, -0.5, 6, 1, 1, borde)])
+
+
 # ======================================================================
 #  MAREAS: el guardian de los mares
 # ======================================================================
@@ -271,9 +377,9 @@ parte(T, 'casco', 'casco_mareas', 'head', cajas=[caja(-4, -8, -4, 8, 8, 8, {
               "M......M",
               "M......M",
               "MM....MM",
-              "MP.MM.PM",
               "MP....PM",
-              "MMM..MMM"],
+              "MP....PM",
+              "MM....MM"],
     'south': con_banda('S', 8, 8, {1: 'P', 7: 'M'}),
     'west': con_banda('S', 8, 8, {1: 'P', 7: 'M'}),
     'east': con_banda('S', 8, 8, {1: 'P', 7: 'M'}),
@@ -324,24 +430,26 @@ parte(T, 'pechera', 'pechera_mareas', 'body', cajas=[caja(-4, 0, -2, 8, 12, 4, {
               "MMMMMMMM"],
     'west': con_banda('S', 12, 4, {0: 'M', 5: 'P', 9: 'P', 11: 'M'}),
     'east': con_banda('S', 12, 4, {0: 'M', 5: 'P', 9: 'P', 11: 'M'}),
-    'up': 'M', 'down': '.'}, 1.0)])
+    'up': 'M', 'down': '.'}, INFLA_TORSO)])
 for brazo, x0 in (('right_arm', -3), ('left_arm', -1)):
-    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 12, 4,
-          lados(con_banda('S', 12, 4, {0: 'M', 8: 'P', 9: 'M', 11: 'M'}), arriba='M'), 1.0)])
-# La caracola del hombro izquierdo: una espiral de nacar que se estrecha.
-parte(T, 'pechera', 'caracola', 'left_arm', (1.5, -3.2, 0), (0, 0, -18), [
-    caja(-3, -2, -3, 6, 2, 6, {'up': 'N', 'north': con_banda('N', 2, 6, {1: 'R'}), 'south': 'N',
-                               'west': 'N', 'east': con_banda('N', 2, 6, {1: 'R'}), 'down': 'n'}),
-    caja(-2, -4, -2, 4, 2, 4, 'N'), caja(-1.5, -6, -1.5, 3, 2, 3, {'up': 'N', 'north': con_banda('N', 2, 3, {0: 'R'}),
-                                                                   'south': 'N', 'west': 'N', 'east': 'N', 'down': 'n'}),
-    caja(-1, -8, -1, 2, 2, 2, 'N'), caja(-0.5, -9, -0.5, 1, 1, 1, 'E'),
-    caja(2.5, -1.5, -1, 2, 1, 2, 'N'), caja(-1, -1.5, 2.5, 2, 1, 2, 'N')])
-# El coral del hombro derecho.
-parte(T, 'pechera', 'coral_hombro', 'right_arm', (-1.5, -3.0, 0), (0, 0, 15), [
-    caja(-3, -1, -3, 6, 1, 6, 'M'),
-    caja(-2, -5, -1, 1, 4, 1, 'R'), caja(-3, -6, -1, 1, 2, 1, 'R'),
-    caja(0, -4, 1, 1, 3, 1, 'R'), caja(1, -5, 1, 1, 1, 1, 'R'),
-    caja(1, -3, -2, 1, 2, 1, 'R'), caja(-1, -7, -1, 1, 2, 1, 'R')])
+    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 6, 4,
+          lados(con_banda('S', 6, 4, {0: 'M', 3: 'P', 5: 'M'}), arriba='M'), INFLA_TORSO)])
+# Hombreras de laminas de escamas con ribete de nacar, y en cada una una aleta
+# dorsal (membrana con su espina de nacar) que sube hacia atras.
+hombreras(T, 'S', 'N')
+for lado, brazo, s in (('izq', 'left_arm', 1), ('der', 'right_arm', -1)):
+    parte(T, 'pechera', f'aleta_hombro_{lado}', brazo, (s * 2.4, -4.0, 0.5), (-28, 0, s * -18), [
+        caja(0, -6, -1, 0, 6, 5, 'F'), caja(-0.5, -6.5, -1.5, 1, 7, 1, {'north': 'N', 'south': 'N', 'west': 'N',
+                                                                         'east': 'N', 'up': 'P', 'down': 'n'})])
+    anim(T, 'pechera', f'aleta_hombro_{lado}', 0, 0.05, 0.2, 0.0 if s > 0 else 1.2, 0.3)
+gola(T, 'S', 'N')
+# En el pecho, la venera chica: la perla y cinco costillas de nacar en abanico; delante, su aro de agua.
+halo_pecho(T, halo_mareas(), 0.03, 0.08, 0.13)
+parte(T, 'pechera', 'venera_pecho', 'body', (0, 4.6, -3.1), (0, 0, 0), [caja(-1, -1, -0.6, 2, 2, 1, 'E')])
+for k in range(5):
+    parte(T, 'pechera', f'venera_pecho_{k}', 'venera_pecho', (0, 0, -0.1), (0, 0, -52 + k * 26), [
+        caja(-0.5, -4, -0.4, 1, 4, 1, {'north': ['P', 'N', 'N', 'N'], 'south': 'N', 'west': 'n', 'east': 'n',
+                                       'up': 'P', 'down': 'n'})])
 # La capa de algas: tres tiras desde los hombros, que ondean y se levantan al correr.
 for k, x in enumerate((-3, 0, 3)):
     largo = (15, 17, 15)[k]
@@ -447,27 +555,33 @@ parte(T, 'pechera', 'pechera_jade', 'body', cajas=[caja(-4, 0, -2, 8, 12, 4, {
               "MOMOMOMO",
               "MMMMMMMM"],
     'west': con_banda('M', 12, 4, {0: 'O', 9: 'O'}), 'east': con_banda('M', 12, 4, {0: 'O', 9: 'O'}),
-    'up': 'O', 'down': '.'}, 1.0)])
+    'up': 'O', 'down': '.'}, INFLA_TORSO)])
 for brazo, x0 in (('right_arm', -3), ('left_arm', -1)):
-    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 12, 4,
-          lados(con_banda('M', 12, 4, {0: 'O', 7: 'O', 8: 'e', 9: 'O'}), arriba='O'), 1.0)])
-ESPIRAL7 = ["OOOOOOO", "MMMMMMO", "MOOOOMO", "MOMEMMO", "MOMOOOO", "MOMMMMM", "MOOOOOO"]
+    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 6, 4,
+          lados(con_banda('M', 6, 4, {0: 'O', 3: 'e', 5: 'O'}), arriba='O'), INFLA_TORSO)])
+# Hombreras de laminas de jade oscuro con ribete de oro y, en cada una, dos
+# colmillos de jaguar que suben hacia atras.
+hombreras(T, 'M', 'O')
 for lado, brazo, s in (('izq', 'left_arm', 1), ('der', 'right_arm', -1)):
-    parte(T, 'pechera', f'hombrera_{lado}', brazo, (s * 1.2, -2.9, 0), (0, 0, s * -12), [
-        caja(-3.5, -1, -3.5, 7, 2, 7, {'up': ESPIRAL7 if s > 0 else [f[::-1] for f in ESPIRAL7],
-                                      'north': ["OOOOOOO", "MeMMMeM"], 'south': ["OOOOOOO", "MeMMMeM"],
-                                      'west': ["OOOOOOO", "MMeMeMM"], 'east': ["OOOOOOO", "MMeMeMM"], 'down': 'm'}),
-        caja(-3, 1, -3, 6, 1, 6, 'O'),
-        caja(s * 2.2 - 1, -2.5, -1, 2, 2, 2, 'J')])
-    # Una esquirla de jade que flota sobre el hombro y gira.
-    parte(T, 'pechera', f'esquirla_{lado}', brazo, (s * 3.5, -7.5, 0), (0, 0, 0), [
-        caja(-0.5, -1.5, -0.5, 1, 3, 1, 'J'), caja(-1, -0.5, -0.5, 2, 1, 1, 'J')])
-    anim(T, 'pechera', f'esquirla_{lado}', 3, 0.8, 0.12, 0.0 if s > 0 else 2.0, 0.0)
-    anim(T, 'pechera', f'esquirla_{lado}', 4, 0.06, 0.0, 0.0, 0.0)
-# Cristales de jade por la espalda.
-for k, (x, y, gz, alto) in enumerate(((0, 2.5, 0, 6), (-2.5, 4.5, 22, 5), (2.5, 4.5, -22, 5), (0, 7.5, 0, 4))):
-    parte(T, 'pechera', f'cristal_espalda_{k}', 'body', (x, y, 2.8), (-38, 0, gz), [
+    parte(T, 'pechera', f'colmillo_hombro_{lado}', brazo, (s * 2.6, -4.2, 0.3), (-18, 0, s * -24), [
+        caja(-1, -1, -1, 2, 1, 2, 'O'), caja(-0.5, -6, -0.5, 1, 5, 1, 'T')])
+    parte(T, 'pechera', f'colmillo_hombro_{lado}_b', brazo, (s * 1.6, -4.0, 2.2), (-40, 0, s * -14), [
+        caja(-1, -1, -1, 2, 1, 2, 'O'), caja(-0.5, -4, -0.5, 1, 3, 1, 'T')])
+gola(T, 'M', 'O')
+# El sol de jade del pecho, en relieve: el disco de oro con el jade y sus cuatro rayos; delante, sus rayos de luz.
+halo_pecho(T, rayos_jade(), 0.012, 0.12, 0.16)
+parte(T, 'pechera', 'sol_pecho', 'body', (0, 4.6, -3.1), (0, 0, 0), [
+    caja(-2.5, -2.5, -0.5, 5, 5, 1, {'north': ['.OOO.', 'OOJOO', 'OJEJO', 'OOJOO', '.OOO.'], 'south': 'M',
+                                     'up': 'O', 'down': 'O', 'west': 'O', 'east': 'O'}),
+    caja(-0.5, -4, -0.3, 1, 1, 1, 'O'), caja(-0.5, 3, -0.3, 1, 1, 1, 'O'),
+    caja(-4, -0.5, -0.3, 1, 1, 1, 'O'), caja(3, -0.5, -0.3, 1, 1, 1, 'O')])
+# La cresta de cristales por el espinazo, de mayor a menor, como la de Rajang.
+for k, (y, alto) in enumerate(((1.0, 6), (3.6, 5), (6.2, 4), (8.6, 3))):
+    parte(T, 'pechera', f'cristal_espalda_{k}', 'body', (0, y, 2.9), (-52, 0, 0), [
         caja(-1, -alto, -1, 2, alto, 2, 'J'), caja(-0.5, -alto - 1, -0.5, 1, 1, 1, 'J')])
+for lado, s in (('izq', 1), ('der', -1)):
+    parte(T, 'pechera', f'cristal_omoplato_{lado}', 'body', (s * 2.6, 2.4, 2.9), (-40, 0, s * -30), [
+        caja(-0.5, -3, -0.5, 1, 3, 1, 'J')])
 
 parte(T, 'grebas', 'cintura_jade', 'body', cajas=[caja(-4, 7, -2, 8, 5, 4, {
     'north': ["OOOOOOOO", "OOOEEOOO", "MMMMMMMM", "MOMMMMOM", "MMMMMMMM"],
@@ -479,12 +593,13 @@ for pierna in ('right_leg', 'left_leg'):
         'north': ["MMMM", "OOOO", "OMMO", "OMeO", "OOOO", "MJJM", "MMMM", "MOOM", "MMMM"],
         'south': con_banda('M', 9, 4, {1: 'O', 7: 'O'}), 'west': con_banda('M', 9, 4, {1: 'O', 7: 'O'}),
         'east': con_banda('M', 9, 4, {1: 'O', 7: 'O'}), 'up': '.', 'down': '.'}, 0.5)])
-parte(T, 'grebas', 'faldon_delante', 'body', (0, 11.6, -2.7), (6, 0, 0), [
-    caja(-3, 0, -0.5, 6, 4, 1, {'north': ["OOOOOO", "OMMMMO", "OMeeMO", "OOOOOO"], 'south': 'M', 'up': 'O',
-                                'down': 'O', 'west': 'O', 'east': 'O'})])
-parte(T, 'grebas', 'faldon_detras', 'body', (0, 11.6, 2.7), (-6, 0, 0), [
-    caja(-3, 0, -0.5, 6, 4, 1, {'south': ["OOOOOO", "OMMMMO", "OMMMMO", "OOOOOO"], 'north': 'M', 'up': 'O',
-                                'down': 'O', 'west': 'O', 'east': 'O'})])
+# Faldones: cuatro placas finas de oro con su espiral, que se abren un poco.
+for nombre, z, gx, s_ in (('delante', -2.7, 8, 1), ('detras', 2.7, -8, -1)):
+    for lado, sx in (('izq', 1), ('der', -1)):
+        cara_fuera = 'north' if s_ > 0 else 'south'
+        parte(T, 'grebas', f'faldon_{nombre}_{lado}', 'body', (sx * 1.9, 11.6, z), (gx, 0, sx * -10), [
+            caja(-1.5, 0, -0.5, 3, 4, 1, {cara_fuera: ['OOO', 'OMO', 'OeO', 'OOO'], 'up': 'O', 'down': 'O',
+                                          'west': 'O', 'east': 'O', ('south' if s_ > 0 else 'north'): 'M'})])
 
 for lado, pierna, s in (('izq', 'left_leg', 1), ('der', 'right_leg', -1)):
     parte(T, 'botas', f'bota_{pierna}', pierna, cajas=[caja(-2, 6, -2, 4, 6, 4, {
@@ -519,7 +634,7 @@ for lado, s in (('izq', 1), ('der', -1)):
         largo = (8, 7, 5)[k]
         parte(T, 'casco', f'pluma_casco_{lado}_{k}', f'ala_casco_{lado}', (0, 0, 0), (g, 0, 0), [
             caja(0, -largo, 0, 0, largo, 3, 'W')])
-    anim(T, 'casco', f'ala_casco_{lado}', 1, s * 0.25, 0.32, 0.0, 0.8)
+    anim(T, 'casco', f'ala_casco_{lado}', 1, s * 0.2, 0.32, 0.0, 0.2)
     # Antenas de polilla.
     parte(T, 'casco', f'antena_{lado}', 'head', (s * 1.6, -8.6, -2.0), (-22, 0, s * 16), [
         caja(-0.5, -6, -0.5, 1, 6, 1, 'N'), caja(-0.5, -7, -0.5, 1, 1, 1, 'E'),
@@ -542,27 +657,34 @@ parte(T, 'pechera', 'pechera_vendaval', 'body', cajas=[caja(-4, 0, -2, 8, 12, 4,
     'south': ["MMMMMMMM", "MNMMMMNM", "MMNMMNMM", "MMMNNMMM", "MMMMMMMM", "MMMMMMMM",
               "MMMMMMMM", "MMMMMMMM", "MPMMMMPM", "MMPMMPMM", "MMMPPMMM", "MMMMMMMM"],
     'west': con_banda('M', 12, 4, {0: 'N', 5: 'PMMP', 9: 'N'}), 'east': con_banda('M', 12, 4, {0: 'N', 5: 'PMMP', 9: 'N'}),
-    'up': 'N', 'down': '.'}, 1.0)])
+    'up': 'N', 'down': '.'}, INFLA_TORSO)])
 for brazo, x0 in (('right_arm', -3), ('left_arm', -1)):
-    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 12, 4,
-          lados(con_banda('M', 12, 4, {0: 'N', 4: 'PMMP', 5: 'MPPM', 9: 'N'}), arriba='N'), 1.0)])
-# Hombreras de pluma.
+    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 6, 4,
+          lados(con_banda('M', 6, 4, {0: 'N', 3: 'PMMP', 5: 'N'}), arriba='N'), INFLA_TORSO)])
+# Hombreras de laminas anil con ribete violeta y, en cada una, tres plumas
+# largas que suben hacia atras.
+hombreras(T, 'M', 'N')
 for lado, brazo, s in (('izq', 'left_arm', 1), ('der', 'right_arm', -1)):
-    parte(T, 'pechera', f'hombrera_{lado}', brazo, (s * 1.2, -2.9, 0), (0, 0, s * -10), [
-        caja(-3, -1, -3, 6, 2, 6, {'up': 'N', 'north': ["NNNNNN", "MPMMPM"], 'south': ["NNNNNN", "MPMMPM"],
-                                  'west': ["NNNNNN", "MMPPMM"], 'east': ["NNNNNN", "MMPPMM"], 'down': 'm'})])
-    for k, g in enumerate((25, 50, 75)):
-        parte(T, 'pechera', f'pluma_hombro_{lado}_{k}', f'hombrera_{lado}', (s * 2.8, -0.5, 0), (0, 0, s * -g), [
-            caja(0, -6 + k, -1.5, 0, 6 - k, 3, 'W')])
-    anim(T, 'pechera', f'hombrera_{lado}', 2, s * 0.03, 0.4, 0.0, 0.5)
-# Alas de polilla en la espalda: la de arriba y la de abajo de cada lado, que aletean.
+    for k in range(3):
+        largo = 9 - k * 2
+        parte(T, 'pechera', f'pluma_hombro_{lado}_{k}', brazo, (s * (2.0 + k * 0.9), -3.8 + k * 0.6, 0.8),
+              (-14 - k * 14, 0, s * -(14 + k * 16)), [caja(0, -largo, -1, 0, largo, 3, 'W')])
+gola(T, 'M', 'N')
+# El ojo de la tormenta del pecho, en relieve; delante, su espiral que gira deprisa.
+halo_pecho(T, espiral_vendaval(), -0.09, 0.06, 0.45)
+parte(T, 'pechera', 'ojo_pecho', 'body', (0, 4.6, -3.1), (0, 0, 0), [
+    caja(-2, -2, -0.5, 4, 4, 1, {'north': ['.NN.', 'NEPN', 'NPEN', '.NN.'], 'south': 'M', 'up': 'N', 'down': 'N',
+                                 'west': 'N', 'east': 'N'})])
+# Alas de polilla en la espalda, mas recogidas: tiemblan quietas y, al correr,
+# se pliegan hacia atras (no aletean mas: corriendo se veian raras).
 for lado, s in (('izq', 1), ('der', -1)):
-    parte(T, 'pechera', f'ala_{lado}', 'body', (s * 1.0, 3.0, 2.9), (0, s * -38, s * -6), [])
-    parte(T, 'pechera', f'ala_alta_{lado}', f'ala_{lado}', (0, 0, 0), (0, 0, s * -14), [
-        caja(0 if s > 0 else -15, -12, 0, 15, 13, 0, 'A')])
-    parte(T, 'pechera', f'ala_baja_{lado}', f'ala_{lado}', (0, 1.5, 0), (0, 0, s * 24), [
-        caja(0 if s > 0 else -11, 0, 0, 11, 10, 0, 'A')])
-    anim(T, 'pechera', f'ala_{lado}', 1, s * 0.32, 0.22, 0.0, 1.5)
+    parte(T, 'pechera', f'ala_{lado}', 'body', (s * 1.0, 3.0, 3.0), (0, s * -24, s * -4), [])
+    parte(T, 'pechera', f'ala_alta_{lado}', f'ala_{lado}', (0, 0, 0), (0, 0, s * -16), [
+        caja(0 if s > 0 else -12, -11, 0, 12, 12, 0, 'A')])
+    parte(T, 'pechera', f'ala_baja_{lado}', f'ala_{lado}', (0, 1.5, 0), (0, 0, s * 26), [
+        caja(0 if s > 0 else -9, 0, 0, 9, 8, 0, 'A')])
+    anim(T, 'pechera', f'ala_{lado}', 1, s * 0.1, 0.18, 0.0, 0.0)
+    anim(T, 'pechera', f'ala_{lado}', 6, s * -0.7, 0.0, 0.0, 1.0)
 
 parte(T, 'grebas', 'cintura_vendaval', 'body', cajas=[caja(-4, 7, -2, 8, 5, 4, {
     'north': ["NNNNNNNN", "NNNEENNN", "MMPMMPMM", "MMMPPMMM", "MMMMMMMM"],
@@ -588,7 +710,7 @@ for lado, pierna, s in (('izq', 'left_leg', 1), ('der', 'right_leg', -1)):
     for k, g in enumerate((-15, -45)):
         parte(T, 'botas', f'pluma_talon_{lado}_{k}', f'ala_talon_{lado}', (0, 0, 0), (g, 0, 0), [
             caja(0, -4 + k, 0, 0, 4 - k, 3, 'W')])
-    anim(T, 'botas', f'ala_talon_{lado}', 1, s * 0.3, 0.4, 0.0, 1.2)
+    anim(T, 'botas', f'ala_talon_{lado}', 1, s * 0.22, 0.4, 0.0, 0.3)
     parte(T, 'botas', f'puntera_{lado}', pierna, (0, 11.5, -3.0), (0, 0, 0), [caja(-1, -0.5, -1.5, 2, 1, 2, 'N')])
 
 
@@ -642,6 +764,9 @@ def pintar_caja(capas, tema, u, v, x, y, z, w, h, d, caras, semilla):
             for i in range(cw):
                 capa, color, luz = material(filas[j][i], T, i, j, cw, ch, rnd)
                 if capa is None:
+                    continue
+                if capa == 'luz':
+                    brillo.putpixel((u0 + i, v0 + j), luz[:3] + (255,))
                     continue
                 destino = base if capa == 'base' else mem
                 destino.putpixel((u0 + i, v0 + j), color[:3] + (color[3] if len(color) > 3 else 255,))
@@ -794,7 +919,8 @@ def java(datos):
          ' * van con la textura, que se pinta con el mismo empaquetado).',
          ' */',
          'public final class ArmaduraJefeMalla {', '',
-         '    /** Lo que se mueve de cada pieza: parte, eje (0 x, 1 y, 2 z, 3 flota, 4 gira, 5 sube al andar),',
+         '    /** Lo que se mueve de cada pieza: parte, eje (0 x, 1 y, 2 z, 3 flota, 4 gira, 5 sube al andar, 6 se pliega al andar,',
+         '     *  7 gira en su plano, 8 late),',
          '     *  amplitud, frecuencia, fase y cuanto crece al andar. */',
          '    public record Anim(String parte, int eje, float amplitud, float frecuencia, float fase, float andar) {',
          '    }', '',

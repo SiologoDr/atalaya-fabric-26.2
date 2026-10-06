@@ -590,10 +590,11 @@ def selva_lejana(horiz, semilla=12):
 #  La barra de jefe
 # ----------------------------------------------------------------------
 def barra_jefe(escala, vida=0.2, rastro=0.235):
-    """La barra de jefe de Rajang, compuesta igual que en RajangBarraHud: la
-    energia de la tierra del color de la fase, el rastro claro del ultimo
-    golpe, los tres colmillos (rotos en la fase IV), el sol de la fase y los
-    rotulos."""
+    """La barra de jefe de Rajang (rajang_remake_hud.py --juego, 240x44),
+    compuesta igual que en RajangBarraHud: el marco de la fase con la cresta de
+    cristales, la energia de la tierra con su frente encendido, el rastro claro
+    del ultimo golpe, los colmillos de las muescas (rotos los que ya paso), el
+    sol de jade de la fase y los rotulos."""
     def tex(n):
         return Image.open(os.path.join(GUI, n + '.png')).convert('RGBA')
 
@@ -601,22 +602,26 @@ def barra_jefe(escala, vida=0.2, rastro=0.235):
         a = np.array(im).astype(float)
         a[..., :3] *= np.array(rgb)[None, None] / 255.0
         return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
-    color = (0xE6, 0xFF, 0x4A)
-    lienzo = Image.new('RGBA', (208, 26 + 7), (0, 0, 0, 0))
-    y0 = 7
-    lienzo.alpha_composite(tex('rajang_barra_marco'), (0, y0))
-    lleno, hasta = round(172 * vida), round(172 * rastro)
+    hx, hy, ancho, alto = 40, 22, 190, 9                   # el hueco (HUECO_X, HUECO_Y...)
+    color = (0xE6, 0xFF, 0x4A)                             # COLOR_FASE de la IV
+    claro = (0xFF, 0xFF, 0xFF)                             # CLARO_FASE de la IV: el frente
+    lienzo = tex(f'rajang_barra_marco_{FASE}').copy()
+    d = ImageDraw.Draw(lienzo, 'RGBA')
+    lleno, hasta = round(ancho * vida), round(ancho * rastro)
     if hasta > lleno:
-        ImageDraw.Draw(lienzo).rectangle((28 + lleno, y0 + 9, 28 + hasta - 1, y0 + 9 + 7), fill=(0xF0, 0xFF, 0xE0, 0xD8))
-    relleno = tenir(tex('rajang_barra_relleno'), color)
+        d.rectangle((hx + lleno, hy, hx + hasta - 1, hy + alto - 1), fill=(0xF0, 0xFF, 0xE0, 0xD8))
+    relleno = tex(f'rajang_barra_relleno_{FASE}')
     for x in range(0, lleno, 64):
-        lienzo.alpha_composite(relleno.crop((0, 0, min(64, lleno - x), 8)), (28 + x, y0 + 9))
+        lienzo.alpha_composite(relleno.crop((0, 0, min(64, lleno - x), alto)), (hx + x, hy))
+    d = ImageDraw.Draw(lienzo, 'RGBA')
+    if lleno >= 2:
+        d.rectangle((hx + lleno - 2, hy, hx + lleno - 1, hy + alto - 1), fill=(*claro, 255))
     for corte in (0.75, 0.5, 0.25):
-        nombre = 'rajang_barra_muesca_rota' if vida < corte else 'rajang_barra_muesca'
-        lienzo.alpha_composite(tex(nombre), (28 + round(172 * corte) - 3, y0 + 9 - 2))
-    lienzo.alpha_composite(tex(f'rajang_barra_sol_{FASE}'), (13 - 8, y0 + 13 - 8))
-    lienzo.alpha_composite(tex('rajang_barra_nombre'), (28, y0 + 7 - 10))
-    lienzo.alpha_composite(tenir(tex(f'rajang_barra_fase_{FASE}'), color), (28 + 172 - 64 + 1, y0 + 7 - 10))
+        nombre = 'rajang_barra_colmillo_roto' if vida < corte else 'rajang_barra_colmillo'
+        lienzo.alpha_composite(tex(nombre), (hx + round(ancho * corte) - 3, hy - 4))
+    lienzo.alpha_composite(tex(f'rajang_barra_nucleo_{FASE}'), (19 - 12, 26 - 12))
+    lienzo.alpha_composite(tex('rajang_barra_nombre'), (92, 9))
+    lienzo.alpha_composite(tenir(tex(f'rajang_barra_fase_{FASE}'), color), (hx + ancho - 64 + 1, 8))
     return lienzo.resize((lienzo.width * escala, lienzo.height * escala), Image.NEAREST)
 
 

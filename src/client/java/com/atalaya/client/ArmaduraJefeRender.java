@@ -30,7 +30,8 @@ import java.util.function.Function;
  * armaduras_jefes.py): la armadura sobre el cuerpo mas sus piezas por encima,
  * que siguen al cuerpo (copia la postura del modelo de quien la lleva) y se
  * mueven solas (la capa y las aletas ondean, las alas aletean, las esquirlas
- * flotan; mas al andar). Se pinta en capas:
+ * flotan; mas al andar) y el halo de luz del emblema del pecho gira y late.
+ * Se pinta en capas:
  *
  * <pre>
  *   base       lo opaco
@@ -85,6 +86,14 @@ public final class ArmaduraJefeRender implements ArmorRenderer {
                     case 3 -> p.y += onda;
                     case 4 -> p.yRot += s.edad() * a.amplitud();
                     case 5 -> p.xRot += a.amplitud() * a.andar() * andar;
+                    case 6 -> p.yRot += a.amplitud() * a.andar() * andar;
+                    // El halo del pecho: gira en su plano y late (crece y se encoge).
+                    case 7 -> p.zRot += s.edad() * a.amplitud();
+                    case 8 -> {
+                        float k = 1.0F + a.amplitud() * Mth.sin(s.edad() * a.frecuencia() * 2.0F + a.fase());
+                        p.xScale *= k;
+                        p.yScale *= k;
+                    }
                     default -> {
                     }
                 }
@@ -108,7 +117,9 @@ public final class ArmaduraJefeRender implements ArmorRenderer {
         base = RenderTypes.armorCutoutNoCull(tex(tema.id));
         translucida = RenderTypes.armorTranslucent(tex(tema.id + "_membrana"));
         for (int k = 0; k < CUADROS; k++) {
-            brillo[k] = RenderTypes.eyes(tex(tema.id + "_brillo_" + k));
+            // Translucido a plena luz (no "eyes"): el fundido entre cuadros va por la transparencia;
+            // con "eyes" el cuadro que se apagaba se pintaba negro.
+            brillo[k] = RenderTypes.entityTranslucentEmissive(tex(tema.id + "_brillo_" + k));
         }
     }
 
@@ -158,11 +169,11 @@ public final class ArmaduraJefeRender implements ArmorRenderer {
         float mezcla = t - Mth.floor(t);
         // (aqui si va un tinte: la variante con sprite lleva el color y luego el contorno)
         ArmorRenderer.submitTransformCopyingModel(cuerpo, s, modelo, estado, true, colector.order(2), pose, brillo[k],
-                0xF000F0, OverlayTexture.NO_OVERLAY, ARGB.colorFromFloat(1.0F, 1.0F - mezcla, 1.0F - mezcla, 1.0F - mezcla),
+                0xF000F0, OverlayTexture.NO_OVERLAY, ARGB.colorFromFloat(1.0F - mezcla, 1.0F, 1.0F, 1.0F),
                 null, 0, null);
         ArmorRenderer.submitTransformCopyingModel(cuerpo, s, modelo, estado, true, colector.order(2), pose,
                 brillo[(k + 1) % CUADROS], 0xF000F0, OverlayTexture.NO_OVERLAY,
-                ARGB.colorFromFloat(1.0F, mezcla, mezcla, mezcla), null, 0, null);
+                ARGB.colorFromFloat(mezcla, 1.0F, 1.0F, 1.0F), null, 0, null);
         if (stack.hasFoil()) {
             ArmorRenderer.submitTransformCopyingModel(cuerpo, s, modelo, estado, true, colector.order(3), pose,
                     RenderTypes.armorEntityGlint(), luz, OverlayTexture.NO_OVERLAY, 0, null);

@@ -21,14 +21,29 @@ pixel, junto a la de hoy. Solo vista previa: no escribe nada en el repo.
   - Con la Furia de Jade, todo en verde vivo y el rotulo FURIA.
 
 Uso: python rajang_remake_hud.py <raiz del proyecto> <carpeta de salida>
+     python rajang_remake_hud.py <raiz del proyecto> --juego
+
+Con --juego (desde octubre de 2026, cuando la barra paso al juego) escribe las
+piezas que usa RajangBarraHud en textures/gui y no saca las hojas:
+  rajang_barra_marco_N.png     el marco de cada fase, la Furia y el liberado (240x44)
+  rajang_barra_relleno_N.png   la energia de cada uno, con el color dentro (64x9)
+  rajang_barra_nucleo_N.png    el sol de jade de cada uno (24x24)
+  rajang_barra_colmillo(_roto).png   las muescas (7x12)
+  rajang_barra_totem(_roto).png      los totems del Sello, como en el juego (7x9)
+Las letras (el nombre, la fase, LIBERADO y FURIA) siguen saliendo de
+rajang_hud.py y rajang_mejoras_extras.py.
 """
 from PIL import Image, ImageFilter
 import math, os, random, sys
 
-RAIZ, SALIDA = sys.argv[1], sys.argv[2]
+JUEGO = '--juego' in sys.argv
+_ARGS = [a for a in sys.argv[1:] if a != '--juego']
+RAIZ = _ARGS[0]
+SALIDA = _ARGS[1] if len(_ARGS) > 1 else None
 GUI = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/gui')
 FOTOS = os.path.join(RAIZ, 'run/screenshots')
-os.makedirs(SALIDA, exist_ok=True)
+if SALIDA:
+    os.makedirs(SALIDA, exist_ok=True)
 
 
 def hexc(s, a=255):
@@ -338,7 +353,15 @@ def tenir(im, rgb):
 
 
 def cargar(n):
-    return Image.open(os.path.join(GUI, n + '.png')).convert('RGBA')
+    ruta = os.path.join(GUI, n + '.png')
+    if os.path.exists(ruta):
+        return Image.open(ruta).convert('RGBA')
+    # Las piezas de la barra de antes ya no estan en el arbol (la nueva las
+    # sustituyo): se sacan de git, de antes del cambio.
+    import io, subprocess
+    rel = 'src/main/resources/assets/atalaya/textures/gui/' + n + '.png'
+    datos = subprocess.run(['git', '-C', RAIZ, 'show', 'f26e9f1:' + rel], capture_output=True, check=True).stdout
+    return Image.open(io.BytesIO(datos)).convert('RGBA')
 
 
 def nueva(clave, vida, fantasma=None, sello=None, totems_rotos=0):
@@ -431,6 +454,28 @@ def antigua(clave, vida, sello=None, totems_rotos=0):
                 for xx in range(tx + 1, tx + 6):
                     q[xx, yy] = (0x3A, 0x3A, 0x32, 255) if roto else (0x8C, 0xFF, 0x5A, 255)
     return im
+
+
+# ---------------------------------------------------------------- al juego
+if JUEGO:
+    for clave in (1, 2, 3, 4, 'furia', 'libre'):
+        marco(clave).save(os.path.join(GUI, f'rajang_barra_marco_{clave}.png'))
+        relleno(clave).save(os.path.join(GUI, f'rajang_barra_relleno_{clave}.png'))
+        sol(clave).save(os.path.join(GUI, f'rajang_barra_nucleo_{clave}.png'))
+    for nombre, dibujo, pal in (('colmillo', COLMILLO, dict(PAL, L=JADE[7])),
+                                ('colmillo_roto', COLMILLO_ROTO, dict(PAL, L=JADE[3])),
+                                ('totem', TOTEM, dict(PAL, L=(143, 235, 112, 255), d=JADE[1])),
+                                ('totem_roto', TOTEM_ROTO, dict(PAL, L=(143, 235, 112, 255), d=JADE[1]))):
+        im = Image.new('RGBA', (len(dibujo[0]), len(dibujo)), (0, 0, 0, 0))
+        pintar(im, dibujo, pal)
+        im.save(os.path.join(GUI, f'rajang_barra_{nombre}.png'))
+    # Las piezas de la barra de antes (208x26) ya no las usa nadie.
+    for viejo in ['rajang_barra_marco', 'rajang_barra_relleno', 'rajang_barra_muesca', 'rajang_barra_muesca_rota',
+                  'rajang_barra_sol_libre'] + [f'rajang_barra_sol_{n}' for n in (1, 2, 3, 4)]:
+        if os.path.exists(os.path.join(GUI, viejo + '.png')):
+            os.remove(os.path.join(GUI, viejo + '.png'))
+    print('barra de Rajang escrita en', GUI)
+    sys.exit(0)
 
 
 # ---------------------------------------------------------------- hojas

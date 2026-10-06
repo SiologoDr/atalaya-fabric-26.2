@@ -248,17 +248,18 @@
   "item.atalaya.mareas_leggings": "Grebas de las Mareas",
   "item.atalaya.mareas_boots": "Botas de las Mareas",
   "item.atalaya.mareas_sword": "Espada de las Mareas",
-  "item.atalaya.mareas_sword.efecto": "Al golpear: Corriente Abismal (3 s)",
+  "item.atalaya.mareas_sword.efecto": "Al golpear (5 %): Corriente Abismal (3 s). No funciona con jefes",
   "item.atalaya.jade_helmet": "Casco de Jade",
   "item.atalaya.jade_chestplate": "Coraza de Jade",
   "item.atalaya.jade_leggings": "Grebas de Jade",
   "item.atalaya.jade_boots": "Botas de Jade",
   "item.atalaya.jade_sword": "Espada de Jade",
-  "item.atalaya.jade_sword.efecto": "Al golpear: Peso de la Tierra (2 s)",
+  "item.atalaya.jade_sword.efecto": "Al golpear (5 %): Peso de la Tierra (2 s). No funciona con jefes",
   "item.atalaya.vendaval_helmet": "Casco del Vendaval",
   "item.atalaya.vendaval_chestplate": "Coraza del Vendaval",
   "item.atalaya.vendaval_leggings": "Grebas del Vendaval",
   "item.atalaya.vendaval_boots": "Botas del Vendaval",
   "item.atalaya.vendaval_sword": "Espada del Vendaval",
-  "item.atalaya.vendaval_sword.efecto": "Al golpear: racha de viento; critico: Parálisis (1 s)"
+  "item.atalaya.vendaval_sword.efecto": "Al golpear (5 %): racha de viento y Parálisis (1 s). No funciona con jefes",
+  "subtitles.atalaya.espada.golpe": "Golpe de espada"
 }
