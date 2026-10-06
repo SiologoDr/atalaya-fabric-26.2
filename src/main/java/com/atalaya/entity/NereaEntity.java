@@ -574,6 +574,12 @@ public class NereaEntity extends Monster {
             setTarget(null);
             objetivo = null;
         }
+        // Despierto, siempre persigue a alguien si hay un jugador a tiro: el objetivo
+        // de vanilla pide verlo, y con este tamano el ojo se queda entre las hojas o
+        // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
+        if (getEstado() != DORMIDO && !isDeadOrDying()) {
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 64);
+        }
 
         if (respiro > 0) respiro--;
         if (enfRompeolas > 0) enfRompeolas--;
@@ -723,6 +729,9 @@ public class NereaEntity extends Monster {
                 golpeados.clear();
                 tickImpacto = -1;
                 ponerEstado(ROMPEOLAS, NereaGeometria.DURACION_ROMPEOLAS);
+                // No se mueve ni ataca hasta que sus olas acaban de correr (con el ritmo de las
+                // ultimas fases el estado acababa antes y las olas dejaban de pegar a medio camino).
+                duracion = Math.max(duracion, (int) Math.ceil(NereaGeometria.IMPACTO_ROMPEOLAS / ritmoEstado) + TICKS_OLA + 2);
                 sonido(AtalayaSonidos.NEREA_ROMPEOLAS_ALZAR, 3.0F);
             }
             case BURBUJAS -> {
@@ -796,6 +805,9 @@ public class NereaEntity extends Monster {
                 rumbo = yBodyRot;
                 entityData.set(DATA_HUECO, (random.nextFloat() * 2.0F - 1.0F) * MAREA_HUECO_LADO);
                 ponerEstado(MAREA, NereaGeometria.DURACION_MAREA);
+                // Puesta la direccion, ni se mueve ni ataca hasta que la ola acaba de cruzar.
+                duracion = Math.max(duracion, (int) Math.ceil(NereaGeometria.MAREA_LANZA / ritmoEstado)
+                        + (int) Math.ceil(MAREA_LARGO / MAREA_VEL) + OlaNereaEntity.APAGA / 2);
                 sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 5.0F);
             }
@@ -920,7 +932,8 @@ public class NereaEntity extends Monster {
             return;
         }
         for (Player p : jugadores(nivel, RANGO_DESPERTAR, 0)) {
-            if (hasLineOfSight(p)) {
+            // Lo ve desde los ojos, el pecho o las rodillas, o lo tiene muy cerca.
+            if (PresasJefe.despierta(nivel, this, p)) {
                 despertarse(p);
                 return;
             }

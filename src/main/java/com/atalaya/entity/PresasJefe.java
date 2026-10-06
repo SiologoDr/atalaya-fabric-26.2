@@ -1,0 +1,103 @@
+package com.atalaya.entity;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * A quien persiguen los jefes y cuando despiertan.
+ *
+ * <p>El objetivo de vanilla (NearestAttackableTargetGoal) solo se elige si el
+ * jefe LO VE: un rayo de su ojo al tuyo que no choque con nada. Con jefes de 8 a
+ * 24 bloques el ojo se queda entre las hojas, tras una loma o por encima de un
+ * techo, el rayo no pasa, y el jefe despierto se quedaba quieto sin objetivo (o
+ * ni siquiera despertaba) aunque hubiera alguien en supervivencia al lado. Aqui
+ * se elige al jugador mas cercano sin pedir que lo vea, y para despertar vale
+ * verlo desde los ojos, el pecho o las rodillas, o tenerlo muy cerca.
+ */
+public final class PresasJefe {
+
+    /** Cada cuanto se revisa el objetivo (ticks). */
+    public static final int CADA = 10;
+    /** Tan cerca, despierta aunque no lo vea (detras de un arbol, debajo de un techo). */
+    public static final double DESPIERTA_SIN_VER = 16.0;
+
+    private PresasJefe() {
+    }
+
+    /** Si vale como objetivo: vivo, y si es un jugador, ni en creativo ni en espectador. */
+    public static boolean vale(LivingEntity v) {
+        if (!v.isAlive() || v.isRemoved()) {
+            return false;
+        }
+        return !(v instanceof Player p) || (!p.isCreative() && !p.isSpectator());
+    }
+
+    /**
+     * El jugador (supervivencia o aventura) mas cercano al jefe a menos de
+     * "radio" bloques, que ademas este a menos de "correa" del centro de su
+     * templo. Sin pedir que lo vea.
+     */
+    public static @Nullable Player masCercano(ServerLevel nivel, Mob jefe, double radio, Vec3 centro, double correa) {
+        Player mejor = null;
+        double d = radio * radio;
+        for (Player p : nivel.players()) {
+            if (!vale(p)) {
+                continue;
+            }
+            double dd = p.distanceToSqr(jefe);
+            if (dd < d && p.distanceToSqr(centro) < correa * correa) {
+                d = dd;
+                mejor = p;
+            }
+        }
+        return mejor;
+    }
+
+    /**
+     * Revisa el objetivo del jefe: suelta el que ya no vale y, si no tiene
+     * ninguno (o persigue a un bicho y hay un jugador a tiro), elige al jugador
+     * mas cercano. Devuelve el objetivo con el que se queda.
+     */
+    public static @Nullable LivingEntity revisar(ServerLevel nivel, Mob jefe, @Nullable LivingEntity objetivo, Vec3 centro,
+                                                 double correa) {
+        if (objetivo != null && !vale(objetivo)) {
+            jefe.setTarget(null);
+            objetivo = null;
+        }
+        if ((objetivo == null || !(objetivo instanceof Player)) && jefe.tickCount % CADA == 0) {
+            Player p = masCercano(nivel, jefe, correa, centro, correa);
+            if (p != null) {
+                jefe.setTarget(p);
+                objetivo = p;
+            }
+        }
+        return objetivo;
+    }
+
+    /**
+     * Si el jefe ve a alguien: desde los ojos, el pecho o las rodillas (con un
+     * arbol o un techo sobre la cabeza tambien lo ve), o lo tiene tan cerca que
+     * da igual.
+     */
+    public static boolean despierta(ServerLevel nivel, Mob jefe, Entity p) {
+        if (p.distanceToSqr(jefe) < DESPIERTA_SIN_VER * DESPIERTA_SIN_VER) {
+            return true;
+        }
+        Vec3 hasta = p.getEyePosition();
+        for (double k : new double[]{1.0, 0.55, 0.15}) {
+            Vec3 desde = new Vec3(jefe.getX(), jefe.getY() + Math.max(0.5, jefe.getEyeHeight() * k), jefe.getZ());
+            if (nivel.clip(new ClipContext(desde, hasta, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, jefe)).getType()
+                    == HitResult.Type.MISS) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

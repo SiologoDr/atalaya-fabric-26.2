@@ -144,6 +144,10 @@ public final class AtalayaParticulas {
     public static SimpleParticleType RAJANG_ORO;
     /** El zarpazo: tres garras en arco que cortan el aire. Tamano en la X, ticks en la Y, giro en la Z. */
     public static SimpleParticleType RAJANG_ZARPAZO;
+    /** El tajo de cada espada de jefe al golpear: una media luna del color del tema. */
+    public static SimpleParticleType MAREAS_TAJO;
+    public static SimpleParticleType JADE_TAJO;
+    public static SimpleParticleType VENDAVAL_TAJO;
 
     private AtalayaParticulas() {
     }
@@ -209,6 +213,9 @@ public final class AtalayaParticulas {
         RAJANG_LASTRE = registrar("rajang_lastre", true);
         RAJANG_ORO = registrar("rajang_oro", true);
         RAJANG_ZARPAZO = registrar("rajang_zarpazo", true);
+        MAREAS_TAJO = registrar("mareas_tajo", true);
+        JADE_TAJO = registrar("jade_tajo", true);
+        VENDAVAL_TAJO = registrar("vendaval_tajo", true);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {

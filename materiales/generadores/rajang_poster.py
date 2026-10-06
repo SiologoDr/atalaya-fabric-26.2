@@ -32,6 +32,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 RAIZ, SALIDA = sys.argv[1], sys.argv[2]
 ESCALA = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# los __pycache__ de los generadores estan en git: importarlos no los reescribe
+sys.dont_write_bytecode = True
 _argv = sys.argv
 sys.argv = [_argv[0], RAIZ, tempfile.mkdtemp()]
 import vigia_render as vr

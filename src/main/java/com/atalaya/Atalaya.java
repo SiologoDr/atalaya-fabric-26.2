@@ -86,6 +86,8 @@ public class Atalaya implements ModInitializer {
         // que su tipo de entidad exista cuando se construye.
         AtalayaEntities.registrar();
         AtalayaItems.registrar();
+        // Las armaduras y las espadas de los jefes (solo en creativo, por ahora).
+        com.atalaya.item.ArmadurasJefes.registrar();
         RadiacionEffect.registrar();
         InsolacionEffect.registrar();
         CorrosionEffect.registrar();
@@ -164,6 +166,12 @@ public class Atalaya implements ModInitializer {
         // El traje aparece en la pestana de combate, justo detras de las botas de hierro.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(Items.IRON_BOOTS, HazmatArmor.todas()));
+        // Las armaduras de los jefes detras de las botas de netherite; sus espadas,
+        // detras de la de netherite.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
+                salida.insertAfter(Items.NETHERITE_BOOTS, com.atalaya.item.ArmadurasJefes.armaduras()));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
+                salida.insertAfter(Items.NETHERITE_SWORD, com.atalaya.item.ArmadurasJefes.espadas()));
 
         // Carbon activado y filtro van con los materiales, detras del carbon.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->

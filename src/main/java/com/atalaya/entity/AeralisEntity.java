@@ -163,6 +163,14 @@ public class AeralisEntity extends Monster {
     /** Lo bajo que pasa en la pasada rasante (las colas, a ras de suelo). */
     private static final double ALTURA_RASANTE = 5.5;
     /**
+     * En las fases I y II vuela bajo: la base de la caja a 3 bloques del suelo,
+     * donde se le pega con la espada (a 7,5 solo llegaba el arco). Las colas de
+     * las alas rozan el suelo. Desde la III vuelve a ALTURA_VUELO: ahi ya hace
+     * falta el arco.
+     */
+    public static final double ALTURA_VUELO_BAJA = 3.0;
+    private static final double ALTURA_RASANTE_BAJA = 2.0;
+    /**
      * El Picado: la linea mide lo que hay hasta la presa mas 14 (de 36 a 60
      * bloques) y lo recorre a 45 bloques/s: baja en el primer tercio y luego
      * barre el suelo hasta el final. Pilla lo que haya en la linea (su medio
@@ -784,6 +792,12 @@ public class AeralisEntity extends Monster {
             setTarget(null);
             objetivo = null;
         }
+        // Despierto, siempre persigue a alguien si hay un jugador a tiro: el objetivo
+        // de vanilla pide verlo, y con este tamano el ojo se queda entre las hojas o
+        // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
+        if (getEstado() != DORMIDA && !isDeadOrDying()) {
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72);
+        }
         if (respiro > 0) respiro--;
         if (enfAleteo > 0) enfAleteo--;
         if (enfTornados > 0) enfTornados--;
@@ -1143,19 +1157,22 @@ public class AeralisEntity extends Monster {
             return;
         }
         double suelo = sueloBajo(nivel, getX(), getY(), getZ());
+        // Fases I y II, a tiro de espada; desde la III, alta (arco).
+        boolean baja = fase() <= 2;
+        double vuelo = baja ? ALTURA_VUELO_BAJA : ALTURA_VUELO;
         double altura = switch (e) {
-            case LIBRE -> ALTURA_VUELO + 1.0 * Mth.sin(tickCount * 0.045F);
+            case LIBRE -> vuelo + (baja ? 0.5 : 1.0) * Mth.sin(tickCount * 0.045F);
             // Sube para golpear el aire y baja con el golpe.
-            case TORNADOS -> ta() < AeralisGeometria.TORNADOS_GOLPE ? ALTURA_VUELO + 3.0 : ALTURA_VUELO - 0.8;
+            case TORNADOS -> ta() < AeralisGeometria.TORNADOS_GOLPE ? vuelo + 3.0 : Math.max(1.0, vuelo - 0.8);
             case DORMIDA, ATURDIDA -> 0.0;
-            case DESPERTAR -> t < AeralisGeometria.DESPERTAR_ALZA ? 0.0 : ALTURA_VUELO;
-            case AGOTADA -> ta() >= AeralisGeometria.AGOTADA_ALZA ? ALTURA_VUELO : 0.0;
+            case DESPERTAR -> t < AeralisGeometria.DESPERTAR_ALZA ? 0.0 : vuelo;
+            case AGOTADA -> ta() >= AeralisGeometria.AGOTADA_ALZA ? vuelo : 0.0;
             case JUICIO_SUBE, JUICIO_SOSTIENE, JUICIO_GOLPE -> ALTURA_JUICIO;
             // El Picado sube antes de lanzarse; posada, en el suelo hasta que se arranca.
             case PICADO_AVISO -> ALTURA_VUELO + 4.5;
-            case POSADA -> ta() >= AeralisGeometria.POSADA_ALZA ? ALTURA_VUELO : 0.0;
+            case POSADA -> ta() >= AeralisGeometria.POSADA_ALZA ? vuelo : 0.0;
             case ESCAMAS -> ALTURA_VUELO + 3.0;
-            default -> ALTURA_VUELO;
+            default -> vuelo;
         };
         Vec3 c = Vec3.atBottomCenterOf(centro);
         double x = getX();
@@ -1178,7 +1195,7 @@ public class AeralisEntity extends Monster {
                 x = destinoRasante.x;
                 z = destinoRasante.z;
                 vmax = 0.78;
-                altura = ALTURA_RASANTE;
+                altura = baja ? ALTURA_RASANTE_BAJA : ALTURA_RASANTE;
                 if (horizontal(position(), destinoRasante) < 3.0) {
                     rasante = 0;
                 }
@@ -1288,7 +1305,8 @@ public class AeralisEntity extends Monster {
             return;
         }
         for (Player p : jugadores(nivel, RANGO_DESPERTAR, 0)) {
-            if (hasLineOfSight(p)) {
+            // Lo ve desde los ojos, el pecho o las rodillas, o lo tiene muy cerca.
+            if (PresasJefe.despierta(nivel, this, p)) {
                 despertarse(p);
                 return;
             }

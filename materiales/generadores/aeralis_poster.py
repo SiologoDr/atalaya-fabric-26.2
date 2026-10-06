@@ -3,20 +3,27 @@ Poster promocional de Aeralis, la Mariposa del Vendaval, en la Cima del
 Vendaval con la tormenta encima. Presenta al jefe: ella grande a la derecha,
 su nombre a la izquierda y nada mas (ni jugadores ni lista de ataques).
 
-Aeralis en la fase III (Tempestad), con la camara baja mirandola desde
-abajo: las alas abiertas de par en par, los rayos saltando entre ellas, el
-ojo de la tormenta encendido en el pecho y los colmillos abiertos hacia quien
-mira. A su alrededor sube en espiral el viento de su vendaval (por detras de
-ella; por delante solo le pasa por el abdomen y las cintas), dos tornados la
-flanquean en la meseta y una cuchilla del Aleteo viene de frente hacia quien
-mira. Detras, las nubes giran alrededor del ojo de la tormenta. Arriba, su
-barra de jefe tal cual sale en el juego.
+Aeralis en la fase III (Tempestad), de frente y con la camara baja
+mirandola desde abajo: las alas abiertas de par en par y algo alzadas, el halo
+de viento detras del torax, los rayos saltando entre las alas, el ojo de la
+tormenta encendido en el pecho y los colmillos abiertos hacia quien mira. A
+su alrededor sube en espiral el viento de su vendaval (por detras de ella; por
+delante solo le pasa por el abdomen y las cintas), dos tornados la flanquean
+en la meseta y una cuchilla del Aleteo viene de frente hacia quien mira.
+Detras, las nubes giran alrededor del ojo de la tormenta. Arriba, su barra de
+jefe tal cual sale en el juego.
+
+Desde el remake de octubre de 2026 (vendaval_juego.py) mide unos 38 bloques
+de punta a punta de ala y 24 de alto, y vuela mas alta: la camara se aleja y
+la escena crece con ella.
 
 Todo lo que sale esta hecho para el mod: la malla del juego con su atlas y su
-capa de brillo (vendaval_juego.py), los tornados y la cuchilla con la forma y
-las texturas que usa el juego (TornadoAeralisRenderer, CuchillaVientoRenderer),
-el viento del vendaval (una textura en pixeles pintada aqui), el cielo, la
-meseta, las particulas propias y la barra. Las fuentes son las del sistema.
+capa de brillo (vendaval_juego.py), los tornados y la cuchilla con la forma,
+las texturas y el color de la fase que usa el juego (TornadoAeralisRenderer,
+CuchillaVientoRenderer, AeralisDibujo), el viento del vendaval (una textura en
+pixeles pintada aqui), el cielo, la meseta, las particulas propias y la barra
+(aeralis_hud.py, compuesta como AeralisBarraHud). Las fuentes son las del
+sistema.
 
 Uso: python aeralis_poster.py <raiz del proyecto> <salida.png> [escala]
 """
@@ -27,6 +34,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 RAIZ, SALIDA = sys.argv[1], sys.argv[2]
 ESCALA = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# los __pycache__ de los generadores estan en git: importarlos no los reescribe
+sys.dont_write_bytecode = True
 os.environ['VENDAVAL_SIN_FISICA'] = '1'
 _argv = sys.argv
 sys.argv = [_argv[0], RAIZ, tempfile.mkdtemp()]
@@ -48,6 +57,11 @@ FASE = 3
 
 CIELO = (120, 214, 255, 255)
 VIOLETA = (190, 140, 255, 255)
+# AeralisDibujo: el color de la fase (filos, tornados, cuchillas) y su tormenta oscura
+COLOR_FASE = (0xB9, 0x8C, 0xFF)
+TORMENTA_FASE = (0x3A, 0x26, 0x78)
+# Lo que crecio con el remake: la escena se penso para la de antes
+K = 1.6
 BLANCO = (240, 244, 252, 255)
 GRIS = (184, 194, 214, 255)
 
@@ -61,23 +75,25 @@ def px(n):
 
 
 # ----------------------------------------------------------------------
-#  La pose: las alas abiertas de par en par hacia quien mira, la cabeza
-#  baja clavando los ojos, los colmillos abiertos, las patas delanteras
-#  alzadas y el abdomen curvado hacia delante como un insecto de presa, con
-#  las cintas de viento ondeando a los lados.
+#  La pose: las alas abiertas de par en par hacia quien mira y algo alzadas
+#  (con las del remake no caben mas alzadas), la cabeza baja clavando los
+#  ojos, los colmillos abiertos, las patas de presa alzadas y el abdomen
+#  curvado hacia delante como un insecto de presa, con las cintas de viento
+#  abiertas a los lados.
 # ----------------------------------------------------------------------
 def pose_poster():
-    return va.sumar(va.alas(16, 46, (12, 26), giro=-10), va.antenas(-8, 22), va.colmillos(32), va.abdomen(-14, -22),
-                    va.patas(-34, -14, -10), {'cabeza': va.r(20, -4, 0), 'torax': va.r(-4, 4, 0),
-                                              'cinta_izq': va.r(-30, 0, -70), 'cinta_der': va.r(-20, 0, 55)})
+    return va.sumar(va.alas(10, 28, (6, 12), giro=-8), va.antenas(-8, 14), va.colmillos(30), va.abdomen(-12, -16),
+                    va.patas(-34, -14, -10), {'cabeza': va.r(22, -4, 0), 'torax': va.r(-6, 4, 0),
+                                              'cinta_izq': va.r(-20, 0, -40), 'cinta_der': va.r(-14, 0, 35)})
 
 
 # ----------------------------------------------------------------------
-#  Escena: camara baja en la meseta, mirando hacia arriba
+#  Escena: camara baja en la meseta, mirando hacia arriba. Vuela a la altura
+#  de la ficha del remake (las colas no rozan el suelo).
 # ----------------------------------------------------------------------
-AERALIS_EN = (4.5, 3.0, 5.0)
+AERALIS_EN = (4.5, 7.0, 5.0)
 GUINADA = float(os.environ.get('GUINADA', '34'))         # de frente a la camara
-CAM = vr.Camara(ojo=(-7.0, 0.7, -12.8), objetivo=(float(os.environ.get('OBJ_X', '8.4')), 10.6, 2.0), fov=56,
+CAM = vr.Camara(ojo=(-13.4, 0.8, -22.8), objetivo=(float(os.environ.get('OBJ_X', '10.6')), 14.0, 0.2), fov=56,
                 ancho=W * SS, alto=H * SS)
 LUCES = [
     ((-0.4, 1.0, -0.7), (0.82, 0.88, 1.0), 1.1, 'llave'),      # la luz plana de la tormenta
@@ -131,20 +147,43 @@ def flotante(im):
 #  atras a delante, para que se tapen bien entre ellos.
 #  Un velo: (cuatro puntos, sus UV, textura, tinte, opacidad, brillo, mosaico)
 # ----------------------------------------------------------------------
-TEX_TORNADO = vr.cargar(os.path.join(A, 'entity/aeralis/tornado.png'))
-TEX_CUCHILLA = vr.cargar(os.path.join(A, 'entity/aeralis/cuchilla.png'))
+def claro(rgb, k):
+    """El color aclarado hacia el blanco (AeralisDibujo.claro)."""
+    return tuple(int(c + (255 - c) * k) for c in rgb)
+
+
+def tenida(nombre, rgb):
+    """Una textura de entity/aeralis tenida de un color, como la tine el juego
+    con el color de los vertices (asi tambien su brillo sale de ese color)."""
+    t = vr.cargar(os.path.join(A, 'entity/aeralis', nombre)).astype(float)
+    t[..., :3] *= np.array(rgb) / 255.0
+    return t.astype(np.uint8)
+
+
+TEX_EMBUDO_FUERA = tenida('embudo.png', claro(COLOR_FASE, 0.22))
+TEX_EMBUDO_DENTRO = tenida('embudo.png', TORMENTA_FASE)
+TEX_FALDON = tenida('embudo.png', (176, 168, 150))
+TEX_ARO = tenida('aro.png', COLOR_FASE)
+TEX_ANILLO = tenida('rayo.png', claro(COLOR_FASE, 0.4))
+# las cuchillas bajas (las que se saltan) van del color de la fase
+TEX_CUCHILLA = tenida('cuchilla.png', claro(COLOR_FASE, 0.15))
 
 
 def tornado(x, z, alto, ancho, edad):
-    """Un tornado como lo pinta TornadoAeralisRenderer: un embudo que se
-    ensancha hacia arriba, con dos capas que giran a distinta velocidad y el
-    eje que se tuerce; se deshace por abajo y por arriba."""
+    """Un tornado como lo pinta TornadoAeralisRenderer desde el remake: un
+    embudo (embudo.png) que se ensancha hacia arriba, de dos capas que giran a
+    distinta velocidad (la de fuera del color de la fase, la de dentro de
+    tormenta oscura), con el eje que se tuerce y que se deshace por abajo y
+    por arriba; el faldon de polvo de la base, el aro del suelo hasta donde
+    atrapa y los tres anillos de luz de sus golpes. Devuelve los velos y, para
+    el rayo de dentro (fase III), sus dos puntas."""
     velos = []
-    for (e, al, an, giro, sube, k, tinte) in ((edad, alto, ancho, 1.0, 1.0, 0.6, (200, 210, 226)),
-                                              (edad + 13, alto * 0.96, ancho * 0.66, 1.9, -1.4, 0.45, (236, 242, 250))):
+    alfa = 0.82
+    for (e, al, an, giro, sube, k, tex) in ((edad, alto, ancho, 1.0, 1.0, alfa, TEX_EMBUDO_FUERA),
+                                            (edad + 13, alto * 0.96, ancho * 0.66, 1.9, -1.4, alfa * 0.85, TEX_EMBUDO_DENTRO)):
         def punto(a, h):
             ang = a * math.tau
-            r = an * (0.42 + 2.2 * h ** 1.5)
+            r = an * (0.42 + 2.8 * h ** 1.5)
             ox = math.sin(h * 3.0 + e * 0.11) * 0.45 * h * an
             oz = math.cos(h * 2.6 + e * 0.09) * 0.45 * h * an
             uv = (a * 2.0 + e * 0.045 * giro, h * 3.0 - e * 0.03 * sube)
@@ -155,25 +194,57 @@ def tornado(x, z, alto, ancho, edad):
                 pts, uvs = zip(*[punto(a, h) for a, h in ((a0, h0), (a1, h0), (a1, h1), (a0, h1))])
                 hm = (h0 + h1) / 2
                 borde = min(1.0, hm / 0.12) * min(1.0, (1.0 - hm) / 0.2)
-                velos.append((list(pts), list(uvs), TEX_TORNADO, np.array(tinte) / 255.0, k * borde, 0.12 * borde, True))
-    return velos
+                velos.append((list(pts), list(uvs), tex, np.ones(3), k * borde, 0.08 * borde, True))
+    # el faldon de polvo: un anillo bajo y ancho
+    for i in range(18):
+        for j in range(2):
+            def falda(a, h):
+                ang = a * math.tau
+                r = ancho * (1.4 + 1.3 * h)
+                uv = (a * 3.0 + edad * 0.09, h * 0.5)
+                return np.array([x + math.cos(ang) * r, h * 1.3 * ancho, z + math.sin(ang) * r]), uv
+            a0, a1, h0, h1 = i / 18, (i + 1) / 18, j / 2, (j + 1) / 2
+            pts, uvs = zip(*[falda(a, h) for a, h in ((a0, h0), (a1, h0), (a1, h1), (a0, h1))])
+            velos.append((list(pts), list(uvs), TEX_FALDON, np.ones(3), 200 / 255 * alfa * (1 - (h0 + h1) / 2), 0.0, True))
+    # el aro del suelo (2,4 bloques de radio), que brilla
+    m = 2.4
+    co, si = math.cos(edad * 0.02) * m, math.sin(edad * 0.02) * m
+    pts = [np.array([x + dx, 0.07, z + dz]) for dx, dz in
+           ((-co + si, -si - co), (co + si, si - co), (co - si, si + co), (-co - si, -si + co))]
+    velos.append((pts, [(0, 0), (1, 0), (1, 1), (0, 1)], TEX_ARO, np.ones(3), 0.5 * alfa, 0.8 * alfa, False))
+    # los tres anillos de luz: los golpes que le quedan
+    for k, h in enumerate((0.3, 0.55, 0.8)):
+        r = ancho * (0.42 + 2.8 * h ** 1.5) + 0.3
+        g0 = edad * 0.08 * (1 if k % 2 == 0 else -1)
+        for i in range(24):
+            a0, a1 = g0 + i * math.tau / 24, g0 + (i + 1) * math.tau / 24
+            pts = [np.array([x + math.cos(a) * r, h * alto + dy, z + math.sin(a) * r]) for a, dy in
+                   ((a0, -0.16), (a1, -0.16), (a1, 0.16), (a0, 0.16))]
+            velos.append((pts, [(0, 0.5), (0.999, 0.5), (0.999, 0.5), (0, 0.5)], TEX_ANILLO, np.ones(3), 0.4 * alfa,
+                          0.9 * alfa, False))
+    a = edad * 1.7 % math.tau
+    rayo_dentro = (np.array([x + math.cos(a) * ancho, alto * 0.92, z + math.sin(a) * ancho]),
+                   np.array([x + math.cos(a + 1.2) * ancho * 0.4, alto * 0.15, z + math.sin(a + 1.2) * ancho * 0.4]))
+    return velos, rayo_dentro
 
 
 def cuchilla(centro, frente, lado, escala):
     """Una cuchilla del Aleteo como la pinta CuchillaVientoRenderer: una
     media luna de aire curvada hacia delante, de dos tiras cruzadas (tumbada
-    y de pie), con dos ecos detras que hacen de estela. Brilla."""
+    y de pie), con tres ecos detras que hacen de estela, del color de la fase
+    (es de las bajas). Brilla."""
     frente = frente / np.linalg.norm(frente)
     lado = lado / np.linalg.norm(lado)
     arriba = np.cross(lado, frente)
     velos = []
-    for k, (alfa, e) in enumerate(((1.0, 1.0), (0.35, 0.9))):
-        base = centro - frente * 0.95 * k * escala
-        # mas fina y mas curva que en el juego, para que la media luna se lea de lejos
-        for grosor, ka in ((frente * 0.24, 1.0), (arriba * 0.24, 0.85)):
+    for k, alfa in enumerate((1.0, 0.5, 0.25, 0.1)):
+        base = centro - frente * 1.1 * k * escala
+        e = 1.0 - 0.08 * k
+        # mas fina que en el juego, para que la media luna se lea de lejos
+        for grosor, ka in ((frente * 0.3, 1.0), (arriba * 0.3, 0.85)):
             def c(u):
                 x = u * 2 - 1
-                return base + lado * x * 2.0 * escala * e + frente * 1.1 * (1 - x * x) * escala + arriba * 0.4 * escala
+                return base + lado * x * 2.6 * escala * e + frente * 0.9 * (1 - x * x) * escala + arriba * 0.4 * escala
             for i in range(12):
                 u0, u1 = i / 12, (i + 1) / 12
                 g = grosor * escala
@@ -214,9 +285,10 @@ TEX_FILO[3:, :, 3] = 0
 
 # Altura (bloques) hasta la que el viento puede pasar por delante de ella: por
 # encima se esconde, para no taparle la cara ni el ojo de la tormenta.
-FRENTE_MAX = 7.6
+FRENTE_MAX = 11.0
 # Las rachas que suben: (angulo de salida, vueltas, altura de salida y de
-# llegada, radio abajo y arriba, ancho de la banda abajo y arriba).
+# llegada, radio abajo y arriba, ancho de la banda abajo y arriba), medidas
+# para la de antes del remake (se multiplican por K).
 RACHAS = [
     (0.2, 0.7, 0.4, 13.0, 2.6, 8.4, 0.6, 1.9),
     (1.5, 0.62, 1.4, 14.5, 3.0, 9.4, 0.5, 1.7),
@@ -237,13 +309,13 @@ def rachas():
         for i in range(130):
             t = i / 129
             th = th0 + t * vueltas * math.tau
-            rad = r0 + (r1 - r0) * t ** 1.3
-            p = np.array([cx + math.cos(th) * rad, y0 + (y1 - y0) * t, cz + math.sin(th) * rad])
-            filas.append((p, p + np.array([0, b0 + (b1 - b0) * t, 0]), 0.9 * math.sin(math.pi * t) ** 0.6))
+            rad = (r0 + (r1 - r0) * t ** 1.3) * K
+            p = np.array([cx + math.cos(th) * rad, (y0 + (y1 - y0) * t) * K, cz + math.sin(th) * rad])
+            filas.append((p, p + np.array([0, (b0 + (b1 - b0) * t) * K, 0]), 0.9 * math.sin(math.pi * t) ** 0.6))
         s = 0.0
         for (a0, a1, ka), (b0_, b1_, kb) in zip(filas, filas[1:]):
             ds = float(np.linalg.norm(b0_ - a0))
-            ua, ub = s / 3.2, (s + ds) / 3.2
+            ua, ub = s / (3.2 * K), (s + ds) / (3.2 * K)
             s += ds
             velo = ([a0, b0_, b1_, a1], [(ua, 0.999), (ub, 0.999), (ub, 0.0), (ua, 0.0)], TEX_RACHA, np.ones(3),
                     (ka + kb) / 2, 0.3 * (ka + kb) / 2, True)
@@ -352,7 +424,11 @@ def ojo_de_la_tormenta(W, H, cx, cy, semilla):
 
 
 def barra_jefe(escala):
-    """La barra de jefe de Aeralis, compuesta igual que en AeralisBarraHud."""
+    """La barra de jefe de Aeralis (aeralis_hud.py, 240x44), compuesta igual
+    que en AeralisBarraHud: el marco de la fase con su ala, la tormenta con su
+    frente encendido, el rastro blanco del ultimo golpe, los ojos de las
+    muescas (apagados los que ya paso), la raya del viento de vuelta (desde
+    la fase II), el ojo de la tormenta del emblema, el nombre y la fase."""
     def tex(n):
         return Image.open(os.path.join(GUI, n + '.png')).convert('RGBA')
 
@@ -360,33 +436,43 @@ def barra_jefe(escala):
         a = np.array(im).astype(float)
         a[..., :3] *= np.array(rgb)[None, None] / 255.0
         return Image.fromarray(a.astype(np.uint8))
-    color = (0xB0, 0x7C, 0xFF)
-    vida = 0.42
-    lienzo = Image.new('RGBA', (240, 44), (0, 0, 0, 0))
-    lienzo.alpha_composite(tex(f'aeralis_barra_marco_{FASE}'))
+    hx, hy, ancho, alto = 40, 22, 190, 9                   # el hueco (HUECO_X, HUECO_Y...)
+    color = (0xB0, 0x7C, 0xFF)                             # COLOR_FASE de la III
+    claro_ = (0xFF, 0xF7, 0xD6)                            # CLARO_FASE de la III: el frente
+    vida, rastro, viento = 0.42, 0.47, 0.45
+    lienzo = tex(f'aeralis_barra_marco_{FASE}').copy()
+    d = ImageDraw.Draw(lienzo, 'RGBA')
+    lleno, hasta = round(ancho * vida), round(ancho * rastro)
+    if hasta > lleno:
+        d.rectangle((hx + lleno, hy, hx + hasta - 1, hy + alto - 1), fill=(0xF4, 0xFF, 0xFF, 0xD8))
     relleno = tex(f'aeralis_barra_relleno_{FASE}')
-    lleno = round(190 * vida)
     for x in range(0, lleno, 64):
-        lienzo.alpha_composite(relleno.crop((0, 0, min(64, lleno - x), 9)), (40 + x, 22))
+        lienzo.alpha_composite(relleno.crop((0, 0, min(64, lleno - x), alto)), (hx + x, hy))
+    d = ImageDraw.Draw(lienzo, 'RGBA')
+    d.rectangle((hx + lleno - 2, hy, hx + lleno - 1, hy + alto - 1), fill=(*claro_, 255))
     for corte in (0.75, 0.5, 0.25):
         ojo = tex('aeralis_barra_ojo_apagado') if vida < corte else tenir(tex('aeralis_barra_ojo'), color)
-        lienzo.alpha_composite(ojo, (40 + round(190 * corte) - 3, 29))
+        lienzo.alpha_composite(ojo, (hx + round(ancho * corte) - 3, hy + alto - 2))
+    # el viento de vuelta, bajo las muescas (VIENTO_Y): apenas se ve
+    d = ImageDraw.Draw(lienzo, 'RGBA')
+    d.rectangle((hx, 38, hx + ancho - 1, 39), fill=(0x10, 0x18, 0x26, 0x50))
+    d.rectangle((hx, 38, hx + round(ancho * viento) - 1, 39), fill=(*color, 0xA0))
     lienzo.alpha_composite(tex(f'aeralis_barra_nucleo_{FASE}'), (19 - 12, 26 - 12))
     lienzo.alpha_composite(tex('aeralis_barra_nombre'), (100, 9))
-    lienzo.alpha_composite(tenir(tex(f'aeralis_barra_fase_{FASE}'), color), (40 + 190 - 64 + 1, 8))
+    lienzo.alpha_composite(tenir(tex(f'aeralis_barra_fase_{FASE}'), color), (hx + ancho - 64 + 1, 8))
     return lienzo.resize((lienzo.width * escala, lienzo.height * escala), Image.NEAREST)
 
 
 # La cuchilla del Aleteo que viene hacia quien mira: (x, y del poster,
 # profundidad), cuanto se aparta de venir de frente (para que se le vea la
 # curva), cuanto se ladea, cuanto cae y su tamano.
-CUCHILLA = ((1450, 955), 7.5, 48.0, -10.0, 12.0, 0.95)
+CUCHILLA = ((1450, 955), 7.5, 48.0, -10.0, 12.0, 0.8)
 # Las columnas rotas de la meseta: (x del poster, profundidad, alto, rota), a
 # los lados, que debajo de ella no estorben
 COLUMNAS = [(700, 46.0, 6, True), (1590, 50.0, 8, True), (420, 54.0, 4, True)]
-# Los dos tornados de la meseta: (x del poster donde tocan el suelo, a que
-# profundidad, alto, ancho, edad)
-TORNADOS = [(880, 33.0, 14.0, 1.25, 7.0), (1820, 31.0, 14.5, 1.3, 31.0)]
+# Los dos tornados de la meseta, del tamano del juego (12 bloques): (x del
+# poster donde tocan el suelo, a que profundidad, alto, ancho, edad)
+TORNADOS = [(820, 40.0, 12.0, 1.0, 7.0), (1830, 38.0, 12.0, 1.0, 31.0)]
 
 
 def main():
@@ -422,11 +508,13 @@ def main():
     # todo lo traslucido junto, de atras a delante
     detras, delante, filos = rachas()
     velos = velos_aeralis(qs, tex, brillo) + detras
-    bases = []
+    bases, rayos_dentro = [], []
     for sx, prof, alto_t, ancho_t, edad in TORNADOS:
         b = desproyectar(sx, 900, prof)
         bases.append((b[0], b[2]))
-        velos += tornado(b[0], b[2], alto_t, ancho_t, edad)
+        v, rd = tornado(b[0], b[2], alto_t, ancho_t, edad)
+        velos += v
+        rayos_dentro.append(rd)
     (cx_, cy_), prof_c, aparta, ladeo, cae, esc_c = CUCHILLA
     centro_c = desproyectar(cx_, cy_, prof_c)
     nucleo = (M @ np.array([*vj.punto(pose, 'nucleo'), 1.0]))[:3]
@@ -451,7 +539,7 @@ def main():
         """Un punto del ala en fracciones de su ancho y su alto."""
         s = 1 if nombre.endswith('izq') else -1
         tam = vj.TAM_SUP if 'sup' in nombre else vj.TAM_INF
-        y0 = -tam[1] * (0.42 if 'sup' in nombre else 0.08)
+        y0 = -tam[1] * (0.36 if 'sup' in nombre else 0.04)       # como en vendaval_juego.construir
         return (M @ np.array([*vj.punto(pose, nombre, (s * tam[0] * u, y0 + tam[1] * v, 0)), 1.0]))[:3]
 
     # --- a resolucion final ---
@@ -467,9 +555,9 @@ def main():
     ncx, ncy, _ = pantalla(nucleo)
     nubes, centro = ojo_de_la_tormenta(W, H, ncx, ncy - px(60), 4)
     fondo += nubes[..., None] * np.array([0.32, 0.3, 0.58]) * 0.42
-    fondo += centro[..., None] * np.array([0.5, 0.45, 0.85]) * 0.4
+    fondo += centro[..., None] * np.array([0.5, 0.45, 0.85]) * 0.25
     dd = np.hypot((xx - ncx) / (W * 0.3), (yy - ncy) / (H * 0.42))
-    fondo += np.array([0.3, 0.18, 0.6])[None, None] * np.exp(-dd ** 2 * 1.3)[..., None] * 0.36
+    fondo += np.array([0.3, 0.18, 0.6])[None, None] * np.exp(-dd ** 2 * 1.3)[..., None] * 0.22
     # rayos de luz que bajan por los claros de las nubes
     luz = ne.rayos(W, H, 23, n=6)[..., None] * np.array([0.5, 0.48, 0.85]) * 0.32
     fondo += luz
@@ -506,7 +594,7 @@ def main():
 
     e = np.array(emis).astype(float) + np.array(a_imagen(alto_lz.emis)).astype(float) * deja
     e = Image.fromarray(np.clip(e, 0, 255).astype(np.uint8)).convert('RGB')
-    for radio, k in ((px(5), 0.85), (px(18), 0.7), (px(60), 0.5)):
+    for radio, k in ((px(5), 0.7), (px(18), 0.5), (px(60), 0.35)):
         img = sumar(img, e.filter(ImageFilter.GaussianBlur(radio)), k)
     img = sumar(img, e, 1.0).convert('RGBA')
 
@@ -521,15 +609,19 @@ def main():
     b = pantalla(en_ala('ala_sup_der', 0.42, 0.1))
     arco = [(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - px(90) * math.sin(math.pi * t)) for t in np.linspace(0, 1, 7)]
     rayo(capa_r, arco, 31, max(1, px(4)), (228, 218, 255, 245), temblor=22)
+    # y el de dentro de cada tornado (desde la fase III)
+    for k, (arriba_t, abajo_t) in enumerate(rayos_dentro):
+        a, b = pantalla(arriba_t), pantalla(abajo_t)
+        rayo(capa_r, [a[:2], b[:2]], 41 + k, max(1, px(3)), (*claro(COLOR_FASE, 0.7), 235), ramas=False, temblor=14)
     capa_r.putalpha(Image.fromarray((np.array(capa_r.getchannel('A')).astype(float) * (1 - cuerpo)).astype(np.uint8)))
     for radio in (px(30), px(12), px(4)):
         img.alpha_composite(capa_r.filter(ImageFilter.GaussianBlur(radio)))
     img.alpha_composite(capa_r)
 
-    # el ojo de la tormenta brilla en su pecho
+    # el ojo de la tormenta brilla en su pecho (el del remake ya es grande: poco)
     dd = np.hypot(xx - ncx, yy - ncy)
-    img = sumar(img, Image.fromarray((np.clip(np.exp(-(dd / px(80)) ** 2)[..., None] * np.array([150, 120, 255]) * 0.7
-                                              + np.exp(-(dd / px(24)) ** 2)[..., None] * np.array([230, 225, 255]) * 0.25,
+    img = sumar(img, Image.fromarray((np.clip(np.exp(-(dd / px(80)) ** 2)[..., None] * np.array([150, 120, 255]) * 0.35
+                                              + np.exp(-(dd / px(24)) ** 2)[..., None] * np.array([230, 225, 255]) * 0.1,
                                               0, 255)).astype(np.uint8)), 1.0).convert('RGBA')
 
     # contraluces: el borde que mira al cielo, blanco azulado; el que mira a
@@ -560,9 +652,9 @@ def main():
             s = sprite(f'aeralis_luz_{r.randint(0, 2)}.png', px(r.choice([12, 16])))
             capa.alpha_composite(s, (int(ox + math.cos(a) * d - s.width / 2), int(oy + math.sin(a) * d - s.height / 2)))
     for n in ('ala_sup_izq', 'ala_sup_der', 'ala_inf_izq', 'ala_inf_der'):   # chispas dentro de las alas (fase III)
-        for _ in range(4):
+        for _ in range(2):
             tx, ty, _ = pantalla(en_ala(n, r.uniform(0.3, 0.9), r.uniform(0.2, 0.8)))
-            s = sprite(f'aeralis_rayo_{r.randint(0, 2)}.png', px(r.choice([36, 48, 60])))
+            s = sprite(f'aeralis_rayo_{r.randint(0, 2)}.png', px(r.choice([28, 36, 44])))
             s = s.rotate(r.uniform(0, 360), expand=True)
             capa.alpha_composite(s, (int(tx - s.width / 2), int(ty - s.height / 2)))
     for p_ in filos:                             # el viento arrastra jirones y polvo por sus filos

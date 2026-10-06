@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "atalaya:vendaval"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "atalaya:vendaval"
+      }
+    ]
+  }
+}

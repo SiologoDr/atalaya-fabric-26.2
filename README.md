@@ -1305,6 +1305,50 @@ En la barra, el rótulo pasa a **FURIA** y la energía late en verde vivo.
 > `materiales/fichas/rajang_mejoras/`, con las hojas de control de las
 > animaciones de antes y de después.
 
+### Las armaduras y las espadas de los jefes
+
+Tres juegos, uno por jefe. **Por ahora no se fabrican: solo salen del inventario
+de creativo** (pestaña de combate, detrás de la netherite).
+
+| | Jefe | Lo suyo |
+|---|---|---|
+| **de las Mareas** | Nerea | metal abisal con escamas y costuras de prismarina que brillan; la venera de nácar con su perla tras el casco, cuernos de coral y branquias que ondean; caracola y coral en los hombros, capa de algas que ondea y se levanta al correr, espinas de hueso; conchas en la cadera y aletas en rodillas y tobillos |
+| **de Jade** | Rajang | metal verde negro y oro de templo en espiral cuadrada; casco de jaguar con hocico, colmillos, orejas y cresta de cristales; hombreras de oro con una esquirla de jade que flota y gira, cristales por la espalda; faldones de oro y garras en las botas |
+| **del Vendaval** | Aeralis | metal añil con rayos celestes y violeta de tormenta; alas de pluma en el casco que aletean y antenas de polilla; hombreras de pluma y **alas de polilla en la espalda** con su ocelo, que aletean; plumas en la cadera y alas en los talones |
+
+**Protegen el doble que la netherite.** Cada pieza (de las tres):
+
+| | Casco | Coraza | Grebas | Botas | Total |
+|---|---|---|---|---|---|
+| Armadura | 4 | 9 | 7 | 4 | 24 (la netherite, 20) |
+| Dureza | 6 | 6 | 6 | 6 | 24 (la netherite, 12) |
+| Vida | +1 | +1 | +1 | +1 | **+4: dos corazones** |
+
+Más un 15 % contra el empuje por pieza, la durabilidad ×1,5 de la netherite, no
+se queman y se reparan con netherite. Contra un golpe de 60 de un jefe, la
+netherite entera para un 32 % y estas un 66 %.
+
+**Se ven en 3D y con capas** (no la capa plana de vanilla): `ArmaduraJefeRender`
+las pinta con Fabric `ArmorRenderer` en todo lo que lleva armadura (jugadores,
+maniquíes, soportes, monstruos). Cada pieza es su propia malla, que copia la
+postura del cuerpo de quien la lleva y tiene sus piezas por encima, y se pinta en
+cuatro pasadas: lo opaco, lo translúcido (aletas, cristales, alas), lo que brilla
+sin luz (en 8 cuadros que se funden: la luz corre por las costuras) y el destello
+de los encantamientos. Las mallas, las animaciones y las texturas salen de
+`armaduras_jefes.py` (genera `ArmaduraJefeMalla.java`); los iconos y las
+espadas, de `armaduras_iconos.py`.
+
+**Las espadas** hacen 10 de daño (la de netherite, 8), aguantan 3046 usos y en
+la mano se ven grandes y animadas (su sprite de 32×32); en el inventario, su
+icono. Al golpear sueltan su tajo (una media luna del color del tema) y lo de su
+jefe:
+
+| Espada | Al golpear |
+|---|---|
+| de las Mareas | Corriente Abismal 3 s y agua que salpica |
+| de Jade | Peso de la Tierra 2 s y esquirlas de jade |
+| del Vendaval | una racha que lo echa atrás; si el golpe es crítico, Parálisis 1 s |
+
 ---
 
 ## Cómo se hace un jefe

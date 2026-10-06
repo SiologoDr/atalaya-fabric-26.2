@@ -162,6 +162,15 @@ public class AtalayaClient implements ClientModInitializer {
         // inventario, y para eso hay que llegar ANTES de que el juego las mire.
         ClientTickEvents.START_CLIENT_TICK.register(AturdimientoTeclado::tick);
 
+        // Las armaduras de los jefes, en 3D y con capas (sustituyen a la capa plana).
+        com.atalaya.client.ArmaduraJefeRender.registrar();
+
+        // El tajo de las espadas de los jefes.
+        for (SimpleParticleType tajo : new SimpleParticleType[]{AtalayaParticulas.MAREAS_TAJO, AtalayaParticulas.JADE_TAJO,
+                AtalayaParticulas.VENDAVAL_TAJO}) {
+            ParticleProviderRegistry.getInstance().register(tajo, com.atalaya.client.TajoParticula.Fabrica::new);
+        }
+
         // Quien sabe dibujar la estrellita del aturdimiento.
         ParticleProviderRegistry.getInstance().register(
                 AtalayaParticulas.ESTRELLA, EstrellaParticula.Fabrica::new);

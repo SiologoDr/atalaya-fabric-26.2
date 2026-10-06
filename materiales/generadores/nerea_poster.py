@@ -4,19 +4,26 @@ el Remolino en marcha. Presenta al jefe: el gigante grande a la derecha, su
 nombre a la izquierda y nada mas (ni jugadores ni lista de ataques).
 
 Nerea, con la camara baja mirandolo desde abajo: el tridente a plomo en la
-derecha, los ojos y el corazon maldito encendidos, y la izquierda abierta
-hacia un lado, de la que sale el latigazo del Arpon: la cadena sube, da la
-vuelta y baja con el gancho volando de perfil hacia quien mira. A su
-alrededor, el Remolino: brazos de ola baja que giran por el suelo hacia sus
-pies y corrientes que suben en espiral, abriendose como un embudo, por detras
-de el (por delante solo le pasan por las piernas). Arriba, su barra de jefe
-tal cual sale en el juego.
+derecha, los ojos y el corazon maldito encendidos, la venera de nacar detras
+de la cabeza, y la izquierda abierta hacia un lado, de la que sale el latigazo
+del Arpon: la cadena sube, da la vuelta y baja con el ancla volando hacia
+quien mira. A su alrededor, el Remolino: el remolino del suelo del juego bajo
+sus pies, brazos de ola baja que giran por el suelo hacia el y corrientes que
+suben en espiral, abriendose como un embudo, por detras de el (por delante
+solo le pasan por las piernas). Arriba, su barra de jefe tal cual sale en el
+juego.
+
+Desde el remake de octubre de 2026 mide unos 15 bloques (nerea_juego.ESCALA
+2,4 en vez de 1,6): el remolino, las ruinas y la niebla crecen con el (K) y la
+camara se aleja, para que quepan la venera y el tridente largo.
 
 Todo lo que sale esta hecho para el mod: la malla del juego con su atlas y su
-capa de brillo (nerea_juego.py), los eslabones y el gancho con los materiales
-del boceto (nerea_modelo.py), el agua del remolino (una textura en pixeles
-pintada aqui), el fondo marino, los rayos de luz, las particulas propias y la
-barra. Las fuentes son las del sistema.
+capa de brillo (nerea_juego.py, ya con el remake), el ancla del Arpon con las
+mismas cajas y el mismo atlas (como GanchoNereaRenderer), los eslabones del
+grosor de CadenaRender, el remolino del suelo (remolino.png, como
+NereaRenderer), el agua de las corrientes (una textura en pixeles pintada
+aqui), el fondo marino, los rayos de luz, las particulas propias y la barra
+(nerea_hud.py, compuesta como NereaBarraHud). Las fuentes son las del sistema.
 
 Uso: python nerea_poster.py <raiz del proyecto> <salida.png> [escala]
 """
@@ -27,6 +34,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 RAIZ, SALIDA = sys.argv[1], sys.argv[2]
 ESCALA = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# los __pycache__ de los generadores estan en git: importarlos no los reescribe
+sys.dont_write_bytecode = True
 os.environ['NEREA_SIN_FISICA'] = '1'
 _argv = sys.argv
 sys.argv = [_argv[0], RAIZ, tempfile.mkdtemp()]
@@ -41,10 +50,13 @@ sys.argv = _argv
 A = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures')
 P = os.path.join(A, 'particle')
 GUI = os.path.join(A, 'gui')
+ENT = os.path.join(A, 'entity/nerea')
 FUENTES = 'C:/Windows/Fonts/'
 W, H = int(1920 * ESCALA), int(1080 * ESCALA)
 SS = 2
 FASE = 1
+# Lo que crecio con el remake (de x1,6 a x2,4): la escena se penso para el de antes
+K = nj.ESCALA / 1.6
 
 CIAN = (110, 236, 220, 255)
 MAGENTA = (255, 70, 140, 255)
@@ -64,16 +76,17 @@ def px(n):
 #  La pose: acaba de soltar el Arpon. El tridente a plomo en la derecha, la
 #  izquierda abierta hacia un lado y alzada (de ella sale la cadena), el
 #  torso echado hacia quien mira, la cabeza baja clavando los ojos y la
-#  mandibula abierta. Las piernas abiertas y plantadas.
+#  mandibula abierta. Las piernas abiertas y plantadas. Lo que el juego
+#  ensena en la fase I: su corazon, las cuatro cadenas y las costillas.
 # ----------------------------------------------------------------------
 def pose_poster():
     ocultos = {n: {'oculto': True} for n in ('corazon_1', 'corazon_2', 'corazon_3', 'corazon_4', 'corazon_libre',
                                              'molino_izq', 'molino_der') if n != f'corazon_{FASE}'}
+    ocultos.update({f'cadena_{i}': {'oculto': True} for i in range(1, 5) if i > 5 - FASE})
     pose = na.mezcla({'pelvis': na.P(0, 3, -1), 'torso': na.r(8, -6, 0), 'cuello': na.r(2, -4, 0),
                       'cabeza': na.r(8, -6, 0), 'mandibula': na.r(30),
-                      'ojo_izq': {'esc': (1.35, 1.35, 1.35)}, 'ojo_der': {'esc': (1.35, 1.35, 1.35)},
                       'corazon': {'esc': (1.15, 1.15, 1.15)},
-                      # el gancho de la mano va lanzado: lo dibuja la cadena del Arpon
+                      # el ancla de la mano va lanzada: la dibuja la cadena del Arpon
                       'cadena_mano': {'oculto': True}},
                      ocultos, na.brazo('izq', -15, -105, -25), na.brazo('der', -14, 10, -40))
     pose['tridente'] = na.r(*na.tridente_vertical(pose))
@@ -91,7 +104,7 @@ def pose_poster():
 # ----------------------------------------------------------------------
 NEREA_EN = (2.8, 0.0, 1.5)
 GUINADA = float(os.environ.get('GUINADA', '22'))
-CAM = vr.Camara(ojo=(-5.2, 0.9, -11.0), objetivo=(float(os.environ.get('OBJ_X', '6.8')), 6.0, 1.0),
+CAM = vr.Camara(ojo=(-12.4, 1.3, -22.6), objetivo=(float(os.environ.get('OBJ_X', '8.4')), 9.4, 0.75),
                 fov=46, ancho=W * SS, alto=H * SS)
 LUCES = [
     ((-0.3, 1.0, -0.5), (0.66, 0.95, 1.0), 1.2, 'llave'),      # la luz que baja de la superficie
@@ -131,7 +144,7 @@ def delante_del_eje(p):
 
 
 # ----------------------------------------------------------------------
-#  El Arpon: una cadena de eslabones que sigue una curva y el gancho al final
+#  El Arpon: una cadena de eslabones que sigue una curva y el ancla al final
 # ----------------------------------------------------------------------
 def curva(p0, p1, p2, p3, n=60):
     t = np.linspace(0, 1, n)[:, None]
@@ -164,35 +177,50 @@ def cadena_curva(pts, grosor, mat='oxido'):
     return qs
 
 
-def gancho(p, d, k):
-    """El gancho del Arpon (las cajas de GANCHO en nerea_juego.py), con las
-    puas por delante en la direccion de vuelo d."""
+def ancla(p, d, uv, alto, giro=0.0):
+    """El ancla del Arpon como la pinta GanchoNereaRenderer: las cajas de
+    ANCLA y sus dos brazos (nerea_juego.ancla) con el atlas de Nerea y a su
+    escala, con la cruz y las unas por delante en la direccion de vuelo d, y
+    girada 'giro' grados sobre su cana. Devuelve (puntos, uv) para pintar con
+    la piel."""
     a, b = orientar(d)
-    cajas = [((c[0], c[1], c[2], c[3], c[4], c[5]), c[6]) for c in nj.GANCHO]
-    return nm.quads(nm.nodo('gancho', (0, 0, 0), (a, b, 0), cajas), {}, vr.T(*p) @ vr.S(k / 16))
+    M = (vr.T(*p) @ vr.Ry(math.radians(b)) @ vr.Rx(math.radians(a)) @ vr.Ry(math.radians(giro))
+         @ vr.S(nj.ESCALA / 16))
+    out = []
+
+    def cajas(Mc, lista):
+        for c in lista:
+            for pts, uvs in vr.caja_quads(uv[nj.clave(c)], c[:6], False, nj.ANCHO_ATLAS, alto):
+                out.append(([(Mc @ np.array([*q, 1.0]))[:3] for q in pts], uvs))
+    cajas(M, nj.ANCLA)
+    for s in (1, -1):
+        cajas(M @ vr.T(0, 14, 0) @ vr.Rz(math.radians(s * 128)), nj.ANCLA_BRAZO)
+    return out
 
 
 # El latigazo del Arpon: la cadena sale de la mano, sube, da la vuelta por la
-# derecha y baja con el gancho por delante, de perfil, hacia quien mira. Cada
-# punto de control es (x, y del poster, profundidad en bloques).
-LATIGO = [(1800, 110, 11.0), (1990, 540, 9.6), (1600, 770, 8.8)]
-GROSOR_CADENA = 1.8
-TAM_GANCHO = 2.5
+# derecha y baja con el ancla por delante hacia quien mira. Cada punto de
+# control es (x, y del poster, profundidad en bloques; ella esta a unos 28).
+LATIGO = [(1800, 110, 24.0), (1990, 510, 19.0), (1590, 680, 13.0)]
+# Cuanto gira el ancla sobre su cana: de cara a quien mira, con los dos brazos abiertos
+GIRO_ANCLA = 80.0
+# Los eslabones de CadenaRender (0,45 bloques de ancho): 3 * 2,4 / 16
+GROSOR_CADENA = 2.4
 
 
-def arpon(mano):
-    """La cadena y el gancho del Arpon. Devuelve los quads y, para los
-    efectos, la curva, el gancho y hacia donde vuela."""
+def arpon(mano, uv, alto):
+    """La cadena y el ancla del Arpon. Devuelve los quads de la cadena, los
+    del ancla y, para los efectos, la curva, el ancla y hacia donde vuela."""
     p1, p2, fin = [desproyectar(*q) for q in LATIGO]
     pts = curva(mano, p1, p2, fin, 90)
     vuelo = pts[-1] - pts[-4]
-    qs = cadena_curva(pts, GROSOR_CADENA) + gancho(fin, vuelo, TAM_GANCHO)
-    return qs, (pts, fin, vuelo / np.linalg.norm(vuelo))
+    return (cadena_curva(pts, GROSOR_CADENA), ancla(fin, vuelo, uv, alto, GIRO_ANCLA),
+            (pts, fin, vuelo / np.linalg.norm(vuelo)))
 
 
 def latigazo(capa, info, r):
     """La estela del latigazo: el agua que arrastra la cadena (rayas que se
-    abren hacia el gancho) y el remolino de burbujas y gotas que deja el gancho."""
+    abren hacia el ancla) y el remolino de burbujas y gotas que deja el ancla."""
     pts, fin, d = info
     lapiz = ImageDraw.Draw(capa)
     proy = [pantalla(p) for p in pts]
@@ -204,14 +232,14 @@ def latigazo(capa, info, r):
             (ax, ay, az), (bx, by, bz) = proy[i], proy[i + 1]
             tx, ty = bx - ax, by - ay
             lt = math.hypot(tx, ty) + 1e-6
-            ancho = px(1000) / az * (0.1 + 0.75 * t ** 1.3)
+            ancho = px(1000 * K) / az * (0.1 + 0.75 * t ** 1.3)
             ox, oy = -ty / lt * o * ancho, tx / lt * o * ancho
             al = int(150 * t ** 1.4 * (1 - abs(o)) ** 0.7 * (0.6 + 0.4 * math.sin(t * 31 + hebra * 2.1)))
             lapiz.line([(ax + ox, ay + oy), (bx + ox, by + oy)], fill=(205, 245, 255, max(0, al)),
-                       width=max(1, int(px(14) / az)))
+                       width=max(1, int(px(14 * K) / az)))
     gx, gy, gz = pantalla(fin)
-    escala = px(1000) / gz
-    atras = pantalla(fin - d * 2.5)
+    escala = px(1000 * K) / gz
+    atras = pantalla(fin - d * 2.5 * K)
     ux, uy = atras[0] - gx, atras[1] - gy
     l = math.hypot(ux, uy) + 1e-6
     ux, uy = ux / l, uy / l
@@ -258,12 +286,18 @@ TEX_CRESTA = TEX_CORRIENTE.copy()          # solo la espuma brilla
 TEX_CRESTA[3:, :, 3] = 0
 
 # Lo que esta a menos de esto de la camara (bloques) no se pinta: saldria enorme.
-CERCA = 4.5
+CERCA = 4.5 * K
 # Altura (bloques) hasta la que el agua puede pasar por delante de el: por
 # encima se esconde, para no taparle el corazon ni la cara.
-FRENTE_MAX = 3.2
+FRENTE_MAX = 3.2 * K
+# El remolino del suelo del juego (NereaRenderer.remolino, ya entero): la
+# textura grande y la de dentro, que gira mas deprisa. (radio, alto, opacidad, giro)
+TEX_REMOLINO = vr.cargar(os.path.join(ENT, 'remolino.png'))
+# (un pelo mas alto que en el juego: las losas sueltas del suelo lo taparian)
+REMOLINO_SUELO = [(26.0, 0.08, 225 / 255, 0.4), (26.0 * 0.42, 0.11, 200 / 255, 1.9)]
 # Las corrientes que suben: (angulo de salida, vueltas, altura de salida y de
-# llegada, radio abajo y arriba, alto de la banda abajo y arriba).
+# llegada, radio abajo y arriba, alto de la banda abajo y arriba), medidas
+# para el de antes del remake (se multiplican por K).
 CORRIENTES = [
     (0.3, 0.62, 0.3, 7.2, 3.3, 5.8, 0.7, 1.6),
     (1.6, 0.58, 1.2, 8.0, 3.6, 6.2, 0.6, 1.4),
@@ -294,31 +328,58 @@ def bandas_remolino():
         rad = 2.4
         while rad < 30:
             a = base + math.log(rad) * 2.4
-            p = np.array([cx + math.cos(a) * rad, 0.02, cz + math.sin(a) * rad])
-            alto = 0.25 + 0.035 * rad                # la ola crece hacia fuera
+            p = np.array([cx + math.cos(a) * rad * K, 0.02, cz + math.sin(a) * rad * K])
+            alto = (0.25 + 0.035 * rad) * K          # la ola crece hacia fuera
             t = (rad - 2.4) / 27.6
             filas.append((p, p + np.array([0, alto, 0]), 0.9 * math.sin(math.pi * min(1.0, t * 1.15)) ** 0.5))
             rad += 0.2 + rad * 0.025
-        qs += banda(filas, 2.0)
+        qs += banda(filas, 2.0 * K)
         crestas += [f[1] for f in filas[2::4]]
     for th0, vueltas, y0, y1, r0, r1, b0, b1 in CORRIENTES:     # las que suben
         filas = []
         for i in range(120):
             t = i / 119
             th = th0 + t * vueltas * math.tau
-            rad = r0 + (r1 - r0) * t ** 1.4
-            p = np.array([cx + math.cos(th) * rad, y0 + (y1 - y0) * t, cz + math.sin(th) * rad])
-            filas.append((p, p + np.array([0, b0 + (b1 - b0) * t, 0]), 0.95 * math.sin(math.pi * t) ** 0.6))
-        qs += banda(filas)
+            rad = (r0 + (r1 - r0) * t ** 1.4) * K
+            p = np.array([cx + math.cos(th) * rad, (y0 + (y1 - y0) * t) * K, cz + math.sin(th) * rad])
+            filas.append((p, p + np.array([0, (b0 + (b1 - b0) * t) * K, 0]), 0.95 * math.sin(math.pi * t) ** 0.6))
+        qs += banda(filas, 2.6 * K)
         crestas += [f[1] for f in filas[3::7]]
     return qs, crestas
 
 
+def remolino_suelo(agua, niebla):
+    """El remolino del suelo como NereaDibujo.suelo: un cuadrado de remolino.png
+    tumbado bajo ella, girado, en trozos (los que caen detras de la camara no
+    se pintan)."""
+    cx, cz = NEREA_EN[0], NEREA_EN[2]
+    n = 32
+    for radio, alto, k, giro in REMOLINO_SUELO:
+        co, si = math.cos(giro), math.sin(giro)
+        trozos = []
+        for i in range(n):
+            for j in range(n):
+                uvs = [(i / n, j / n), ((i + 1) / n, j / n), ((i + 1) / n, (j + 1) / n), (i / n, (j + 1) / n)]
+                pts = []
+                for u, v in uvs:
+                    x, z = (u * 2 - 1) * radio, (v * 2 - 1) * radio
+                    pts.append(np.array([cx + x * co - z * si, alto, cz + x * si + z * co]))
+                if min(CAM.proyectar(p)[2] for p in pts) > 1.0:
+                    trozos.append((pts, uvs))
+        trozos.sort(key=lambda q: -CAM.proyectar(np.mean(q[0], axis=0))[2])
+        for pts, uvs in trozos:
+            for tri in ((0, 1, 2), (0, 2, 3)):
+                agua.triangulo(CAM, [pts[i] for i in tri], [uvs[i] for i in tri], TEX_REMOLINO, np.ones(3) * 1.15, None,
+                               niebla, translucido=k)
+
+
 def dibujar_agua(lz, niebla):
     """Pinta el agua en su propio lienzo, con la profundidad de la escena (asi
-    queda detras de el cuando pasa por detras), de atras a delante."""
+    queda detras de el cuando pasa por detras), de atras a delante: primero el
+    remolino del suelo y luego las bandas."""
     agua = vr.Lienzo(lz.W, lz.H)
     agua.z = lz.z.copy()
+    remolino_suelo(agua, niebla)
     qs, crestas = bandas_remolino()
     qs = [q for q in qs if min(CAM.proyectar(p)[2] for p in q[0]) > CERCA]
     qs.sort(key=lambda q: -CAM.proyectar(np.mean(q[0], axis=0))[2])
@@ -348,7 +409,7 @@ def espuma_crestas(tras, frente, crestas, r):
         tira = r.random()
         nombre = (f'nerea_ola_{r.randint(0, 2)}.png' if tira < 0.35 else
                   f'nerea_espuma_{r.randint(0, 2)}.png' if tira < 0.75 else f'nerea_gota_{r.randint(0, 1)}.png')
-        s = sprite(nombre, max(3, int(px(300) / prof * r.uniform(0.6, 1.1))))
+        s = sprite(nombre, max(3, int(px(300 * K) / prof * r.uniform(0.6, 1.1))))
         delante = delante_del_eje(p) and p[1] < FRENTE_MAX
         (frente if delante else tras).alpha_composite(s, (int(sx - s.width / 2), int(sy - s.height * 0.8)))
 
@@ -358,16 +419,18 @@ def ojo_remolino(tras, frente):
     cx, cz = NEREA_EN[0], NEREA_EN[2]
     for k in range(10):
         ang = k * math.tau / 10
-        p = np.array([cx + math.cos(ang) * 2.2, 0.1, cz + math.sin(ang) * 2.2])
+        p = np.array([cx + math.cos(ang) * 2.2 * K, 0.1, cz + math.sin(ang) * 2.2 * K])
         sx, sy, prof = pantalla(p)
-        lado = int(px(1300) / prof)
+        lado = int(px(1300 * K) / prof)
         s = sprite(f'nerea_remolino_{k % 3}.png', lado, int(lado * 0.5))
         (frente if delante_del_eje(p) else tras).alpha_composite(s, (int(sx - s.width / 2), int(sy - s.height / 2)))
 
 
 def barra_jefe(escala, vida=0.86, rastro=0.93):
-    """La barra de jefe de Nerea, compuesta igual que en NereaBarraHud: el agua
-    de la fase, el rastro blanco del ultimo golpe y los tres eslabones."""
+    """La barra de jefe de Nerea (nerea_hud.py, 240x44), compuesta igual que en
+    NereaBarraHud: el marco de la fase con su ola, el agua con su cresta de
+    espuma, el rastro blanco del ultimo golpe, los tres eslabones, el corazon
+    entre costillas, el nombre y la fase tenida de su color."""
     def tex(n):
         return Image.open(os.path.join(GUI, n + '.png')).convert('RGBA')
 
@@ -375,22 +438,21 @@ def barra_jefe(escala, vida=0.86, rastro=0.93):
         a = np.array(im).astype(float)
         a[..., :3] *= np.array(rgb)[None, None] / 255.0
         return Image.fromarray(a.astype(np.uint8))
-    color = [(0x3F, 0xE0, 0xCC), (0x9A, 0x6B, 0xFF), (0xD4, 0x3C, 0xFF), (0xFF, 0x20, 0x50)][FASE - 1]
-    lienzo = Image.new('RGBA', (208, 26 + 7), (0, 0, 0, 0))
-    y0 = 7
-    lienzo.alpha_composite(tex('nerea_barra_marco'), (0, y0))
-    lleno, hasta = round(172 * vida), round(172 * rastro)
+    hx, hy, ancho, alto = 40, 22, 190, 9                   # el hueco (HUECO_X, HUECO_Y...)
+    color = [(0x3F, 0xE0, 0xFF), (0x9A, 0x6B, 0xFF), (0xD4, 0x3C, 0xFF), (0xFF, 0x20, 0x50)][FASE - 1]
+    lienzo = tex(f'nerea_barra_marco_{FASE}').copy()
+    lleno, hasta = round(ancho * vida), round(ancho * rastro)
     if hasta > lleno:
-        ImageDraw.Draw(lienzo).rectangle((28 + lleno, y0 + 9, 28 + hasta - 1, y0 + 9 + 7), fill=(0xF4, 0xFF, 0xFF, 0xD8))
-    agua = tenir(tex('nerea_barra_agua'), color)
+        ImageDraw.Draw(lienzo, 'RGBA').rectangle((hx + lleno, hy, hx + hasta - 1, hy + alto - 1), fill=(0xF4, 0xFF, 0xFF, 0xD8))
+    agua = tex(f'nerea_barra_relleno_{FASE}')
     for x in range(0, lleno, 64):
-        lienzo.alpha_composite(agua.crop((0, 0, min(64, lleno - x), 8)), (28 + x, y0 + 9))
+        lienzo.alpha_composite(agua.crop((0, 0, min(64, lleno - x), alto)), (hx + x, hy))
     for corte in (0.75, 0.5, 0.25):
         nombre = 'nerea_barra_eslabon_roto' if vida < corte else 'nerea_barra_eslabon'
-        lienzo.alpha_composite(tex(nombre), (28 + round(172 * corte) - 3, y0 + 7))
-    lienzo.alpha_composite(tex(f'nerea_barra_corazon_{FASE}'), (13 - 8, y0 + 13 - 8))
-    lienzo.alpha_composite(tex('nerea_barra_nombre'), (28, y0 + 7 - 10))
-    lienzo.alpha_composite(tenir(tex(f'nerea_barra_fase_{FASE}'), color), (28 + 172 - 64 + 1, y0 + 7 - 10))
+        lienzo.alpha_composite(tex(nombre), (hx + round(ancho * corte) - 3, hy - 1))
+    lienzo.alpha_composite(tex(f'nerea_barra_corazon_{FASE}'), (19 - 12, 26 - 12))
+    lienzo.alpha_composite(tex('nerea_barra_nombre'), (98, 9))
+    lienzo.alpha_composite(tenir(tex(f'nerea_barra_fase_{FASE}'), color), (hx + ancho - 64 + 1, 8))
     return lienzo.resize((lienzo.width * escala, lienzo.height * escala), Image.NEAREST)
 
 
@@ -399,42 +461,59 @@ def a_imagen(arr):
     return im.resize((W, H), Image.LANCZOS)
 
 
+def suelo(lz, niebla, ext=34, desde=-30, prof=64):
+    """La arena y las losas de prismarina de nerea_escenas.suelo, pero hasta la
+    camara (que con el remake se fue mas atras) y mas lejos."""
+    qs = []
+    r = random.Random(5)
+    for gx in range(-ext, ext):
+        for gz in range(desde, prof):
+            mat = 'arena' if r.random() < 0.75 else 'prisma_osc'
+            h = 0.0 if abs(gx - NEREA_EN[0]) < 9 and abs(gz - NEREA_EN[2]) < 9 else r.choice([0, 0, 0, 0.0625])
+            qs.append(([(gx, h, gz), (gx + 1, h, gz), (gx + 1, h, gz + 1), (gx, h, gz + 1)],
+                       [(0, 0), (1, 0), (1, 1), (0, 1)], mat))
+    qs = [q for q in qs if min(CAM.proyectar(p)[2] for p in q[0]) > 0.5]
+    nm.dibujar(lz, CAM, qs, ne.LUCES_MAR[:1], (0.16, 0.24, 0.3), niebla)
+
+
 def main():
     lz = vr.Lienzo(W * SS, H * SS)
-    niebla = ne.NieblaMar(ini=12.0, largo=34.0)
+    niebla = ne.NieblaMar(ini=12.0 * K, largo=34.0 * K)
 
     # suelo de arena y prismarina, y ruinas sumergidas al fondo, en la niebla
-    ne.suelo(lz, CAM, ext=26, prof=46, niebla=niebla)
+    suelo(lz, niebla)
     for x, z, alto in ((-14.0, 15.0, 6), (17.0, 15.0, 9), (-19.0, 4.0, 4), (23.0, 26.0, 7), (4.0, 30.0, 8)):
-        ruina = [(Pq, UVq, 'prisma_osc' if m == 'sello' else m) for Pq, UVq, m in ne.pilar(x, z, alto)]
+        ruina = [(Pq, UVq, 'prisma_osc' if m == 'sello' else m) for Pq, UVq, m in
+                 ne.pilar(NEREA_EN[0] + (x - NEREA_EN[0]) * K, NEREA_EN[2] + (z - NEREA_EN[2]) * K, round(alto * K))]
         nm.dibujar(lz, CAM, ruina, ne.LUCES_MAR, ne.AMB_MAR, niebla)
 
     # Nerea: la malla del juego con su atlas y su capa de brillo
     uv, alto = nj.empaquetar()
-    tex = vr.cargar(os.path.join(A, f'entity/nerea/nerea_f{FASE}.png'))
-    brillo = vr.cargar(os.path.join(A, f'entity/nerea/nerea_brillo_f{FASE}.png'))
+    tex = vr.cargar(os.path.join(ENT, f'nerea_f{FASE}.png'))
+    brillo = vr.cargar(os.path.join(ENT, f'nerea_brillo_f{FASE}.png'))
     pose = pose_poster()
     M = vr.entidad_a_mundo(*NEREA_EN, GUINADA, nj.ESCALA)
     cuerpo = nj.quads(pose, uv, alto, M)
-    for Pq, UVq, _ in cuerpo:
+
+    # la cadena del Arpon, de la mano al ancla, y el ancla con la piel de Nerea
+    mano = (M @ np.array([*nj.punto(pose, 'mano_izq', (0, 5, 0)), 1.0]))[:3]
+    hierro, caras_ancla, info_arpon = arpon(mano, uv, alto)
+    piel = [(Pq, UVq) for Pq, UVq, _ in cuerpo] + caras_ancla
+    for Pq, UVq in piel:
         luz = vr.iluminar(vr.normal(Pq), CAM, np.mean(Pq, axis=0), LUCES, AMBIENTE)
         for tri in ((0, 1, 2), (0, 2, 3)):
             lz.triangulo(CAM, [Pq[k] for k in tri], [UVq[k] for k in tri], tex, luz, brillo, niebla, brillo=1.0)
-
-    # la cadena del Arpon, de la mano al gancho
-    mano = (M @ np.array([*nj.punto(pose, 'mano_izq', (0, 5, 0)), 1.0]))[:3]
-    hierro, info_arpon = arpon(mano)
     nm.dibujar(lz, CAM, hierro, LUCES, AMBIENTE, niebla)
     # el agua del remolino, despues de todo lo opaco
     agua, crestas = dibujar_agua(lz, niebla)
 
     pecho = (M @ np.array([*nj.punto(pose, 'corazon'), 1.0]))[:3]
-    puntas = (M @ np.array([*nj.punto(pose, 'tridente', (0, 62, 0)), 1.0]))[:3]
+    puntas = (M @ np.array([*nj.punto(pose, 'tridente', (0, 80, 0)), 1.0]))[:3]
 
-    # la silueta de lo que esta delante (el, la cadena y el gancho): lo que
+    # la silueta de lo que esta delante (el, la cadena y el ancla): lo que
     # pasa por detras se recorta con ella
     solo = vr.Lienzo(W * SS, H * SS)
-    for Pq, UVq, _ in cuerpo:
+    for Pq, UVq in piel:
         for tri in ((0, 1, 2), (0, 2, 3)):
             solo.triangulo(CAM, [Pq[k] for k in tri], [UVq[k] for k in tri], tex, np.ones(3))
     nm.dibujar(solo, CAM, hierro, [], (1, 1, 1))
@@ -525,10 +604,11 @@ def main():
         s = sprite(f'nerea_corazon_{r.randint(0, 2)}.png', px(r.choice([18, 24, 30])))
         capa.alpha_composite(s, (int(cx + r.uniform(-px(120), px(120))), int(cy + r.uniform(-px(110), px(80)))))
     tx, ty, _ = pantalla(puntas)
-    for _ in range(4):                           # destellos en las puntas del tridente
-        s = sprite(f'nerea_ojo_{r.randint(1, 2)}.png', px(r.choice([10, 14])))
+    for k in range(6):                           # espuma y gotas que salpican de las puntas del tridente
+        s = sprite(f'nerea_chispa_{r.randint(0, 2)}.png' if k % 2 else f'nerea_gota_{r.randint(0, 1)}.png',
+                   px(r.choice([12, 16, 20])))
         a = r.uniform(-math.pi, 0)
-        d = r.uniform(px(50), px(100))
+        d = r.uniform(px(50), px(110))
         capa.alpha_composite(s, (int(tx + math.cos(a) * d - s.width / 2), int(ty + math.sin(a) * d - s.height / 2)))
     puestas = 0
     while puestas < 46:                          # burbujas que suben, sin taparle la cara ni el pecho

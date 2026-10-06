@@ -768,6 +768,12 @@ public class RajangEntity extends Monster {
             setTarget(null);
             objetivo = null;
         }
+        // Despierto, siempre persigue a alguien si hay un jugador a tiro: el objetivo
+        // de vanilla pide verlo, y con este tamano el ojo se queda entre las hojas o
+        // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
+        if (getEstado() != DORMIDO && !isDeadOrDying()) {
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72);
+        }
         if (respiro > 0) respiro--;
         if (enfGarra > 0) enfGarra--;
         if (enfTerremoto > 0) enfTerremoto--;
@@ -1153,7 +1159,8 @@ public class RajangEntity extends Monster {
             return;
         }
         for (Player p : jugadores(nivel, RANGO_DESPERTAR, 0)) {
-            if (hasLineOfSight(p)) {
+            // Lo ve desde los ojos, el pecho o las rodillas, o lo tiene muy cerca.
+            if (PresasJefe.despierta(nivel, this, p)) {
                 despertarse(p);
                 return;
             }
