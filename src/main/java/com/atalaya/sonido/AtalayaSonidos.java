@@ -81,6 +81,10 @@ public final class AtalayaSonidos {
     public static SoundEvent NEREA_MAREA_ALZA;
     public static SoundEvent NEREA_MAREA;
     public static SoundEvent NEREA_FURIA;
+    // La musica de cada jefe mientras pelea (musica_jefes.py; la pone MusicaJefes en el cliente).
+    public static SoundEvent MUSICA_NEREA;
+    public static SoundEvent MUSICA_AERALIS;
+    public static SoundEvent MUSICA_RAJANG;
 
     public static SoundEvent AERALIS_AMBIENTE;
     public static SoundEvent AERALIS_ALETEO;
@@ -241,6 +245,9 @@ public final class AtalayaSonidos {
         NEREA_MAREA_ALZA = registrar("nerea.marea_alza");
         NEREA_MAREA = registrar("nerea.marea");
         NEREA_FURIA = registrar("nerea.furia");
+        MUSICA_NEREA = registrar("musica.nerea");
+        MUSICA_AERALIS = registrar("musica.aeralis");
+        MUSICA_RAJANG = registrar("musica.rajang");
 
         AERALIS_AMBIENTE = registrar("aeralis.ambiente");
         AERALIS_ALETEO = registrar("aeralis.aleteo");

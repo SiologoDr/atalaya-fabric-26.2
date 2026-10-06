@@ -5,6 +5,9 @@ import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** La foto de Nerea que el renderer saca cada fotograma. */
 public class NereaRenderState extends LivingEntityRenderState {
 
@@ -22,6 +25,8 @@ public class NereaRenderState extends LivingEntityRenderState {
     public final AnimationState aturdido = new AnimationState();
     public final AnimationState tambaleo = new AnimationState();
     public final AnimationState agotado = new AnimationState();
+    public final AnimationState geiser = new AnimationState();
+    public final AnimationState marea = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
 
     public int estado;
@@ -39,10 +44,22 @@ public class NereaRenderState extends LivingEntityRenderState {
     public boolean libre;
     /** De 0 a 1 mientras se deshace en agua al final de la liberacion. */
     public float disolver;
+    /** La Furia de las Mareas: el aura de causticas (NereaFuriaLayer). */
+    public boolean furia;
 
-    // --- El rayo de la mirada, relativo a los pies ---
+    // --- La Mirada, relativo a los pies ---
     public @Nullable Vec3 ojoIzq;
     public @Nullable Vec3 ojoDer;
-    public @Nullable Vec3 finRayo;
+    /** Donde acaba cada chorro (uno por cada mirado; se corta contra el primer bloque). */
+    public final List<Vec3> finesRayo = new ArrayList<>();
     public float cargaRayo;
+    /** Impactos en cada ojo: las grietas. */
+    public int golpesIzq;
+    public int golpesDer;
+
+    // --- Lo que se pinta en el suelo, relativo a los pies ---
+    /** Donde cae el hueco de la Gran Marea (bloques a un lado de su rumbo). */
+    public float hueco;
+    /** Las burbujas de aire doradas de quien lleva antorcha en el Remolino (el centro de cada una). */
+    public final List<Vec3> burbujasAire = new ArrayList<>();
 }

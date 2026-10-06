@@ -939,8 +939,10 @@ es inmune y lo único que sirve es que el grupo rompa algo a la vez:
 - a Aeralis, los **cuatro núcleos**;
 - a Rajang, los **cuatro tótems**.
 
-Si sale bien, cae aturdido con **daño doble**. Si sale mal, el castigo es gordo, y
-en dos de los tres es la muerte.
+Si sale bien, cae aturdido con **daño doble**. Si sale mal, el castigo es gordo:
+los atrapados mueren salvo tótem y el jefe entra en **Furia** (más rápido, más
+daño y menos espera) hasta que lo derriben. Lo que hay que romper aguanta
+**10 golpes**, sean cuantos sean los jugadores.
 
 **Daño propio.** Cada ataque tiene su tipo de daño en `data/atalaya/damage_type/`.
 
@@ -1005,13 +1007,19 @@ barra lleva:
 - nombre y "FASE I-IV" en letras de píxel;
 - rastro blanco del daño.
 
-La de **Aeralis** cambió con su remake (octubre de 2026): mide 240×44, lleva un
+La de **Aeralis** y la de **Nerea** cambiaron con sus remakes (octubre de 2026).
+La de Aeralis mide 240×44, lleva un
 marco, un relleno y un emblema por fase con el color ya pintado, un ala que sale
 del emblema por encima, el frente del relleno encendido, ojos de tormenta en las
 muescas y, debajo, una raya fina que se llena con el **viento de vuelta**. En el
 Juicio, en su lugar, lo mismo que Rajang en el Sello: los **cuatro núcleos**
 (encendidos los que siguen en pie, partidos los rotos) y la **losa del tiempo**
 que le queda al ciclón, roja al final.
+La de Nerea, del mismo tamaño: una ola que rompe por encima, el marco de
+prismarina con percebes y corales, el corazón de la fase entre costillas y
+eslabones en las muescas. En la Mirada cambia de vista: en el emblema, su
+**calavera con los dos ojos**, que se rajan con cada impacto, y debajo la **marea**
+que baja con el tiempo que le queda al chorro. Con la Furia, todo en verde abismo.
 La de Rajang al mismo estilo está **solo en propuesta**
 (`rajang_remake_hud.py`, ficha en `materiales/fichas/rajang_barra/`).
 
@@ -1033,6 +1041,12 @@ cambiar el estado. Para pasar datos se usa la velocidad de las partículas, con
 vanilla, partículas, sonidos sintetizados, barra, iconos y huevo. Nada sale de
 vanilla.
 
+**Música propia.** Cada uno tiene la suya mientras pelea cerca (a menos de 96
+bloques): Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra. La compone
+`musica_jefes.py` (`sounds/musica/`), la pone `MusicaJefes` en el cliente, en la
+categoría de música, y entra y sale fundiéndose. Mientras suena, la de vanilla
+calla (`MusicaJefesMixin`); al liberarlo, se apaga.
+
 Cada jefe tiene un comando para probarlo por partes: `/atalaya <jefe> <orden>`
 (ver [Comandos](#comandos)).
 
@@ -1040,13 +1054,15 @@ Cada jefe tiene un comando para probarlo por partes: `/atalaya <jefe> <orden>`
 
 > *Rompe sus cadenas. Libera su corazón.*
 
-Un gigante de hueso y prismarina de unos **10 bloques**:
+Un gigante de hueso y prismarina. Desde el **remake de octubre de 2026** mide
+unos **15 bloques** (antes, 10):
 
-- cráneo con corona de coral;
+- cráneo con corona de coral, y detrás una **venera** de nácar con su perla;
+- barba y capa de algas, espinas de hueso en el lomo y una caracola de hombrera;
 - en el pecho, una cavidad cerrada por costillas, con el **corazón maldito**
   dentro y cuatro cadenas oxidadas cruzándolo;
-- en la derecha, el tridente, que lleva como bastón;
-- en la izquierda, una cadena-látigo con un gancho de hueso.
+- en la derecha, el tridente, más largo y con una espiral de espuma;
+- en la izquierda, una cadena-látigo con un **ancla** (antes, un gancho de hueso).
 
 Con cada fase salta una cadena y el corazón se raja y se apaga. En la IV las
 costillas se abren.
@@ -1062,32 +1078,44 @@ Ganó la A.
 | | |
 |---|---|
 | Vida | 12 500 · armadura 14, dureza 8 |
-| Caja | 3,4 × 8,8. A propósito, más estrecha que los hombros y más baja que la corona: tiene que tapar el cuerpo, no cada rama |
-| Velocidad | 0,27, menos que un jugador andando; ×1,3 en la fase IV |
+| Caja | 5,1 × 13,2. A propósito, más estrecha que los hombros y más baja que la corona: tiene que tapar el cuerpo, no cada rama |
+| Velocidad | 0,27, menos que un jugador andando; ×1,3 en la fase IV; ×1,1 con la Furia |
 | Correa | 28 bloques |
 
 | Fase | Vida | Ritmo | Qué se añade |
 |---|---|---|---|
 | I | 100-75 % | ×1,0 | Rompeolas (1 ola), Remolino, Burbujas bomba |
-| II | 75-50 % | ×1,12 | Molino de cadenas, Arpón; el Rompeolas lanza 3 olas |
-| III | 50-25 % | ×1,25 | Mirada del Abismo; Rompeolas de 5 olas; un gancho más |
+| II | 75-50 % | ×1,12 | Molino de anclas, Arpón, **Géiser del Abismo**; el Rompeolas lanza 3 olas |
+| III | 50-25 % | ×1,25 | Mirada del Abismo, **Gran Marea**; Rompeolas de 5 olas; un ancla más |
 | IV | 25-0 % | ×1,4 | las costillas se abren; cada 25 s cae **agotado** (daño doble) |
 
 Los ojos van de cian a violeta, a magenta y a rojo.
+
+Todo lo que hace **se ve de mar**: paredes de agua, remolinos en el suelo,
+géiseres, espuma y burbujas. Nada de chispas ni rayos: eso es de los otros.
 
 El daño de cada ataque va en el orden de las fases, I / II / III / IV:
 
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
-| **Rompeolas** | clava el tridente y lanza olas en abanico, a ras de suelo, hasta 34 bloques | 44 / 55 / 69 / 91 | apartarse de la línea, o el escudo. **Saltar no vale** |
-| **Remolino** | 4,4 s tirando de todo hacia él; deja **Corriente Abismal** (−20 % de velocidad por nivel) | 7 / 10 / 14 / 21 por segundo, atraviesa la armadura | **llevar una antorcha** en la mano: hace inmune |
-| **Burbujas bomba** | una por jugador, hasta 40; salen del corazón, persiguen y explotan en 5,5-7,75 bloques | 36 / 48 / 58 / 72, cuenta como explosión | **cualquier proyectil** la pincha sin daño. De un espadazo te explota encima |
-| **Molino de cadenas** | dos cadenas de 21 bloques dan dos vueltas | 48 / 58 / 72, el escudo no la para | **saltarla**, pegarse a sus pies o irse lejos |
-| **Arpón** | un gancho por cada 10 jugadores (hasta 5) a los más lejanos; los arrastra hasta el tridente y remata con la Estocada | 48 / 58 / 72, y la estocada 55 / 69 / 91 | escudo de cara al gancho, o romper la línea de visión |
-| **Mirada del Abismo** | carga 4 s un rayo doble desde los ojos hacia un jugador | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos (3 + jugadores/6 impactos cada uno). Así cae aturdido, con daño doble |
+| **Rompeolas** | clava el tridente y lanza **paredes de agua** en abanico, a ras de suelo, hasta 34 bloques | 44 / 55 / 69 / 91 | apartarse de la línea, o el escudo. **Saltar no vale** |
+| **Remolino** | 4,4 s tirando de todo hacia él, con un remolino de 26 bloques en el suelo; deja **Corriente Abismal** (−20 % de velocidad por nivel) | 7 / 10 / 14 / 21 por segundo, atraviesa la armadura | **llevar una antorcha** en la mano: hace inmune (se ve una burbuja de aire dorada) |
+| **Burbujas bomba** | una por jugador, hasta 40; salen del corazón (que se ve dentro), persiguen y explotan en 5,5-7,75 bloques; un aro de espuma marca hasta dónde | 36 / 48 / 58 / 72, cuenta como explosión | **cualquier proyectil** la pincha sin daño. De un espadazo te explota encima |
+| **Molino de anclas** | dos cadenas de 21 bloques con un ancla al final dan dos vueltas; un aro de espuma marca hasta dónde llegan | 48 / 58 / 72, el escudo no la para | **saltarla**, pegarse a sus pies o irse lejos |
+| **Arpón** | un ancla por cada 10 jugadores (hasta 5) a los más lejanos, con estela y un aro bajo el blanco; los arrastra hasta el tridente y remata con la Estocada | 48 / 58 / 72, y la estocada 55 / 69 / 91 | escudo de cara al ancla, o romper la línea de visión |
+| **Géiser del Abismo** | desde la II. Clava el tridente y bajo cada jugador se abre un remolino oscuro; a los 1,5 s revienta una columna de agua de 14 bloques que lanza a unos 12 (y la caída duele) | 36 / 44 / 58 | **salir del remolino** a tiempo |
+| **Gran Marea** | desde la III. Alza el tridente 2 s y una ola de 9 bloques cruza la arena de lado a lado (80 bloques) hacia donde hay más gente. Solo deja **un hueco** de 5 bloques, marcado antes en el suelo | **mata** (10 000) y arrastra: solo salva un tótem | correr al **hueco** o ponerse detrás de ella |
+| **Mirada del Abismo** | carga 4 s un chorro de agua del abismo desde cada ojo hacia **un tercio** de los que pelean (de 30, 10): los de menos vida que tiene a la vista | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos: **10 impactos** cada uno, sean cuantos sean. Así cae aturdida, con daño doble |
 
 Mientras mira es inmune, y romper un solo ojo no salva: el disparo sale del punto
-medio entre los dos.
+medio entre los dos. Cada ojo lleva un aro de agua que gira y se va rajando con
+los impactos.
+
+**Furia de las Mareas.** Si la Mirada sale (no le rompen los ojos a tiempo), entra
+en Furia: un aura de luz bajo el agua (cáusticas en verde abismo) y burbujas que
+le suben por el cuerpo. Ataques un 25 % más rápidos (menos la Mirada), un 35 % más
+de daño y un 35 % menos de espera. Se le quita al **derribarla**: romperle los dos
+ojos en otra Mirada.
 
 ### Aeralis, la Mariposa del Vendaval
 
@@ -1246,7 +1274,7 @@ entre un ataque y otro (enfriamientos ×0,84, ×0,72 y ×0,6).
 | **Embestida de Jade** | se agazapa y rasca el suelo mientras una **flecha** en el suelo marca por dónde va a cargar (1,15 s en la fase I, 0,75 s en la IV; al llenarse, el rumbo queda fijo). Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
 | **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** (1 s), se cae y vuelve a los 3 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (**10 golpes** cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
 | **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s | salir del círculo: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
-| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás 1,2 s (es de reflejos) | encima (4,8 a 5,7 bloques): **mata**; cerca (hasta 12): 60 / 77 | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
+| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás 1,2 s (es de reflejos) | dentro de su marca (4,8 a 5,7 bloques): **mata**; fuera de la marca, nada | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
 | **Salto** (fase IV) | salta en parábola sobre la presa | 80 en 6,5 bloques | apartarse cuando despega |
 
 **Las columnas del Sello son entidades, no bloques.** Son pisables a cualquier

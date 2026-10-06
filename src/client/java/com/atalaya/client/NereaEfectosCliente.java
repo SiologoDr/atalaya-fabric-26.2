@@ -23,8 +23,8 @@ import java.util.WeakHashMap;
  */
 public final class NereaEfectosCliente {
 
-    /** Lo que avanza la animacion de andar entre pisada y pisada (2,8 = factor de NereaModel). */
-    private static final float PASO = 2000.0F / (50.0F * 2.8F) / 2.0F;
+    /** Lo que avanza la animacion de andar entre pisada y pisada (con la zancada de NereaModel). */
+    private static final float PASO = 2000.0F / (50.0F * NereaModel.ZANCADA) / 2.0F;
 
     private static final Map<NereaEntity, Float> ULTIMO_PASO = new WeakHashMap<>();
 
@@ -88,8 +88,8 @@ public final class NereaEfectosCliente {
                     NereaPresencia.sacudir(x, y, z, 1.4F, 40);
                     NereaPresencia.asustar(x, y, z, 0.55F, 40);
                 }
-                if (t >= NereaGeometria.MIRADA_FIJA && n.getIdObjetivo() == mc.player.getId()) {
-                    // A quien mira: la pantalla se cierra a medida que carga.
+                if (t >= NereaGeometria.MIRADA_FIJA && n.esMirado(mc.player.getId())) {
+                    // A quienes mira: la pantalla se cierra a medida que carga.
                     float k = (float) (t - NereaGeometria.MIRADA_FIJA) / (NereaGeometria.DURACION_MIRADA - NereaGeometria.MIRADA_FIJA);
                     Vec3 p = mc.player.position();
                     NereaPresencia.asustar(p.x, p.y, p.z, 0.35F + 0.6F * k, 1000);
@@ -108,7 +108,22 @@ public final class NereaEfectosCliente {
             case NereaEntity.AGOTADO -> {
                 if (t == 12) {
                     NereaPresencia.sacudir(x, y, z, 1.8F, 32);
-                    polvo(nivel, n, 0.0, 0.0, 14, 1.8);
+                    polvo(nivel, n, 0.0, 0.0, 14, 2.7);
+                }
+            }
+            case NereaEntity.GEISER -> {
+                if (t == NereaGeometria.GEISER_GOLPE) {
+                    NereaPresencia.sacudir(x, y, z, 1.6F, 40);
+                }
+            }
+            case NereaEntity.MAREA -> {
+                if (t < NereaGeometria.MAREA_LANZA) {
+                    // El mar se retira: retumba cada vez mas.
+                    NereaPresencia.retumbar(x, y, z, 0.2F + 0.5F * t / NereaGeometria.MAREA_LANZA, 60);
+                }
+                if (t == NereaGeometria.MAREA_LANZA) {
+                    NereaPresencia.sacudir(x, y, z, 2.8F, 70);
+                    NereaPresencia.asustar(x, y, z, 0.7F, 60);
                 }
             }
             default -> {
@@ -173,7 +188,7 @@ public final class NereaEfectosCliente {
         }
         boolean izquierdo = (pasoAhora & 1) == 0;
         NereaPresencia.sacudir(n.getX(), n.getY(), n.getZ(), 0.7F, 24);
-        polvo(nivel, n, izquierdo ? 0.6 : -0.6, -0.9, 7, 0.5);
+        polvo(nivel, n, izquierdo ? 0.9 : -0.9, -1.35, 7, 0.75);
     }
 
     private static void polvo(ClientLevel nivel, NereaEntity n, double izq, double frente, int cuantos, double abre) {

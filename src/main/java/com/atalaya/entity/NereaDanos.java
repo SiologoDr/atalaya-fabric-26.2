@@ -27,8 +27,9 @@ import org.jspecify.annotations.Nullable;
  *             escudo que valga (solo la antorcha, que te saca de el)
  *   geiser    El Geiser del Abismo: te lanza al cielo desde abajo (el escudo
  *             no sirve)
- *   marea     La Gran Marea: la pared de agua que cruza la arena; no la para
- *             el escudo, pero no mata (deja medio corazon)
+ *   marea     La Gran Marea: la pared de agua que cruza la arena. Mata como
+ *             la Mirada: solo salva un totem (todas las bypasses_* menos la de
+ *             invulnerabilidad)
  * </pre>
  */
 public final class NereaDanos {

@@ -25,11 +25,23 @@ import java.util.function.Function;
  *   - la cadena-latigo de la mano, que desaparece mientras el gancho vuela;
  *   - los ojos que le apagan a flechazos;
  *   - el latido del corazon, desbocado cuando ya no le quedan cadenas.
+ *
+ * La misma malla, hinchada (CAPA_AURA), es la del aura de la Furia de las
+ * Mareas (NereaFuriaLayer).
  */
 public class NereaModel extends EntityModel<NereaRenderState> {
 
     public static final ModelLayerLocation CAPA = new ModelLayerLocation(
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "nerea"), "main");
+    /** La malla hinchada del aura de la Furia. */
+    public static final ModelLayerLocation CAPA_AURA = new ModelLayerLocation(
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "nerea"), "aura");
+    /**
+     * Lo que avanza la animacion de andar por bloque recorrido: un ciclo de
+     * zancada cada 5,4 bloques (lo que avanzan los pies en el suelo,
+     * nerea_juego_anim.py, apoyos_andar, a la escala del remake).
+     */
+    public static final float ZANCADA = 2.8F * 1.6F / NereaRenderer.ESCALA;
 
     private final ModelPart cabeza;
     private final ModelPart corazon;
@@ -58,6 +70,8 @@ public class NereaModel extends EntityModel<NereaRenderState> {
     private final KeyframeAnimation aturdido;
     private final KeyframeAnimation tambaleo;
     private final KeyframeAnimation agotado;
+    private final KeyframeAnimation geiser;
+    private final KeyframeAnimation marea;
     private final KeyframeAnimation liberacion;
 
     public NereaModel(ModelPart raiz) {
@@ -94,6 +108,8 @@ public class NereaModel extends EntityModel<NereaRenderState> {
         this.aturdido = NereaAnimaciones.ATURDIDO.bake(raiz);
         this.tambaleo = NereaAnimaciones.TAMBALEO.bake(raiz);
         this.agotado = NereaAnimaciones.AGOTADO.bake(raiz);
+        this.geiser = NereaAnimaciones.GEISER.bake(raiz);
+        this.marea = NereaAnimaciones.MAREA.bake(raiz);
         this.liberacion = NereaAnimaciones.LIBERACION.bake(raiz);
     }
 
@@ -140,11 +156,9 @@ public class NereaModel extends EntityModel<NereaRenderState> {
         if (!muriendo) {
             // Andar y reposo se reparten el peso: cuanto mas rapido anda, menos
             // respira quieto. Y los dos se apagan mientras ataca.
-            // 2,8: un ciclo de zancada por cada 3,6 bloques recorridos, lo que
-            // avanzan los pies en el suelo (nerea_juego_anim.py, apoyos_andar).
             float paso = Math.min(s.walkAnimationSpeed * 2.5F, 1.0F);
             if (peso > 0.0F) {
-                andar.apply((long) (s.walkAnimationPos * 50.0F * 2.8F), paso * peso);
+                andar.apply((long) (s.walkAnimationPos * 50.0F * ZANCADA), paso * peso);
                 reposo.apply((long) (s.ageInTicks * 50.0F), (1.0F - paso) * peso);
             }
             dormido.apply(s.dormido, s.ageInTicks, s.ritmo);
@@ -160,6 +174,8 @@ public class NereaModel extends EntityModel<NereaRenderState> {
             aturdido.apply(s.aturdido, s.ageInTicks, s.ritmo);
             tambaleo.apply(s.tambaleo, s.ageInTicks, s.ritmo);
             agotado.apply(s.agotado, s.ageInTicks, s.ritmo);
+            geiser.apply(s.geiser, s.ageInTicks, s.ritmo);
+            marea.apply(s.marea, s.ageInTicks, s.ritmo);
         }
         liberacion.apply(s.liberacion, s.ageInTicks);
 

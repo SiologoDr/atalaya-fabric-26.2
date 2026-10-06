@@ -20,13 +20,14 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Un fragmento de jade del Cataclismo: un racimo de cristales envuelto en llama
- * verde que cae del cielo rajado sobre su marca (la marca avisa 1,5 s antes, con la
+ * verde que cae del cielo rajado sobre su marca (la marca avisa 1,2 s antes, con la
  * cuenta atras en su aro). Cae en linea recta, algo inclinado, y llega justo
  * cuando la cuenta se cierra.
  *
- * Encima del impacto, la muerte (el totem de la inmortalidad aun salva); cerca,
- * hasta 12 bloques, el dano de la fase (de la mitad al todo) y el empujon.
- * Despues se queda clavado, brillando, hasta que se apaga.
+ * Solo hace dano dentro de su marca: ahi, la muerte (el totem de la
+ * inmortalidad aun salva). Fuera de la marca no hace nada: ni dano ni empujon
+ * (desde octubre de 2026; antes pegaba hasta 12 bloques). Despues se queda
+ * clavado, brillando, hasta que se apaga.
  *
  * Desde octubre de 2026 son mas grandes (tamano 2,3 a 2,7) y caen menos: la
  * muerte llega a 4,8-5,7 bloques del impacto en vez de 2 (los 3,3-4 de la primera
@@ -34,12 +35,16 @@ import org.jspecify.annotations.Nullable;
  */
 public class FragmentoJadeEntity extends Entity {
 
-    /** Desde donde cae (bloques por encima y hacia atras de la marca). */
-    public static final Vec3 DESDE = new Vec3(-9.0, 40.0, 7.0);
+    /**
+     * Desde donde cae (bloques por encima y hacia atras de la marca). Cae en lo
+     * que dura el aviso, asi que de aqui sale su velocidad: desde octubre de 2026
+     * sale un 15 % mas abajo (antes, de -9, 40, 7) y baja un 15 % mas despacio,
+     * con el mismo aviso.
+     */
+    public static final Vec3 DESDE = new Vec3(-7.65, 34.0, 5.95);
     public static final int CLAVADO = 60;
-    /** La muerte llega a 2,1 bloques por cada punto de tamano: de 4,8 a 5,7 bloques. */
+    /** La muerte llega a 2,1 bloques por cada punto de tamano: de 4,8 a 5,7 bloques (la marca, 0,6 mas). */
     private static final double MUERTE = 2.1;
-    private static final double CERCA = 12.0;
 
     /** Hasta donde mata un fragmento de tamano 'tam' (para dibujar su marca a juego). */
     public static double radioMuerte(float tam) {
@@ -54,7 +59,6 @@ public class FragmentoJadeEntity extends Entity {
             SynchedEntityData.defineId(FragmentoJadeEntity.class, EntityDataSerializers.INT);
 
     private @Nullable RajangEntity dueno;
-    private float dano;
     private Vec3 marca = Vec3.ZERO;
 
     public FragmentoJadeEntity(EntityType<? extends FragmentoJadeEntity> tipo, Level nivel) {
@@ -63,10 +67,9 @@ public class FragmentoJadeEntity extends Entity {
         setNoGravity(true);
     }
 
-    public static FragmentoJadeEntity caer(ServerLevel nivel, RajangEntity dueno, Vec3 marca, int caida, float tam, float dano) {
+    public static FragmentoJadeEntity caer(ServerLevel nivel, RajangEntity dueno, Vec3 marca, int caida, float tam) {
         FragmentoJadeEntity f = new FragmentoJadeEntity(AtalayaEntities.FRAGMENTO_JADE, nivel);
         f.dueno = dueno;
-        f.dano = dano;
         f.marca = marca;
         f.entityData.set(DATA_TAM, tam);
         f.entityData.set(DATA_CAIDA, caida);
@@ -161,20 +164,12 @@ public class FragmentoJadeEntity extends Entity {
         if (dueno == null) {
             return;
         }
+        // Solo dentro de la marca: ahi, la muerte (salvo totem). Fuera, nada.
         DamageSource muerte = RajangDanos.fuente(nivel, RajangDanos.FRAGMENTO, this, dueno);
-        DamageSource cerca = RajangDanos.fuente(nivel, RajangDanos.IMPACTO, this, dueno);
-        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(p, p).inflate(CERCA, 4, CERCA), dueno::esPresa)) {
-            double d = RajangEntity.horizontal(p, v.position());
-            if (d <= radioMuerte(tam) && Math.abs(v.getY() - p.y) < 3.5) {
-                v.hurtServer(nivel, muerte, 10000.0F);
-                if (!v.isAlive()) {
-                    dueno.alMatar(v);
-                }
-            } else if (d <= CERCA) {
-                v.hurtServer(nivel, cerca, RajangEntity.contraArmadura(v, dano * (float) (1.0 - 0.5 * d / CERCA)));
-                Vec3 fuera = RajangEntity.horizontalHacia(p, v.position());
-                v.setDeltaMovement(fuera.x * 1.0, 0.45, fuera.z * 1.0);
-                v.hurtMarked = true;
+        double radio = radioMuerte(tam);
+        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(p, p).inflate(radio + 1, 4, radio + 1), dueno::esPresa)) {
+            if (RajangEntity.horizontal(p, v.position()) <= radio && Math.abs(v.getY() - p.y) < 3.5) {
+                v.hurtServer(nivel, muerte, RajangEntity.MORTAL);
                 if (!v.isAlive()) {
                     dueno.alMatar(v);
                 }

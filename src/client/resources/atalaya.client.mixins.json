@@ -5,7 +5,8 @@
   "client": [
     "EquipmentLayerRendererMixin",
     "MareoMixin",
-    "TemblorCamaraMixin"
+    "TemblorCamaraMixin",
+    "MusicaJefesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

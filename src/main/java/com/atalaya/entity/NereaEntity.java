@@ -73,7 +73,8 @@ import java.util.UUID;
  *   fase III   50-25 %   + Mirada del Abismo a un tercio del grupo (mata de un
  *                        golpe: solo salva un totem; mientras mira es inmune y
  *                        solo se la para rompiendole los dos ojos, 10 impactos
- *                        cada uno), Gran Marea (una ola de lado a lado con un hueco)
+ *                        cada uno), Gran Marea (una ola de lado a lado con un
+ *                        hueco: si te pilla, muerte salvo totem)
  *   fase IV    25-0 %    las costillas se abren: todo mas seguido y cada
  *                        25 s cae de rodillas agotado (dano doble)
  * </pre>
@@ -134,14 +135,17 @@ public class NereaEntity extends Monster {
     private static final float[] DANO_REMOLINO = {7, 10, 14, 21};
     /** El Geiser del Abismo (desde la fase II: la I no lo usa). */
     private static final float[] DANO_GEISER = {36, 36, 44, 58};
-    /** La Gran Marea (desde la III): fuerte, pero no mata. */
-    private static final float[] DANO_MAREA = {60, 60, 60, 80};
     /**
      * La Mirada mata: pasa la armadura, el escudo, los encantamientos, los
      * efectos y la resistencia. Solo un totem de la inmortalidad te salva (y
      * lo gasta). Se esquiva escondiendose tras un bloque o rompiendole los ojos.
      */
     private static final float MIRADA_MATA = 10000.0F;
+    /**
+     * Lo que mata (la Mirada y la Gran Marea): con todas las etiquetas
+     * bypasses_* menos la de invulnerabilidad, solo un totem lo para (y se gasta).
+     */
+    public static final float MORTAL = MIRADA_MATA;
     /** Impactos que aguanta cada ojo, sean cuantos sean (como los totems de Rajang y los nucleos de Aeralis). */
     public static final int GOLPES_OJO = 10;
 
@@ -152,7 +156,7 @@ public class NereaEntity extends Monster {
     private static final double FURIA_ANDA = 1.1;
 
     // --- La Gran Marea: lo que avanza por tick, lo que recorre, de lado a lado, su alto y el hueco ---
-    public static final float MAREA_VEL = 0.55F;
+    public static final float MAREA_VEL = 0.7F;
     public static final float MAREA_LARGO = 46.0F;
     public static final float MAREA_ANCHO = 80.0F;
     public static final float MAREA_ALTO = 9.0F;
@@ -1482,7 +1486,7 @@ public class NereaEntity extends Monster {
             nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, c.x, c.y, c.z, 70, 2.5, 3.5, 2.5, 0.2);
             nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, c.x, c.y, c.z, 60, 2.0, 3.0, 2.0, 0.5);
             nivel.sendParticles(AtalayaParticulas.NEREA_OJO, true, true, c.x, c.y, c.z, 40, 2.5, 4.0, 2.5, 0.15);
-            nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, true, true, getX(), getY() + 0.12, getZ(), 0, 2.8, 24.0, 0.0, 1.0);
+            nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, true, true, getX(), getY() + 0.12, getZ(), 0, 2.8, 14.0, 0.0, 1.0);
         } else {
             nivel.sendParticles(AtalayaParticulas.NEREA_BURBUJA, true, true, c.x, c.y, c.z, 50, 2.5, 4.0, 2.5, 0.05);
         }
@@ -1542,7 +1546,7 @@ public class NereaEntity extends Monster {
             nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_ROMPEOLAS_GOLPE, SoundSource.HOSTILE, 6.0F, 0.7F);
             sonido(AtalayaSonidos.NEREA_MAREA, 8.0F);
             golpeSuelo(nivel, p, 3.2F, 16.0F, 30, 40);
-            OlaNereaEntity.marea(nivel, this, position(), frente(), dano(DANO_MAREA), getHueco());
+            OlaNereaEntity.marea(nivel, this, position(), frente(), getHueco());
         }
     }
 

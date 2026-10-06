@@ -3,19 +3,20 @@ package com.atalaya.client;
 import com.atalaya.Atalaya;
 import com.atalaya.entity.NereaEntity;
 import com.atalaya.entity.NereaGeometria;
+import com.atalaya.entity.OlaNereaEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -23,9 +24,20 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Pinta a Nerea: la malla escalada x1,6 (diez bloques de alto), la capa de lo
- * que brilla y, durante la Mirada del Abismo, el rayo doble de los ojos a su
- * victima, que se corta contra el primer bloque que encuentre.
+ * Pinta a Nerea: la malla escalada x2,4 desde el remake (unos 15 bloques de
+ * alto), la capa de lo que brilla y la de la Furia de las Mareas, y lo que sus
+ * ataques dejan alrededor, todo de mar:
+ *
+ * <ul>
+ *   <li>la Mirada del Abismo: un chorro de agua del abismo de cada ojo a cada
+ *       uno de los que mira (se corta contra el primer bloque), un aro de agua
+ *       que gira en cada ojo encendido y las grietas que le abren los impactos;</li>
+ *   <li>el Remolino: el remolino del suelo bajo ella, que crece y gira, y la
+ *       burbuja de aire dorada de quien lleva una antorcha;</li>
+ *   <li>el Molino: el aro de espuma de hasta donde barren las anclas;</li>
+ *   <li>la Gran Marea: mientras alza el tridente, el paso que dejara la ola,
+ *       marcado en el suelo con luz que se cuela bajo el agua.</li>
+ * </ul>
  *
  * Al final de la liberacion se deshace con el mismo efecto que el dragon del
  * End (una mascara de ruido que se va comiendo la textura), con la mascara
@@ -33,13 +45,13 @@ import org.jspecify.annotations.Nullable;
  */
 public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, NereaModel> {
 
+    /** La escala de la malla (la de nerea_juego.py): unos 15 bloques de alto. */
+    public static final float ESCALA = 2.4F;
     /** Una piel por fase: la maldicion se extiende (venas, coral muerto). */
     private static final Identifier[] TEXTURAS = new Identifier[4];
     private static final RenderType[] DISOLVER = new RenderType[4];
     private static final Identifier MASCARA = Identifier.fromNamespaceAndPath(Atalaya.MOD_ID,
             "textures/entity/nerea/nerea_disolver.png");
-    private static final Identifier RAYO = Identifier.fromNamespaceAndPath(Atalaya.MOD_ID,
-            "textures/entity/nerea/rayo.png");
 
     static {
         for (int i = 0; i < 4; i++) {
@@ -47,14 +59,16 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
             DISOLVER[i] = RenderTypes.entityCutoutDissolve(TEXTURAS[i], MASCARA);
         }
     }
-    private static final RenderType TIPO_RAYO = RenderTypes.entityTranslucentEmissive(RAYO);
 
     /** Desde que tick de la liberacion empieza a deshacerse. */
     private static final float DISOLVER_DESDE = 160.0F;
+    /** Lo que llega a medir el remolino que se ve bajo ella (el arrastre llega mas lejos: las particulas). */
+    private static final float REMOLINO_SUELO = 26.0F;
 
     public NereaRenderer(EntityRendererProvider.Context contexto) {
-        super(contexto, new NereaModel(contexto.bakeLayer(NereaModel.CAPA)), 2.4F);
+        super(contexto, new NereaModel(contexto.bakeLayer(NereaModel.CAPA)), 3.6F);
         addLayer(new NereaBrilloLayer(this));
+        addLayer(new NereaFuriaLayer(this, new NereaModel(contexto.bakeLayer(NereaModel.CAPA_AURA))));
     }
 
     @Override
@@ -79,6 +93,8 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         s.aturdido.copyFrom(n.aturdido);
         s.tambaleo.copyFrom(n.tambaleo);
         s.agotado.copyFrom(n.agotado);
+        s.geiser.copyFrom(n.geiser);
+        s.marea.copyFrom(n.marea);
         s.liberacion.copyFrom(n.liberacion);
         s.estado = n.getEstado();
         s.pesoLibre = Mth.lerp(parcial, n.pesoLibreAnt, n.pesoLibre);
@@ -86,6 +102,10 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         s.fase = n.fase();
         s.ritmo = n.ritmoCliente;
         s.ojosRotos = n.getOjosRotos();
+        s.golpesIzq = n.getGolpesOjo(0);
+        s.golpesDer = n.getGolpesOjo(1);
+        s.furia = n.tieneFuria() && !n.isDeadOrDying();
+        s.hueco = n.getHueco();
         // En segundos de ANIMACION: con el ritmo de la fase, como el servidor.
         s.segundosEstado = (n.tickCount - n.inicioEstado + parcial) / 20.0F * n.ritmoCliente;
         s.libre = n.deathTime >= NereaGeometria.LIBERACION_OJOS_ORO;
@@ -94,40 +114,68 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
                 : 0.0F;
         // Solo el destello del golpe: la liberacion no se tine de rojo.
         s.hasRedOverlay = n.hurtTime > 0 && n.deathTime < 4;
-        extraerRayo(n, s, parcial);
+        extraerMirada(n, s, parcial);
+        extraerBurbujasAire(n, s, parcial);
     }
 
-    private void extraerRayo(NereaEntity n, NereaRenderState s, float parcial) {
-        s.finRayo = null;
+    /** Los ojos y el final de cada chorro de la Mirada, relativos a los pies. */
+    private void extraerMirada(NereaEntity n, NereaRenderState s, float parcial) {
+        s.finesRayo.clear();
+        s.ojoIzq = null;
+        s.ojoDer = null;
         float ticks = s.segundosEstado * 20.0F;
-        if (s.estado != NereaEntity.MIRADA || ticks < NereaGeometria.MIRADA_FIJA || n.isDeadOrDying()) {
-            return;
-        }
-        Entity victima = n.level().getEntity(n.getIdObjetivo());
-        if (victima == null) {
+        boolean mira = s.estado == NereaEntity.MIRADA && ticks >= NereaGeometria.MIRADA_FIJA - 4;
+        if (!(mira || s.estado == NereaEntity.ATURDIDO) || n.isDeadOrDying()) {
             return;
         }
         Vec3 pies = n.getPosition(parcial);
         float rumbo = s.bodyRot;
         Vec3 izq = NereaEntity.puntoMundo(NereaGeometria.OJO_IZQ_MIRADA, pies, rumbo);
         Vec3 der = NereaEntity.puntoMundo(NereaGeometria.OJO_DER_MIRADA, pies, rumbo);
-        Vec3 fin = victima.getEyePosition(parcial).add(0, -0.3, 0);
-        Vec3 medio = izq.add(der).scale(0.5);
-        BlockHitResult choque = n.level().clip(new ClipContext(medio, fin, ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE, n));
-        if (choque.getType() != HitResult.Type.MISS) {
-            fin = choque.getLocation();
-        }
         s.ojoIzq = izq.subtract(pies);
         s.ojoDer = der.subtract(pies);
-        s.finRayo = fin.subtract(pies);
+        if (s.estado != NereaEntity.MIRADA || ticks < NereaGeometria.MIRADA_FIJA) {
+            return;
+        }
+        Vec3 medio = izq.add(der).scale(0.5);
+        for (int id : n.getIdsMirada()) {
+            Entity v = n.level().getEntity(id);
+            if (v == null) {
+                continue;
+            }
+            Vec3 fin = v.getEyePosition(parcial).add(0, -0.3, 0);
+            BlockHitResult choque = n.level().clip(new ClipContext(medio, fin, ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE, n));
+            if (choque.getType() != HitResult.Type.MISS) {
+                fin = choque.getLocation();
+            }
+            s.finesRayo.add(fin.subtract(pies));
+        }
         s.cargaRayo = Mth.clamp((ticks - NereaGeometria.MIRADA_FIJA)
                 / (NereaGeometria.DURACION_MIRADA - NereaGeometria.MIRADA_FIJA), 0.0F, 1.0F);
     }
 
+    /** Quien lleva antorcha mientras el Remolino arrastra: su burbuja dorada. */
+    private void extraerBurbujasAire(NereaEntity n, NereaRenderState s, float parcial) {
+        s.burbujasAire.clear();
+        float ticks = s.segundosEstado * 20.0F;
+        if (s.estado != NereaEntity.REMOLINO || ticks < NereaGeometria.REMOLINO_TIRA || ticks > NereaGeometria.REMOLINO_SUELTA) {
+            return;
+        }
+        Vec3 pies = n.getPosition(parcial);
+        for (Player p : n.level().players()) {
+            if (p.isSpectator() || !p.isAlive() || p.distanceToSqr(n) > NereaEntity.RADIO_REMOLINO * NereaEntity.RADIO_REMOLINO) {
+                continue;
+            }
+            if (p.isHolding(Items.TORCH) || p.isHolding(Items.SOUL_TORCH) || p.isHolding(Items.COPPER_TORCH)) {
+                s.burbujasAire.add(p.getPosition(parcial).add(0, p.getBbHeight() * 0.5, 0).subtract(pies));
+            }
+        }
+    }
+
     @Override
     protected void scale(NereaRenderState s, PoseStack pose) {
-        pose.scale(1.6F, 1.6F, 1.6F);
+        pose.scale(ESCALA, ESCALA, ESCALA);
     }
 
     /** Sin el tumbado de lado al morir: la liberacion es de rodillas. */
@@ -150,7 +198,7 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         return s.disolver > 0.0F ? ARGB.white(1.0F - s.disolver) : -1;
     }
 
-    /** Diez bloques de alto y un rayo de treinta: que no se corte al girar la camara. */
+    /** Quince bloques de alto y chorros de cincuenta: que no se corte al girar la camara. */
     @Override
     protected boolean affectedByCulling(NereaEntity n) {
         return false;
@@ -159,55 +207,140 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
     @Override
     public void submit(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, CameraRenderState camara) {
         super.submit(s, pose, colector, camara);
-        if (s.finRayo == null) {
+        if (s.deathTime > 0) {
             return;
         }
-        if ((s.ojosRotos & 1) == 0 && s.ojoIzq != null) {
-            rayo(pose, colector, s.ojoIzq, s.finRayo, s.cargaRayo, s.ageInTicks);
-        }
-        if ((s.ojosRotos & 2) == 0 && s.ojoDer != null) {
-            rayo(pose, colector, s.ojoDer, s.finRayo, s.cargaRayo, s.ageInTicks);
+        Vec3 ojo = camara.pos.subtract(s.x, s.y, s.z);
+        float ticks = s.segundosEstado * 20.0F;
+        switch (s.estado) {
+            case NereaEntity.MIRADA, NereaEntity.ATURDIDO -> mirada(s, pose, colector, ojo);
+            case NereaEntity.REMOLINO -> remolino(s, pose, colector, ojo, ticks);
+            case NereaEntity.MOLINO -> molino(s, pose, colector, ticks);
+            case NereaEntity.MAREA -> marea(s, pose, colector, ticks);
+            default -> {
+            }
         }
     }
 
-    /** El rayo: dos planos cruzados que engordan y se aclaran con la carga. */
-    private static void rayo(PoseStack pose, SubmitNodeCollector colector, Vec3 desde, Vec3 hasta, float carga, float edad) {
-        Vec3 d = hasta.subtract(desde);
-        double largo = d.length();
-        if (largo < 0.1) {
-            return;
+    // ------------------------------------------------------------------
+    //  La Mirada del Abismo
+    // ------------------------------------------------------------------
+
+    private static void mirada(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, Vec3 ojo) {
+        int color = s.furia ? NereaDibujo.FURIA : NereaDibujo.fase(s.fase);
+        Vec3[] ojos = {s.ojoIzq, s.ojoDer};
+        int[] golpes = {s.golpesIzq, s.golpesDer};
+        if (!s.finesRayo.isEmpty()) {
+            float carga = s.cargaRayo;
+            // Engorda y se aclara al cargar; tiembla un poco al final, a punto de soltar.
+            float ancho = 0.28F + 0.45F * carga + (carga > 0.85F ? 0.08F * Mth.sin(s.ageInTicks * 2.3F) : 0.0F);
+            int alfa = (int) (175 + 80 * carga);
+            int claro = NereaDibujo.claro(color, 0.25F + 0.35F * carga);
+            float v0 = -s.ageInTicks * 0.25F;
+            colector.submitCustomGeometry(pose, NereaDibujo.CHORRO, (p, buf) -> {
+                for (int i = 0; i < 2; i++) {
+                    if ((s.ojosRotos & (1 << i)) != 0 || ojos[i] == null) {
+                        continue;
+                    }
+                    for (Vec3 fin : s.finesRayo) {
+                        float largo = (float) fin.distanceTo(ojos[i]);
+                        NereaDibujo.cinta(buf, p, ojos[i], fin, ojo, ancho, v0, v0 + largo * 0.4F, claro, alfa);
+                        NereaDibujo.cinta(buf, p, ojos[i], fin, ojo, ancho * 0.4F, v0 * 1.3F, v0 * 1.3F + largo * 0.4F,
+                                0xFFFFFF, 255);
+                    }
+                }
+            });
         }
-        Vec3 dir = d.scale(1.0 / largo);
-        Vec3 ref = Math.abs(dir.y) > 0.95 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
-        // Tiembla un poco al final, cuando esta a punto de soltar.
-        float ancho = 0.12F + 0.28F * carga + (carga > 0.85F ? 0.05F * Mth.sin(edad * 2.3F) : 0.0F);
-        Vec3 a = dir.cross(ref).normalize().scale(ancho);
-        Vec3 b = dir.cross(a).normalize().scale(ancho);
-        int alfa = (int) (120 + 135 * carga);
-        int g = (int) (220 + 35 * carga);
-        float v0 = -edad * 0.15F;
-        float v1 = v0 + (float) largo * 0.5F;
-        colector.submitCustomGeometry(pose, TIPO_RAYO, (p, buf) -> {
-            plano(buf, p, desde, hasta, a, v0, v1, g, alfa);
-            plano(buf, p, desde, hasta, b, v0, v1, g, alfa);
+        // En cada ojo encendido, el aro de agua que gira; y las grietas de los impactos.
+        colector.submitCustomGeometry(pose, NereaDibujo.ARO_OJO, (p, buf) -> {
+            for (int i = 0; i < 2; i++) {
+                if ((s.ojosRotos & (1 << i)) != 0 || ojos[i] == null) {
+                    continue;
+                }
+                float m = 1.1F + 0.4F * s.cargaRayo + 0.08F * Mth.sin(s.ageInTicks * 0.5F + i);
+                Vec3 delante = ojos[i].add(ojo.subtract(ojos[i]).normalize().scale(0.6));
+                NereaDibujo.cartel(buf, p, delante, ojo, m, s.ageInTicks * (i == 0 ? 0.12F : -0.12F),
+                        NereaDibujo.claro(color, 0.3F), 230);
+            }
         });
+        for (int i = 0; i < 2; i++) {
+            if (ojos[i] == null || golpes[i] <= 0) {
+                continue;
+            }
+            int etapa = Math.min(4, 1 + golpes[i] * 4 / NereaEntity.GOLPES_OJO);
+            Vec3 c = ojos[i];
+            // Un poco por delante del ojo, hacia quien mira: que no se meta dentro.
+            Vec3 delante = c.add(ojo.subtract(c).normalize().scale(0.45));
+            colector.submitCustomGeometry(pose, NereaDibujo.GRIETAS[etapa - 1], (p, buf) ->
+                    NereaDibujo.cartel(buf, p, delante, ojo, 0.8F, 0.0F, 0xFFFFFF, 255));
+        }
     }
 
-    private static void plano(VertexConsumer buf, PoseStack.Pose p, Vec3 desde, Vec3 hasta, Vec3 lado,
-                              float v0, float v1, int g, int alfa) {
-        vertice(buf, p, desde.add(lado), 0.0F, v0, g, alfa);
-        vertice(buf, p, desde.subtract(lado), 1.0F, v0, g, alfa);
-        vertice(buf, p, hasta.subtract(lado), 1.0F, v1, g, alfa);
-        vertice(buf, p, hasta.add(lado), 0.0F, v1, g, alfa);
+    // ------------------------------------------------------------------
+    //  El Remolino: el agua del suelo y las burbujas de aire doradas
+    // ------------------------------------------------------------------
+
+    private static void remolino(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, Vec3 ojo, float ticks) {
+        float entra = Mth.clamp((ticks - NereaGeometria.REMOLINO_TIRA + 10) / 22.0F, 0.0F, 1.0F);
+        float sale = Mth.clamp((NereaGeometria.REMOLINO_SUELTA + 10 - ticks) / 12.0F, 0.0F, 1.0F);
+        float k = Math.min(entra, sale);
+        if (k <= 0.01F) {
+            return;
+        }
+        float radio = REMOLINO_SUELO * (0.3F + 0.7F * k);
+        float giro = -s.ageInTicks * 0.045F;
+        colector.submitCustomGeometry(pose, NereaDibujo.REMOLINO, (p, buf) -> {
+            NereaDibujo.suelo(buf, p, 0.0, 0.06, 0.0, radio, giro, 0xFFFFFF, (int) (225 * k));
+            NereaDibujo.suelo(buf, p, 0.0, 0.09, 0.0, radio * 0.42F, giro * 2.2F + 1.0F, 0xFFFFFF, (int) (200 * k));
+        });
+        if (!s.burbujasAire.isEmpty()) {
+            colector.submitCustomGeometry(pose, NereaDibujo.BURBUJA_AIRE, (p, buf) -> {
+                for (Vec3 c : s.burbujasAire) {
+                    float m = 1.45F + 0.06F * Mth.sin(s.ageInTicks * 0.4F + (float) c.x);
+                    NereaDibujo.cartel(buf, p, c, ojo, m, 0.0F, 0xFFFFFF, 235);
+                }
+            });
+        }
     }
 
-    private static void vertice(VertexConsumer buf, PoseStack.Pose p, Vec3 q, float u, float v, int g, int alfa) {
-        buf.addVertex(p, (float) q.x, (float) q.y, (float) q.z)
-                .setColor(g, 255, 255, alfa)
-                .setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(0xF000F0)
-                .setNormal(p, 0.0F, 1.0F, 0.0F);
+    // ------------------------------------------------------------------
+    //  El Molino: hasta donde barren las anclas
+    // ------------------------------------------------------------------
+
+    private static void molino(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, float ticks) {
+        float entra = Mth.clamp((ticks - NereaGeometria.MOLINO_VISIBLE) / 6.0F, 0.0F, 1.0F);
+        float sale = Mth.clamp((NereaGeometria.MOLINO_PARA + 6 - ticks) / 8.0F, 0.0F, 1.0F);
+        float k = Math.min(entra, sale);
+        if (k <= 0.01F) {
+            return;
+        }
+        float m = (float) NereaEntity.RADIO_MOLINO / NereaDibujo.ARO_EN_TEXTURA;
+        colector.submitCustomGeometry(pose, NereaDibujo.ARO, (p, buf) ->
+                NereaDibujo.suelo(buf, p, 0.0, 0.07, 0.0, m, s.ageInTicks * 0.01F, 0xFFFFFF, (int) (230 * k)));
+    }
+
+    // ------------------------------------------------------------------
+    //  La Gran Marea: el paso que dejara la ola
+    // ------------------------------------------------------------------
+
+    private static void marea(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, float ticks) {
+        float lanza = NereaGeometria.MAREA_LANZA;
+        if (ticks > lanza + 2) {
+            return;
+        }
+        float k = Mth.clamp(ticks / 8.0F, 0.0F, 1.0F);
+        float b = s.bodyRot * Mth.DEG_TO_RAD;
+        Vec3 dir = new Vec3(-Mth.sin(b), 0, Mth.cos(b));
+        Vec3 lado = OlaNereaEntity.lado(dir);
+        Vec3 a = dir.scale(1.0).add(lado.scale(s.hueco)).add(0, 0.07, 0);
+        Vec3 z = dir.scale(NereaEntity.MAREA_LARGO).add(lado.scale(s.hueco)).add(0, 0.07, 0);
+        // Parpadea mas deprisa cuanto menos queda.
+        float prisa = 0.25F + 0.5F * Mth.clamp(ticks / lanza, 0.0F, 1.0F);
+        int brillo = (int) ((165 + 75 * Mth.sin(s.ageInTicks * prisa)) * k);
+        float corre = s.ageInTicks * 0.02F;
+        colector.submitCustomGeometry(pose, NereaDibujo.SENDERO, (p, buf) ->
+                NereaDibujo.tira(buf, p, a, z, NereaEntity.MAREA_HUECO / 2.0F, 1.0F / 5.0F - corre,
+                        NereaEntity.MAREA_LARGO / 5.0F - corre, 0xFFFFFF, brillo));
     }
 
     @Override

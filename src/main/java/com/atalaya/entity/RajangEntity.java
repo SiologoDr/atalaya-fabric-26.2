@@ -114,8 +114,6 @@ public class RajangEntity extends Monster {
     public static final float[] DANO_GARRA = {34, 45, 59, 80};
     public static final float[] DANO_TERREMOTO = {27, 40, 49, 63};
     public static final float[] DANO_SALTO = {34, 45, 59, 80};
-    /** Cerca del impacto de un fragmento (de la mitad al 100 %); encima, la muerte. */
-    public static final float[] DANO_FRAGMENTO = {34, 49, 60, 77};
     /**
      * El Rugido de Jade (el Sello sin romper a tiempo), en cualquier fase: mata a
      * todos los que pelean con el en su rango. Pasa la armadura, el escudo, los
@@ -1662,7 +1660,7 @@ public class RajangEntity extends Monster {
             float tam = 2.3F + random.nextFloat() * 0.4F;
             nivel.sendParticles(AtalayaParticulas.RAJANG_MARCA, true, true, p.x, y + 0.08, p.z, 0,
                     FragmentoJadeEntity.radioMuerte(tam) + 0.6, AVISO_FRAGMENTO, 0.0, 1.0);
-            FragmentoJadeEntity.caer(nivel, this, new Vec3(p.x, y, p.z), AVISO_FRAGMENTO, tam, dano(DANO_FRAGMENTO));
+            FragmentoJadeEntity.caer(nivel, this, new Vec3(p.x, y, p.z), AVISO_FRAGMENTO, tam);
         }
         nivel.playSound(null, getX(), getY() + 10, getZ(), AtalayaSonidos.RAJANG_MARCA, SoundSource.HOSTILE, 6.0F, 1.0F);
         sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);

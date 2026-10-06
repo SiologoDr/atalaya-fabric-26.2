@@ -10,6 +10,9 @@ cdeef2, eaffff) con dos tonos hondos debajo.
                        cresta de espuma arriba y el agua cada vez mas honda
                        hacia abajo, con vetas que bajan (32x64, se repite a lo
                        ancho)
+    ola_flujo.png      lo que sube por la cara de la ola: encajes de espuma
+                       rotos y burbujas sobre transparente (32x32, se repite en
+                       los dos sentidos; el juego lo hace subir deprisa)
     estela.png         el rastro de espuma que dejan las olas en el suelo, con
                        los dos bordes y las burbujas (32x32, se repite a lo largo)
     remolino.png       el remolino del suelo: brazos de espuma que se enroscan
@@ -30,9 +33,11 @@ cdeef2, eaffff) con dos tonos hondos debajo.
     sendero.png        el paso que deja la Gran Marea: luz que se cuela bajo el
                        agua, con los dos bordes (32x32, se repite a lo largo)
     corazon_burbuja.png  el corazon maldito dentro de la burbuja bomba (16x16)
-    nerea_furia_N.png  el aura de la Furia de las Mareas, cuatro cuadros sobre
-                       el atlas de Nerea: la red de luz que hace el sol bajo el
-                       agua (causticas) en verde abismo, que se mueve
+    nerea_furia_N.png  el aura de la Furia de las Mareas, dieciseis cuadros
+                       sobre el atlas de Nerea: la red de luz que hace el sol
+                       bajo el agua (causticas) en verde abismo, que ondula (cada
+                       nudo de la red da una vuelta pequena; el juego funde un
+                       cuadro con el siguiente)
   textures/particle/
     nerea_chispa_N.png   las salpicaduras (antes chispas de oxido): gotas
                          blancas con su destello
@@ -104,50 +109,80 @@ def ruido(w, h, celda, semilla, envolver=True):
 
 # ----------------------------------------------------------------------
 #  La pared de agua: la cresta de espuma (que se riza hacia delante: eso lo
-#  pone la malla), el labio claro, el cuerpo que se hace hondo hacia abajo y
-#  vetas verticales que bajan. Se repite a lo ancho (32 px de lado a lado).
+#  pone la malla), el labio claro, el cuerpo que se hace hondo hacia abajo con
+#  manchas suaves y dos encajes de espuma que la cruzan. Se repite a lo ancho
+#  (32 px de lado a lado).
 # ----------------------------------------------------------------------
 def ola():
     w, h = 32, 64
     im = lienzo(w, h)
     px = im.load()
     n = ruido(w, h, 8, 3)
-    rnd = random.Random(5)
-    # la linea de la cresta sube y baja un poco a lo ancho (y se repite)
-    cresta = [4 + 2.2 * math.sin(x / w * math.tau) + 1.2 * math.sin(x / w * math.tau * 3 + 1.3) for x in range(w)]
+    fino = ruido(w, h, 4, 9)
+    # La cresta: una linea suave que sube y baja una vez por tile (se repite a lo ancho).
+    cresta = [4 + 1.6 * math.sin(x / w * math.tau) for x in range(w)]
     for x in range(w):
         for y in range(h):
             c0 = cresta[x]
             if y < c0 - 2.5:
                 continue
             if y < c0:
-                # la espuma de arriba, rota en jirones
-                if n[y, x] > 0.45 or y > c0 - 1.2:
-                    px[x, y] = con_alfa(BLANCO if n[y, x] > 0.6 else ESPUMA, 255)
+                # la espuma de arriba, seguida, con el borde de arriba algo roto
+                if fino[y, x] > 0.25 or y > c0 - 1.7:
+                    px[x, y] = con_alfa(BLANCO if fino[y, x] > 0.55 else ESPUMA, 255)
                 continue
             t = (y - c0) / (h - c0)                     # 0 en la cresta, 1 abajo
-            if t < 0.06:
+            if t < 0.05:
                 c = ESPUMA
-            elif t < 0.13:
+            elif t < 0.11:
                 c = CIELO
             elif t < 0.30:
-                c = mezclar(CLARO, MEDIO, (t - 0.13) / 0.17)
+                c = mezclar(CLARO, MEDIO, (t - 0.11) / 0.19)
             elif t < 0.62:
                 c = mezclar(MEDIO, OSCURO, (t - 0.30) / 0.32)
             else:
                 c = mezclar(OSCURO, HONDO, (t - 0.62) / 0.38)
-            # las vetas: franjas claras que bajan, torcidas por el ruido
-            veta = math.sin((x + 3.0 * n[y, x]) / w * math.tau * 4)
-            if veta > 0.82 and t > 0.1:
-                c = mezclar(c, CIELO, 0.45 * (1 - t))
+            # El agua no es lisa: manchas suaves mas claras y mas oscuras (nada de vetas:
+            # en una pared de 80 bloques se veian como persianas).
+            k = (n[y, x] - 0.5) * 0.18
+            c = mezclar(c, CIELO if k > 0 else HONDO, abs(k))
+            # Encajes de espuma que cruzan la cara de lado a lado, rotos.
+            for alto_encaje, grosor in ((0.16, 0.9), (0.33, 0.7)):
+                ye = c0 + alto_encaje * (h - c0) + 1.2 * math.sin(x / w * math.tau * 2 + alto_encaje * 9)
+                if abs(y - ye) < grosor and fino[y, x] > 0.42:
+                    c = mezclar(c, ESPUMA, 0.75 - alto_encaje)
             a = 235 - 70 * t
             px[x, y] = con_alfa(c, a)
-    # espuma colgando del labio y burbujas dentro
-    for _ in range(26):
+    rnd = random.Random(5)
+    for _ in range(18):
         x = rnd.randrange(w)
-        y = int(cresta[x]) + rnd.randrange(2, 30)
+        y = int(cresta[x]) + rnd.randrange(3, 34)
         if y < h:
-            px[x, y] = con_alfa(ESPUMA if y < 20 else CIELO, 220)
+            px[x, y] = con_alfa(ESPUMA if y < 20 else CIELO, 210)
+    return im
+
+
+# ----------------------------------------------------------------------
+#  El flujo de la ola: encajes de espuma rotos que cruzan de lado a lado y
+#  burbujas, sobre transparente. El juego lo pinta encima de la ola y lo hace
+#  subir por la cara: es lo que da la sensacion de agua que se levanta.
+# ----------------------------------------------------------------------
+def ola_flujo():
+    w = h = 32
+    im = lienzo(w, h)
+    px = im.load()
+    fino = ruido(w, h, 4, 13)
+    for y in range(h):
+        for x in range(w):
+            for k in range(3):
+                ye = (k * h / 3 + 2.2 * math.sin(x / w * math.tau * 2 + k * 2.1)) % h
+                d = min(abs(y - ye), h - abs(y - ye))
+                if d < 0.75 and fino[y, x] > 0.4:
+                    px[x, y] = con_alfa(ESPUMA if fino[y, x] > 0.6 else CIELO, 200)
+    rnd = random.Random(17)
+    for _ in range(12):
+        x, y = rnd.randrange(w), rnd.randrange(h)
+        px[x, y] = con_alfa(BLANCO, 220)
     return im
 
 
@@ -391,17 +426,24 @@ def grieta_ojo(n):
 #  El sendero de la Gran Marea: causticas (la red de luz que hace el sol bajo
 #  el agua) en aguamarina clara, y los dos bordes bien marcados.
 # ----------------------------------------------------------------------
-def causticas(w, h, semilla, celda, desplaza=(0.0, 0.0)):
+def causticas(w, h, semilla, celda, desplaza=(0.0, 0.0), giro=None, onda=0.0):
     """Distancia al borde mas cercano de una red de Voronoi que se repite:
-    pequena cerca de las lineas de luz. Devuelve un array en [0, 1]."""
+    pequena cerca de las lineas de luz. Devuelve un array en [0, 1]. Con
+    "giro" (radianes), cada nudo se aparta "onda" pixeles por su propio
+    circulo: una vuelta entera vuelve a la red del principio."""
     r = np.random.default_rng(semilla)
     nx, ny = w // celda, h // celda
     pts = []
     for j in range(ny):
         for i in range(nx):
-            px_, py_ = (i + r.random()) * celda, (j + r.random()) * celda
+            # en el medio de su celda: dos nudos casi juntos dejaban una mancha llena de luz
+            px_, py_ = (i + 0.25 + 0.5 * r.random()) * celda, (j + 0.25 + 0.5 * r.random()) * celda
             pts.append((px_, py_))
     pts = np.array(pts)
+    if giro is not None:
+        fases = r.random(len(pts)) * 2 * np.pi
+        sentido = np.where(r.random(len(pts)) < 0.5, -1.0, 1.0)
+        pts = pts + onda * np.stack([np.cos(fases + sentido * giro), np.sin(fases + sentido * giro)], axis=1)
     pts = pts + np.array(desplaza)
     yy, xx = np.mgrid[0:h, 0:w].astype(float) + 0.5
     d1 = np.full((h, w), 1e9)
@@ -464,20 +506,24 @@ def corazon_burbuja():
 
 # ----------------------------------------------------------------------
 #  El aura de la Furia: sobre el mismo atlas de Nerea (solo donde hay piel),
-#  la red de causticas en verde abismo, con las lineas casi blancas; cuatro
-#  cuadros con la red desplazada que el juego alterna. Fuera, transparente.
+#  la red de causticas en verde abismo, con las lineas casi blancas; dieciseis
+#  cuadros en los que cada nudo de la red da una vuelta pequena (ondula como la
+#  luz bajo el agua y el ultimo empalma con el primero). Fuera, transparente.
 # ----------------------------------------------------------------------
+CUADROS_FURIA = 16
+
+
 def aura_furia(cuadro):
     base = np.array(Image.open(os.path.join(ENT, 'nerea_f1.png')).convert('RGBA'))
     h, w = base.shape[:2]
-    # La red se calcula en un lienzo pequeno (64x128) y se amplia: el atlas
-    # va a media resolucion y unas lineas de un pixel no se verian.
-    k = causticas(64, 128, 77, 16, (cuadro * 4.0, cuadro * 3.0))
+    # La red se calcula en un lienzo de 128x256 y se amplia: lineas finas que
+    # dejan ver el cuerpo debajo (con las gruesas se veia todo verde).
+    k = causticas(128, 256, 77, 16, giro=2 * math.pi * cuadro / CUADROS_FURIA, onda=2.5)
     k = np.array(Image.fromarray((k * 255).astype(np.uint8)).resize((w, h), Image.BILINEAR)).astype(float) / 255
     out = np.zeros((h, w, 4), np.uint8)
-    out[k < 0.16] = (8, 120, 92, 110)
-    out[k < 0.09] = (32, 240, 176, 210)
-    out[k < 0.035] = (214, 255, 240, 255)
+    out[k < 0.1] = (8, 120, 92, 70)
+    out[k < 0.055] = (32, 240, 176, 170)
+    out[k < 0.022] = (214, 255, 240, 240)
     out[base[..., 3] < 16] = 0
     return Image.fromarray(out)
 
@@ -519,7 +565,7 @@ def rociada(f):
 
 
 IMGS = {
-    'ola': ola(), 'estela': estela(), 'remolino': remolino(), 'columna': columna(),
+    'ola': ola(), 'ola_flujo': ola_flujo(), 'estela': estela(), 'remolino': remolino(), 'columna': columna(),
     'espuma_aro': espuma_aro(), 'burbuja_aire': burbuja_aire(), 'rayo_agua': rayo_agua(), 'aro_ojo': aro_ojo(),
     'sendero': sendero(), 'corazon_burbuja': corazon_burbuja(),
 }
@@ -527,7 +573,7 @@ for n in range(1, 5):
     IMGS[f'grieta_ojo_{n}'] = grieta_ojo(n)
 for nombre, im in IMGS.items():
     im.save(os.path.join(ENT, nombre + '.png'))
-for k in range(4):
+for k in range(CUADROS_FURIA):
     aura_furia(k).save(os.path.join(ENT, f'nerea_furia_{k}.png'))
 for i, l in enumerate((3.5, 2.5, 1.5)):
     salpicadura(l).save(os.path.join(PAR, f'nerea_chispa_{i}.png'))

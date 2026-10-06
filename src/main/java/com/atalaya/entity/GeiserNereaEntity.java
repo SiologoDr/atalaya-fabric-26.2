@@ -36,7 +36,7 @@ public class GeiserNereaEntity extends Entity {
 
     /** Ticks de aviso (el remolino) y ticks que dura la columna. */
     public static final int AVISO = 30;
-    public static final int CHORRO = 26;
+    public static final int CHORRO = 18;
     /** Lo que alcanza (bloques desde el centro) y el alto de la columna. */
     public static final float RADIO = 2.2F;
     public static final float ALTO = 14.0F;

@@ -30,7 +30,7 @@ import java.util.UUID;
  *       ({@link NereaEntity}, golpearLinea) con los numeros de siempre;</li>
  *   <li>la Gran Marea: cruza la arena de lado a lado (80 bloques) con un solo
  *       hueco, que se marca en el suelo antes de que salga. Golpea ella misma:
- *       dano fuerte y te arrastra, pero no mata (deja medio corazon).</li>
+ *       si te pilla, te arrastra y te mata; solo salva un totem (y se gasta).</li>
  * </ul>
  *
  * No se mueve: se queda donde nacio y el frente se calcula con la edad (igual
@@ -58,7 +58,7 @@ public class OlaNereaEntity extends Entity {
             SynchedEntityData.defineId(OlaNereaEntity.class, EntityDataSerializers.FLOAT);
 
     private @Nullable NereaEntity duena;
-    /** Solo la Gran Marea golpea; las del Rompeolas, no. */
+    /** Solo la Gran Marea golpea (y mata, salvo totem); las del Rompeolas, no. */
     private float dano;
     private final Set<UUID> golpeados = new HashSet<>();
 
@@ -84,10 +84,10 @@ public class OlaNereaEntity extends Entity {
     }
 
     /** La Gran Marea: de lado a lado, con el hueco en "hueco" bloques a un lado. */
-    public static OlaNereaEntity marea(ServerLevel nivel, NereaEntity duena, Vec3 desde, Vec3 dir, float dano, float hueco) {
+    public static OlaNereaEntity marea(ServerLevel nivel, NereaEntity duena, Vec3 desde, Vec3 dir, float hueco) {
         OlaNereaEntity o = ola(nivel, duena, desde, dir, NereaEntity.MAREA_ANCHO / 2.0F, NereaEntity.MAREA_ALTO,
                 NereaEntity.MAREA_VEL, NereaEntity.MAREA_LARGO);
-        o.dano = dano;
+        o.dano = NereaEntity.MORTAL;
         o.entityData.set(DATA_HUECO, hueco);
         o.entityData.set(DATA_HUECO_ANCHO, NereaEntity.MAREA_HUECO);
         return o;
@@ -206,8 +206,8 @@ public class OlaNereaEntity extends Entity {
 
     /**
      * La Gran Marea barre lo que pilla el frente este tick, una vez a cada uno:
-     * el golpe (que no mata) y el arrastre en su sentido. Quien este en el
-     * hueco, o detras de ella, no se moja.
+     * el golpe (mortal: solo salva un totem, que se gasta) y el arrastre en su
+     * sentido. Quien este en el hueco, o detras de ella, no se moja.
      */
     private void golpear(ServerLevel nivel) {
         Vec3 dir = dir();
@@ -232,13 +232,7 @@ public class OlaNereaEntity extends Entity {
                 continue;
             }
             golpeados.add(v.getUUID());
-            // No mata: como mucho le deja medio corazon (el dano antes de la
-            // armadura ya no pasa de lo que le queda).
-            float tope = v.getHealth() + v.getAbsorptionAmount() - 1.0F;
-            float d = Math.min(dano, tope);
-            if (d > 0.0F) {
-                v.hurtServer(nivel, fuente, d);
-            }
+            v.hurtServer(nivel, fuente, dano);
             v.setDeltaMovement(dir.x * 1.6, 0.7, dir.z * 1.6);
             v.hurtMarked = true;
             nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 12, 0.5, 0.6, 0.5, 0.1);

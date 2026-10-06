@@ -1016,5 +1016,29 @@
     "sounds": [
       "atalaya:nerea/furia"
     ]
+  },
+  "musica.nerea": {
+    "sounds": [
+      {
+        "name": "atalaya:musica/nerea",
+        "stream": true
+      }
+    ]
+  },
+  "musica.aeralis": {
+    "sounds": [
+      {
+        "name": "atalaya:musica/aeralis",
+        "stream": true
+      }
+    ]
+  },
+  "musica.rajang": {
+    "sounds": [
+      {
+        "name": "atalaya:musica/rajang",
+        "stream": true
+      }
+    ]
   }
 }

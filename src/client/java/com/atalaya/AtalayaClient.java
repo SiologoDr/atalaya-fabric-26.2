@@ -115,13 +115,17 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.RAYO_VIGIA, RayoVigiaRenderer::new);
 
         // Nerea: malla y animaciones generadas desde nerea_juego*.py, y lo
-        // suyo alrededor: las burbujas y el gancho.
+        // suyo alrededor: las burbujas, el ancla (la misma malla que la de su
+        // mano), las paredes de agua y los geiseres.
         ModelLayerRegistry.registerModelLayer(NereaModel.CAPA, NereaMalla::crear);
+        ModelLayerRegistry.registerModelLayer(NereaModel.CAPA_AURA, NereaMalla::crearAura);
         EntityRendererRegistry.register(AtalayaEntities.NEREA, NereaRenderer::new);
         ModelLayerRegistry.registerModelLayer(BurbujaNereaRenderer.CAPA, BurbujaNereaRenderer.Modelo::crear);
         EntityRendererRegistry.register(AtalayaEntities.BURBUJA_NEREA, BurbujaNereaRenderer::new);
-        ModelLayerRegistry.registerModelLayer(GanchoNereaRenderer.CAPA, GanchoNereaRenderer.Modelo::crear);
+        ModelLayerRegistry.registerModelLayer(GanchoNereaRenderer.CAPA, NereaMalla::crearAncla);
         EntityRendererRegistry.register(AtalayaEntities.GANCHO_NEREA, GanchoNereaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.OLA_NEREA, com.atalaya.client.OlaNereaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.GEISER_NEREA, com.atalaya.client.GeiserNereaRenderer::new);
 
         // Aeralis: malla y animaciones generadas desde vendaval_juego*.py, y lo
         // suyo: cuchillas, tornados, rafagas y nucleos (dibujados a mano).
@@ -224,12 +228,15 @@ public class AtalayaClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.AeralisEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.RajangEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NereaEfectosCliente::tick);
+        // La musica de cada jefe mientras pelea cerca (y la de vanilla calla: MusicaJefesMixin).
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MusicaJefes::tick);
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.MISC_OVERLAYS,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "miedo"),
                 new com.atalaya.client.MiedoHud());
-        // Su barra de jefe, propia: marco de prismarina, el corazon de la fase y
-        // el agua del color de la maldicion. Va con la barra de jefe de vanilla,
+        // Su barra de jefe, propia: la ola, el marco de prismarina, el corazon de
+        // la fase (la calavera mientras mira) y el agua del color de la
+        // maldicion. Va con la barra de jefe de vanilla,
         // que se dibuja en cualquier modo de juego (la hotbar no en espectador).
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.BOSS_BAR,

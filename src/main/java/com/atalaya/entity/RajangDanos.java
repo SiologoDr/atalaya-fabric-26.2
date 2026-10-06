@@ -20,10 +20,9 @@ import org.jspecify.annotations.Nullable;
  *   terremoto   Los pilares del Terremoto Ancestral
  *   salto       La caida del salto de la fase IV
  *   rugido      El Rugido de Jade (el Sello fallido): ni armadura ni escudo
- *   fragmento   Un fragmento del Cataclismo encima: la muerte (ni armadura, ni
- *               escudo, ni encantamientos, ni Resistencia; el totem de la
- *               inmortalidad si vale)
- *   impacto     Cerca del impacto de un fragmento: cuenta como explosion
+ *   fragmento   Un fragmento del Cataclismo dentro de su marca: la muerte (ni
+ *               armadura, ni escudo, ni encantamientos, ni Resistencia; el
+ *               totem de la inmortalidad si vale). Fuera de la marca no pega
  *   embestida   Su cuerpo a la carrera y los pinchos de la Embestida: la muerte,
  *               como el fragmento (solo salva un totem)
  *   raiz        La Tumba de Raices llena: la muerte, igual
@@ -37,7 +36,6 @@ public final class RajangDanos {
     public static final ResourceKey<DamageType> SALTO = clave("rajang_salto");
     public static final ResourceKey<DamageType> RUGIDO = clave("rajang_rugido");
     public static final ResourceKey<DamageType> FRAGMENTO = clave("rajang_fragmento");
-    public static final ResourceKey<DamageType> IMPACTO = clave("rajang_impacto");
     public static final ResourceKey<DamageType> EMBESTIDA = clave("rajang_embestida");
     public static final ResourceKey<DamageType> RAIZ = clave("rajang_raiz");
     public static final ResourceKey<DamageType> PULSO = clave("rajang_pulso");

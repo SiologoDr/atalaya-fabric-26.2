@@ -46,7 +46,8 @@ import java.util.List;
  *   /atalaya nerea &lt;orden&gt;         -> fuerza a la Nerea mas cercana un ataque o
  *                                    momento del combate (despertar, rompeolas,
  *                                    remolino, burbujas, molino, arpon, lejano,
- *                                    mirada, aturdido, agotado, fase, liberar).
+ *                                    mirada, ojo, geiser, marea, furia, aturdido,
+ *                                    agotado, fase, liberar).
  *                                    Nerea se invoca con su huevo generador.
  *   /atalaya aeralis &lt;orden&gt;       -> lo mismo con la Aeralis mas cercana (despertar,
  *                                    aleteo, tornados, caceria, rafaga, doble,
@@ -235,7 +236,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_NEREA = {"despertar", "rompeolas", "remolino", "burbujas", "molino",
-            "arpon", "lejano", "mirada", "aturdido", "agotado", "fase", "liberar"};
+            "arpon", "lejano", "mirada", "ojo", "geiser", "marea", "furia", "aturdido", "agotado", "fase", "liberar"};
 
     /** Fuerza a la Nerea mas cercana (en 64 bloques) a hacer algo ya. */
     private static int probarNerea(CommandSourceStack fuente, String orden) {
