@@ -54,7 +54,7 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
     public NovilisRenderer(EntityRendererProvider.Context contexto) {
         super(contexto, new NovilisModel(contexto.bakeLayer(NovilisModel.CAPA)), 3.4F);
         addLayer(new NovilisBrilloLayer(this));
-        addLayer(new NovilisAuraLayer(this, new NovilisModel(contexto.bakeLayer(NovilisModel.CAPA_AURA))));
+        addLayer(new NovilisLlamasLayer(this));
     }
 
     /** La piel de ahora: la de la fase, la de la Furia o la de liberado. */
@@ -72,6 +72,9 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         super.extractRenderState(n, s, parcial);
         s.estado = n.getEstado();
         s.pesoLibre = Mth.lerp(parcial, n.pesoLibreAnt, n.pesoLibre);
+        s.relojAndar = Mth.lerp(parcial, n.relojAndarAnt, n.relojAndar);
+        s.andar = Mth.lerp(parcial, n.andarAnt, n.andar);
+        s.desdeFuria = n.tickCount - n.furiaDesde + parcial;
         s.fase = n.fase();
         s.ritmo = n.ritmoCliente;
         s.furia = n.tieneFuria() && !n.isDeadOrDying();
@@ -90,9 +93,29 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         s.sol = NovilisEntity.puntoMundo(NovilisGeometria.SOL_PROPIO, pies, rumbo).subtract(pies);
         float tk = s.segundosEstado * 20.0F;
         s.punta = null;
+        float[] tabla = tablaHoja(s.estado);
         if ((s.estado == NovilisEntity.CASTIGO || s.estado == NovilisEntity.CASTIGO_ONDA)
                 && tk >= NovilisGeometria.CASTIGO_ALZA - 2 && tk < NovilisGeometria.CASTIGO_RAYO + 2) {
-            s.punta = NovilisEntity.puntoMundo(NovilisGeometria.PUNTA_ALZA, pies, rumbo).subtract(pies);
+            // El haz va a la punta de verdad, que tiembla y tira del rayo.
+            float[] h = new float[6];
+            s.punta = NovilisEstelas.en(tabla, s.segundosEstado, h)
+                    ? NovilisEntity.puntoMundo(new Vec3(h[3], h[4], h[5]), Vec3.ZERO, rumbo)
+                    : NovilisEntity.puntoMundo(NovilisGeometria.PUNTA_ALZA, pies, rumbo).subtract(pies);
+        }
+        // La estela de la hoja: por donde paso hace un momento (base y punta, en el mundo).
+        s.estelaN = 0;
+        if (tabla != null && n.deathTime <= 0) {
+            float[] h = new float[6];
+            for (int k = 0; k < NovilisRenderState.ESTELA; k++) {
+                if (!NovilisEstelas.en(tabla, s.segundosEstado - k * NovilisRenderState.ESTELA_PASO, h)) {
+                    break;
+                }
+                // solo lo de fuera de la hoja: de un tercio a la punta
+                Vec3 base = new Vec3(h[0] + (h[3] - h[0]) * 0.33F, h[1] + (h[4] - h[1]) * 0.33F, h[2] + (h[5] - h[2]) * 0.33F);
+                s.estelaBase[k] = NovilisEntity.puntoMundo(base, Vec3.ZERO, rumbo);
+                s.estelaPunta[k] = NovilisEntity.puntoMundo(new Vec3(h[3], h[4], h[5]), Vec3.ZERO, rumbo);
+                s.estelaN = k + 1;
+            }
         }
         s.marca = null;
         int id = n.getIdOfrenda() >= 0 ? n.getIdOfrenda() : n.getIdMarca();
@@ -115,6 +138,22 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
                 s.solMano = NovilisEntity.puntoMundo(NovilisGeometria.MANO_SOL, pies, rumbo).subtract(pies);
             }
         }
+    }
+
+    /** La tabla de la hoja (NovilisEstelas) de cada estado que lleva la espada en la mano y la mueve. */
+    private static float[] tablaHoja(int estado) {
+        return switch (estado) {
+            case NovilisEntity.BARRIDO -> NovilisEstelas.BARRIDO;
+            case NovilisEntity.CASTIGO -> NovilisEstelas.CASTIGO;
+            case NovilisEntity.CASTIGO_ONDA -> NovilisEstelas.CASTIGO_ONDA;
+            case NovilisEntity.DESPERTAR -> NovilisEstelas.DESPERTAR;
+            case NovilisEntity.TAMBALEO -> NovilisEstelas.TAMBALEO;
+            case NovilisEntity.GRITO -> NovilisEstelas.GRITO;
+            case NovilisEntity.TROMPETAS -> NovilisEstelas.TROMPETAS;
+            case NovilisEntity.FUENTES -> NovilisEstelas.FUENTES;
+            case NovilisEntity.SOL -> NovilisEstelas.SOL;
+            default -> null;
+        };
     }
 
     @Override
@@ -181,6 +220,34 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
                     NovilisDibujo.haz(buf, p, s.sol, punta, ojo, 0.55F + 0.1F * Mth.sin(edad * 0.8F), -edad * 0.2F, color, 220));
             colector.submitCustomGeometry(pose, NovilisDibujo.SOL, (p, buf) ->
                     NovilisDibujo.sol(buf, p, punta, ojo, 0.9F, edad, color, 230));
+        }
+        // --- La estela de la hoja: solo cuando corta deprisa ---
+        if (s.estelaN >= 3) {
+            int n = s.estelaN;
+            float[] alfaEstela = new float[n];
+            boolean alguna = false;
+            for (int k = 0; k < n; k++) {
+                int j = Math.min(k + 1, n - 1);
+                int i = j - 1;
+                double vel = s.estelaPunta[i].distanceTo(s.estelaPunta[j]) / NovilisRenderState.ESTELA_PASO;
+                float rapido = Mth.clamp((float) (vel - 14.0) / 22.0F, 0.0F, 1.0F);
+                alfaEstela[k] = 235.0F * rapido * (float) Math.pow(1.0F - k / (float) (n - 1), 1.2);
+                alguna |= alfaEstela[k] > 4;
+            }
+            if (alguna) {
+                int claro = NovilisDibujo.claro(color, 0.3F);
+                colector.submitCustomGeometry(pose, NovilisDibujo.TAJO, (p, buf) -> {
+                    for (int k = 0; k + 1 < n; k++) {
+                        if (alfaEstela[k] < 4 && alfaEstela[k + 1] < 4) {
+                            continue;
+                        }
+                        float v0 = k / (float) (n - 1);
+                        float v1 = (k + 1) / (float) (n - 1);
+                        NovilisDibujo.cara(buf, p, ojo, s.estelaBase[k], s.estelaPunta[k], s.estelaPunta[k + 1], s.estelaBase[k + 1],
+                                0, 1, v0, v1, claro, (int) alfaEstela[k], (int) alfaEstela[k + 1]);
+                    }
+                });
+            }
         }
         // --- La Ofrenda: el haz a quien senala, o al que ofrece ---
         if (s.marca != null) {

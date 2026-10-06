@@ -10,6 +10,17 @@ public class NovilisRenderState extends LivingEntityRenderState {
     public int estado;
     /** Peso de andar y reposo: se mezclan con los ataques en vez de saltar. */
     public float pesoLibre;
+    /** El reloj de la animacion de andar (ms) y lo que pesa andar frente a estar quieto (0 a 1). */
+    public float relojAndar;
+    /** La estela de la hoja: muestras (de ahora hacia atras), cada ESTELA_PASO segundos de animacion. */
+    public static final int ESTELA = 9;
+    public static final float ESTELA_PASO = 1.0F / 60.0F;
+    public final Vec3[] estelaBase = new Vec3[ESTELA];
+    public final Vec3[] estelaPunta = new Vec3[ESTELA];
+    public int estelaN;
+    public float andar;
+    /** Desde cuando tiene la Furia (ticks; para que el fuego prenda y no aparezca de golpe). */
+    public float desdeFuria = 100.0F;
     /** Fase 1-4: el color de las grietas, del nucleo y de su sol. */
     public int fase;
     /** Velocidad de la animacion de ataque (NovilisEntity.ritmo). */

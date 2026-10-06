@@ -1009,10 +1009,85 @@ def disolver():
     return de_array(out)
 
 
+# ----------------------------------------------------------------------
+#  La llama suelta (8 cuadros de 32x64 en fila: 256x64), en grises: la tine el
+#  codigo (azul en la Furia, carmesi en el Dios de la Guerra). Una lengua con
+#  el alma clara abajo, que se mece y se afila, y dos lamidas sueltas que suben
+#  por encima. Se pinta con suma de luz (energySwirl): lo oscuro no se ve.
+# ----------------------------------------------------------------------
+def llama_sprite():
+    W, H, N = 32, 64, 8
+    out = np.zeros((H, W * N, 4), float)
+    yy, xx = np.mgrid[0:H, 0:W].astype(float) + 0.5
+    v = 1.0 - yy / H                       # 0 abajo, 1 arriba
+    u = (xx - W / 2) / (W / 2)             # -1..1
+    for k in range(N):
+        p = k / N
+        # el centro se mece mas cuanto mas arriba, como una lengua de fuego
+        c = 0.16 * v ** 1.4 * np.sin(TAU * (p + v * 0.9)) + 0.05 * v * np.sin(TAU * (2 * p + v * 2.3))
+        # el ancho: lleno abajo, afilado arriba, con lamidas que suben
+        # una gota: la base redonda, lo mas ancho a un cuarto y la punta afilada
+        vb = np.clip(v - 0.04, 0, 1)
+        abajo = 0.86 * np.sqrt(np.clip(1 - ((0.24 - vb) / 0.24) ** 2, 0, 1))
+        arriba = 0.86 * np.clip((1 - vb) / 0.76, 0, 1) ** 1.25
+        ancho = np.where(vb < 0.24, abajo, arriba)
+        ancho = ancho * (1 + 0.12 * v * np.sin(TAU * (v * 3.1 - p * 2)) + 0.07 * v * np.sin(TAU * (v * 6.3 - p * 3)))
+        d = np.abs(u - c) / np.maximum(ancho, 1e-3)
+        dentro = d < 1.0
+        i = np.clip(1 - d, 0, 1) ** 0.75 * (1.0 - 0.45 * v)
+        # dos lamidas sueltas que suben y se apagan
+        for j, (x0, r0) in enumerate(((0.14, 0.22), (-0.2, 0.17))):
+            fase = (p + j * 0.5) % 1.0
+            cy = 0.66 + 0.3 * fase
+            cx = x0 + 0.1 * np.sin(TAU * (fase + j * 0.3))
+            r = r0 * (1 - fase) + 0.02
+            dd = np.hypot((u - cx) / r, (v - cy) / (r * 0.75))
+            m = dd < 1.0
+            i = np.where(m, np.maximum(i, (1 - dd) * 0.75 * (1 - fase)), i)
+            dentro = dentro | m
+        # en escalones, como el resto del pixel art del jefe
+        niv = np.clip(np.floor(i * 5) / 4, 0, 1)
+        gris = np.where(niv >= 0.75, 255, np.where(niv >= 0.5, 220, np.where(niv >= 0.25, 170, 120)))
+        a = np.where(dentro & (i > 0.02), 255, 0)
+        bloque = out[:, k * W:(k + 1) * W]
+        bloque[..., 0] = gris
+        bloque[..., 1] = gris
+        bloque[..., 2] = gris
+        bloque[..., 3] = a
+    return de_array(out)
+
+
+# ----------------------------------------------------------------------
+#  La estela del tajo (32x64, grises: la tine el codigo). De lado a lado (u),
+#  de la base de la hoja (nada) a la punta (el filo encendido, casi blanco);
+#  a lo largo (v), del ahora (arriba) a lo de hace un momento (se apaga).
+# ----------------------------------------------------------------------
+def tajo_estela():
+    W, H = 32, 64
+    yy, xx = np.mgrid[0:H, 0:W].astype(float) + 0.5
+    u = xx / W
+    v = yy / H
+    filo = np.exp(-((u - 0.86) / 0.07) ** 2)
+    cuerpo = np.clip(u / 0.86, 0, 1) ** 1.8
+    luz = np.clip(0.55 * cuerpo + 0.6 * filo, 0, 1)
+    apaga = (1 - v) ** 0.9
+    a = np.clip(luz * apaga * 1.15, 0, 1)
+    a[u > 0.97] = 0
+    niv = np.floor(np.clip(luz, 0, 1) * 4.999) / 4
+    gris = 150 + 105 * niv
+    out = np.zeros((H, W, 4))
+    out[..., 0] = gris
+    out[..., 1] = gris
+    out[..., 2] = gris
+    out[..., 3] = np.floor(a * 6) / 6 * 255
+    return de_array(out)
+
+
 ENTIDAD = {
     'sello': sello(), 'haz': haz(), 'llamas_n': pared_llamas(PARED_N), 'llamas_c': pared_llamas(PARED_C),
     'llamas_a': pared_llamas(PARED_A), 'media_luna': media_luna(), 'sol': sol(), 'sol_superficie': sol_superficie(),
     'charco': charco(), 'estela': estela(), 'chispas_suelo': chispas_suelo(), 'novilis_disolver': disolver(),
+    'llama_sprite': llama_sprite(), 'tajo_estela': tajo_estela(),
 }
 for nombre, im in ENTIDAD.items():
     im.save(os.path.join(ENT, nombre + '.png'))
@@ -1137,7 +1212,9 @@ def miedo():
     r = random.Random(1717)
     yy, xx = np.mgrid[0:n, 0:n].astype(float) + 0.5
     dx, dy = (xx - n / 2) / (n / 2), (yy - n / 2) / (n / 2)
-    d = np.hypot(dx, dy)
+    # rectangulo redondeado (no un circulo): el borde que se quema sigue los
+    # bordes de la pantalla, y no dibuja una elipse en medio
+    d = (np.abs(dx) ** 5 + np.abs(dy) ** 5) ** 0.2
     th = np.arctan2(dy, dx)
     fs = [r.uniform(0, TAU) for _ in range(5)]
     ondas = (0.5 * np.sin(5 * th + fs[0]) + 0.3 * np.sin(9 * th + fs[1]) + 0.2 * np.sin(14 * th + fs[2])
@@ -1148,7 +1225,7 @@ def miedo():
                + np.clip(np.sin(th * 47 + fs[2]), 0, 1) ** 6 * 0.25) * 0.08 * abajo
     # El frente pegado al borde: estirada a lo ancho de la pantalla, mas adentro
     # se veia como una elipse flotando en medio (06-10-2026, en el juego).
-    frente = 0.96 + 0.05 * ondas - 0.07 * abajo - lenguas
+    frente = 0.9 + 0.04 * ondas - 0.07 * abajo - lenguas
     e = d - frente                                               # > 0 quemado, < 0 aun limpio
     col = np.zeros((n, n, 3))
     al = np.zeros((n, n))

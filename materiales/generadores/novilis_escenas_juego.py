@@ -87,7 +87,21 @@ ESCENAS['cuerpo'] = (
      (135, [camara(12, 2, -14, 0, 12, 0)]), (145, [foto('abajo')]),
      (155, [camara(20, 18, -20, 0, 10, 0)]), (165, [foto('tres_cuartos')]),
      (175, [camara(9, 15, 3, 0, 15, 0)]), (185, [foto('cabeza')])],
-    205, 'fases')
+    205, 'andar')
+
+# El paso: el cebo se aleja 0,3 bloques por tick y el lo sigue sin atacar
+# (perseguir), visto de lado y de tres cuartos.
+CEBO = 'execute as @e[type=minecraft:mannequin,tag=cebo] at @s run tp @s ~0.3 ~ ~'
+ESCENAS['andar'] = (
+    [novilis(), 'summon minecraft:mannequin ~14 ~ ~ {Tags:["escena","cebo"],CustomName:"cebo",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}',
+     camara(20, 7, -34, 20, 6, 0)] +
+    titulo('El paso', 'Los pies van con el suelo; la capa y el tabardo con el peso'),
+    [(0, [orden('despertar')]), (60, [orden('perseguir')])] +
+    [(60 + k, [CEBO]) for k in range(0, 150)] +
+    [(62 + 40 * k, [orden('perseguir')]) for k in range(4)] +
+    [(110, [foto('lado')]), (118, [foto('lado_2')]), (126, [foto('lado_3')]),
+     (140, [camara(70, 9, -26, 48, 6, 0)]), (160, [foto('frente')]), (170, [foto('frente_2')])],
+    220, 'fases')
 
 ESCENAS['fases'] = (
     [novilis(), camara(32, 9, 0, 0, 9, 0)] +
@@ -103,9 +117,10 @@ ESCENAS['barrido'] = (
     [novilis(), maniqui(8, 0), maniqui(10, -5), camara(10, 14, -34, 8, 5, 0)] +
     titulo('Barrido Solar', 'Cuatro tajos; cada uno suelta una media luna de fuego'),
     [(0, [orden('despertar')]),
-     (75, [orden('barrido')]), (87, [foto('tajo1')]), (103, [foto('tajo2')]), (121, [foto('tajo3')]),
-     (140, [foto('tajo4')]), (150, [foto('tajos_vuelan')]),
-     (165, [camara(40, 6, 12, 0, 6, 0), orden('barrido')]), (193, [foto('barrido_frente')])],
+     (75, [orden('barrido')]), (83, [foto('tajo1')]), (95, [foto('tajo2')]), (105, [foto('tajo3')]),
+     (117, [foto('tajo4')]), (128, [foto('tajos_vuelan')]),
+     (165, [camara(40, 6, 12, 0, 6, 0), orden('barrido')]), (173, [foto('barrido_frente')]),
+     (185, [foto('barrido_frente_2')])],
     250, 'castigo')
 
 ESCENAS['castigo'] = (
@@ -191,13 +206,15 @@ ESCENAS['dios'] = (
     450, 'furia')
 
 ESCENAS['furia'] = (
-    [novilis(), camara(30, 9, 0, 0, 9, 0)] +
+    [novilis(), camara(24, 10, -6, 0, 10, 0)] +
     titulo('Furia y Grito', 'Furia: aura azul, mas rapido. Grito: el aura carmesi'),
     [(0, [orden('despertar')]),
      (75, [orden('furia')]), (90, [foto('furia_grito')]), (125, [foto('furia')]),
-     (135, [camara(-26, 12, 14, 0, 9, 0)]), (145, [foto('furia_espalda')]),
-     (155, [orden('furia'), orden('grito'), camara(30, 9, 0, 0, 9, 0)]), (175, [foto('grito')])],
-    210, 'liberacion')
+     (135, [camara(-22, 12, 12, 0, 10, 0)]), (145, [foto('furia_espalda')]),
+     (150, [camara(10, 15, -8, 0, 13, 0)]), (152, [foto('furia_cerca')]),
+     (155, [orden('furia'), orden('grito'), camara(24, 10, -6, 0, 10, 0)]), (175, [foto('grito')]),
+     (185, [orden('grito'), orden('dios')]), (210, [foto('dios')]), (235, [foto('dios_2')])],
+    290, 'liberacion')
 
 ESCENAS['liberacion'] = (
     [novilis(), camara(6, 8, 30, 0, 7, 0)] +

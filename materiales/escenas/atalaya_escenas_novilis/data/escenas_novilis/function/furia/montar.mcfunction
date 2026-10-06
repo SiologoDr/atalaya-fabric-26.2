@@ -12,7 +12,7 @@ execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run time set noon
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run weather clear
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run difficulty normal
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run summon atalaya:novilis ~0 ~ ~0 {Rotation:[-90f,0f]}
-execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run tp @a ~30 ~9 ~0 facing ~0 ~9 ~0
+execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run tp @a ~24 ~10 ~-6 facing ~0 ~10 ~0
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run title @a times 5 40 10
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run title @a subtitle {"text": "Furia: aura azul, mas rapido. Grito: el aura carmesi", "color": "#F4E9D8"}
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run title @a title {"text": "Furia y Grito", "color": "#FFC23A"}
@@ -22,6 +22,11 @@ schedule function escenas_novilis:furia/t0090 135t append
 schedule function escenas_novilis:furia/t0125 170t append
 schedule function escenas_novilis:furia/t0135 180t append
 schedule function escenas_novilis:furia/t0145 190t append
+schedule function escenas_novilis:furia/t0150 195t append
+schedule function escenas_novilis:furia/t0152 197t append
 schedule function escenas_novilis:furia/t0155 200t append
 schedule function escenas_novilis:furia/t0175 220t append
-schedule function escenas_novilis:furia/fin 255t append
+schedule function escenas_novilis:furia/t0185 230t append
+schedule function escenas_novilis:furia/t0210 255t append
+schedule function escenas_novilis:furia/t0235 280t append
+schedule function escenas_novilis:furia/fin 335t append

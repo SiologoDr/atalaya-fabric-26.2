@@ -1030,7 +1030,9 @@ salen del emblema (su yelmo ante el sol), lava del color de la fase y muescas
 que son rayos de sol. Debajo, lo que esté haciendo: los **cuatro ángeles** de
 las Trompetas (enteros, rajados o en cascotes) y la melodía que avanza; las
 **tres fuentes** y la **carga** de su sol, del oro al rojo; o el **sol** de la
-Ofrenda con lo que lleva el atrapado. Con la Furia, todo en fuego azul; con el
+Ofrenda con lo que lleva el atrapado. Los ángeles se ven mientras suene la
+melodía (no solo mientras los llama), y junto a los ángeles y las fuentes va la
+cuenta: «Rotas 1/4». Con la Furia, todo en fuego azul; con el
 Grito de guerra, un cuerno carmesí junto al rótulo.
 
 Las barras **se apilan**: Nerea arriba, Aeralis debajo, Rajang debajo de las
@@ -1376,14 +1378,46 @@ no falla. Mientras dura, ninguna otra tecla llega al juego, salvo Escape y las
 F. El atrapado lo ve en tercera persona, de cara a Novilis.
 
 **La Furia del Sol** es **azul**: un 25 % más rápido, un 35 % más de daño y un
-35 % menos de espera. **El Grito de guerra** (de la Supernova) le pone un aura
-carmesí y hace que el Dios de la Guerra mate a todos. Los dos se van cuando cae
-aturdido: una Ofrenda superada o las Fuentes rotas a tiempo.
+35 % menos de espera. Se le ve la armadura con las grietas en azul, la hoja y su
+sol azules, y le salen **lenguas de fuego azul** del yelmo, las hombreras, el
+puño, la espalda y la hoja (`NovilisLlamasLayer`: cada lengua va pegada a su
+hueso y sube hacia arriba del mundo aunque él se doble). En el Dios de la Guerra
+el mismo fuego es carmesí. Antes era la malla entera hinchada con bandas de fuego
+encima: lo tapaba todo y no se le veía. **El Grito de guerra** (de la Supernova)
+le deja llamas carmesí en el yelmo y las hombreras y hace que el Dios de la
+Guerra mate a todos. Los dos se van cuando cae aturdido: una Ofrenda superada o
+las Fuentes rotas a tiempo.
+
+**Los tajos dejan estela**: una cinta de fuego por donde pasó la hoja, que solo
+sale cuando corta deprisa. El generador guarda por dónde pasan la base y la punta
+de la hoja en cada animación (`NovilisEstelas`), y el haz del Castigo apunta a la
+punta de verdad, que tiembla.
+
+**Las animaciones** (segunda versión, octubre de 2026, porque se veían lentas y
+pesadas y las piernas raras). Son más cortas, con anticipaciones breves y golpes
+que llegan acelerando. Cada clave dice cómo se llega a ella: suave, acelerando
+(el golpe), frenando (el impulso que se apaga) o pasándose un poco y volviendo.
+Después, `novilis_fisica.py` añade lo que el cuerpo no puede dejar de hacer:
+
+- **pies plantados**: las piernas salen de cinemática inversa; cada pie tiene su
+  apoyo en el suelo y, si cambia de sitio, da el paso en arco;
+- **peso**: la cabeza y el torso siguen a la pelvis con un muelle (la cadena de
+  un golpe de verdad);
+- **inercia**: la capa, el tabardo y las escarcelas se quedan atrás, se pasan y
+  se asientan, sin meterse en el cuerpo ni en el suelo.
+
+Todo se hornea en claves de vanilla (unas 7 700, como texto compacto para no
+pasar del límite de Java). El paso no usa el reloj de andar de vanilla, que se
+satura a 0,25 bloques por tick: la entidad lleva el suyo y avanza lo que anda,
+así que los pies no patinan. De pie tiene una postura propia (las rodillas algo
+dobladas, un pie delante) que va horneada en la malla.
 
 El generador del cuerpo es `novilis_juego.py` (149 piezas, 390 cajas, atlas de
 512×512) y el de las 19 animaciones, `novilis_juego_anim.py`, con IK para que la
-espada y las manos lleguen donde tienen que llegar. Las estatuas y las fuentes
-son mallas propias (`novilis_props.py`).
+espada y las manos lleguen donde tienen que llegar. `novilis_hojas.py` saca las
+hojas de control con dos vistas por fotograma (tres cuartos y de perfil, para
+ver los pies contra el suelo). Las estatuas y las fuentes son mallas propias
+(`novilis_props.py`).
 
 ### Las armaduras y las espadas de los jefes
 
@@ -1523,7 +1557,7 @@ Los scripts de cada jefe:
 | Nerea | `nerea_modelo`, `nerea_b_modelo`, `nerea_c_modelo`, `nerea_escenas`, `nerea_v2`, `nerea_c_escenas` | `nerea_juego`, `nerea_fisica`, `nerea_juego_anim` | `nerea_extras`, `nerea_hud`, `nerea_sonidos` | `nerea_poster`, `video/nerea_teaser` |
 | Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas`, `viento_remake_escenas`, `viento_remake_hud`, `viento_remake_iconos` | `vendaval_juego` (y `vendaval_juego_v1`, el de antes), `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_mejoras_extras`, `aeralis_hud`, `aeralis_sonidos`, `aeralis_mejoras_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
 | Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas`, `rajang_mejoras_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_mejoras_extras`, `rajang_hud`, `rajang_sonidos`, `rajang_mejoras_sonidos` | `rajang_poster`, `video/rajang_teaser` |
-| Novilis | `fuego_modelo`, `fuego_escenas`, `fuego_hud_propuesta` | `novilis_juego`, `novilis_juego_anim` | `novilis_auras`, `novilis_extras`, `novilis_props`, `novilis_hud`, `novilis_sonidos` | aún no |
+| Novilis | `fuego_modelo`, `fuego_escenas`, `fuego_hud_propuesta` | `novilis_juego`, `novilis_fisica`, `novilis_juego_anim` | `novilis_extras`, `novilis_props`, `novilis_hud`, `novilis_sonidos` | aún no |
 
 Los nombres de los scripts del boceto van por **elemento** (`viento_`,
 `tierra_`, `fuego_`) y los del juego por **jefe**, porque el nombre se decidió después del
@@ -1667,7 +1701,7 @@ El esquema es siempre el mismo:
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
-| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `fase`, `liberar` |
+| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (anda 8 s tras el blanco sin atacar, para ver el paso), `fase`, `liberar` |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
 En las órdenes de los jefes:

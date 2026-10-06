@@ -8,6 +8,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -101,6 +102,8 @@ public class NovilisBarraHud implements HudElement {
      * y el sol de la ofrenda bajan hasta ahi. Lo usaria una barra que fuera debajo.
      */
     public static final int ALTO = 56;
+    /** Lo que baja la fila de los angeles si comparte la barra con las Fuentes o la Ofrenda. */
+    private static final int FILA_EXTRA = 22;
     private static final int HUECO_X = 40;
     private static final int HUECO_Y = 22;
     private static final int HUECO_ANCHO = 190;
@@ -263,15 +266,23 @@ public class NovilisBarraHud implements HudElement {
             return;
         }
         int e = n.getEstado();
+        // Los angeles se ven mientras suena la melodia (24 s), no solo mientras
+        // alza la espada para llamarlos: el estado TROMPETAS dura 2,6 s y la
+        // melodia sigue sonando mientras el pelea.
+        boolean melodia = n.getMelodia() >= 0.0F;
+        int vista = e == NovilisEntity.FUENTES || e == NovilisEntity.OFRENDA ? e : melodia ? NovilisEntity.TROMPETAS : -1;
         // Al cambiar de vista (o de jefe) los golpes se toman como estan, sin temblar.
-        boolean sincronizar = nuevo || e != vistaAntes;
-        vistaAntes = e;
+        boolean sincronizar = nuevo || vista != vistaAntes;
+        vistaAntes = vista;
         if (e == NovilisEntity.FUENTES) {
             fuentesBajo(g, n, x0, y0, ahora, sincronizar);
-        } else if (e == NovilisEntity.TROMPETAS) {
-            trompetasBajo(g, n, x0, y0, ahora, sincronizar);
         } else if (e == NovilisEntity.OFRENDA) {
             ofrendaBajo(g, n, x0, y0);
+        }
+        if (melodia) {
+            // Si a la vez hay Fuentes u Ofrenda, los angeles van una fila mas abajo.
+            int abajo = vista == NovilisEntity.TROMPETAS ? 0 : FILA_EXTRA;
+            trompetasBajo(g, n, x0, y0 + abajo, ahora, sincronizar);
         }
     }
 
@@ -295,8 +306,12 @@ public class NovilisBarraHud implements HudElement {
     /** Las tres fuentes solares (rajandose golpe a golpe) y la carga del sol hasta el estallido. */
     private void fuentesBajo(GuiGraphicsExtractor g, NovilisEntity n, int x0, int y0, float ahora, boolean sincronizar) {
         int cuantas = Math.min(n.numFuentes(), 3);
+        int rotas = 0;
         for (int k = 0; k < cuantas; k++) {
             int golpes = Mth.clamp(n.getGolpesFuente(k), 0, NovilisEntity.GOLPES);
+            if (golpes >= NovilisEntity.GOLPES) {
+                rotas++;
+            }
             Identifier t = golpes >= NovilisEntity.GOLPES ? FUENTE_ROTA : golpes == 0 ? FUENTE
                     : FUENTE_RAJADA[Math.min(2, (golpes - 1) * 3 / Math.max(1, NovilisEntity.GOLPES - 1))];
             int dx = temblor(k, golpes, ahora, sincronizar);
@@ -320,13 +335,24 @@ public class NovilisBarraHud implements HudElement {
             tinte = 0xFF000000 | escalar(0xFFFFFF, 0.65F);
         }
         pieza(g, ESTALLIDO, x0 + ESTALLIDO_X, y0 + ESTALLIDO_Y, ESTALLIDO_LADO, ESTALLIDO_LADO, tinte);
+        cuenta(g, rotas, cuantas, x0 + ESTALLIDO_X + ESTALLIDO_LADO + 4, y0 + ESTALLIDO_Y + 3, rotas >= cuantas ? 0xFFFFE07A : 0xFFE8E2D6);
+    }
+
+    /** "Rotas 1/4" a la derecha de la fila: cuantas hay y cuantas van rotas, sin tener que contar iconos. */
+    private static void cuenta(GuiGraphicsExtractor g, int rotas, int total, int x, int y, int color) {
+        Minecraft mc = Minecraft.getInstance();
+        g.text(mc.font, Component.translatable("hud.atalaya.novilis.rotas", rotas, total), x, y, color, true);
     }
 
     /** Los cuatro angeles (enteros, rajados o en cascotes) y la melodia que van tocando. */
     private void trompetasBajo(GuiGraphicsExtractor g, NovilisEntity n, int x0, int y0, float ahora, boolean sincronizar) {
         int cuantas = Math.min(n.numEstatuas(), 4);
+        int rotas = 0;
         for (int k = 0; k < cuantas; k++) {
             int golpes = Mth.clamp(n.getGolpesEstatua(k), 0, NovilisEntity.GOLPES);
+            if (golpes >= NovilisEntity.GOLPES) {
+                rotas++;
+            }
             Identifier t = golpes >= NovilisEntity.GOLPES ? ESTATUA_ROTA : golpes == 0 ? ESTATUA
                     : ESTATUA_RAJADA[Math.min(1, (golpes - 1) * 2 / Math.max(1, NovilisEntity.GOLPES - 1))];
             int dx = temblor(k, golpes, ahora, sincronizar);
@@ -348,6 +374,7 @@ public class NovilisBarraHud implements HudElement {
             tinte = 0xFF000000 | escalar(0xFFFFFF, 0.7F + 0.3F * Math.abs(Mth.sin(ahora * 0.6F)));
         }
         pieza(g, LLAMA_AZUL, x0 + LLAMA_X, y0 + LLAMA_Y, LLAMA_LADO, LLAMA_LADO, tinte);
+        cuenta(g, rotas, cuantas, x0 + LLAMA_X + LLAMA_LADO + 4, y0 + LLAMA_Y + 3, rotas >= cuantas ? 0xFFFFE07A : 0xFFE8E2D6);
     }
 
     /** El sol con el cautivo dentro y la liberacion que lleva (lo que ven los demas). */

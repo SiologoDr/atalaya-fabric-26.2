@@ -274,7 +274,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_NOVILIS = {"despertar", "barrido", "castigo", "onda", "sol", "trompetas",
-            "estatua", "fuentes", "fuente", "ofrenda", "dios", "aturdido", "furia", "grito", "fase", "liberar"};
+            "estatua", "fuentes", "fuente", "ofrenda", "dios", "aturdido", "furia", "grito", "fase", "liberar", "perseguir"};
 
     /** Fuerza al Novilis mas cercano (en 80 bloques) a hacer algo ya. */
     private static int probarNovilis(CommandSourceStack fuente, String orden) {

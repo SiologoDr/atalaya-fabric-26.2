@@ -3,12 +3,19 @@ package com.atalaya.client;
 import net.minecraft.client.animation.AnimationChannel;
 import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.animation.Keyframe;
-import net.minecraft.client.animation.KeyframeAnimations;
+import org.joml.Vector3f;
 
 /**
- * Las animaciones de Novilis. GENERADO por materiales/generadores/novilis_juego_anim.py:
- * no se editan a mano. El servidor saca de las mismas poses por donde pasan las
- * manos y la espada (NovilisGeometria).
+ * Las animaciones de Novilis. GENERADO por materiales/generadores/novilis_juego_anim.py
+ * (poses) y novilis_fisica.py (pies plantados, inercia y retraso horneados): no se
+ * editan a mano. El servidor saca de las mismas poses por donde pasan las manos y
+ * la espada (NovilisGeometria).
+ *
+ * Cada canal va como texto ("t x y z t x y z ..."): son miles de claves y, escritas
+ * como llamadas, la clase pasaria del limite de Java (64 KB por metodo y 65 535
+ * constantes). Las rotaciones en grados, las posiciones en px (Y abajo, lo que se
+ * suma a la pieza) y las escalas como lo que se suma a 1. Entre claves, lineal: el
+ * horneado ya las pone donde la curva lo pide.
  */
 public final class NovilisAnimaciones {
 
@@ -35,1803 +42,456 @@ public final class NovilisAnimaciones {
     private NovilisAnimaciones() {
     }
 
-    private static Keyframe rot(float t, float x, float y, float z) {
-        return new Keyframe(t, KeyframeAnimations.degreeVec(x, y, z), AnimationChannel.Interpolations.CATMULLROM);
+    private static AnimationChannel canal(AnimationChannel.Target objetivo, float k, String datos) {
+        String[] v = datos.split(" ");
+        Keyframe[] claves = new Keyframe[v.length / 4];
+        for (int i = 0; i < claves.length; i++) {
+            claves[i] = new Keyframe(Float.parseFloat(v[4 * i]), new Vector3f(Float.parseFloat(v[4 * i + 1]) * k,
+                    Float.parseFloat(v[4 * i + 2]) * k, Float.parseFloat(v[4 * i + 3]) * k),
+                    AnimationChannel.Interpolations.LINEAR);
+        }
+        return new AnimationChannel(objetivo, claves);
     }
 
-    private static Keyframe seco(float t, float x, float y, float z) {
-        return new Keyframe(t, KeyframeAnimations.degreeVec(x, y, z), AnimationChannel.Interpolations.LINEAR);
+    private static AnimationChannel giro(String datos) {
+        return canal(AnimationChannel.Targets.ROTATION, (float) (Math.PI / 180.0), datos);
     }
 
-    private static Keyframe pos(float t, float x, float y, float z) {
-        return new Keyframe(t, KeyframeAnimations.posVec(x, y, z), AnimationChannel.Interpolations.CATMULLROM);
+    private static AnimationChannel mover(String datos) {
+        return canal(AnimationChannel.Targets.POSITION, 1.0F, datos);
     }
 
-    private static Keyframe posSeco(float t, float x, float y, float z) {
-        return new Keyframe(t, KeyframeAnimations.posVec(x, y, z), AnimationChannel.Interpolations.LINEAR);
-    }
-
-    private static Keyframe esc(float t, float x, float y, float z) {
-        return new Keyframe(t, KeyframeAnimations.scaleVec(x, y, z), AnimationChannel.Interpolations.CATMULLROM);
-    }
-
-    private static Keyframe escSeco(float t, float x, float y, float z) {
-        return new Keyframe(t, KeyframeAnimations.scaleVec(x, y, z), AnimationChannel.Interpolations.LINEAR);
-    }
-
-    private static AnimationChannel giro(Keyframe... k) {
-        return new AnimationChannel(AnimationChannel.Targets.ROTATION, k);
-    }
-
-    private static AnimationChannel mover(Keyframe... k) {
-        return new AnimationChannel(AnimationChannel.Targets.POSITION, k);
-    }
-
-    private static AnimationChannel escala(Keyframe... k) {
-        return new AnimationChannel(AnimationChannel.Targets.SCALE, k);
+    private static AnimationChannel escala(String datos) {
+        return canal(AnimationChannel.Targets.SCALE, 1.0F, datos);
     }
 
     private static AnimationDefinition reposo() {
-        return AnimationDefinition.Builder.withLength(4F).looping()
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(2F, 2.5F, 0F, 0F),
-                        rot(4F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(2F, 1.8F, 0F, 0F),
-                        rot(4F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(2F, -2F, 4F, 0F),
-                        rot(4F, 0F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(2F, 0F, -0.8F, 0F),
-                        pos(4F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(2F, 3F, 0F, 0F),
-                        rot(4F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(2F, 2F, 0F, 0F),
-                        rot(4F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(3.2F).looping()
+                .addAnimation("brazo_der", giro("0 1.51 0 0 0.55 1.57 0 0 1.5 -1.29 0 0 1.9 -1.8 0 0 2.3 -1.25 0 0 3.2 1.51 0 0"))
+                .addAnimation("brazo_izq", giro("0 0.86 0 0 0.4 2.04 0 -0.85 0.75 2.1 0 -1.19 1.2 0.83 0 -0.85 1.8 -1.57 0 0.46 2.2 -2.2 0 1.11 2.6 -1.54 0 1.11 3.2 0.86 0 0"))
+                .addAnimation("torso", giro("0 0.07 0.01 0.01 0.45 -1.19 0.49 0.24 0.8 -1.59 0.83 0.41 1.2 -1.18 1.1 0.55 2.3 1.55 0.94 0.47 2.7 1.36 0.59 0.29 3.2 0.07 0.01 0.01"))
+                .addAnimation("cabeza", giro("0 0.6 0.96 0 0.1 0.79 -1.39 0 0.15 0.88 -1.69 0 0.65 1.17 -2.53 0 1.25 0.19 -3 0 1.8 -0.95 -2.54 0 2.2 -1.19 -1.74 0 3.15 0.5 1.13 0 3.2 0.6 0.96 0"))
+                .addAnimation("pelvis", giro("0 0 0 0 1.6 0 0 -0.8 3.2 0 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.4 0.46 0.18 0 0.9 0.93 0.72 0 1.3 1.15 1.1 0 1.6 1.2 1.2 0 1.9 1.15 1.1 0 2.3 0.93 0.72 0 2.8 0.46 0.18 0 3.2 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.4 -0.54 0 0.74 1.2 -3.23 0 1.78 1.6 -3.75 0 1.93 2 -3.23 0 1.78 2.8 -0.54 0 0.74 3.2 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.4 0.99 0 0 1.2 5.91 0 0 1.6 6.87 0 0 2 5.91 0 0 2.8 0.99 0 0 3.2 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.4 -0.45 0 0 1.2 -2.68 0 0 1.6 -3.11 0 0 2 -2.68 0 0 2.8 -0.45 0 0 3.2 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.4 -0.71 0 0.76 1.2 -3.49 0 1.87 1.6 -4.01 0 2.03 2 -3.49 0 1.87 2.8 -0.71 0 0.76 3.2 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.4 1.36 0 0 1.2 6.72 0 0 1.6 7.73 0 0 2 6.72 0 0 2.8 1.36 0 0 3.2 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.4 -0.65 0 0 1.2 -3.23 0 0 1.6 -3.71 0 0 2 -3.23 0 0 2.8 -0.65 0 0 3.2 0 0 0"))
+                .addAnimation("capa_2", giro("0 0.04 0 0.02 0.9 0.85 0 0.04 2.35 -0.88 0 0.05 3.2 0.04 0 0.02"))
+                .addAnimation("capa_3", giro("0 -0.03 0 0.01 0.85 0.4 0 0.02 2.3 -0.38 0 0.02 3.2 -0.03 0 0.01"))
+                .addAnimation("tabardo", giro("0 0 0 -0.02 1.5 0 0 0.4 3.2 0 0 -0.02"))
                 .build();
     }
 
     private static AnimationDefinition andar() {
-        return AnimationDefinition.Builder.withLength(2F).looping()
-                .addAnimation("brazo_izq", giro(rot(0F, 14F, 0F, 0F),
-                        rot(0.5F, 14F, 0F, 0F),
-                        rot(1F, -14F, 0F, 0F),
-                        rot(1.5F, -14F, 0F, 0F),
-                        rot(2F, 14F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, -24F, 0F, 0F),
-                        rot(0.5F, 4F, 0F, 0F),
-                        rot(1F, 24F, 0F, 0F),
-                        rot(1.5F, -18F, 0F, 0F),
-                        rot(2F, -24F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 8F, 0F, 0F),
-                        rot(0.5F, 6F, 0F, 0F),
-                        rot(1F, 26F, 0F, 0F),
-                        rot(1.5F, 46F, 0F, 0F),
-                        rot(2F, 8F, 0F, 0F)))
-                .addAnimation("pie_izq", giro(rot(0F, 6F, 0F, 0F),
-                        rot(0.5F, -4F, 0F, 0F),
-                        rot(1F, -10F, 0F, 0F),
-                        rot(1.5F, -6F, 0F, 0F),
-                        rot(2F, 6F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 24F, 0F, 0F),
-                        rot(0.5F, -18F, 0F, 0F),
-                        rot(1F, -24F, 0F, 0F),
-                        rot(1.5F, 4F, 0F, 0F),
-                        rot(2F, 24F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 26F, 0F, 0F),
-                        rot(0.5F, 46F, 0F, 0F),
-                        rot(1F, 8F, 0F, 0F),
-                        rot(1.5F, 6F, 0F, 0F),
-                        rot(2F, 26F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, -10F, 0F, 0F),
-                        rot(0.5F, -6F, 0F, 0F),
-                        rot(1F, 6F, 0F, 0F),
-                        rot(1.5F, -4F, 0F, 0F),
-                        rot(2F, -10F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, -2F, 0F),
-                        pos(0.5F, 0F, 0.6F, 0F),
-                        pos(1F, 0F, -2F, 0F),
-                        pos(1.5F, 0F, 0.6F, 0F),
-                        pos(2F, 0F, -2F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 3F, 5F, 0F),
-                        rot(0.5F, 3F, 5F, 0F),
-                        rot(1F, 3F, -5F, 0F),
-                        rot(1.5F, 3F, -5F, 0F),
-                        rot(2F, 3F, 5F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, -4F, 0F),
-                        rot(0.5F, 0F, -4F, 0F),
-                        rot(1F, 0F, 4F, 0F),
-                        rot(1.5F, 0F, 4F, 0F),
-                        rot(2F, 0F, -4F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 6F, 0F, 0F),
-                        rot(0.5F, 9F, 0F, 0F),
-                        rot(1F, 6F, 0F, 0F),
-                        rot(1.5F, 9F, 0F, 0F),
-                        rot(2F, 6F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 3F, 0F, 0F),
-                        rot(0.5F, 3F, 0F, 0F),
-                        rot(1F, 3F, 0F, 0F),
-                        rot(1.5F, 3F, 0F, 0F),
-                        rot(2F, 3F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 4F, 0F, 0F),
-                        rot(0.5F, 4F, 0F, 0F),
-                        rot(1F, 4F, 0F, 0F),
-                        rot(1.5F, 4F, 0F, 0F),
-                        rot(2F, 4F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(1.6F).looping()
+                .addAnimation("brazo_der", giro("0 7 0 0 0.1 6.47 0 0 0.2 4.95 0 0 0.6 -4.95 0 0 0.7 -6.47 0 0 0.8 -7 0 0 0.9 -6.47 0 0 1 -4.95 0 0 1.4 4.95 0 0 1.5 6.47 0 0 1.6 7 0 0"))
+                .addAnimation("brazo_izq", giro("0 -18 0 0 0.05 -17.65 0 0.39 0.1 -16.63 0 0.77 0.2 -12.73 0 1.41 0.3 -6.89 0 1.85 0.4 0 0 2 0.5 6.89 0 1.85 0.6 12.73 0 1.41 0.7 16.63 0 0.77 0.75 17.65 0 0.39 0.8 18 0 0 0.85 17.65 0 -0.39 0.9 16.63 0 -0.77 1 12.73 0 -1.41 1.1 6.89 0 -1.85 1.2 0 0 -2 1.3 -6.89 0 -1.85 1.4 -12.73 0 -1.41 1.5 -16.63 0 -0.77 1.55 -17.65 0 -0.39 1.6 -18 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.4 0 0 0 0.6 -5.66 0 0 0.7 -7.39 0 0 0.8 -8 0 0 0.9 -7.39 0 0 1 -5.66 0 0 1.2 0 0 0 1.6 0 0 0"))
+                .addAnimation("pelvis", giro("0 2 7 0 0.1 2 6.47 -0.84 0.2 2 4.95 -1.56 0.4 2 0 -2.2 0.6 2 -4.95 -1.56 0.7 2 -6.47 -0.84 0.8 2 -7 0 0.9 2 -6.47 0.84 1 2 -4.95 1.56 1.2 2 0 2.2 1.4 2 4.95 1.56 1.5 2 6.47 0.84 1.6 2 7 0"))
+                .addAnimation("pelvis", mover("0 1.15 3 0 0.05 1.54 2.86 0 0.1 1.87 2.47 0 0.2 2.3 1.2 0 0.3 2.39 -0.07 0 0.35 2.29 -0.46 0 0.4 2.11 -0.6 0 0.45 1.84 -0.46 0 0.5 1.51 -0.07 0 0.7 -0.26 2.47 0 0.75 -0.72 2.86 0 0.8 -1.15 3 0 0.85 -1.54 2.86 0 0.9 -1.87 2.47 0 1 -2.3 1.2 0 1.05 -2.39 0.51 0 1.1 -2.39 -0.07 0 1.15 -2.29 -0.46 0 1.2 -2.11 -0.6 0 1.25 -1.84 -0.46 0 1.3 -1.51 -0.07 0 1.35 -1.11 0.51 0 1.45 -0.21 1.89 0 1.5 0.26 2.47 0 1.55 0.72 2.86 0 1.6 1.15 3 0"))
+                .addAnimation("torso", giro("0 6.43 -9.69 -0.14 0.1 6.19 -9.28 0.48 0.2 5.25 -7.45 1.02 0.3 4.16 -4.5 1.41 0.4 3.56 -0.85 1.58 0.55 4.22 4.67 1.39 0.65 5.32 7.58 0.99 0.75 6.23 9.34 0.45 0.8 6.43 9.69 0.14 0.9 6.19 9.28 -0.48 1 5.25 7.45 -1.02 1.1 4.16 4.5 -1.41 1.2 3.56 0.85 -1.58 1.35 4.22 -4.67 -1.39 1.45 5.32 -7.58 -0.99 1.55 6.23 -9.34 -0.45 1.6 6.43 -9.69 -0.14"))
+                .addAnimation("cabeza", giro("0 -4.15 3.47 0.15 0.1 -4.08 3.41 -0.24 0.2 -3.37 2.83 -0.6 0.35 -2.08 1.19 -0.94 0.45 -1.79 -0.16 -1 0.65 -3.1 -2.6 -0.68 0.85 -4.21 -3.51 0.05 1 -3.37 -2.83 0.6 1.15 -2.08 -1.19 0.94 1.25 -1.79 0.16 1 1.45 -3.1 2.6 0.68 1.6 -4.15 3.47 0.15"))
+                .addAnimation("capa_1", giro("0 0 0 0.21 0.35 0.73 0 0.53 0.55 0 0 0.21 1.05 0.41 0 -0.57 1.2 0.73 0 -0.47 1.35 0 0 -0.21 1.6 0 0 0.21"))
+                .addAnimation("capa_2", giro("0 -3.02 0 0.14 0.25 -1.79 0 0.19 0.45 -1.53 0 0.18 0.55 -1.68 0 0.11 0.75 -3.05 0 -0.11 1.05 -1.79 0 -0.19 1.25 -1.53 0 -0.18 1.35 -1.68 0 -0.11 1.5 -2.91 0 0.07 1.6 -3.02 0 0.14"))
+                .addAnimation("capa_3", giro("0 -1.32 0 0.06 0.5 -0.67 0 0.06 0.85 -1.39 0 -0.08 1.3 -0.67 0 -0.06 1.6 -1.32 0 0.06"))
+                .addAnimation("pierna_izq", giro("0 -18.52 0 -0.27 0.05 -17.42 0 0.69 0.1 -15.07 0 1.63 0.2 -8.91 0 3.2 0.3 -2.37 0 4.03 0.35 0.41 0 4.08 0.4 2.32 0 3.87 0.45 3.32 0 3.4 0.6 3.97 0 0.55 0.65 4.61 0 -0.78 0.7 5.89 0 -2.21 0.75 7.89 0 -3.66 0.8 7.27 0 -5.25 0.85 7.98 0 -6.76 0.9 9.76 0 -8.1 0.95 12.38 0 -9.21 1 8.67 0 -10.11 1.05 4.78 0 -10.38 1.1 -0.23 0 -10.03 1.15 -6.92 0 -9.15 1.25 -23.08 0 -6.67 1.3 -29.92 0 -5.48 1.35 -34.19 0 -4.48 1.4 -37.05 0 -3.71 1.45 -37.84 0 -3.01 1.5 -35.55 0 -2.23 1.55 -30.18 0 -1.31 1.6 -18.52 0 -0.27"))
+                .addAnimation("espinilla_izq", giro("0 1.29 0 0 0.05 3.19 0 0 0.1 2.86 0 0 0.2 -0.6 0 0 0.3 -4.97 0 0 0.35 -6.29 0 0 0.4 -6.06 0 0 0.45 -4.13 0 0 0.6 6.1 0 0 0.65 8.81 0 0 0.7 10.36 0 0 0.75 10.58 0 0 0.8 16.32 0 0 0.85 19.73 0 0 0.9 21.27 0 0 0.95 21.31 0 0 1 31.44 0 0 1.05 39.23 0 0 1.1 45.83 0 0 1.15 51.57 0 0 1.2 55.72 0 0 1.25 57.26 0 0 1.3 55.45 0 0 1.35 50.28 0 0 1.4 44.94 0 0 1.45 39 0 0 1.5 31.17 0 0 1.55 20.88 0 0 1.6 1.29 0 0"))
+                .addAnimation("pie_izq", giro("0 7.25 0 0 0.05 7.02 0 0 0.15 8.96 0 0 0.35 3.88 0 0 0.4 1.74 0 0 0.45 -1.19 0 0 0.65 -15.41 0 0 0.7 -18.23 0 0 0.75 -20.32 0 0 0.8 -19.75 0 0 0.85 -18.19 0 0 0.9 -15.84 0 0 0.95 -12.82 0 0 1 -18.18 0 0 1.05 -22.72 0 0 1.1 -25.95 0 0 1.15 -27.73 0 0 1.2 -27.61 0 0 1.25 -25.39 0 0 1.3 -21.41 0 0 1.35 -16.44 0 0 1.4 -12.12 0 0 1.55 -0.55 0 0 1.6 7.25 0 0"))
+                .addAnimation("pierna_der", giro("0 -3.33 0 4.17 0.05 -2.61 0 5.68 0.1 -0.84 0 7.03 0.15 1.79 0 8.14 0.2 -1.92 0 9.04 0.25 -5.81 0 9.31 0.3 -10.82 0 8.95 0.35 -17.52 0 8.07 0.45 -33.67 0 5.59 0.5 -40.51 0 4.41 0.55 -44.78 0 3.41 0.6 -47.65 0 2.64 0.65 -48.43 0 1.94 0.7 -46.15 0 1.15 0.75 -40.77 0 0.23 0.8 -29.12 0 -0.81 0.85 -28.02 0 -1.76 0.9 -25.67 0 -2.71 1.05 -16.22 0 -4.8 1.15 -10.19 0 -5.16 1.2 -8.27 0 -4.95 1.25 -7.28 0 -4.48 1.35 -6.84 0 -2.79 1.45 -5.99 0 -0.29 1.5 -4.71 0 1.13 1.55 -2.7 0 2.58 1.6 -3.33 0 4.17"))
+                .addAnimation("espinilla_der", giro("0 16.93 0 0 0.05 20.34 0 0 0.1 21.89 0 0 0.15 21.93 0 0 0.2 32.06 0 0 0.25 39.84 0 0 0.3 46.44 0 0 0.35 52.18 0 0 0.4 56.34 0 0 0.45 57.87 0 0 0.5 56.07 0 0 0.55 50.89 0 0 0.6 45.55 0 0 0.65 39.61 0 0 0.7 31.79 0 0 0.75 21.49 0 0 0.8 1.91 0 0 0.85 3.81 0 0 0.9 3.47 0 0 1 0.01 0 0 1.1 -4.36 0 0 1.15 -5.68 0 0 1.2 -5.45 0 0 1.25 -3.52 0 0 1.4 6.72 0 0 1.45 9.43 0 0 1.5 10.97 0 0 1.55 11.2 0 0 1.6 16.93 0 0"))
+                .addAnimation("pie_der", giro("0 -9.77 0 0 0.05 -8.21 0 0 0.1 -5.85 0 0 0.15 -2.84 0 0 0.2 -8.2 0 0 0.25 -12.74 0 0 0.3 -15.97 0 0 0.35 -17.75 0 0 0.4 -17.63 0 0 0.45 -15.4 0 0 0.5 -11.42 0 0 0.55 -6.46 0 0 0.6 -2.14 0 0 0.75 9.43 0 0 0.8 17.23 0 0 0.85 17 0 0 0.95 18.95 0 0 1.1 15.32 0 0 1.15 13.87 0 0 1.2 11.72 0 0 1.25 8.79 0 0 1.45 -5.43 0 0 1.5 -8.25 0 0 1.55 -10.34 0 0 1.6 -9.77 0 0"))
+                .addAnimation("tabardo", giro("0 -1.04 0 0.3 0.4 -1 0 1.13 0.95 -1.09 0 -0.87 1.15 -1.03 0 -1.17 1.6 -1.04 0 0.3"))
                 .build();
     }
 
     private static AnimationDefinition dormido() {
         return AnimationDefinition.Builder.withLength(6F).looping()
-                .addAnimation("pelvis", mover(pos(0F, 0F, -30F, 0F),
-                        pos(3F, 0F, -30F, 0F),
-                        pos(6F, 0F, -30F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, -70F, 0F, 0F),
-                        rot(3F, -70F, 0F, 0F),
-                        rot(6F, -70F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, -86F, 0F, -6F),
-                        rot(3F, -86F, 0F, -6F),
-                        rot(6F, -86F, 0F, -6F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 86F, 0F, 0F),
-                        rot(3F, 86F, 0F, 0F),
-                        rot(6F, 86F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 6F, 0F, 5F),
-                        rot(3F, 6F, 0F, 5F),
-                        rot(6F, 6F, 0F, 5F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 86F, 0F, 0F),
-                        rot(3F, 86F, 0F, 0F),
-                        rot(6F, 86F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, -62F, 0F, 0F),
-                        rot(3F, -62F, 0F, 0F),
-                        rot(6F, -62F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 8F, 0F, 0F),
-                        rot(3F, 8F, 0F, 0F),
-                        rot(6F, 8F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 24F, 0F, 0F),
-                        rot(3F, 24F, 0F, 0F),
-                        rot(6F, 24F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 50F, 0F, 0F),
-                        rot(3F, 50F, 0F, 0F),
-                        rot(6F, 50F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 18F, 0F, 0F),
-                        rot(3F, 20F, 0F, 0F),
-                        rot(6F, 18F, 0F, 0F)))
-                .addAnimation("cuello", giro(rot(0F, 8F, 0F, 0F),
-                        rot(3F, 8F, 0F, 0F),
-                        rot(6F, 8F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 26F, 0F, 0F),
-                        rot(3F, 30F, 0F, 0F),
-                        rot(6F, 26F, 0F, 0F)))
-                .addAnimation("brazo_der", giro(rot(0F, -32.299F, -0.008F, -38.553F),
-                        rot(3F, -32.299F, -0.008F, -38.553F),
-                        rot(6F, -32.299F, -0.008F, -38.553F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 38.214F, 0F, 0F),
-                        rot(3F, 38.214F, 0F, 0F),
-                        rot(6F, 38.214F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, -28.094F, -0.012F, 49.168F),
-                        rot(3F, -28.094F, -0.012F, 49.168F),
-                        rot(6F, -28.094F, -0.012F, 49.168F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, -7.727F, 0F, 0F),
-                        rot(3F, -7.727F, 0F, 0F),
-                        rot(6F, -7.727F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 28.177F, -9.668F, 27.123F),
-                        rot(3F, 28.177F, -9.668F, 27.123F),
-                        rot(6F, 28.177F, -9.668F, 27.123F)))
+                .addAnimation("pelvis", mover("0 0 30 0 6 0 30 0"))
+                .addAnimation("tabardo", giro("0 -48.78 0 0 0.05 -51.55 0 0 0.1 -49.87 0 0 0.15 -49.2 0 0 0.2 -52.01 0 0 0.25 -50.21 0 0 0.3 -49.47 0 0 0.35 -52.21 0 0 0.4 -50.36 0 0 0.5 -48.29 0 0 0.55 -50.6 0 0 0.6 -49.99 0 0 0.65 -48.64 0 0 0.7 -50.85 0 0 0.75 -50.19 0 0 0.8 -48.47 0 0 0.85 -51.32 0 0 0.9 -50.61 0 0 0.95 -48.78 0 0 1 -51.56 0 0 1.05 -49.87 0 0 1.1 -49.2 0 0 1.15 -52.01 0 0 1.2 -50.21 0 0 1.3 -48.21 0 0 1.35 -50.54 0 0 1.4 -49.95 0 0 1.45 -48.6 0 0 1.5 -50.83 0 0 1.55 -50.17 0 0 1.6 -48.77 0 0 1.65 -50.95 0 0 1.7 -50.27 0 0 1.75 -48.52 0 0 1.8 -51.36 0 0 1.85 -50.64 0 0 1.9 -48.8 0 0 1.95 -51.57 0 0 2 -49.88 0 0 2.05 -49.21 0 0 2.1 -52.02 0 0 2.15 -50.22 0 0 2.25 -48.21 0 0 2.3 -50.54 0 0 2.35 -49.95 0 0 2.4 -48.6 0 0 2.45 -50.83 0 0 2.5 -50.17 0 0 2.55 -48.45 0 0 2.6 -51.31 0 0 2.65 -50.6 0 0 2.7 -48.78 0 0 2.75 -51.55 0 0 2.8 -50.79 0 0 2.85 -48.91 0 0 2.9 -51.65 0 0 2.95 -49.94 0 0 3 -49.26 0 0 3.05 -52.05 0 0 3.1 -50.24 0 0 3.2 -48.23 0 0 3.25 -50.55 0 0 3.3 -49.96 0 0 3.35 -48.61 0 0 3.4 -50.83 0 0 3.45 -50.17 0 0 3.5 -48.46 0 0 3.55 -51.31 0 0 3.6 -50.6 0 0 3.65 -48.78 0 0 3.7 -51.55 0 0 3.75 -49.87 0 0 3.8 -49.2 0 0 3.85 -52.01 0 0 3.9 -50.21 0 0 3.95 -49.47 0 0 4 -52.21 0 0 4.05 -50.36 0 0 4.15 -48.29 0 0 4.2 -50.6 0 0 4.25 -49.99 0 0 4.3 -48.64 0 0 4.35 -50.85 0 0 4.4 -50.19 0 0 4.45 -48.47 0 0 4.5 -51.32 0 0 4.55 -50.61 0 0 4.6 -48.78 0 0 4.65 -51.56 0 0 4.7 -49.87 0 0 4.75 -49.2 0 0 4.8 -52.01 0 0 4.85 -50.21 0 0 4.95 -48.21 0 0 5 -50.54 0 0 5.05 -49.95 0 0 5.1 -48.6 0 0 5.15 -50.83 0 0 5.2 -50.17 0 0 5.25 -48.77 0 0 5.3 -50.95 0 0 5.35 -50.27 0 0 5.4 -48.52 0 0 5.45 -51.36 0 0 5.5 -50.64 0 0 5.55 -48.8 0 0 5.6 -51.57 0 0 5.65 -49.88 0 0 5.7 -49.21 0 0 5.75 -52.02 0 0 5.8 -50.22 0 0 5.9 -48.21 0 0 5.95 -50.54 0 0 6 -48.78 0 0"))
+                .addAnimation("capa_2", giro("0 -1.06 0 0 0.95 -2.22 0 0 1.7 -2.39 0 0 3.8 0.03 0 0 4.45 0.36 0 0 5.1 0.08 0 0 6 -1.06 0 0"))
+                .addAnimation("capa_3", giro("0 11.69 0 0 0.15 8.15 0 0 0.25 7.4 0 0 0.45 8.13 0 0 1.65 7.63 0 0 3.25 8.39 0 0 3.3 11.9 0 0 3.4 8.98 0 0 3.45 11.9 0 0 3.5 10.31 0 0 3.55 12.95 0 0 3.6 11.26 0 0 3.65 13.43 0 0 3.7 11.96 0 0 3.75 14.03 0 0 3.8 12.39 0 0 3.85 14.24 0 0 3.9 12.52 0 0 3.95 14.29 0 0 4 12.55 0 0 4.05 14.31 0 0 4.1 12.57 0 0 4.15 14.34 0 0 4.2 12.59 0 0 4.25 14.36 0 0 4.3 12.61 0 0 4.35 14.61 0 0 4.4 12.3 0 0 4.45 14.14 0 0 4.5 11.96 0 0 4.55 13.98 0 0 4.6 11.45 0 0 4.7 15.14 0 0 4.75 13.15 0 0 4.8 14.59 0 0 4.85 12.71 0 0 4.9 14.35 0 0 4.95 12.55 0 0 5 14.29 0 0 5.05 12.52 0 0 5.1 14.26 0 0 5.15 12.49 0 0 5.2 14.23 0 0 5.25 12.45 0 0 5.3 14.18 0 0 5.4 10.13 0 0 5.45 12.5 0 0 5.5 10.51 0 0 5.55 12.89 0 0 5.65 9.23 0 0 5.7 11.92 0 0 5.8 8.63 0 0 5.85 11.54 0 0 5.95 8.55 0 0 6 11.69 0 0"))
+                .addAnimation("torso", giro("0 17.94 0 0 0.85 19.9 0 0 1.5 20.5 0 0 2.2 19.9 0 0 3.65 16.48 0 0 4.3 15.57 0 0 5.05 15.87 0 0 6 17.94 0 0"))
+                .addAnimation("cuello", giro("0 8 0 0 6 8 0 0"))
+                .addAnimation("cabeza", giro("0 24.81 0 0 1.35 27.4 0 0 2.1 28 0 0 2.8 27.5 0 0 4.75 24.14 0 0 5.35 24.07 0 0 6 24.81 0 0"))
+                .addAnimation("brazo_der", giro("0 -32.3 -0.01 -38.55 6 -32.3 -0.01 -38.55"))
+                .addAnimation("antebrazo_der", giro("0 38.21 0 0 6 38.21 0 0"))
+                .addAnimation("brazo_izq", giro("0 -28.09 -0.01 49.17 6 -28.09 -0.01 49.17"))
+                .addAnimation("antebrazo_izq", giro("0 -7.73 0 0 6 -7.73 0 0"))
+                .addAnimation("agarre", giro("0 28.18 -9.67 27.12 6 28.18 -9.67 27.12"))
+                .addAnimation("pierna_izq", giro("0 -73.82 2 1.11 6 -73.82 2 1.11"))
+                .addAnimation("espinilla_izq", giro("0 63.92 0 0 6 63.92 0 0"))
+                .addAnimation("pie_izq", giro("0 9.9 0 0 6 9.9 0 0"))
+                .addAnimation("pierna_der", giro("0 7.47 -2 8.93 6 7.47 -2 8.93"))
+                .addAnimation("espinilla_der", giro("0 84.79 0 0 6 84.79 0 0"))
+                .addAnimation("pie_der", giro("0 -30.26 0 0 6 -30.26 0 0"))
                 .build();
     }
 
     private static AnimationDefinition despertar() {
-        return AnimationDefinition.Builder.withLength(3.4F)
-                .addAnimation("pelvis", mover(pos(0F, 0F, -30F, 0F),
-                        pos(0.5F, 0F, -30F, 0F),
-                        pos(1.3F, 0F, -12F, 0F),
-                        pos(1.9F, 0F, 0F, 0F),
-                        posSeco(2.4F, 0F, -1F, 0F),
-                        pos(2.9F, 0F, -1F, 0F),
-                        pos(3.4F, 0F, 0F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, -70F, 0F, 0F),
-                        rot(0.5F, -70F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, 0F, 0F, 0F),
-                        rot(2.9F, 0F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, -86F, 0F, -6F),
-                        rot(0.5F, -86F, 0F, -6F),
-                        rot(1.3F, -50F, 0F, -6F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, -14F, 0F, -8F),
-                        rot(2.9F, -14F, 0F, -8F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 86F, 0F, 0F),
-                        rot(0.5F, 86F, 0F, 0F),
-                        rot(1.3F, 60F, 0F, 0F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, 16F, 0F, 0F),
-                        rot(2.9F, 16F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 6F, 0F, 5F),
-                        rot(0.5F, 6F, 0F, 5F),
-                        rot(1.3F, 10F, 0F, 5F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, 12F, 0F, 8F),
-                        rot(2.9F, 12F, 0F, 8F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 86F, 0F, 0F),
-                        rot(0.5F, 86F, 0F, 0F),
-                        rot(1.3F, 50F, 0F, 0F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, 0F, 0F, 0F),
-                        rot(2.9F, 0F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, -62F, 0F, 0F),
-                        rot(0.5F, -62F, 0F, 0F),
-                        rot(1.3F, -30F, 0F, 0F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, -14F, 0F, 0F),
-                        rot(2.9F, -14F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 8F, 0F, 0F),
-                        rot(0.5F, 8F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(1.9F, 20F, 0F, 0F),
-                        seco(2.4F, 20F, 0F, 0F),
-                        rot(2.9F, 20F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 24F, 0F, 0F),
-                        rot(0.5F, 24F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(1.9F, 10F, 0F, 0F),
-                        seco(2.4F, 10F, 0F, 0F),
-                        rot(2.9F, 10F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 50F, 0F, 0F),
-                        rot(0.5F, 50F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(1.9F, 12F, 0F, 0F),
-                        seco(2.4F, 12F, 0F, 0F),
-                        rot(2.9F, 12F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 18F, 0F, 0F),
-                        rot(0.5F, 18F, 0F, 0F),
-                        rot(1.3F, 16F, 0F, 0F),
-                        rot(1.9F, -6F, 0F, 0F),
-                        seco(2.4F, -10F, 0F, 0F),
-                        rot(2.9F, -10F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("cuello", giro(rot(0F, 8F, 0F, 0F),
-                        rot(0.5F, 8F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(1.9F, 0F, 0F, 0F),
-                        seco(2.4F, 0F, 0F, 0F),
-                        rot(2.9F, 0F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 26F, 0F, 0F),
-                        rot(0.5F, -10F, 0F, 0F),
-                        rot(1.3F, -4F, 0F, 0F),
-                        rot(1.9F, -20F, 0F, 0F),
-                        seco(2.4F, -26F, 0F, 0F),
-                        rot(2.9F, -30F, 4F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("brazo_der", giro(rot(0F, -32.299F, -0.008F, -38.553F),
-                        rot(0.5F, -32.299F, -0.008F, -38.553F),
-                        rot(1.3F, -38.188F, -0.007F, -28.617F),
-                        rot(1.9F, -123.391F, -0.03F, 4.58F),
-                        seco(2.4F, 9.304F, -0.009F, 21.179F),
-                        rot(2.9F, 9.304F, -0.009F, 21.179F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 38.214F, 0F, 0F),
-                        rot(0.5F, 38.214F, 0F, 0F),
-                        rot(1.3F, 47.447F, 0F, 0F),
-                        rot(1.9F, -9.497F, 0F, 0F),
-                        seco(2.4F, -2.939F, 0F, 0F),
-                        rot(2.9F, -2.939F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, -28.094F, -0.012F, 49.168F),
-                        rot(0.5F, -28.094F, -0.012F, 49.168F),
-                        rot(1.3F, 15.271F, -0.008F, 1.327F),
-                        rot(1.9F, -1.477F, -0.006F, -24.465F),
-                        seco(2.4F, -15.581F, 0.007F, -20.098F),
-                        rot(2.9F, -15.581F, 0.007F, -20.098F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, -7.727F, 0F, 0F),
-                        rot(0.5F, -7.727F, 0F, 0F),
-                        rot(1.3F, -38.041F, 0F, 0F),
-                        rot(1.9F, -16.863F, 0F, 0F),
-                        seco(2.4F, 8.586F, 0F, 0F),
-                        rot(2.9F, 8.586F, 0F, 0F),
-                        rot(3.4F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 28.177F, -9.668F, 27.123F),
-                        rot(0.5F, 28.177F, -9.668F, 27.123F),
-                        rot(1.3F, 33.919F, -19.229F, 13.004F),
-                        rot(1.9F, 11.845F, -27.138F, 10.068F),
-                        seco(2.4F, -1.107F, 13.903F, 7.53F),
-                        rot(2.9F, -1.107F, 13.903F, 7.53F),
-                        rot(3.4F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(2.4F)
+                .addAnimation("pelvis", mover("0 0 30 0 0.4 0 30 0 0.45 0 25.25 -0.47 0.5 0 21.22 -0.88 0.55 0 17.87 -1.21 0.6 0 15.18 -1.48 0.65 0 13.1 -1.69 0.7 0 11.6 -1.84 0.75 0 10.63 -1.94 0.8 0 10.13 -1.99 0.9 0 9.87 -1.97 0.95 0 9.36 -1.84 1 0 8.38 -1.59 1.05 0 6.85 -1.21 1.1 0 4.74 -0.69 1.15 0 2 0 1.2 0 2.69 0 1.25 0 3.21 0 1.3 0 3.59 0 1.4 0 3.97 0 2 0 3.95 0 2.05 0 3.69 0 2.1 0 3.16 0 2.25 0 0.84 0 2.3 0 0.31 0 2.35 0 0.05 0 2.4 0 0 0"))
+                .addAnimation("tabardo", giro("0 -50 0 0 0.05 -50.34 0 0 0.1 -48.73 0 0 0.15 -51.54 0 0 0.2 -50.78 0 0 0.25 -48.91 0 0 0.3 -51.65 0 0 0.35 -49.94 0 0 0.4 -49.26 0 0 0.45 -41.78 0 0 0.5 -37.37 0 0 0.55 -29.12 0 0 0.6 -19.3 0 0 0.65 -10.56 0 0 0.7 -4.16 0 0 0.75 -0.28 0 0 0.8 1.53 0 0 0.85 1.93 0 0 1 0.27 0 0 1.1 -0.26 0 0 2.4 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 1 0.3 0 0 1.05 1.52 0 0 1.1 4.88 0 0 1.15 10.9 0 0 1.2 13.44 0 0 1.25 14.11 0 0 1.35 14.48 0 0 1.85 14.78 0 0 2 14.68 0 0 2.05 14.1 0 0 2.1 12.68 0 0 2.15 10.37 0 0 2.25 3 0 0 2.3 0.81 0 0 2.35 0 0 0 2.4 0 0 0"))
+                .addAnimation("capa_2", giro("0 -1.03 0 0 0.1 -0.65 0 0 0.3 2.57 0 0 0.4 2.51 0 0 0.45 1.07 0 0 0.6 -5.22 0 0 0.65 -5.6 0 0 0.9 -5.6 0 0 0.95 -5.54 0 0 1 -4.74 0 0 1.25 2 0 0 1.35 3.25 0 0 2.15 2.87 0 0 2.4 0 0 0"))
+                .addAnimation("capa_3", giro("0 8.26 0 0 0.1 8.28 0 0 0.15 12.18 0 0 0.2 11.07 0 0 0.3 16.38 0 0 0.35 14.68 0 0 0.4 16.59 0 0 0.45 13.09 0 0 0.55 4.44 0 0 0.65 -2.97 0 0 0.7 -5.73 0 0 0.75 -7.16 0 0 0.8 -7.62 0 0 0.9 -6.97 0 0 1.05 -2.39 0 0 1.15 0.12 0 0 1.3 2.19 0 0 1.4 2.49 0 0 2.1 2.14 0 0 2.4 0 0 0"))
+                .addAnimation("torso", giro("0 18 0 0 0.1 17.59 0 0 0.15 16.78 0 0 0.3 13.1 0 0 0.4 12.08 0 0 0.65 16.78 0 0 0.8 17.88 0 0 0.9 17.76 0 0 0.95 16.6 0 0 1 14.06 0 0 1.05 9.88 0 0 1.1 3.86 0 0 1.15 -4.14 0 0 1.2 -8.07 0 0 1.25 -9.79 0 0 1.35 -11.43 0 0 1.45 -11.95 0 0 1.95 -12 0 0 2.05 -11.4 0 0 2.1 -10.15 0 0 2.3 -1.67 0 0 2.35 -0.54 0 0 2.4 -0.12 0 0"))
+                .addAnimation("cuello", giro("0 8 0 0 0.1 7.65 0 0 0.15 6.74 0 0 0.3 1.72 0 0 0.35 0.55 0 0 0.4 0.03 0 0 2.4 0 0 0"))
+                .addAnimation("cabeza", giro("0 26 0 0 0.05 25.89 0 0 0.1 24.72 0 0 0.15 21.09 0 0 0.2 14.65 0 0 0.3 -1.46 0 0 0.35 -7.29 0 0 0.4 -10.1 0 0 0.45 -10.45 0 0 0.55 -9.11 0 0 0.7 -8.25 0 0 0.85 -8 0 0 0.95 -8.41 0 0 1 -9.44 0 0 1.05 -11.35 0 0 1.1 -14.24 0 0 1.2 -22.32 0 0 1.25 -25.41 0 0 1.3 -27.46 0 0 1.4 -29.61 0 0 1.55 -30.34 0.45 0 1.6 -31.06 1.58 0 1.7 -33.29 4.94 0 1.75 -33.94 5.91 0 1.8 -34.07 5.94 0 1.85 -33.69 3.99 0 1.95 -32.2 -3.85 0 2 -31.86 -5.36 0 2.05 -31.09 -5.3 0 2.1 -28.7 -4.65 0 2.15 -24.2 -3.78 0 2.25 -11.44 -1.77 0 2.3 -5.62 -0.88 0 2.35 -1.66 -0.26 0 2.4 0.14 0.02 0"))
+                .addAnimation("brazo_der", giro("0 -32.3 -0.01 -38.55 0.4 -32.3 -0.01 -38.55 0.5 -33.9 -0.01 -33.83 0.6 -35.01 -0.01 -30.58 0.7 -35.66 -0.01 -28.66 0.85 -35.95 -0.01 -27.8 0.9 -37.45 -0.01 -27.28 0.95 -43.34 -0.01 -25.24 1 -54.73 0 -21.29 1.05 -72.34 0 -15.18 1.1 -96.75 0.01 -6.71 1.15 -128.42 0.01 4.27 1.2 -79.9 0.01 11.95 1.25 -42.52 0 17.87 1.3 -15.54 0 22.14 1.35 1.91 0 24.9 1.4 10.93 -0.01 26.33 1.45 13.22 -0.01 26.69 2 13.07 -0.01 26.39 2.05 12.21 -0.01 24.65 2.1 10.45 -0.01 21.09 2.25 2.78 0 5.6 2.3 1.01 0 2.04 2.35 0.15 0 0.31 2.4 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 38.21 0 0 0.4 38.21 0 0 0.5 42.27 0 0 0.65 46.02 0 0 0.8 47.39 0 0 0.85 47.45 0 0 0.9 46.75 0 0 0.95 43.99 0 0 1 38.67 0 0 1.05 30.43 0 0 1.1 19.02 0 0 1.15 4.21 0 0 1.2 -2.19 0 0 1.25 -7.12 0 0 1.3 -10.68 0 0 1.35 -12.98 0 0 1.4 -14.17 0 0 2 -14.31 0 0 2.05 -13.37 0 0 2.1 -11.44 0 0 2.25 -3.04 0 0 2.3 -1.11 0 0 2.35 -0.17 0 0 2.4 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 -28.09 -0.01 49.17 0.4 -28.09 -0.01 49.17 0.45 -17.84 -0.01 37.91 0.5 -9.13 -0.01 28.33 0.55 -1.9 -0.01 20.39 0.6 3.93 -0.01 13.99 0.65 8.41 -0.01 9.06 0.7 11.65 0 5.5 0.75 13.75 0 3.2 0.8 14.83 0 2.01 0.9 14.85 0 1.26 0.95 13.86 0 -0.49 1 11.93 0 -3.87 1.05 8.95 0 -9.11 1.1 4.82 0.01 -16.36 1.15 -0.54 0.01 -25.77 1.2 -4.34 0.01 -25.71 1.25 -7.28 0 -25.68 1.3 -9.39 0 -25.65 1.35 -10.76 -0.01 -25.63 1.4 -11.47 -0.01 -25.62 2 -11.51 -0.01 -25.32 2.05 -10.76 -0.01 -23.66 2.1 -9.2 -0.01 -20.24 2.25 -2.44 0 -5.38 2.3 -0.89 0 -1.96 2.35 -0.13 0 -0.29 2.4 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 -7.73 0 0 0.4 -7.73 0 0 0.45 -13.53 0 0 0.5 -18.46 0 0 0.55 -22.55 0 0 0.6 -25.85 0 0 0.65 -28.39 0 0 0.7 -30.22 0 0 0.75 -31.4 0 0 0.85 -32.17 0 0 0.95 -31.27 0 0 1 -29.87 0 0 1.05 -27.71 0 0 1.1 -24.71 0 0 1.15 -20.83 0 0 1.2 -14.71 0 0 1.25 -9.99 0 0 1.3 -6.59 0 0 1.35 -4.39 0 0 1.4 -3.25 0 0 2 -2.92 0 0 2.1 -2.34 0 0 2.3 -0.23 0 0 2.4 0 0 0"))
+                .addAnimation("agarre", giro("0 28.18 -9.67 27.12 0.4 28.18 -9.67 27.12 0.5 29.11 -15.12 20.18 0.55 29.47 -17.19 17.54 0.65 29.98 -20.15 13.77 0.75 30.24 -21.68 11.81 0.9 29.89 -22.18 11.34 0.95 28.28 -22.57 11.42 1 25.15 -23.34 11.57 1.05 20.32 -24.53 11.81 1.1 13.61 -26.17 12.13 1.15 4.92 -28.31 12.56 1.2 6.37 -24.08 10.17 1.25 7.49 -20.82 8.33 1.3 8.29 -18.46 7 1.35 8.82 -16.94 6.15 1.4 9.09 -16.16 5.7 2 9.05 -15.77 5.53 2.05 8.46 -14.74 5.16 2.1 7.23 -12.61 4.42 2.25 1.92 -3.35 1.17 2.3 0.7 -1.22 0.43 2.35 0.11 -0.18 0.06 2.4 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 -73.82 2 1.11 0.4 -73.82 2 1.11 0.45 -77.43 1.52 1.18 0.5 -74.98 1.12 1.25 0.55 -67.37 0.79 1.31 0.65 -48.74 0.31 1.38 0.7 -41.4 0.16 1.39 0.75 -36.29 0.06 1.39 0.8 -33.52 0.01 1.4 0.85 -32.79 0 1.4 0.9 -34.91 0 1.31 0.95 -43.51 0 0.82 1 -47.37 0 -0.01 1.05 -35.62 0 -0.46 1.1 -20.12 0 -0.47 1.15 -9.96 0 -0.32 1.25 -12.78 0 -1.67 1.35 -13.97 0 -2.4 1.95 -14.25 0 -2.58 2 -14.95 0 -2.58 2.05 -18.52 0 -2.54 2.1 -24.14 0 -2.42 2.15 -27.77 0 -2.1 2.2 -25.48 0 -1.46 2.25 -17.49 0 -0.76 2.3 -7.9 0 -0.26 2.35 -1.39 0 -0.04 2.4 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 63.92 0 0 0.4 63.92 0 0 0.45 71.14 0 0 0.5 72.36 0 0 0.55 67.84 0 0 0.6 59.61 0 0 0.65 50.11 0 0 0.7 41.37 0 0 0.75 34.78 0 0 0.8 31.05 0 0 0.85 30.05 0 0 0.9 33.8 0 0 0.95 49.07 0 0 1 59.11 0 0 1.05 46.8 0 0 1.1 24.05 0 0 1.15 5.96 0 0 1.2 10.1 0 0 1.25 12.98 0 0 1.3 14.93 0 0 1.35 16.14 0 0 1.45 16.9 0 0 1.95 16.9 0 0 2 18.2 0 0 2.05 24.93 0 0 2.1 35.61 0 0 2.15 43.35 0 0 2.2 41.48 0 0 2.25 29.54 0 0 2.3 13.71 0 0 2.35 2.45 0 0 2.4 0 0 0"))
+                .addAnimation("pie_izq", giro("0 9.9 0 0 0.4 9.9 0 0 0.45 17.14 0 0 0.5 18.32 0 0 0.55 14.64 0 0 0.6 9.82 0 0 0.65 6.12 0 0 0.7 4.01 0 0 0.75 3.09 0 0 0.85 2.74 0 0 0.9 2.88 0 0 0.95 4.24 0 0 1 4.26 0 0 1.05 -1.38 0 0 1.1 -2.15 0 0 1.15 4 0 0 1.2 1.55 0 0 1.25 -0.2 0 0 1.3 -1.41 0 0 1.4 -2.55 0 0 2.05 -2.6 0 0 2.15 -0.41 0 0 2.2 -0.84 0 0 2.25 -2.25 0 0 2.3 -2.01 0 0 2.35 -0.48 0 0 2.4 0 0 0"))
+                .addAnimation("pierna_der", giro("0 7.47 -2 8.93 0.4 7.47 -2 8.93 0.45 -0.51 -1.52 10.03 0.5 -10.43 -1.12 8.52 0.55 -19.29 -0.79 5.9 0.6 -22.99 -0.52 3.87 0.65 -22.02 -0.31 2.62 0.75 -15.8 -0.06 1.5 0.8 -13.79 -0.01 1.31 0.95 -12.8 0 1.4 1 -12.02 0 1.57 1.05 -10.39 0 1.68 1.1 -7.37 0 1.61 1.15 -2.01 0 1.36 1.25 -4.01 0 2.7 1.35 -4.89 0 3.41 1.95 -5.09 0 3.59 2 -5.77 0 3.58 2.05 -9.26 0 3.54 2.1 -14.9 0 3.39 2.15 -19.37 0 2.95 2.2 -19.34 0 2.07 2.25 -14.22 0 1.08 2.3 -6.75 0 0.37 2.35 -1.22 0 0.06 2.4 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 84.79 0 0 0.4 84.79 0 0 0.45 93.31 0 0 0.5 96.11 0 0 0.55 91.58 0 0 0.6 80.97 0 0 0.65 67.77 0 0 0.7 55.27 0 0 0.75 45.66 0 0 0.8 40.12 0 0 0.85 38.64 0 0 0.9 38.28 0 0 0.95 36.86 0 0 1 33.98 0 0 1.05 29.13 0 0 1.1 21.52 0 0 1.15 9.45 0 0 1.2 12.44 0 0 1.25 14.57 0 0 1.35 16.94 0 0 1.45 17.51 0 0 1.95 17.51 0 0 2 18.77 0 0 2.05 25.26 0 0 2.1 35.61 0 0 2.15 43.07 0 0 2.2 41.12 0 0 2.25 29.27 0 0 2.3 13.61 0 0 2.35 2.43 0 0 2.4 0 0 0"))
+                .addAnimation("pie_der", giro("0 -30.26 0 0 0.4 -30.26 0 0 0.45 -34.66 0 0 0.5 -35.2 0 0 0.6 -30.32 0 0 0.65 -28.67 0 0 0.75 -26.33 0 0 0.8 -25.62 0 0 0.9 -25.14 0 0 0.95 -24.06 0 0 1 -21.96 0 0 1.05 -18.73 0 0 1.1 -14.15 0 0 1.15 -7.44 0 0 1.25 -10.56 0 0 1.3 -11.47 0 0 1.4 -12.35 0 0 2.05 -12.21 0 0 2.1 -10.9 0 0 2.2 -6.61 0 0 2.25 -5.25 0 0 2.35 -0.63 0 0 2.4 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition barrido() {
-        return AnimationDefinition.Builder.withLength(3.8F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, -81.661F, -0.02F, 218.305F),
-                        seco(0.6F, -57.191F, -0.005F, -51.697F),
-                        rot(0.85F, -57.191F, -0.005F, -51.697F),
-                        rot(1.12F, 7.312F, -0.009F, -81.468F),
-                        seco(1.4F, -60.895F, -0.002F, -37.046F),
-                        rot(1.62F, -60.895F, -0.002F, -37.046F),
-                        rot(1.9F, -34.117F, -0.033F, -172.509F),
-                        seco(2.2F, -48.902F, -0.009F, -42.494F),
-                        rot(2.45F, -48.902F, -0.009F, -42.494F),
-                        rot(2.78F, 56.451F, 0.011F, 38.276F),
-                        seco(3.1F, -55.483F, -0.011F, -60.439F),
-                        rot(3.35F, -55.483F, -0.011F, -60.439F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, -86.403F, 0F, 0F),
-                        seco(0.6F, 47.467F, 0F, 0F),
-                        rot(0.85F, 47.467F, 0F, 0F),
-                        rot(1.12F, 12.743F, 0F, 0F),
-                        seco(1.4F, 47.442F, 0F, 0F),
-                        rot(1.62F, 47.442F, 0F, 0F),
-                        rot(1.9F, -246.569F, 0F, 0F),
-                        seco(2.2F, 47.449F, 0F, 0F),
-                        rot(2.45F, 47.449F, 0F, 0F),
-                        rot(2.78F, -71.996F, 0F, 0F),
-                        seco(3.1F, 47.456F, 0F, 0F),
-                        rot(3.35F, 47.456F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 20.205F, 0.007F, -19.863F),
-                        seco(0.6F, 25.767F, 0.004F, -16.804F),
-                        rot(0.85F, 25.767F, 0.004F, -16.804F),
-                        rot(1.12F, 29.757F, -0.001F, -16.92F),
-                        seco(1.4F, 17.827F, -0.013F, -19.466F),
-                        rot(1.62F, 17.827F, -0.013F, -19.466F),
-                        rot(1.9F, -1.816F, -0.007F, -13.291F),
-                        seco(2.2F, 36.191F, -0.006F, -15.216F),
-                        rot(2.45F, 36.191F, -0.006F, -15.216F),
-                        rot(2.78F, 27.11F, 0.02F, -20.644F),
-                        seco(3.1F, 19.426F, 0.005F, -16.135F),
-                        rot(3.35F, 19.426F, 0.005F, -16.135F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, -41.686F, 0F, 0F),
-                        seco(0.6F, -38.209F, 0F, 0F),
-                        rot(0.85F, -38.209F, 0F, 0F),
-                        rot(1.12F, -37.892F, 0F, 0F),
-                        seco(1.4F, -41.427F, 0F, 0F),
-                        rot(1.62F, -41.427F, 0F, 0F),
-                        rot(1.9F, -36.124F, 0F, 0F),
-                        seco(2.2F, -29.791F, 0F, 0F),
-                        rot(2.45F, -29.791F, 0F, 0F),
-                        rot(2.78F, -41.951F, 0F, 0F),
-                        seco(3.1F, -38.026F, 0F, 0F),
-                        rot(3.35F, -38.026F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, -82.197F, -97.22F, 25.751F),
-                        seco(0.6F, 2.99F, -5.97F, -28.478F),
-                        rot(0.85F, 2.99F, -5.97F, -28.478F),
-                        rot(1.12F, -65.869F, -131.42F, 30.574F),
-                        seco(1.4F, -46.204F, 31.496F, 1.158F),
-                        rot(1.62F, -46.204F, 31.496F, 1.158F),
-                        rot(1.9F, -0.114F, 2.308F, -37.721F),
-                        seco(2.2F, -11.589F, -1.945F, -1.675F),
-                        rot(2.45F, -11.589F, -1.945F, -1.675F),
-                        rot(2.78F, -79.678F, 126.017F, -8.952F),
-                        seco(3.1F, 2.376F, -20.08F, -23.931F),
-                        rot(3.35F, 2.376F, -20.08F, -23.931F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 4F, 26F, 0F),
-                        seco(0.6F, 4F, -26F, 0F),
-                        rot(0.85F, 4F, -26F, 0F),
-                        rot(1.12F, 4F, -22F, 0F),
-                        seco(1.4F, 4F, 24F, 0F),
-                        rot(1.62F, 4F, 24F, 0F),
-                        rot(1.9F, 4F, 8F, 0F),
-                        seco(2.2F, 22F, -14F, 0F),
-                        rot(2.45F, 22F, -14F, 0F),
-                        rot(2.78F, 4F, 32F, 0F),
-                        seco(3.1F, 4F, -32F, 0F),
-                        rot(3.35F, 4F, -32F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 0F, -15.6F, 0F),
-                        seco(0.6F, 0F, 15.6F, 0F),
-                        rot(0.85F, 0F, 15.6F, 0F),
-                        rot(1.12F, 0F, 13.2F, 0F),
-                        seco(1.4F, 0F, -14.4F, 0F),
-                        rot(1.62F, 0F, -14.4F, 0F),
-                        rot(1.9F, -14F, 0F, 0F),
-                        seco(2.2F, 0F, 8.4F, 0F),
-                        rot(2.45F, 0F, 8.4F, 0F),
-                        rot(2.78F, 0F, -19.2F, 0F),
-                        seco(3.1F, 0F, 19.2F, 0F),
-                        rot(3.35F, 0F, 19.2F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.32F, 0F, -2F, 0F),
-                        posSeco(0.6F, 0F, -2F, 0F),
-                        pos(0.85F, 0F, -2F, 0F),
-                        pos(1.12F, 0F, -2F, 0F),
-                        posSeco(1.4F, 0F, -2F, 0F),
-                        pos(1.62F, 0F, -2F, 0F),
-                        pos(1.9F, 0F, -2F, 0F),
-                        posSeco(2.2F, 0F, -2F, 0F),
-                        pos(2.45F, 0F, -2F, 0F),
-                        pos(2.78F, 0F, -2F, 0F),
-                        posSeco(3.1F, 0F, -2F, 0F),
-                        pos(3.35F, 0F, -2F, 0F),
-                        pos(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, -14F, 0F, -8F),
-                        seco(0.6F, -20F, 0F, -8F),
-                        rot(0.85F, -20F, 0F, -8F),
-                        rot(1.12F, -14F, 0F, -8F),
-                        seco(1.4F, -20F, 0F, -8F),
-                        rot(1.62F, -20F, 0F, -8F),
-                        rot(1.9F, -14F, 0F, -8F),
-                        seco(2.2F, -24F, 0F, -8F),
-                        rot(2.45F, -24F, 0F, -8F),
-                        rot(2.78F, -14F, 0F, -8F),
-                        seco(3.1F, -24F, 0F, -8F),
-                        rot(3.35F, -24F, 0F, -8F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 18F, 0F, 0F),
-                        seco(0.6F, 24F, 0F, 0F),
-                        rot(0.85F, 24F, 0F, 0F),
-                        rot(1.12F, 18F, 0F, 0F),
-                        seco(1.4F, 24F, 0F, 0F),
-                        rot(1.62F, 24F, 0F, 0F),
-                        rot(1.9F, 18F, 0F, 0F),
-                        seco(2.2F, 28F, 0F, 0F),
-                        rot(2.45F, 28F, 0F, 0F),
-                        rot(2.78F, 18F, 0F, 0F),
-                        seco(3.1F, 28F, 0F, 0F),
-                        rot(3.35F, 28F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 14F, 0F, 8F),
-                        seco(0.6F, 14F, 0F, 8F),
-                        rot(0.85F, 14F, 0F, 8F),
-                        rot(1.12F, 14F, 0F, 8F),
-                        seco(1.4F, 14F, 0F, 8F),
-                        rot(1.62F, 14F, 0F, 8F),
-                        rot(1.9F, 14F, 0F, 8F),
-                        seco(2.2F, 14F, 0F, 8F),
-                        rot(2.45F, 14F, 0F, 8F),
-                        rot(2.78F, 14F, 0F, 8F),
-                        seco(3.1F, 14F, 0F, 8F),
-                        rot(3.35F, 14F, 0F, 8F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 10F, 0F, 0F),
-                        seco(0.6F, 10F, 0F, 0F),
-                        rot(0.85F, 10F, 0F, 0F),
-                        rot(1.12F, 10F, 0F, 0F),
-                        seco(1.4F, 10F, 0F, 0F),
-                        rot(1.62F, 10F, 0F, 0F),
-                        rot(1.9F, 10F, 0F, 0F),
-                        seco(2.2F, 10F, 0F, 0F),
-                        rot(2.45F, 10F, 0F, 0F),
-                        rot(2.78F, 10F, 0F, 0F),
-                        seco(3.1F, 10F, 0F, 0F),
-                        rot(3.35F, 10F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, -20F, 0F, 0F),
-                        seco(0.6F, -20F, 0F, 0F),
-                        rot(0.85F, -20F, 0F, 0F),
-                        rot(1.12F, -20F, 0F, 0F),
-                        seco(1.4F, -20F, 0F, 0F),
-                        rot(1.62F, -20F, 0F, 0F),
-                        rot(1.9F, -20F, 0F, 0F),
-                        seco(2.2F, -20F, 0F, 0F),
-                        rot(2.45F, -20F, 0F, 0F),
-                        rot(2.78F, -20F, 0F, 0F),
-                        seco(3.1F, -20F, 0F, 0F),
-                        rot(3.35F, -20F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 20F, 0F, 0F),
-                        seco(0.6F, 20F, 0F, 0F),
-                        rot(0.85F, 20F, 0F, 0F),
-                        rot(1.12F, 20F, 0F, 0F),
-                        seco(1.4F, 20F, 0F, 0F),
-                        rot(1.62F, 20F, 0F, 0F),
-                        rot(1.9F, 20F, 0F, 0F),
-                        seco(2.2F, 20F, 0F, 0F),
-                        rot(2.45F, 20F, 0F, 0F),
-                        rot(2.78F, 20F, 0F, 0F),
-                        seco(3.1F, 20F, 0F, 0F),
-                        rot(3.35F, 20F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 10F, 0F, 0F),
-                        seco(0.6F, 10F, 0F, 0F),
-                        rot(0.85F, 10F, 0F, 0F),
-                        rot(1.12F, 10F, 0F, 0F),
-                        seco(1.4F, 10F, 0F, 0F),
-                        rot(1.62F, 10F, 0F, 0F),
-                        rot(1.9F, 10F, 0F, 0F),
-                        seco(2.2F, 10F, 0F, 0F),
-                        rot(2.45F, 10F, 0F, 0F),
-                        rot(2.78F, 10F, 0F, 0F),
-                        seco(3.1F, 10F, 0F, 0F),
-                        rot(3.35F, 10F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.32F, 12F, 0F, 0F),
-                        seco(0.6F, 12F, 0F, 0F),
-                        rot(0.85F, 12F, 0F, 0F),
-                        rot(1.12F, 12F, 0F, 0F),
-                        seco(1.4F, 12F, 0F, 0F),
-                        rot(1.62F, 12F, 0F, 0F),
-                        rot(1.9F, 12F, 0F, 0F),
-                        seco(2.2F, 12F, 0F, 0F),
-                        rot(2.45F, 12F, 0F, 0F),
-                        rot(2.78F, 12F, 0F, 0F),
-                        seco(3.1F, 12F, 0F, 0F),
-                        rot(3.35F, 12F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(2.6F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 2.23 0 3.05 0.1 12.01 0 16.4 0.15 25.1 -0.01 34.29 0.2 33.41 -0.01 45.63 0.25 34.55 -0.01 47.19 0.3 29.7 -0.01 40.29 0.35 14.75 -0.01 19.03 0.4 -12.44 -0.01 -19.64 0.45 -27.09 -0.01 -40.47 0.55 -27.07 -0.01 -40.5 0.6 -23.91 -0.01 -44.44 0.65 -13.56 -0.01 -57.33 0.7 -0.31 -0.01 -73.84 0.75 8.72 -0.01 -85.09 0.8 10.69 -0.01 -87.55 0.85 7.2 -0.01 -86.25 0.9 -6.52 -0.01 -81.17 0.95 -33.05 -0.01 -71.35 1 -55.83 -0.01 -62.92 1.1 -55.83 -0.01 -62.92 1.15 -61.41 -0.01 -57.19 1.2 -84.43 -0.01 -33.54 1.25 -111.76 -0.01 -5.46 1.3 -124.26 -0.01 7.37 1.35 -123.28 -0.01 7.09 1.4 -111.13 -0.01 0.76 1.45 -83.24 -0.01 -13.78 1.5 -37.05 -0.01 -37.86 1.55 -13.01 -0.01 -50.39 1.65 -13.01 -0.01 -50.39 1.7 -11.86 -0.01 -47.71 1.75 -3.72 -0.01 -28.83 1.8 10.16 -0.01 3.4 1.85 22.45 -0.01 31.94 1.9 27.34 -0.01 43.3 1.95 26.8 -0.01 42.39 2 20.81 -0.01 31.36 2.05 7.07 -0.01 6.05 2.1 -15.7 -0.01 -35.86 2.15 -27.54 -0.01 -57.67 2.25 -27.54 -0.01 -57.67 2.3 -27.17 -0.01 -56.89 2.35 -24.25 -0.01 -50.77 2.4 -18.23 -0.01 -38.18 2.45 -10.76 -0.01 -22.53 2.5 -4.28 0 -8.96 2.55 -0.69 0 -1.45 2.6 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -5.65 0 0 0.1 -30.34 0 0 0.15 -63.45 0 0 0.2 -84.43 0 0 0.25 -87.45 0 0 0.3 -82.32 0 0 0.35 -66.51 0 0 0.4 -37.77 0 0 0.45 -22.28 0 0 0.55 -22.27 0 0 0.6 -20.75 0 0 0.65 -15.77 0 0 0.7 -9.39 0 0 0.75 -5.04 0 0 0.8 -4.1 0 0 0.85 -1.39 0 0 0.9 9.24 0 0 0.95 29.79 0 0 1 47.45 0 0 1.1 47.45 0 0 1.15 42.61 0 0 1.2 22.68 0 0 1.25 -0.99 0 0 1.3 -11.81 0 0 1.4 -13.24 0 0 1.45 -15.39 0 0 1.5 -18.95 0 0 1.55 -20.81 0 0 1.65 -20.81 0 0 1.7 -22.3 0 0 1.75 -32.78 0 0 1.8 -50.66 0 0 1.85 -66.5 0 0 1.9 -72.81 0 0 1.95 -72.35 0 0 2 -66.64 0 0 2.05 -53.53 0 0 2.1 -31.83 0 0 2.15 -20.54 0 0 2.3 -20.26 0 0 2.35 -18.08 0 0 2.4 -13.6 0 0 2.45 -8.02 0 0 2.5 -3.19 0 0 2.55 -0.52 0 0 2.6 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 2.9 0 -1.48 0.1 15.56 0 -7.97 0.15 32.53 0 -16.66 0.2 43.29 0 -22.18 0.25 44.85 0 -23 0.3 43.04 0 -23.16 0.35 37.46 -0.01 -23.69 0.4 27.31 -0.02 -24.64 0.45 21.84 -0.02 -25.15 0.55 21.84 -0.02 -25.15 0.6 21.45 -0.02 -24.47 0.65 20.18 -0.01 -22.27 0.7 18.55 -0.01 -19.44 0.75 17.44 0 -17.52 0.8 17.2 0 -17.1 0.85 19.42 0 -17.18 0.9 28.13 0 -17.49 0.95 44.99 0.01 -18.11 1 59.46 0.01 -18.64 1.1 59.46 0.01 -18.64 1.15 53.57 0.01 -18.09 1.2 29.26 0.01 -15.85 1.25 0.4 0 -13.18 1.3 -12.8 0 -11.96 1.35 -12.32 0 -12.11 1.4 -4.18 0 -13.78 1.45 14.5 0 -17.61 1.5 45.42 0.01 -23.95 1.55 61.52 0.01 -27.25 1.7 61.27 0.01 -27.07 1.75 59.51 0.01 -25.83 1.85 53.84 0 -21.82 1.9 52.77 0 -21.07 1.95 52.23 0 -21.11 2 47.92 0 -21.68 2.05 38.02 0 -22.99 2.1 21.64 0 -25.16 2.15 13.11 0 -26.28 2.3 12.93 0 -25.93 2.35 11.54 0 -23.14 2.4 8.68 0 -17.4 2.45 5.12 0 -10.27 2.5 2.04 0 -4.08 2.55 0.33 0 -0.66 2.6 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -3.1 0 0 0.1 -16.66 0 0 0.15 -34.83 0 0 0.2 -46.34 0 0 0.25 -48.05 0 0 0.35 -48.7 0 0 0.45 -50.06 0 0 0.55 -50.06 0 0 0.6 -49.69 0 0 0.75 -45.79 0 0 0.8 -45.55 0 0 0.85 -46.22 0 0 0.9 -48.83 0 0 0.95 -53.88 0 0 1 -58.22 0 0 1.1 -58.22 0 0 1.15 -54.5 0 0 1.2 -39.19 0 0 1.25 -21.01 0 0 1.3 -12.7 0 0 1.35 -12.81 0 0 1.4 -16.3 0 0 1.45 -24.3 0 0 1.5 -37.56 0 0 1.55 -44.46 0 0 1.95 -44.78 0 0 2 -45.28 0 0 2.05 -46.41 0 0 2.1 -48.29 0 0 2.15 -49.27 0 0 2.25 -49.27 0 0 2.3 -48.6 0 0 2.35 -43.38 0 0 2.4 -32.62 0 0 2.45 -19.25 0 0 2.5 -7.66 0 0 2.55 -1.24 0 0 2.6 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 -5.39 7.84 -0.21 0.1 -28.95 42.13 -1.13 0.15 -60.53 88.11 -2.36 0.2 -80.55 117.24 -3.14 0.25 -83.37 121.4 -3.27 0.3 -74.9 111.6 -4.62 0.35 -48.81 81.43 -8.79 0.4 -1.35 26.55 -16.36 0.45 24.21 -3.01 -20.45 0.55 24.22 -3 -20.45 0.6 25.82 -2.48 -21.08 0.65 31.07 -0.79 -23.14 0.7 37.79 1.37 -25.79 0.75 42.37 2.85 -27.59 0.8 43.37 3.17 -27.99 0.85 38.48 4.01 -27.5 0.9 19.32 7.29 -25.56 0.95 -17.75 13.64 -21.82 1 -49.59 19.09 -18.6 1.1 -49.59 19.09 -18.6 1.15 -44.97 17.39 -14.68 1.2 -25.91 10.35 1.51 1.25 -3.29 2 20.73 1.3 7.06 -1.82 29.52 1.35 7.51 -2.11 29.46 1.4 8.18 -3.4 26.33 1.45 9.71 -6.37 19.13 1.5 12.24 -11.27 7.2 1.55 13.56 -13.82 1 1.65 13.56 -13.82 1 1.7 11.28 -9.69 1.2 1.75 -4.75 19.38 2.64 1.8 -32.12 69 5.08 1.85 -56.35 112.93 7.25 1.9 -66 130.42 8.11 1.95 -65.18 129.32 7.84 2 -55.41 114.92 5.27 2.05 -33 81.85 -0.63 2.1 4.11 27.1 -10.4 2.15 23.42 -1.39 -15.48 2.3 23.1 -1.37 -15.27 2.35 20.61 -1.22 -13.63 2.4 15.5 -0.92 -10.25 2.45 9.15 -0.54 -6.05 2.5 3.64 -0.22 -2.41 2.55 0.59 -0.04 -0.39 2.6 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 0.14 1.04 0 0.1 0.93 6.98 0 0.15 2.27 17.03 0 0.2 3.42 25.64 0 0.25 3.87 29.02 0 0.3 3.97 27 0 0.35 3.99 16.62 0 0.4 4 -4.65 0 0.45 4.55 -26.68 0 0.5 5.47 -34.73 0 0.55 5.88 -37.28 0 0.6 5.88 -37.28 0 0.65 5.5 -35 0 0.75 4.32 -27.93 0 0.85 4.01 -24.52 0 0.9 4 -16.62 0 0.95 4 0.48 0 1 4.34 22.65 0 1.05 5.32 31.86 0 1.1 5.84 35.06 0 1.15 5.27 34.58 0 1.2 1.5 28.09 0 1.25 -4.35 17.88 0 1.3 -8.47 10.67 0 1.35 -9.45 8.43 0 1.4 -7.17 6.43 0 1.45 -0.36 2.14 0 1.5 11.95 -5.41 0 1.55 24.6 -12.14 0 1.6 29.02 -13.6 0 1.65 29.87 -13.92 0 1.7 29.59 -13.26 0 1.75 26.16 -6.62 0 1.8 18.8 7.54 0 1.85 10.69 23.14 0 1.9 5.76 32.62 0 1.95 4.37 34.83 0 2 4.08 30.31 0 2.05 4.02 16.71 0 2.15 4.48 -32.3 0 2.2 5.36 -41.48 0 2.25 5.84 -44.91 0 2.3 5.92 -45.45 0 2.35 5.54 -42.45 0 2.4 4.51 -34.59 0 2.5 1.56 -11.98 0 2.55 0.53 -4.1 0 2.6 0.12 -0.91 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 0 -0.23 0 0.1 0 -2.3 0 0.15 0 -7.4 0 0.2 0 -13.6 0 0.25 0 -17.58 0 0.3 0 -17.95 0 0.35 0 -13.76 0 0.4 0 -3.53 0 0.45 0 10.88 0 0.5 0 18.5 0 0.55 0 19.71 0 0.7 0 16.89 0 0.85 0 15.16 0 0.9 0 12.4 0 0.95 0 4.76 0 1 0 -8.08 0 1.05 0 -16.43 0 1.1 0 -18.36 0 1.15 -0.23 -17.45 0 1.2 -2.19 -14.36 0 1.3 -11.6 -2.8 0 1.35 -14.11 0.21 0 1.4 -14.03 0.99 0 1.45 -11.89 1.76 0 1.5 -7.76 3.81 0 1.55 -2.46 6.86 0 1.6 0.23 8.49 0 1.65 0.62 8.76 0 1.7 0.29 8.43 0 1.75 0.03 6.17 0 1.8 -0.04 -0.4 0 1.85 -0.03 -10.13 0 1.9 -0.01 -18.48 0 1.95 0 -22.1 0 2 0 -20.91 0 2.05 0 -14.63 0 2.1 0 -2.24 0 2.15 0 14.52 0 2.2 0 25.11 0 2.25 0 28.63 0 2.3 0 28.59 0 2.35 0 26.91 0 2.4 0 23.11 0 2.45 0 16.9 0 2.5 0 9.57 0 2.55 0 3.41 0 2.6 0 0.1 0"))
+                .addAnimation("pelvis", giro("0 0 0 0 0.05 0 0.87 0 0.1 0 4.68 0 0.15 0 9.79 0 0.2 0 13.02 0 0.25 0 13.46 0 0.3 0 11.34 0 0.35 0 4.8 0 0.4 0 -7.09 0 0.45 0 -13.5 0 0.6 0 -13.35 0 0.75 0 -11.79 0 0.8 0 -11.7 0 0.85 0 -10.42 0 0.9 0 -5.41 0 0.95 0 4.28 0 1 0 12.6 0 1.1 0 12.6 0 1.15 0 11.87 0 1.25 0 5.29 0 1.3 0 3.66 0 1.35 0 3.47 0 1.4 0 2.4 0 1.45 0 -0.08 0 1.5 0 -4.17 0 1.55 0 -6.3 0 1.65 0 -6.3 0 1.7 0 -5.66 0 1.75 0 -1.14 0 1.8 0 6.57 0 1.85 0 13.39 0 1.9 0 16.11 0 1.95 0 15.79 0 2 0 12.26 0 2.05 0 4.17 0 2.1 0 -9.23 0 2.15 0 -16.2 0 2.3 0 -15.98 0 2.35 0 -14.26 0 2.4 0 -10.72 0 2.5 0 -2.52 0 2.55 0 -0.41 0 2.6 0 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 0.32 0 0.1 0 1.73 0 0.15 0 3.62 0 0.2 0 4.82 0 0.25 0 5 -0.01 0.3 0 5.24 -0.48 0.35 0 5.97 -1.93 0.4 0 7.29 -4.58 0.45 0 8.48 -6.48 0.5 0 8.92 -6.92 0.55 0 9 -7 0.6 0 8.66 -6.41 0.65 0 7.57 -4.49 0.7 0 6.17 -2.04 0.75 0 5.21 -0.36 0.8 0 5 0 0.85 0 5.16 -0.32 0.9 0 5.78 -1.55 0.95 0 6.97 -3.94 1 0 8 -6 1.1 0 8 -6 1.15 0 7.35 -5.35 1.2 0 4.68 -2.68 1.25 0 1.5 0.5 1.3 0 0.05 1.95 1.35 0 0.18 1.9 1.4 0 1.7 1.03 1.45 0 5.2 -0.97 1.5 0 10.99 -4.28 1.55 0 15.44 -6 1.6 0 16.16 -6 1.65 0 16.01 -6 1.7 0 15.69 -5.83 1.75 0 13.48 -4.62 1.8 0 9.71 -2.57 1.85 0 6.37 -0.75 1.9 0 5.04 -0.02 1.95 0 5.05 -0.1 2 0 5.49 -0.97 2.05 0 6.49 -2.97 2.1 0 8.14 -6.28 2.15 0 9 -8 2.25 0 9 -8 2.3 0 8.88 -7.89 2.35 0 7.92 -7.04 2.4 0 5.96 -5.3 2.45 0 3.52 -3.13 2.5 0 1.4 -1.24 2.55 0 0.23 -0.2 2.6 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.1 0 0 0.81 0.2 0 0 3.06 0.25 0.35 0 3.07 0.3 2.11 0 1.49 0.35 3.62 0 -2.58 0.4 1.73 0 -8.66 0.45 0 0 -11.29 0.5 0 0 -11.04 0.55 0.06 0 -10.09 0.6 1.3 0 -7.55 0.7 5.16 0 -0.23 0.75 6.13 0 2.17 0.8 6.45 0 2.85 0.85 6.29 0 3.11 0.9 5.42 0 4.96 0.95 2.93 0 8.41 1 0 0 10.11 1.05 0 0 9.94 1.1 0.01 0 9.21 1.15 1.95 0 6.71 1.25 13.12 0 -3.11 1.3 15.64 0 -5.22 1.35 15.21 0 -4.42 1.4 11.76 0 -3.08 1.45 4.55 0 -2.21 1.5 0 0 -2.79 1.55 0 0 -5.02 1.65 0 0 -4.59 1.7 0 0 -3.33 1.75 1.73 0 2.87 1.8 3.44 0 11.84 1.85 3.97 0 15.45 1.9 5.43 0 12.09 1.95 6.59 0 5.83 2 6.68 0 -1.23 2.05 3.81 0 -8.19 2.1 0 0 -12.46 2.15 0 0 -14.3 2.2 0 0 -13.81 2.25 0 0 -12.66 2.3 0.81 0 -10.33 2.35 3.06 0 -5.7 2.4 4.45 0 0.15 2.45 3.12 0 3.46 2.5 1.25 0 3.13 2.55 0.26 0 1.3 2.6 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -0.12 0 -0.01 0.15 -1.41 0 -0.38 0.2 -1.24 0 -0.56 0.25 -0.1 0 -0.49 0.3 0.07 0 -0.13 0.4 -0.58 0 0.5 0.45 -2.55 0 0.93 0.5 -2.27 0 1.92 0.55 -0.42 0 2.96 0.6 0.38 0 2.6 0.7 -0.49 0 0.04 0.75 -0.87 0 -0.66 0.95 -1.25 0 -0.1 1 -1.95 0 -0.06 1.05 -1.69 0 -1.46 1.1 0.04 0 -2.81 1.15 0.68 0 -2.69 1.25 0.15 0 -0.46 1.3 0.93 0 -0.07 1.4 2.6 0 -0.48 1.45 2.38 0 -0.83 1.5 -5.6 0 -0.52 1.55 -5.6 0 0.22 1.65 -5.6 0 -0.12 1.75 -5.09 0 -1.24 1.8 -3.98 0 -1.95 1.85 -3.17 0 -1.28 1.95 -2.67 0 2.11 2 -1.47 0 2.89 2.05 -0.02 0 2.2 2.1 -2.97 0 0.92 2.15 -5.6 0 2.69 2.2 -5.6 0 2.64 2.25 -5.22 0 2.26 2.3 -3.63 0 1.82 2.4 -0.94 0 -0.81 2.45 0.16 0 -0.6 2.55 0.2 0 0.26 2.6 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.15 0.22 0 0.05 0.3 1.24 0 -0.49 0.4 0.71 0 -0.92 0.55 1.26 0 1.6 0.65 1.08 0 2.26 0.85 0.43 0 -0.77 1 1.06 0 -0.24 1.2 0.77 0 -2 1.3 0.59 0 -0.75 1.4 1.68 0 0.69 1.45 2.15 0 0.6 1.5 1.95 0 0.04 1.55 -9.27 0 1.25 1.65 -9.27 0 1.26 1.7 -8.6 0 1.05 1.75 -7.01 0 -0.13 1.8 -4.28 0 -1.74 1.85 -1.45 0 -1.94 1.9 0.11 0 -1.16 2.05 0.83 0 0.34 2.1 1.36 0 0.25 2.15 -0.46 0 1.04 2.2 1.34 0 3.1 2.25 4.04 0 4.51 2.3 4.23 0 4.47 2.35 2.61 0 3.59 2.4 0.58 0 1.84 2.45 -0.19 0 0.02 2.5 -0.01 0 -0.64 2.6 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -1.04 0 -0.1 0.15 -8.77 0 -1 0.2 -10.83 0 -1.28 0.25 -11.29 0 -1.33 0.3 -29.82 0 -2.58 0.35 -42.95 0 -2.77 0.4 -27.86 0 2.02 0.45 -29.55 0 4.06 0.5 -30.44 0 3.92 0.55 -30.6 0 3.9 0.6 -29.97 0 4.04 0.65 -27.58 0 4.46 0.75 -19.46 0 5.21 0.8 -18.36 0 5.27 0.85 -19.39 0 4.58 0.9 -22.31 0 2 0.95 -24.94 0 -2.31 1 -25.25 0 -5.14 1.1 -25.25 0 -5.14 1.15 -29.49 0 -5.34 1.2 -38.74 0 -5.77 1.25 -24.09 0 -4.47 1.3 -0.57 0 -3.66 1.35 -5.37 0 -3.71 1.4 -33.19 0 -4.56 1.45 -37.99 0 -3.87 1.5 -35.57 0 -2.13 1.55 -43.98 0 -1.8 1.6 -45.39 0 -1.86 1.65 -45.1 0 -1.85 1.7 -46.06 0 -2.16 1.75 -51.49 0 -4.42 1.8 -48.12 0 -7.06 1.85 -29.14 0 -7.08 1.9 -17.33 0 -6.77 1.95 -17.07 0 -6.64 2 -18.71 0 -5.63 2.05 -21.97 0 -3.44 2.1 -26.19 0 -0.29 2.15 -27.95 0 1.04 2.25 -27.95 0 1.04 2.3 -28.62 0 0.98 2.4 -38.6 0 -0.17 2.45 -33.68 0 -0.54 2.5 -18.33 0 -0.3 2.55 -3.94 0 -0.05 2.6 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 2.19 0 0 0.1 10.43 0 0 0.15 19.42 0 0 0.2 24.38 0 0 0.25 25.34 0 0 0.3 50.4 0 0 0.35 53.19 0 0 0.4 21.27 0 0 0.45 24.92 0 0 0.5 27.04 0 0 0.55 27.41 0 0 0.6 25.5 0 0 0.65 18.7 0 0 0.7 8.16 0 0 0.75 -1.17 0 0 0.8 -3.65 0 0 0.85 -1.05 0 0 0.9 7.36 0 0 0.95 19.36 0 0 1 27.22 0 0 1.1 27.22 0 0 1.15 33.98 0 0 1.2 47.96 0 0 1.25 24.94 0 0 1.3 -16.01 0 0 1.35 -7.75 0 0 1.4 33.78 0 0 1.45 34.01 0 0 1.5 29.6 0 0 1.55 43.52 0 0 1.6 45.46 0 0 1.65 45.06 0 0 1.7 46.74 0 0 1.75 56.6 0 0 1.8 57.19 0 0 1.85 33.94 0 0 1.9 16.3 0 0 1.95 15.87 0 0 2 18.21 0 0 2.05 23.15 0 0 2.1 30.33 0 0 2.15 33.7 0 0 2.25 33.7 0 0 2.3 34.98 0 0 2.35 44.06 0 0 2.4 55.57 0 0 2.45 52.42 0 0 2.5 30.59 0 0 2.55 6.84 0 0 2.6 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -1.15 0 0 0.1 -5.59 0 0 0.15 -10.65 0 0 0.2 -13.55 0 0 0.25 -13.97 0 0 0.3 -10.77 0 0 0.35 2.66 0 0 0.4 7.18 0 0 0.45 4.62 0 0 0.5 3.4 0 0 0.55 3.19 0 0 0.6 4.47 0 0 0.65 8.88 0 0 0.7 15.3 0 0 0.75 20.64 0 0 0.8 22 0 0 0.85 20.44 0 0 0.9 14.95 0 0 0.95 5.58 0 0 1 -1.97 0 0 1.1 -1.97 0 0 1.15 -0.46 0 0 1.2 6.22 0 0 1.25 8.06 0 0 1.3 16.91 0 0 1.35 14.46 0 0 1.4 12.85 0 0 1.45 14.76 0 0 1.5 6.4 0 0 1.55 0.46 0 0 1.6 -0.07 0 0 1.65 0.04 0 0 1.7 0.75 0 0 1.75 5.44 0 0 1.8 6.53 0 0 1.85 1.31 0 0 1.95 1.2 0 0 2 0.49 0 0 2.05 -1.18 0 0 2.1 -4.14 0 0 2.15 -5.75 0 0 2.3 -5.68 0 0 2.35 -4.84 0 0 2.4 -2.99 0 0 2.5 -4.76 0 0 2.55 -1.64 0 0 2.6 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -6.04 0 0.25 0.1 -19.96 0 1.48 0.15 -21.21 0 2.72 0.2 -13.98 0 3.02 0.25 -12.48 0 3.04 0.3 -11.77 0 3.03 0.35 -9.4 0 2.66 0.4 -4.66 0 0.57 0.45 -2.09 0 -1.37 0.55 -2.1 0 -1.43 0.6 -6.53 0 -1.17 0.65 -17.21 0 -0.32 0.7 -20.79 0 0.26 0.75 -14.75 0 0.26 0.8 -12.38 0 0.23 0.85 -25.32 0 1.07 0.9 -47.78 0 2.54 0.95 -36.58 0 -0.44 1 -35.96 0 -2.19 1.1 -35.96 0 -2.19 1.15 -41.03 0 -1.31 1.2 -48.42 0 2.53 1.25 -25.81 0 4.25 1.3 -1.43 0 3.94 1.35 -0.41 0 3.99 1.4 -3.02 0 4.57 1.45 -6.47 0 5.54 1.5 -9.05 0 6.14 1.55 -10.87 0 6.37 1.6 -11.62 0 6.51 1.65 -11.46 0 6.48 1.7 -12.7 0 6.66 1.75 -20.81 0 7.61 1.8 -28.52 0 6.64 1.85 -23.29 0 3.47 1.9 -16.98 0 2.14 1.95 -19.26 0 2.04 2 -39.87 0 1.33 2.05 -43.11 0 0.2 2.1 -29.62 0 1.25 2.15 -27.41 0 1.54 2.25 -27.41 0 1.54 2.3 -28.07 0 1.52 2.4 -37.49 0 1.26 2.45 -33.01 0 0.75 2.55 -4.2 0 0.03 2.6 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 11.7 0 0 0.1 39.05 0 0 0.15 41.45 0 0 0.2 27.03 0 0 0.25 24.1 0 0 0.3 24.64 0 0 0.5 29.35 0 0 0.55 29.58 0 0 0.6 37.18 0 0 0.65 53.12 0 0 0.7 49.57 0 0 0.75 30.61 0 0 0.8 24.67 0 0 0.9 64.52 0 0 0.95 33.31 0 0 1 31.75 0 0 1.1 31.75 0 0 1.15 42.35 0 0 1.2 65.21 0 0 1.25 40.85 0 0 1.3 0.81 0 0 1.35 -0.59 0 0 1.4 7.58 0 0 1.45 21.34 0 0 1.5 37.82 0 0 1.55 48.52 0 0 1.6 50.42 0 0 1.65 50.03 0 0 1.7 51.71 0 0 1.75 61.69 0 0 1.8 62.92 0 0 1.85 41.37 0 0 1.9 25.91 0 0 1.95 29.59 0 0 2 59.98 0 0 2.05 56.29 0 0 2.1 37.46 0 0 2.15 39.51 0 0 2.25 39.51 0 0 2.3 40.85 0 0 2.35 50.38 0 0 2.4 62.3 0 0 2.45 58.16 0 0 2.5 33.99 0 0 2.55 7.77 0 0 2.6 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.1 -4.91 0 0 0.2 -11.27 0 0 0.25 -11.62 0 0 0.3 -12.87 0 0 0.35 -16.56 0 0 0.4 -22.49 0 0 0.45 -26.25 0 0 0.5 -27.28 0 0 0.55 -27.46 0 0 0.6 -26.46 0 0 0.7 -16.1 0 0 0.75 -13.26 0 0 0.8 -12.29 0 0 0.85 -12.58 0 0 0.9 -1.57 0 0 0.95 5.05 0 0 1 4.22 0 0 1.1 4.22 0 0 1.15 2.71 0 0 1.2 -1.35 0 0 1.25 -6.13 0 0 1.3 0.94 0 0 1.35 1 0 0 1.4 -4.56 0 0 1.45 -14.87 0 0 1.5 -28.78 0 0 1.55 -37.65 0 0 1.6 -38.8 0 0 1.65 -38.57 0 0 1.7 -37.58 0 0 1.75 -30.33 0 0 1.8 -18.8 0 0 1.85 -11.97 0 0 1.9 -8.73 0 0 1.95 -8.99 0 0 2 -6.66 0 0 2.05 -2.4 0 0 2.15 -12.09 0 0 2.35 -11.9 0 0 2.45 -10.08 0 0 2.5 -7.85 0 0 2.55 -2.31 0 0 2.6 0 0 0"))
+                .addAnimation("tabardo", giro("0 0 0 0 0.2 0.02 0 -0.23 0.4 0.09 0 0.56 0.6 -0.03 0 -0.1 1 0.07 0 -0.45 1.2 -0.01 0 0.21 1.5 0 0 0.13 1.55 -22.51 0 0.23 1.6 -22.01 0 0.18 1.65 -24.23 0 0.13 1.7 -22.91 0 -0.19 1.75 -15.09 0 -1.5 1.8 -6.52 0 -1.81 1.85 -0.41 0 -0.56 1.9 2.56 0 0.76 1.95 3.23 0 1.23 2.1 0.63 0 0.64 2.2 -0.43 0 0.31 2.4 -0.03 0 -0.23 2.6 0 0 0"))
+                .addAnimation("falda_izq", giro("0 0 0 0 0.15 -0.35 0 -0.21 0.4 0.94 0 0.51 0.45 -0.07 0 0.07 0.5 -0.42 0 -0.18 0.6 0.06 0 0.02 0.8 0.02 0 0.01 0.95 -0.75 0 -0.49 1.05 0.35 0 0.28 1.35 -0.08 0 -0.04 1.5 0.31 0 0.18 1.8 -0.58 0 -0.37 2.1 1.01 0 0.56 2.15 -0.1 0 0.08 2.2 -0.46 0 -0.2 2.3 0.05 0 0.01 2.4 -0.27 0 -0.16 2.6 0 0 0"))
+                .addAnimation("falda_der", giro("0 0 0 0 0.15 0.35 0 -0.2 0.4 -0.89 0 0.58 0.5 0.36 0 -0.28 0.8 -0.01 0 0.01 0.95 0.79 0 -0.43 1.05 -0.42 0 0.18 1.35 0.08 0 -0.05 1.5 -0.31 0 0.19 1.8 0.6 0 -0.33 2.1 -0.98 0 0.63 2.2 0.39 0 -0.31 2.3 -0.04 0 0.04 2.6 0 0 0"))
+                .addAnimation("falda_lizq", giro("0 0 0 0 0.15 -0.42 0 0 0.4 1.09 0 -0.04 0.45 -0.03 0 0.09 0.5 -0.47 0 0.06 0.6 0.06 0 -0.01 0.8 0.02 0 0 0.95 -0.93 0 -0.04 1.05 0.46 0 0.06 1.35 -0.1 0 0 1.5 0.37 0 0 1.8 -0.71 0 -0.02 2.1 1.19 0 -0.04 2.15 -0.05 0 0.12 2.2 -0.51 0 0.07 2.3 0.06 0 -0.01 2.4 -0.32 0 0 2.6 0 0 0"))
+                .addAnimation("falda_lder", giro("0 0 0 0 0.15 0.42 0 0 0.4 -1.09 0 0.04 0.45 0.03 0 -0.09 0.5 0.47 0 -0.06 0.6 -0.06 0 0.01 0.8 -0.02 0 0 0.95 0.93 0 0.04 1.05 -0.46 0 -0.06 1.35 0.1 0 0 1.5 -0.37 0 0 1.8 0.71 0 0.02 2.1 -1.19 0 0.04 2.15 0.05 0 -0.12 2.2 0.51 0 -0.07 2.3 -0.06 0 0.01 2.4 0.32 0 0 2.6 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition castigo() {
-        return AnimationDefinition.Builder.withLength(2.8F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -152.555F, -0.017F, 21.565F),
-                        rot(1.4F, -152.555F, -0.017F, 21.565F),
-                        rot(2.1F, -152.555F, -0.017F, 21.565F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 33.519F, 0F, 0F),
-                        rot(1.4F, 33.519F, 0F, 0F),
-                        rot(2.1F, 33.519F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -139.742F, -0.015F, -27.093F),
-                        rot(1.4F, -139.742F, -0.015F, -27.093F),
-                        rot(2.1F, -139.742F, -0.015F, -27.093F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -16.144F, 0F, 0F),
-                        rot(1.4F, -16.144F, 0F, 0F),
-                        rot(2.1F, -16.144F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -49.449F, 77.91F, -34.315F),
-                        rot(1.4F, -49.449F, 77.91F, -34.315F),
-                        rot(2.1F, -49.449F, 77.91F, -34.315F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -24F, 0F, 0F),
-                        rot(1.4F, -28F, -3F, 0F),
-                        rot(2.1F, -24F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -6F, 0F, 0F),
-                        rot(1.4F, -8F, 2F, 0F),
-                        rot(2.1F, -6F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 20F, 0F, 0F),
-                        rot(1.4F, 20F, 0F, 0F),
-                        rot(2.1F, 20F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 10F, 0F, 0F),
-                        rot(1.4F, 10F, 0F, 0F),
-                        rot(2.1F, 10F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 12F, 0F, 0F),
-                        rot(1.4F, 12F, 0F, 0F),
-                        rot(2.1F, 12F, 0F, 0F),
-                        rot(2.8F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(2.2F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 4.65 0 -0.6 0.1 16.13 0.01 -2.08 0.15 -3.85 0 0.96 0.2 -89.91 -0.01 13.81 0.25 -134.42 -0.02 20.45 0.3 -145.76 -0.02 22.14 1.7 -145.76 -0.02 22.14 1.75 -145.44 -0.02 22.09 1.8 -140.59 -0.02 21.36 1.85 -127.29 -0.02 19.34 1.9 -105.64 -0.02 16.05 1.95 -78.57 -0.01 11.94 2 -50.52 -0.01 7.67 2.05 -26.24 0 3.99 2.1 -9.4 0 1.43 2.15 -1.4 0 0.21 2.2 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -13.22 0 0 0.1 -45.88 0 0 0.15 -43.26 0 0 0.2 -3.9 0 0 0.25 16.46 0 0 0.3 21.64 0 0 1.75 21.59 0 0 1.8 20.88 0 0 1.85 18.9 0 0 1.9 15.69 0 0 2 7.5 0 0 2.05 3.9 0 0 2.1 1.4 0 0 2.15 0.21 0 0 2.2 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 -3.26 0 3.52 0.1 -11.32 -0.01 12.22 0.15 -30.39 -0.01 8.45 0.2 -95.42 -0.01 -13.65 0.25 -129.06 -0.01 -25.07 0.3 -137.63 -0.01 -27.99 1.75 -137.32 -0.01 -27.93 1.8 -132.74 -0.01 -26.99 1.85 -120.19 -0.01 -24.44 1.9 -99.75 -0.01 -20.29 1.95 -74.18 -0.01 -15.09 2 -47.7 0 -9.7 2.05 -24.77 0 -5.04 2.1 -8.88 0 -1.81 2.15 -1.32 0 -0.27 2.2 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -8.04 0 0 0.1 -27.93 0 0 0.15 -30.8 0 0 0.2 -23.78 0 0 0.25 -20.15 0 0 0.3 -19.22 0 0 1.7 -19.22 0 0 1.8 -18.54 0 0 1.85 -16.79 0 0 1.9 -13.93 0 0 2.05 -3.46 0 0 2.1 -1.24 0 0 2.15 -0.18 0 0 2.2 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 0.03 -10.61 1.62 0.1 0.11 -36.82 5.63 0.15 0.82 -41.97 9.1 0.2 3.42 -37.86 18.63 0.25 4.77 -35.74 23.56 0.3 5.11 -35.2 24.82 1.75 5.1 -35.12 24.76 1.8 4.93 -33.95 23.93 1.85 4.46 -30.74 21.67 1.9 3.71 -25.52 17.99 2 1.77 -12.2 8.6 2.05 0.92 -6.34 4.47 2.1 0.33 -2.27 1.6 2.15 0.05 -0.34 0.24 2.2 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 1.35 -0.81 0 0.1 6.21 -3.73 0 0.15 8.14 -5.12 0 0.2 2.3 -3.07 0 0.25 -2.89 -1.16 0 0.35 -7.46 1.02 0 0.4 -8.76 1.85 0 0.45 -9.1 2.07 0 0.65 -8.72 1.81 0 0.9 -6.56 0.38 0 1.05 -6.02 0.01 0 1.15 -6.29 0.19 0 1.35 -8.75 1.83 0 1.45 -8.78 1.95 0 1.5 -7.77 1.73 0 1.55 -5.54 1.23 0 1.6 -1.86 0.41 0 1.7 -5.2 0.02 0 1.75 -5.82 0 0 1.8 -5.83 0 0 1.9 -4.72 0 0 2.1 -0.72 0 0 2.2 -0.05 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 1.48 0 0.1 0 5.13 0 0.15 0 5.03 0 0.2 0 1.38 0 0.25 0 -0.52 0 0.3 0 -1 0 1.4 0 -1 0 1.45 0 -0.83 0 1.5 0 -0.19 0 1.55 0 1.06 0 1.6 0 3 0 1.65 0 0.16 0 1.7 0 -0.94 0 1.75 0 -1 0 1.85 0 -0.87 0 2.05 0 -0.18 0 2.2 0 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 0.3 0 0 0.15 4.39 0 0 0.2 -1.97 0 0 0.25 -13.74 0 0 0.3 -22.31 0 0 0.35 -26.54 -0.83 0 0.4 -28.81 -2.31 0 0.45 -29.62 -3.2 0 0.7 -28.22 -2.53 0 0.95 -24.52 -0.31 0 1.05 -23.98 0.01 0 1.15 -24.24 -0.14 0 1.2 -24.93 -0.56 0 1.35 -28.43 -2.66 0 1.45 -29.01 -3.04 0 1.5 -28.22 -2.81 0 1.55 -26.12 -2.22 0 1.6 -22.32 -1.18 0 1.65 -20.25 -0.21 0 1.75 -23.49 0.11 0 1.8 -23.95 0.03 0 1.85 -22.9 0 0 1.9 -20.37 -0.01 0 1.95 -16.57 0 0 2.05 -7.41 0 0 2.1 -3.56 0 0 2.15 -1.01 0 0 2.2 0.11 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.15 0.27 0 -0.57 0.2 5.28 0 -0.04 0.25 9.68 0 0.35 0.35 13.1 0 0.47 0.4 13.85 0 0.38 0.6 12.74 0 -0.12 0.95 11.32 0 -0.06 1.1 11.53 0 0.01 1.3 13.33 0 0.16 1.4 13.4 0 0.08 1.45 12.99 0 0.01 1.5 11.87 0 -0.05 1.55 9.79 0 -0.12 1.6 6.65 0 -0.21 1.7 11.44 0 -0.12 1.75 12.28 0 -0.05 1.8 12.16 0 0 1.85 11.4 0 0.03 1.95 8.17 0 0.04 2.05 2.51 0 0.01 2.1 0.75 0 0 2.15 0.02 0 0 2.2 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -1.31 0 0.01 0.1 -5.6 0 0.15 0.15 -5.33 0 0.23 0.35 1.66 0 0.09 0.45 3.1 0 0.2 0.75 1.86 0 -0.07 1.05 1.48 0 0 1.5 2.32 0 0 1.7 0.47 0 -0.04 1.95 1.91 0 0.01 2.2 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.1 -0.59 0 0.01 0.15 -2.72 0 0.08 0.2 -2.15 0 0.05 0.4 1.93 0 0.04 0.5 2.52 0 0.02 0.8 1.71 0 -0.02 1.6 1.9 0 -0.03 1.8 1.14 0 0.02 1.95 1.14 0 0 2.2 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -19.01 0 -0.43 0.1 -23.33 0 -0.94 0.15 -15.84 0 -0.86 0.2 -6.25 0 -0.69 0.25 0.87 0 -0.62 0.3 3.37 0 -0.6 1.4 3.37 0 -0.6 1.45 2.46 0 -0.6 1.5 -0.61 0 -0.63 1.55 -5.25 0 -0.68 1.6 -10.9 0 -0.76 1.65 -2.02 0 -0.64 1.7 3 0 -0.6 1.75 3.03 0 -0.6 1.8 -1.24 0 -0.61 1.9 -16.64 0 -0.69 1.95 -20.53 0 -0.66 2 -18.72 0 -0.49 2.05 -12.49 0 -0.26 2.1 -5.4 0 -0.09 2.15 -0.9 0 -0.01 2.2 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 32.76 0 0 0.1 36.78 0 0 0.15 23.16 0 0 0.2 6.2 0 0 0.25 -6.71 0 0 0.3 -11.31 0 0 1.4 -11.31 0 0 1.45 -9.62 0 0 1.5 -4.01 0 0 1.55 4.41 0 0 1.6 14.49 0 0 1.65 -1.45 0 0 1.7 -10.63 0 0 1.75 -10.66 0 0 1.8 -2.68 0 0 1.9 26.03 0 0 1.95 33.77 0 0 2 31.7 0 0 2.05 21.65 0 0 2.1 9.52 0 0 2.15 1.6 0 0 2.2 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -2.56 0 0 0.1 -6.43 0 0 0.15 -7.32 0 0 0.2 0.05 0 0 0.25 5.84 0 0 0.3 7.94 0 0 1.4 7.94 0 0 1.45 7.17 0 0 1.5 4.62 0 0 1.55 0.85 0 0 1.6 -3.59 0 0 1.65 3.46 0 0 1.7 7.63 0 0 1.75 7.75 0 0 1.85 3.4 0 0 1.95 2.64 0 0 2.05 -0.59 0 0 2.1 -0.9 0 0 2.2 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -4 0 0.36 0.1 -10.83 0 1.31 0.15 -10.24 0 1.48 0.2 -1.63 0 1.22 0.25 5.03 0 1.09 0.3 7.42 0 1.06 1.4 7.42 0 1.06 1.45 6.54 0 1.07 1.5 3.63 0 1.11 1.55 -0.71 0 1.2 1.6 -5.86 0 1.33 1.65 2.31 0 1.14 1.7 7.07 0 1.06 1.75 7.4 0 1.06 1.8 7.1 0 1.02 1.85 6.31 0 0.93 2.05 1.16 0 0.19 2.1 0.41 0 0.07 2.2 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 8.61 0 0 0.1 24.34 0 0 0.15 23.77 0 0 0.2 6.82 0 0 0.25 -6.09 0 0 0.3 -10.7 0 0 1.4 -10.7 0 0 1.45 -9.01 0 0 1.5 -3.4 0 0 1.55 5.02 0 0 1.6 15.1 0 0 1.65 -0.83 0 0 1.7 -10.02 0 0 1.75 -10.66 0 0 1.8 -10.21 0 0 1.85 -9 0 0 2.05 -1.59 0 0 2.1 -0.56 0 0 2.2 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -4.61 0 0 0.1 -13.52 0 0 0.15 -13.53 0 0 0.2 -5.19 0 0 0.25 1.06 0 0 0.3 3.27 0 0 1.4 3.27 0 0 1.45 2.46 0 0 1.5 -0.23 0 0 1.55 -4.31 0 0 1.6 -9.24 0 0 1.65 -1.47 0 0 1.7 2.95 0 0 1.8 3.1 0 0 2.05 0.43 0 0 2.2 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition castigo_onda() {
-        return AnimationDefinition.Builder.withLength(4.2F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -152.555F, -0.017F, 21.565F),
-                        rot(1.4F, -152.555F, -0.017F, 21.565F),
-                        rot(2.1F, -152.555F, -0.017F, 21.565F),
-                        rot(2.35F, -152.555F, -0.017F, 21.565F),
-                        seco(2.6F, -37.145F, -0.008F, -35.142F),
-                        rot(3.3F, -37.145F, -0.008F, -35.142F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 33.519F, 0F, 0F),
-                        rot(1.4F, 33.519F, 0F, 0F),
-                        rot(2.1F, 33.519F, 0F, 0F),
-                        rot(2.35F, 33.519F, 0F, 0F),
-                        seco(2.6F, 47.465F, 0F, 0F),
-                        rot(3.3F, 47.465F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -139.742F, -0.015F, -27.093F),
-                        rot(1.4F, -139.742F, -0.015F, -27.093F),
-                        rot(2.1F, -139.742F, -0.015F, -27.093F),
-                        rot(2.35F, -139.742F, -0.015F, -27.093F),
-                        seco(2.6F, -43.963F, -0.01F, 44.223F),
-                        rot(3.3F, -43.963F, -0.01F, 44.223F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -16.144F, 0F, 0F),
-                        rot(1.4F, -16.144F, 0F, 0F),
-                        rot(2.1F, -16.144F, 0F, 0F),
-                        rot(2.35F, -16.144F, 0F, 0F),
-                        seco(2.6F, 18.908F, 0F, 0F),
-                        rot(3.3F, 18.908F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -49.449F, 77.91F, -34.315F),
-                        rot(1.4F, -49.449F, 77.91F, -34.315F),
-                        rot(2.1F, -49.449F, 77.91F, -34.315F),
-                        rot(2.35F, -49.449F, 77.91F, -34.315F),
-                        seco(2.6F, 31.305F, -10.108F, 24.52F),
-                        rot(3.3F, 31.305F, -10.108F, 24.52F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -24F, 0F, 0F),
-                        rot(1.4F, -28F, -3F, 0F),
-                        rot(2.1F, -24F, 0F, 0F),
-                        rot(2.35F, -24F, 0F, 0F),
-                        seco(2.6F, 10F, 0F, 0F),
-                        rot(3.3F, -6F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, -6F, 0F, 0F),
-                        rot(1.4F, -8F, 2F, 0F),
-                        rot(2.1F, -6F, 0F, 0F),
-                        rot(2.35F, -12F, 0F, 0F),
-                        seco(2.6F, 12F, 0F, 0F),
-                        rot(3.3F, 12F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 20F, 0F, 0F),
-                        rot(1.4F, 20F, 0F, 0F),
-                        rot(2.1F, 20F, 0F, 0F),
-                        rot(2.35F, 20F, 0F, 0F),
-                        seco(2.6F, 8F, 0F, 0F),
-                        rot(3.3F, 8F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 10F, 0F, 0F),
-                        rot(1.4F, 10F, 0F, 0F),
-                        rot(2.1F, 10F, 0F, 0F),
-                        rot(2.35F, 10F, 0F, 0F),
-                        seco(2.6F, 24F, 0F, 0F),
-                        rot(3.3F, 24F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 12F, 0F, 0F),
-                        rot(1.4F, 12F, 0F, 0F),
-                        rot(2.1F, 12F, 0F, 0F),
-                        rot(2.35F, 12F, 0F, 0F),
-                        seco(2.6F, 50F, 0F, 0F),
-                        rot(3.3F, 50F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.7F, 0F, 0F, 0F),
-                        pos(1.4F, 0F, 0F, 0F),
-                        pos(2.1F, 0F, 0F, 0F),
-                        pos(2.35F, 0F, 6F, 0F),
-                        posSeco(2.6F, 0F, -30F, 0F),
-                        pos(3.3F, 0F, -30F, 0F),
-                        pos(4.2F, 0F, 0F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.4F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.35F, 0F, 0F, 0F),
-                        seco(2.6F, -70F, 0F, 0F),
-                        rot(3.3F, -70F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.4F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.35F, 0F, 0F, 0F),
-                        seco(2.6F, -86F, 0F, -6F),
-                        rot(3.3F, -86F, 0F, -6F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.4F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.35F, 0F, 0F, 0F),
-                        seco(2.6F, 86F, 0F, 0F),
-                        rot(3.3F, 86F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.4F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.35F, 0F, 0F, 0F),
-                        seco(2.6F, 6F, 0F, 5F),
-                        rot(3.3F, 6F, 0F, 5F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.4F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.35F, 0F, 0F, 0F),
-                        seco(2.6F, 86F, 0F, 0F),
-                        rot(3.3F, 86F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.4F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.35F, 0F, 0F, 0F),
-                        seco(2.6F, -62F, 0F, 0F),
-                        rot(3.3F, -62F, 0F, 0F),
-                        rot(4.2F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(3F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 4.65 0 -0.6 0.1 16.13 0.01 -2.08 0.15 -3.85 0 0.96 0.2 -89.91 -0.01 13.81 0.25 -134.42 -0.02 20.45 0.3 -145.76 -0.02 22.14 1.95 -145.76 -0.02 22.14 2 -137.08 -0.02 17.57 2.05 -103.01 -0.02 -0.4 2.1 -37.15 -0.01 -35.14 2.5 -37.15 -0.01 -35.14 2.55 -36.83 -0.01 -34.84 2.6 -34.99 -0.01 -33.11 2.65 -31.09 -0.01 -29.41 2.7 -25.35 -0.01 -23.99 2.8 -11.79 0 -11.16 2.85 -6.06 0 -5.73 2.9 -2.15 0 -2.04 2.95 -0.32 0 -0.3 3 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -13.22 0 0 0.1 -45.88 0 0 0.15 -43.26 0 0 0.2 -3.9 0 0 0.25 16.46 0 0 0.3 21.64 0 0 1.95 21.64 0 0 2 23.71 0 0 2.05 31.8 0 0 2.1 47.47 0 0 2.5 47.47 0 0 2.55 47.06 0 0 2.6 44.72 0 0 2.65 39.72 0 0 2.7 32.4 0 0 2.8 15.07 0 0 2.85 7.74 0 0 2.9 2.75 0 0 2.95 0.41 0 0 3 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 -3.26 0 3.52 0.1 -11.32 -0.01 12.22 0.15 -30.39 -0.01 8.45 0.2 -95.42 -0.01 -13.65 0.25 -129.06 -0.01 -25.07 0.3 -137.63 -0.01 -27.99 1.95 -137.63 -0.01 -27.99 2 -130.14 -0.01 -22.22 2.05 -100.77 -0.01 0.43 2.1 -43.96 -0.01 44.22 2.5 -43.96 -0.01 44.22 2.55 -43.59 -0.01 43.84 2.6 -41.42 -0.01 41.66 2.65 -36.79 -0.01 37.01 2.7 -30.01 -0.01 30.18 2.8 -13.96 0 14.04 2.85 -7.17 0 7.21 2.9 -2.55 0 2.56 2.95 -0.38 0 0.38 3 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -8.04 0 0 0.1 -27.93 0 0 0.15 -30.8 0 0 0.2 -23.78 0 0 0.25 -20.15 0 0 0.3 -19.22 0 0 1.95 -19.22 0 0 2 -16.18 0 0 2.05 -4.22 0 0 2.1 18.91 0 0 2.5 18.91 0 0 2.55 18.75 0 0 2.6 17.81 0 0 2.65 15.82 0 0 2.7 12.91 0 0 2.8 6 0 0 2.85 3.08 0 0 2.9 1.09 0 0 2.95 0.16 0 0 3 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 0.03 -10.61 1.62 0.1 0.11 -36.82 5.63 0.15 0.82 -41.97 9.1 0.2 3.42 -37.86 18.63 0.25 4.77 -35.74 23.56 0.3 5.11 -35.2 24.82 1.95 5.11 -35.2 24.82 2 7.21 -33.2 24.79 2.05 15.42 -25.33 24.7 2.1 31.3 -10.11 24.52 2.5 31.3 -10.11 24.52 2.55 31.04 -10.02 24.31 2.6 29.49 -9.52 23.1 2.65 26.2 -8.46 20.52 2.7 21.37 -6.9 16.74 2.8 9.94 -3.21 7.78 2.85 5.11 -1.65 4 2.9 1.81 -0.58 1.42 2.95 0.27 -0.09 0.21 3 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 1.35 -0.81 0 0.1 6.21 -3.73 0 0.15 8.14 -5.12 0 0.2 2.3 -3.07 0 0.25 -2.89 -1.16 0 0.35 -7.46 1.02 0 0.4 -8.76 1.85 0 0.45 -9.1 2.07 0 0.65 -8.72 1.81 0 0.9 -6.56 0.38 0 1.05 -6.02 0.01 0 1.15 -6.29 0.19 0 1.3 -8.27 1.51 0 1.4 -8.94 1.96 0 1.45 -8.78 1.95 0 1.5 -7.77 1.73 0 1.55 -5.54 1.23 0 1.6 -1.86 0.41 0 1.75 3.23 0 0 1.8 1.58 0 0 1.85 -5.5 0 0 1.9 -10.88 0 0 1.95 -13.28 0 0 2 -12.69 0 0 2.05 -7.08 0 0 2.1 5.4 0 0 2.15 12.29 0 0 2.2 14.9 0 0 2.25 15.76 0 0 2.3 15.76 0 0 2.45 12.64 0 0 2.6 11.56 0 0 2.65 10.57 0 0 2.7 8.98 0 0 2.85 2.8 0 0 2.9 1.3 0 0 3 0.09 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 1.48 0 0.1 0 5.13 0 0.15 0 5.03 0 0.2 0 1.38 0 0.25 0 -0.52 0 0.3 0 -1 0 1.4 0 -1 0 1.45 0 -0.83 0 1.5 0 -0.19 0 1.55 0 1.06 0 1.6 0 3 0 1.65 0 4.08 0.27 1.7 0 7.83 1.21 1.75 0 10.72 1.93 1.8 0 5 1.5 1.85 0 -5.92 0.59 1.9 0 -11.56 0.12 1.95 0 -13 0 2 0 -9.56 0 2.05 0 3.92 0 2.1 0 30 0 2.15 0 31.28 0 2.2 0 31.89 0 2.25 0 32 0 2.3 0 31.83 0 2.35 0 31.28 0 2.4 0 30.58 0 2.45 0 30.1 0 2.5 0 30 0 2.55 0 29.74 0 2.6 0 28.26 0 2.65 0 25.11 0 2.7 0 20.48 0 2.8 0 9.52 0 2.85 0 4.89 0 2.9 0 1.74 0 2.95 0 0.26 0 3 0 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 0.3 0 0 0.15 4.39 0 0 0.2 -1.97 0 0 0.25 -13.74 0 0 0.3 -22.31 0 0 0.35 -26.54 -0.83 0 0.4 -28.81 -2.31 0 0.45 -29.62 -3.2 0 0.7 -28.22 -2.53 0 0.95 -24.52 -0.31 0 1.05 -23.98 0.01 0 1.15 -24.24 -0.14 0 1.2 -24.93 -0.56 0 1.35 -28.43 -2.66 0 1.45 -29.01 -3.04 0 1.5 -28.22 -2.81 0 1.55 -26.12 -2.22 0 1.65 -18.73 -0.21 0 1.7 -17.07 0.12 0 1.75 -16.31 0.11 0 1.8 -16.29 0.03 0 1.85 -18.57 0 0 1.9 -21.68 -0.01 0 1.95 -23.7 0 0 2 -23.72 0 0 2.05 -19.21 0 0 2.1 -6.78 0 0 2.15 6.46 0 0 2.2 11.47 0 0 2.25 11.51 0 0 2.3 10.37 0 0 2.35 8.83 0 0 2.45 3.99 0 0 2.5 2.28 0 0 2.55 1.74 0 0 2.7 1.63 0 0 3 -0.01 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.15 0.27 0 -0.57 0.2 5.28 0 -0.04 0.25 9.68 0 0.35 0.35 13.1 0 0.47 0.4 13.85 0 0.38 0.6 12.74 0 -0.12 0.95 11.32 0 -0.06 1.1 11.53 0 0.01 1.3 13.33 0 0.16 1.4 13.4 0 0.08 1.45 12.99 0 0.01 1.5 11.87 0 -0.05 1.55 9.79 0 -0.12 1.6 6.65 0 -0.21 1.75 4.8 0 -0.05 1.8 7.43 0 0 1.85 14.73 0 0.03 1.9 19.18 0 0.04 1.95 19.79 0 0.04 2 17.18 0 0.03 2.05 9.93 0 0.01 2.1 0 0 0 2.65 0 0 0 2.8 1.18 0 0 3 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -1.31 0 0.01 0.1 -5.6 0 0.15 0.15 -5.33 0 0.23 0.35 1.66 0 0.09 0.45 3.1 0 0.2 0.75 1.86 0 -0.07 1.05 1.48 0 0 1.5 2.32 0 0 1.6 1.52 0 -0.05 1.8 -1.24 0 -0.01 1.85 -0.92 0 0 2 3.72 0 0.01 2.05 4.78 0 0.01 2.1 2.18 0 0.01 2.15 -3.3 0 0 2.2 -3.43 0 -0.01 2.35 2.12 0 0 2.4 3.41 0 0 2.45 3.96 0 0 2.6 2.47 0 0 2.75 3.15 0 0 2.8 2.9 0 0 2.9 1.03 0 0 3 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.1 -0.59 0 0.01 0.15 -2.72 0 0.08 0.2 -2.15 0 0.05 0.4 1.93 0 0.04 0.5 2.52 0 0.02 0.8 1.71 0 -0.02 1.6 1.9 0 -0.03 1.9 0.39 0 0 2 1.26 0 -0.01 2.05 2.57 0 -0.01 2.1 33.16 0 0 2.15 31.65 0 0 2.25 23.95 0 0.01 2.3 17.53 0 0 2.35 16.45 0 0 2.4 16 0 0 2.45 13.82 0 0 2.55 18.15 0 0 2.6 15.25 0 0 2.7 8.2 0 0 2.8 3.66 0 0 2.85 1.86 0 0 2.9 0.74 0 0 3 0 0 0"))
+                .addAnimation("tabardo", giro("0 0 0 0 2 -0.2 0 0 2.05 -1.97 0 0 2.1 -49.52 0 0 2.15 -53.73 0 0 2.2 -52.64 0 0 2.25 -54.67 0 0 2.3 -53.25 0 0 2.35 -50.7 0 0 2.4 -52.99 0 0 2.45 -50.92 0 0 2.55 -48.6 0 0 2.65 -44.51 0 0 2.7 -35.94 0 0 2.75 -26.37 0 0 2.8 -15.93 0 0 2.85 -6.92 0 0 2.9 -2.04 0 0 2.95 -0.15 0 0 3 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -19.01 0 -0.43 0.1 -23.33 0 -0.94 0.15 -15.84 0 -0.86 0.2 -6.25 0 -0.69 0.25 0.87 0 -0.62 0.3 3.37 0 -0.6 1.4 3.37 0 -0.6 1.45 2.46 0 -0.6 1.5 -0.61 0 -0.63 1.55 -5.25 0 -0.68 1.6 -10.9 0 -0.76 1.65 -13.79 0 -0.78 1.7 -22.63 0 -0.86 1.75 -28.74 0 -0.93 1.8 -23.76 0 -0.79 1.85 -11.59 0 -0.55 1.9 -2.44 0 -0.44 1.95 0.93 0 -0.42 2 -18.12 0.42 -0.08 2.05 -40.33 1.58 0.99 2.1 -73.82 2 1.11 2.15 -76.27 2 1.08 2.2 -77.44 2 1.06 2.25 -77.66 2 1.06 2.3 -77.33 2 1.06 2.45 -74.02 2 1.1 2.55 -74.1 1.98 1.09 2.6 -75.64 1.88 1 2.65 -78.11 1.67 0.78 2.7 -77.96 1.36 0.41 2.75 -69.08 1 0.08 2.8 -51.12 0.64 -0.03 2.85 -30.89 0.33 -0.02 2.9 -13.49 0.12 0 2.95 -2.44 0.02 0 3 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 32.76 0 0 0.1 36.78 0 0 0.15 23.16 0 0 0.2 6.2 0 0 0.25 -6.71 0 0 0.3 -11.31 0 0 1.4 -11.31 0 0 1.45 -9.62 0 0 1.5 -4.01 0 0 1.55 4.41 0 0 1.6 14.49 0 0 1.65 19.1 0 0 1.7 32.62 0 0 1.75 41.39 0 0 1.8 33.09 0 0 1.85 12.25 0 0 1.9 -4.09 0 0 1.95 -10.22 0 0 2 16.33 0 0 2.05 31.43 0 0 2.1 63.92 0 0 2.15 66.14 0 0 2.2 67.17 0 0 2.25 67.36 0 0 2.3 67.08 0 0 2.45 64.1 0 0 2.5 63.92 0 0 2.55 64.53 0 0 2.6 68.02 0 0 2.7 81.11 0 0 2.75 80.92 0 0 2.8 68.71 0 0 2.85 46.43 0 0 2.9 21.81 0 0 2.95 4.1 0 0 3 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -2.56 0 0 0.1 -6.43 0 0 0.15 -7.32 0 0 0.2 0.05 0 0 0.25 5.84 0 0 0.3 7.94 0 0 1.4 7.94 0 0 1.45 7.17 0 0 1.5 4.62 0 0 1.55 0.85 0 0 1.6 -3.59 0 0 1.65 -5.32 0 0 1.7 -9.99 0 0 1.75 -12.65 0 0 1.8 -14.33 0 0 1.85 -14.76 0 0 1.9 -12.28 0 0 1.95 -10.71 0 0 2 -4.21 0 0 2.05 14.51 0 0 2.1 9.9 0 0 2.25 10.3 0 0 2.55 10 0 0 2.65 11.32 0 0 2.7 10.3 0 0 2.75 4.16 0 0 2.8 -4.15 0 0 2.85 -7.7 0 0 2.9 -5.42 0 0 2.95 -1.23 0 0 3 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -4 0 0.36 0.1 -10.83 0 1.31 0.15 -10.24 0 1.48 0.2 -1.63 0 1.22 0.25 5.03 0 1.09 0.3 7.42 0 1.06 1.4 7.42 0 1.06 1.45 6.54 0 1.07 1.5 3.63 0 1.11 1.55 -0.71 0 1.2 1.6 -5.86 0 1.33 1.65 -8.63 0 1.38 1.7 -16.88 0 1.58 1.75 -22.39 0 1.75 1.8 -18.36 0 1.51 1.85 -8 0 1.11 1.9 -0.17 0 0.94 1.95 2.57 0 0.89 2 -9.04 -0.42 1.42 2.05 -5.49 -1.58 3.18 2.1 7.47 -2 8.93 2.15 8.53 -2 9.87 2.25 9.18 -2 10.46 2.45 7.55 -2 9 2.55 7.07 -1.98 8.94 2.6 4.73 -1.88 9 2.65 -0.61 -1.67 8.91 2.7 -9.88 -1.36 7.88 2.75 -21.75 -1 5.39 2.8 -27.69 -0.64 2.8 2.85 -22.68 -0.33 1.16 2.9 -11.84 -0.12 0.35 2.95 -2.4 -0.02 0.05 3 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 8.61 0 0 0.1 24.34 0 0 0.15 23.77 0 0 0.2 6.82 0 0 0.25 -6.09 0 0 0.3 -10.7 0 0 1.4 -10.7 0 0 1.45 -9.01 0 0 1.5 -3.4 0 0 1.55 5.02 0 0 1.6 15.1 0 0 1.65 20.04 0 0 1.7 34.45 0 0 1.75 43.81 0 0 1.8 35.7 0 0 1.85 15.45 0 0 1.9 0.32 0 0 1.95 -4.93 0 0 2 27.66 0 0 2.05 63.49 0 0 2.1 84.79 0 0 2.15 86.11 0 0 2.25 86.83 0 0 2.3 86.66 0 0 2.45 84.9 0 0 2.55 85.17 0 0 2.6 87.34 0 0 2.7 95.52 0 0 2.75 93.51 0 0 2.8 79.11 0 0 2.85 53.74 0 0 2.9 25.7 0 0 2.95 4.99 0 0 3 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -4.61 0 0 0.1 -13.52 0 0 0.15 -13.53 0 0 0.2 -5.19 0 0 0.25 1.06 0 0 0.3 3.27 0 0 1.4 3.27 0 0 1.45 2.46 0 0 1.5 -0.23 0 0 1.55 -4.31 0 0 1.6 -9.24 0 0 1.65 -11.4 0 0 1.7 -17.57 0 0 1.75 -21.42 0 0 1.8 -22.34 0 0 1.85 -21.55 0 0 1.9 -18.95 0 0 1.95 -17.64 0 0 2 -11.61 0 0 2.05 -3.41 0 0 2.1 -30.26 0 0 2.15 -32.64 0 0 2.2 -33.8 0 0 2.25 -34.01 0 0 2.3 -33.69 0 0 2.45 -30.45 0 0 2.55 -30.34 0 0 2.65 -31.2 0 0 2.7 -29.89 0 0 2.75 -24.76 0 0 2.8 -18.29 0 0 2.85 -13.11 0 0 2.95 -1.63 0 0 3 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition sol() {
-        return AnimationDefinition.Builder.withLength(3.8F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 12.04F, -0.003F, 3.994F),
-                        seco(1F, 4.806F, -0.003F, 0.84F),
-                        rot(1.45F, 12.04F, -0.003F, 3.994F),
-                        seco(2F, 4.806F, -0.003F, 0.84F),
-                        rot(2.45F, 12.04F, -0.003F, 3.994F),
-                        seco(3F, 4.806F, -0.003F, 0.84F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 1.081F, 0F, 0F),
-                        seco(1F, -8.16F, 0F, 0F),
-                        rot(1.45F, 1.081F, 0F, 0F),
-                        seco(2F, -8.16F, 0F, 0F),
-                        rot(2.45F, 1.081F, 0F, 0F),
-                        seco(3F, -8.16F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, -149.242F, -0.014F, 29.061F),
-                        seco(1F, -56.442F, -0.009F, 4.306F),
-                        rot(1.45F, -149.242F, -0.014F, 29.061F),
-                        seco(2F, -56.442F, -0.009F, 4.306F),
-                        rot(2.45F, -149.242F, -0.014F, 29.061F),
-                        seco(3F, -56.442F, -0.009F, 4.306F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 16.724F, 0F, 0F),
-                        seco(1F, 1.392F, 0F, 0F),
-                        rot(1.45F, 16.724F, 0F, 0F),
-                        seco(2F, 1.392F, 0F, 0F),
-                        rot(2.45F, 16.724F, 0F, 0F),
-                        seco(3F, 1.392F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, -7.336F, -44.786F, 19.365F),
-                        seco(1F, -10.531F, -3.398F, -4.393F),
-                        rot(1.45F, -7.336F, -44.786F, 19.365F),
-                        seco(2F, -10.531F, -3.398F, -4.393F),
-                        rot(2.45F, -7.336F, -44.786F, 19.365F),
-                        seco(3F, -10.531F, -3.398F, -4.393F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, -24F, 10F, 0F),
-                        seco(1F, 4F, -10F, 0F),
-                        rot(1.45F, -24F, 10F, 0F),
-                        seco(2F, 4F, -10F, 0F),
-                        rot(2.45F, -24F, 10F, 0F),
-                        seco(3F, 4F, -10F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, -6F, -10F, 0F),
-                        seco(1F, 10F, 18F, 0F),
-                        rot(1.45F, -6F, -10F, 0F),
-                        seco(2F, 10F, 18F, 0F),
-                        rot(2.45F, -6F, -10F, 0F),
-                        seco(3F, 10F, 18F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, -16F, 0F, -6F),
-                        seco(1F, -24F, 0F, -6F),
-                        rot(1.45F, -16F, 0F, -6F),
-                        seco(2F, -24F, 0F, -6F),
-                        rot(2.45F, -16F, 0F, -6F),
-                        seco(3F, -24F, 0F, -6F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 18F, 0F, 0F),
-                        seco(1F, 24F, 0F, 0F),
-                        rot(1.45F, 18F, 0F, 0F),
-                        seco(2F, 24F, 0F, 0F),
-                        rot(2.45F, 18F, 0F, 0F),
-                        seco(3F, 24F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 14F, 0F, 8F),
-                        seco(1F, 18F, 0F, 8F),
-                        rot(1.45F, 14F, 0F, 8F),
-                        seco(2F, 18F, 0F, 8F),
-                        rot(2.45F, 14F, 0F, 8F),
-                        seco(3F, 18F, 0F, 8F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, -20F, 0F, 0F),
-                        seco(1F, -24F, 0F, 0F),
-                        rot(1.45F, -20F, 0F, 0F),
-                        seco(2F, -24F, 0F, 0F),
-                        rot(2.45F, -20F, 0F, 0F),
-                        seco(3F, -24F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 20F, 0F, 0F),
-                        seco(1F, 20F, 0F, 0F),
-                        rot(1.45F, 20F, 0F, 0F),
-                        seco(2F, 20F, 0F, 0F),
-                        rot(2.45F, 20F, 0F, 0F),
-                        seco(3F, 20F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 10F, 0F, 0F),
-                        seco(1F, 10F, 0F, 0F),
-                        rot(1.45F, 10F, 0F, 0F),
-                        seco(2F, 10F, 0F, 0F),
-                        rot(2.45F, 10F, 0F, 0F),
-                        seco(3F, 10F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.55F, 12F, 0F, 0F),
-                        seco(1F, 12F, 0F, 0F),
-                        rot(1.45F, 12F, 0F, 0F),
-                        seco(2F, 12F, 0F, 0F),
-                        rot(2.45F, 12F, 0F, 0F),
-                        seco(3F, 12F, 0F, 0F),
-                        rot(3.8F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(2.5F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 0.38 0 0.13 0.1 2.4 0 0.84 0.15 6.17 0 2.16 0.25 14.76 0 5.18 0.3 17.17 0 6.02 0.45 18.3 0 5.84 0.55 20.57 0 4 0.6 22.54 0 2.4 0.75 22.48 0 2.45 0.8 21.72 0 3.07 0.9 18.62 0 5.58 0.95 17.86 0 6.2 1 17.82 0 6.23 1.1 18.98 0 5.29 1.15 20.42 0 4.12 1.2 22.54 0 2.4 1.35 22.48 0 2.45 1.4 21.72 0 3.07 1.5 18.62 0 5.58 1.55 17.86 0 6.2 1.6 17.82 0 6.23 1.7 18.98 0 5.29 1.75 20.42 0 4.12 1.8 22.54 0 2.4 2 22.3 0 2.38 2.05 21.3 0 2.27 2.1 19.28 0 2.06 2.15 16.34 0 1.74 2.3 5.55 0 0.59 2.35 2.78 0 0.3 2.4 0.96 0 0.1 2.45 0.14 0 0.01 2.5 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -0.23 0 0 0.1 -1.46 0 0 0.25 -8.99 0 0 0.3 -10.46 0 0 0.4 -11.29 0 0 0.45 -13.75 0 0 0.5 -18.88 0 0 0.55 -27.06 0 0 0.6 -38.6 0 0 0.75 -38.24 0 0 0.8 -33.78 0 0 0.9 -15.65 0 0 0.95 -11.2 0 0 1 -10.95 0 0 1.05 -12.83 0 0 1.1 -17.73 0 0 1.15 -26.18 0 0 1.2 -38.6 0 0 1.35 -38.24 0 0 1.4 -33.78 0 0 1.5 -15.65 0 0 1.55 -11.2 0 0 1.6 -10.95 0 0 1.65 -12.83 0 0 1.7 -17.73 0 0 1.75 -26.18 0 0 1.8 -38.6 0 0 2 -38.2 0 0 2.05 -36.47 0 0 2.1 -33.01 0 0 2.15 -27.98 0 0 2.3 -9.51 0 0 2.35 -4.76 0 0 2.4 -1.65 0 0 2.45 -0.24 0 0 2.5 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 -3.42 0 0.61 0.1 -21.46 0 3.84 0.15 -55.13 -0.01 9.87 0.2 -95.96 -0.02 17.18 0.25 -131.93 -0.03 23.62 0.3 -153.41 -0.03 27.47 0.35 -159.02 -0.03 28.47 0.4 -157.25 -0.03 27.83 0.45 -147.38 -0.03 24.28 0.5 -126.81 -0.02 16.87 0.55 -93.96 -0.02 5.04 0.6 -47.66 -0.01 -11.63 0.7 -47.66 -0.01 -11.63 0.75 -49.09 -0.01 -11.12 0.8 -66.97 -0.01 -4.68 0.9 -139.74 -0.03 21.52 0.95 -157.62 -0.03 27.96 1 -158.6 -0.03 28.32 1.05 -151.06 -0.03 25.6 1.1 -131.42 -0.03 18.53 1.15 -97.49 -0.02 6.31 1.2 -47.66 -0.01 -11.63 1.3 -47.66 -0.01 -11.63 1.35 -49.09 -0.01 -11.12 1.4 -66.97 -0.01 -4.68 1.5 -139.74 -0.03 21.52 1.55 -157.62 -0.03 27.96 1.6 -158.6 -0.03 28.32 1.65 -151.06 -0.03 25.6 1.7 -131.42 -0.03 18.53 1.75 -97.49 -0.02 6.31 1.8 -47.66 -0.01 -11.63 1.95 -47.65 -0.01 -11.63 2 -47.16 -0.01 -11.51 2.05 -45.02 -0.01 -10.99 2.1 -40.76 -0.01 -9.95 2.15 -34.54 -0.01 -8.43 2.3 -11.74 0 -2.87 2.35 -5.87 0 -1.43 2.4 -2.04 0 -0.5 2.45 -0.29 0 -0.07 2.5 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 0.58 0 0 0.1 3.61 0 0 0.15 9.28 0 0 0.2 16.16 0 0 0.25 22.21 0 0 0.3 25.83 0 0 0.35 26.77 0 0 0.4 25.91 0 0 0.45 21.15 0 0 0.5 11.23 0 0 0.55 -4.61 0 0 0.6 -26.93 0 0 0.7 -26.93 0 0 0.75 -26.25 0 0 0.8 -17.62 0 0 0.9 17.46 0 0 0.95 26.09 0 0 1 26.56 0 0 1.05 22.92 0 0 1.1 13.45 0 0 1.15 -2.91 0 0 1.2 -26.93 0 0 1.3 -26.93 0 0 1.35 -26.25 0 0 1.4 -17.62 0 0 1.5 17.46 0 0 1.55 26.09 0 0 1.6 26.56 0 0 1.65 22.92 0 0 1.7 13.45 0 0 1.75 -2.91 0 0 1.8 -26.93 0 0 2 -26.65 0 0 2.05 -25.45 0 0 2.1 -23.04 0 0 2.15 -19.52 0 0 2.3 -6.63 0 0 2.35 -3.32 0 0 2.4 -1.15 0 0 2.45 -0.17 0 0 2.5 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 0.13 -0.02 0.21 0.1 0.84 -0.11 1.32 0.25 5.14 -0.66 8.14 0.3 5.97 -0.77 9.47 0.35 6.19 -0.79 9.82 0.4 6.05 -0.52 9.47 0.45 5.23 1 7.55 0.5 3.54 4.17 3.56 0.55 0.83 9.24 -2.81 0.6 -2.98 16.37 -11.79 0.75 -2.87 16.15 -11.52 0.8 -1.39 13.39 -8.05 0.9 4.6 2.18 6.07 0.95 6.08 -0.57 9.54 1 6.16 -0.72 9.73 1.05 5.54 0.44 8.27 1.1 3.92 3.46 4.46 1.15 1.12 8.69 -2.13 1.2 -2.98 16.37 -11.79 1.35 -2.87 16.15 -11.52 1.4 -1.39 13.39 -8.05 1.5 4.6 2.18 6.07 1.55 6.08 -0.57 9.54 1.6 6.16 -0.72 9.73 1.65 5.54 0.44 8.27 1.7 3.92 3.46 4.46 1.75 1.12 8.69 -2.13 1.8 -2.98 16.37 -11.79 2 -2.95 16.2 -11.67 2.05 -2.82 15.47 -11.14 2.1 -2.55 14 -10.09 2.15 -2.16 11.87 -8.55 2.3 -0.73 4.03 -2.91 2.35 -0.37 2.02 -1.45 2.4 -0.13 0.7 -0.51 2.5 0 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 -0.1 0.04 0 0.1 -1.13 0.47 0 0.15 -4.2 1.75 0 0.2 -9.39 3.91 0 0.25 -15.49 6.46 0 0.3 -20.7 8.63 0 0.35 -23.68 9.87 0 0.4 -24.4 10.14 0 0.45 -23.25 9.42 0 0.5 -19.87 7.23 0 0.55 -13.63 3.1 0 0.6 -4.01 -3.32 0 0.65 4.83 -8.89 0 0.7 8.52 -10.75 0 0.75 8.85 -10.59 0 0.8 6.76 -9.17 0 0.85 0.44 -5.23 0 0.95 -19.28 7.05 0 1 -24.21 10.13 0 1.05 -24.47 10.27 0 1.1 -21.32 8.19 0 1.15 -14.92 3.95 0 1.2 -4.79 -2.81 0 1.25 4.66 -8.78 0 1.3 8.58 -10.79 0 1.35 8.92 -10.64 0 1.4 6.79 -9.19 0 1.45 0.44 -5.23 0 1.55 -19.28 7.05 0 1.6 -24.21 10.13 0 1.65 -24.47 10.27 0 1.7 -21.32 8.19 0 1.75 -14.92 3.95 0 1.8 -4.79 -2.81 0 1.85 4.6 -8.78 0 1.9 8.47 -10.79 0 1.95 8.91 -10.68 0 2.1 7.36 -9.22 0 2.2 5.55 -6.94 0 2.35 1.72 -2.15 0 2.4 0.79 -0.98 0 2.5 -0.03 0.04 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 -0.09 -0.16 0 0.1 -0.71 -1.24 0 0.15 -2.07 -3.62 0 0.25 -5.83 -10.2 0 0.3 -7.19 -12.59 0 0.35 -7.81 -13.67 0 0.4 -7.77 -13.62 0 0.45 -6.49 -11.52 0 0.5 -3.33 -6.35 0 0.55 2.1 2.53 0 0.6 10.07 15.57 0 0.65 15.07 23.48 0 0.7 17.23 26.82 0 0.75 17.68 27.49 0 0.8 15.18 23.44 0 0.85 8.46 12.6 0 0.9 0.15 -0.83 0 0.95 -5.61 -10.14 0 1 -7.45 -13.11 0 1.05 -6.93 -12.25 0 1.1 -4.12 -7.66 0 1.15 1.33 1.27 0 1.2 9.79 15.11 0 1.25 15.01 23.39 0 1.3 17.21 26.8 0 1.35 17.67 27.48 0 1.4 15.17 23.44 0 1.45 8.46 12.6 0 1.5 0.15 -0.83 0 1.55 -5.61 -10.14 0 1.6 -7.45 -13.11 0 1.65 -6.93 -12.25 0 1.7 -4.12 -7.66 0 1.75 1.33 1.27 0 1.8 9.79 15.11 0 1.85 14.8 23.08 0 1.9 17.02 26.5 0 1.95 17.78 27.67 0 2 17.85 27.77 0 2.05 17.33 26.96 0 2.1 16.07 24.99 0 2.15 14.04 21.85 0 2.3 5.68 8.84 0 2.35 3.24 5.04 0 2.4 1.47 2.29 0 2.45 0.47 0.73 0 2.5 0.1 0.16 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 0.07 0.04 0.1 0 0.41 0.27 0.25 0 2.49 1.66 0.3 0 2.89 1.93 0.35 0 3 2 0.4 0 3.05 1.9 0.45 0 3.31 1.37 0.5 0 3.87 0.26 0.55 0 4.75 -1.51 0.6 0 6 -4 0.75 0 5.96 -3.92 0.8 0 5.48 -2.96 0.9 0 3.52 0.96 0.95 0 3.04 1.92 1 0 3.01 1.98 1.05 0 3.21 1.57 1.1 0 3.74 0.51 1.15 0 4.66 -1.32 1.2 0 6 -4 1.35 0 5.96 -3.92 1.4 0 5.48 -2.96 1.5 0 3.52 0.96 1.55 0 3.04 1.92 1.6 0 3.01 1.98 1.65 0 3.21 1.57 1.7 0 3.74 0.51 1.75 0 4.66 -1.32 1.8 0 6 -4 2 0 5.94 -3.96 2.05 0 5.67 -3.78 2.1 0 5.13 -3.42 2.15 0 4.35 -2.9 2.3 0 1.48 -0.98 2.35 0 0.74 -0.49 2.4 0 0.26 -0.17 2.45 0 0.04 -0.03 2.5 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.1 0.55 0 -0.07 0.15 2.01 0 -0.2 0.3 9.73 0 -0.58 0.35 11.49 0 -0.49 0.4 12.31 0 -0.25 0.45 11.56 0 0.26 0.5 8.79 0 1.1 0.55 3.85 0 2.25 0.6 0 0 3.94 0.65 0 0 5.42 0.7 0 0 5.78 0.75 0 0 5.29 0.8 2.35 0 2.91 0.85 7.95 0 -1.84 0.9 13.27 0 -5.91 0.95 15.63 0 -6.48 1 14.96 0 -4.21 1.05 12.63 0 -1.4 1.1 8.66 0 0.98 1.15 2.78 0 2.74 1.2 0 0 4.47 1.25 0 0 5.95 1.3 0 0 6.27 1.35 0 0 5.72 1.4 2.37 0 3.26 1.45 8 0 -1.62 1.5 13.32 0 -5.82 1.55 15.63 0 -6.47 1.6 14.93 0 -4.25 1.65 12.59 0 -1.45 1.7 8.63 0 0.93 1.75 2.76 0 2.7 1.8 0 0 4.44 1.85 0 0 5.84 1.9 0 0 6.17 2 0 0 5.12 2.05 0.17 0 3.87 2.15 1.39 0 -0.34 2.2 2.12 0 -1.98 2.25 2.63 0 -2.8 2.3 2.53 0 -2.51 2.4 0.8 0 -0.49 2.5 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.5 1.81 0 0.16 0.55 1.22 0 0.4 0.6 -3.32 0 0.28 0.65 -5.6 0 -0.67 0.8 -5.08 0 0.07 0.85 -3.93 0 0.96 0.9 -2.08 0 1.05 1 1.46 0 -1.11 1.05 2.62 0 -1.51 1.1 2.99 0 -1.09 1.15 2.28 0 -0.23 1.2 -4.6 0 0.15 1.25 -5.6 0 -0.47 1.4 -5.07 0 0.21 1.45 -3.91 0 1.04 1.5 -2.06 0 1.08 1.6 1.45 0 -1.13 1.65 2.6 0 -1.53 1.7 2.97 0 -1.11 1.75 2.27 0 -0.25 1.8 -4.61 0 0.14 1.85 -5.6 0 -0.45 2.05 -5.14 0 0.09 2.2 -2.75 0 0.57 2.35 -0.21 0 -0.44 2.5 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.15 0.23 0 -0.01 0.4 1.89 0 0 0.55 1.67 0 0.34 0.6 1.36 0 0.37 0.65 -1.47 0 -0.26 0.7 -2.75 0 -1.72 0.75 -2.02 0 -2.69 0.8 -1.33 0 -2.57 0.9 -0.75 0 -0.28 0.95 0.06 0 0.65 1 0.86 0 1.02 1.15 2.21 0 0.39 1.2 2.06 0 0.34 1.25 -2.44 0 -0.55 1.3 -3.5 0 -1.97 1.35 -2.36 0 -2.9 1.4 -1.33 0 -2.71 1.55 0.21 0 0.57 1.6 0.94 0 1.01 1.75 2.16 0 0.41 1.8 2.03 0 0.34 1.85 -2.24 0 -0.54 1.9 -3.34 0 -1.93 2 -1.3 0 -3.22 2.05 -0.71 0 -2.64 2.15 -0.88 0 -0.34 2.25 -1.05 0 0.98 2.5 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -0.28 0 -0.02 0.1 -1.69 0 -0.1 0.25 -9.23 0 -0.63 0.3 -10.55 0 -0.73 0.35 -10.89 0 -0.76 0.4 -14.51 0 -0.82 0.45 -32.37 0 -1.17 0.5 -38.85 0 -1.22 0.55 -25.27 0 -0.88 0.6 -22.1 0 -1.07 0.7 -22.1 0 -1.07 0.75 -23.11 0 -1.09 0.8 -33.33 0 -1.35 0.85 -39.94 0 -1.61 0.95 -12.27 0 -0.79 1 -11.59 0 -0.77 1.05 -27.02 0 -1.05 1.1 -39.84 0 -1.28 1.15 -26.41 0 -0.89 1.2 -22.1 0 -1.07 1.3 -22.1 0 -1.07 1.35 -23.11 0 -1.09 1.4 -33.33 0 -1.35 1.45 -39.94 0 -1.61 1.55 -12.27 0 -0.79 1.6 -11.59 0 -0.77 1.65 -27.02 0 -1.05 1.7 -39.84 0 -1.28 1.75 -26.41 0 -0.89 1.8 -22.1 0 -1.07 1.95 -22.11 0 -1.07 2 -22.87 0 -1.07 2.05 -25.93 0 -1.11 2.15 -35.96 0 -1.24 2.2 -37.59 0 -1.19 2.25 -33.81 0 -0.93 2.3 -25.42 0 -0.58 2.35 -15.24 0 -0.28 2.4 -6.26 0 -0.09 2.45 -1.02 0 -0.01 2.5 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 0.4 0 0 0.1 2.39 0 0 0.2 9.48 0 0 0.25 12.42 0 0 0.3 14.07 0 0 0.35 14.48 0 0 0.4 20.14 0 0 0.45 44.8 0 0 0.5 47.08 0 0 0.55 22.33 0 0 0.6 19.88 0 0 0.7 19.88 0 0 0.75 21.72 0 0 0.8 40.2 0 0 0.85 54.9 0 0 0.9 38.13 0 0 0.95 16.73 0 0 1 15.6 0 0 1.05 38.09 0 0 1.1 49.81 0 0 1.15 24.25 0 0 1.2 19.88 0 0 1.3 19.88 0 0 1.35 21.72 0 0 1.4 40.2 0 0 1.45 54.9 0 0 1.5 38.13 0 0 1.55 16.73 0 0 1.6 15.6 0 0 1.65 38.09 0 0 1.7 49.81 0 0 1.75 24.25 0 0 1.8 19.88 0 0 1.95 19.89 0 0 2 21.34 0 0 2.05 27.18 0 0 2.15 47.15 0 0 2.2 52.81 0 0 2.25 50.44 0 0 2.3 40.02 0 0 2.4 10.6 0 0 2.45 1.75 0 0 2.5 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.1 -0.7 0 0 0.25 -3.19 0 0 0.4 -3.85 0 0 0.45 -0.26 0 0 0.5 5.94 0 0 0.55 6.15 0 0 0.6 2.22 0 0 0.75 2.04 0 0 0.85 1.05 0 0 0.9 -3.7 0 0 1 -3.68 0 0 1.05 -2.17 0 0 1.1 5.46 0 0 1.15 6.19 0 0 1.2 2.22 0 0 1.35 2.04 0 0 1.45 1.05 0 0 1.5 -3.7 0 0 1.6 -3.68 0 0 1.65 -2.17 0 0 1.7 5.46 0 0 1.75 6.19 0 0 1.8 2.22 0 0 2 2.05 0 0 2.2 0.42 0 0 2.3 -3.42 0 0 2.35 -3.77 0 0 2.45 -0.42 0 0 2.5 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -2.23 0 0.08 0.15 -18.52 0 1.44 0.2 -19.11 0 2.25 0.3 -5.35 0 2.51 0.35 -3.01 0 2.51 0.5 -2.54 0 2.77 0.55 -1.83 0 3.05 0.6 -0.45 0 3.45 0.75 -0.5 0 3.44 0.9 -2.75 0 2.67 1 -2.99 0 2.51 1.1 -2.62 0 2.73 1.15 -1.92 0 3.02 1.2 -0.45 0 3.45 1.35 -0.5 0 3.44 1.5 -2.75 0 2.67 1.6 -2.99 0 2.51 1.7 -2.62 0 2.73 1.75 -1.92 0 3.02 1.8 -0.45 0 3.45 1.95 -0.46 0 3.45 2 -1.08 0 3.45 2.05 -3.64 0 3.42 2.1 -8.15 0 3.36 2.15 -13.27 0 3.19 2.2 -17.05 0 2.76 2.25 -17.82 0 2.04 2.3 -15.04 0 1.24 2.4 -4.19 0 0.2 2.45 -0.69 0 0.03 2.5 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 4.44 0 0 0.15 39.02 0 0 0.2 42.54 0 0 0.25 31.07 0 0 0.3 17.74 0 0 0.35 13.35 0 0 0.4 13.48 0 0 0.45 14.29 0 0 0.5 15.86 0 0 0.6 20.5 0 0 0.75 20.43 0 0 0.8 19.55 0 0 0.9 14.89 0 0 0.95 13.45 0 0 1 13.36 0 0 1.05 13.99 0 0 1.1 15.52 0 0 1.2 20.5 0 0 1.35 20.43 0 0 1.4 19.55 0 0 1.5 14.89 0 0 1.55 13.45 0 0 1.6 13.36 0 0 1.65 13.99 0 0 1.7 15.52 0 0 1.8 20.5 0 0 1.95 20.5 0 0 2 21.6 0 0 2.05 26.09 0 0 2.15 41.81 0 0 2.2 46.1 0 0 2.25 43.62 0 0 2.3 34.35 0 0 2.35 21.28 0 0 2.4 8.87 0 0 2.45 1.44 0 0 2.5 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -1.13 0 0 0.1 -4.37 0 0 0.25 -10.39 0 0 0.4 -10.5 0 0 0.45 -11.43 0 0 0.5 -13.32 0 0 0.55 -16.2 0 0 0.6 -20.04 0 0 0.75 -19.93 0 0 0.8 -18.47 0 0 0.9 -12.14 0 0 0.95 -10.46 0 0 1 -10.37 0 0 1.05 -11.09 0 0 1.1 -12.9 0 0 1.15 -15.9 0 0 1.2 -20.04 0 0 1.35 -19.93 0 0 1.4 -18.47 0 0 1.5 -12.14 0 0 1.55 -10.46 0 0 1.6 -10.37 0 0 1.65 -11.09 0 0 1.7 -12.9 0 0 1.75 -15.9 0 0 1.8 -20.04 0 0 2.05 -19.68 0 0 2.1 -18.6 0 0 2.15 -16.37 0 0 2.4 -2.53 0 0 2.45 -0.44 0 0 2.5 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition trompetas() {
-        return AnimationDefinition.Builder.withLength(2.6F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, -128.334F, -0.018F, 1.343F),
-                        seco(1.1F, -128.334F, -0.018F, 1.343F),
-                        rot(1.9F, -128.334F, -0.018F, 1.343F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, -4.343F, 0F, 0F),
-                        seco(1.1F, -4.343F, 0F, 0F),
-                        rot(1.9F, -4.343F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, -12.505F, -0.007F, -33.62F),
-                        seco(1.1F, -12.505F, -0.007F, -33.62F),
-                        rot(1.9F, -12.505F, -0.007F, -33.62F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, -19.433F, 0F, 0F),
-                        seco(1.1F, -19.433F, 0F, 0F),
-                        rot(1.9F, -19.433F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, 16.121F, -2.658F, 11.343F),
-                        seco(1.1F, 16.121F, -2.658F, 11.343F),
-                        rot(1.9F, 16.121F, -2.658F, 11.343F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, -22F, 0F, 0F),
-                        seco(1.1F, -26F, 0F, 0F),
-                        rot(1.9F, -22F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, -8F, 0F, 0F),
-                        seco(1.1F, -8F, 0F, 0F),
-                        rot(1.9F, -8F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, 20F, 0F, 0F),
-                        seco(1.1F, 20F, 0F, 0F),
-                        rot(1.9F, 20F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, 10F, 0F, 0F),
-                        seco(1.1F, 10F, 0F, 0F),
-                        rot(1.9F, 10F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.8F, 12F, 0F, 0F),
-                        seco(1.1F, 12F, 0F, 0F),
-                        rot(1.9F, 12F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(1.8F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.1 -0.68 0 -0.57 0.3 -5.87 -0.01 -4.96 0.4 -6.55 -0.01 -5.53 0.45 -8.49 -0.01 -5.41 0.5 -16.14 -0.01 -4.97 0.55 -30.91 -0.01 -4.11 0.6 -53.77 -0.01 -2.78 0.65 -85.44 -0.02 -0.94 0.7 -126.54 -0.03 1.45 1.3 -126.54 -0.03 1.45 1.35 -125.46 -0.03 1.44 1.4 -119.21 -0.03 1.37 1.45 -105.91 -0.02 1.22 1.5 -86.37 -0.02 0.99 1.6 -40.17 -0.01 0.46 1.65 -20.64 -0.01 0.24 1.7 -7.33 0 0.08 1.75 -1.08 0 0.01 1.8 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -0.34 0 0 0.1 -2.18 0 0 0.15 -5.8 0 0 0.25 -15.26 0 0 0.3 -18.88 0 0 0.35 -20.72 0 0 0.4 -21.06 0 0 0.45 -20.74 0 0 0.5 -19.48 0 0 0.55 -17.04 0 0 0.6 -13.26 0 0 0.65 -8.03 0 0 0.7 -1.25 0 0 1.35 -1.24 0 0 1.8 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 0.15 0 -0.27 0.1 0.98 0 -1.76 0.15 2.61 0 -4.67 0.25 6.88 -0.01 -12.3 0.3 8.52 -0.01 -15.22 0.35 9.35 -0.01 -16.7 0.45 9.11 -0.01 -17.23 0.5 7.6 -0.01 -18.24 0.55 4.68 -0.01 -20.19 0.6 0.17 -0.01 -23.21 0.65 -6.09 -0.01 -27.39 0.7 -14.21 0 -32.82 1.35 -14.09 0 -32.53 1.4 -13.39 0 -30.91 1.45 -11.9 0 -27.46 1.5 -9.7 0 -22.4 1.6 -4.51 0 -10.42 1.65 -2.32 0 -5.35 1.7 -0.82 0 -1.9 1.75 -0.12 0 -0.28 1.8 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -0.64 0 0 0.1 -4.12 0 0 0.15 -10.94 0 0 0.25 -28.81 0 0 0.3 -35.63 0 0 0.35 -39.11 0 0 0.4 -39.75 0 0 0.45 -39.38 0 0 0.5 -37.91 0 0 0.55 -35.08 0 0 0.6 -30.71 0 0 0.65 -24.64 0 0 0.7 -16.78 0 0 1.35 -16.63 0 0 1.4 -15.8 0 0 1.45 -14.04 0 0 1.65 -2.74 0 0 1.7 -0.97 0 0 1.75 -0.14 0 0 1.8 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 0.24 -0.64 -0.08 0.1 1.58 -4.1 -0.54 0.15 4.2 -10.9 -1.44 0.25 11.07 -28.71 -3.8 0.3 13.69 -35.52 -4.7 0.35 15.03 -38.98 -5.16 0.4 15.27 -39.62 -5.25 0.45 15.24 -39.23 -5 0.5 15.13 -37.73 -4.03 0.55 14.92 -34.83 -2.14 0.6 14.59 -30.34 0.77 0.65 14.12 -24.12 4.8 0.7 13.53 -16.05 10.03 1.35 13.41 -15.91 9.95 1.4 12.74 -15.12 9.45 1.45 11.32 -13.43 8.4 1.65 2.21 -2.62 1.64 1.7 0.78 -0.93 0.58 1.75 0.12 -0.14 0.09 1.8 0 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.1 0.43 0 0 0.15 1.64 0 0 0.2 3.78 0 0 0.3 9.15 0 0 0.35 11.1 0 0 0.4 12.03 0 0 0.45 12.07 0 0 0.5 10.96 0 0 0.55 8.09 0 0 0.6 2.91 0 0 0.65 -4.93 0 0 0.7 -15.65 0 0 0.75 -25.61 0 0 0.8 -30.79 0 0 0.85 -32.44 0 0 0.9 -32.47 0 0 1.05 -30.63 0 0 1.25 -26.34 0 0 1.4 -25.45 0 0 1.45 -23.96 0 0 1.5 -21.03 0 0 1.55 -16.85 0 0 1.65 -7.31 0 0 1.7 -3.46 0 0 1.75 -0.96 0 0 1.8 0.12 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 0.14 0.09 0 0.1 1.08 0.68 0 0.15 3.26 2.04 0 0.3 13.08 8.17 0 0.35 15.03 9.39 0 0.4 15.79 9.87 0 0.45 15.72 9.88 0 0.5 14.59 9.46 0 0.55 12.06 8.48 0 0.6 7.88 6.88 0 0.65 1.86 4.56 0 0.7 -6.14 1.49 0 0.75 -10.32 0.32 0 0.8 -12.07 0.07 0 0.85 -12.78 0.01 0 1 -12.59 0 0 1.2 -10.44 0 0 1.4 -9.63 0 0 1.5 -7.48 0 0 1.65 -2.33 0 0 1.7 -1.08 0 0 1.8 -0.08 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 0.14 0 0.1 0 0.93 0 0.15 0 2.48 0 0.25 0 6.52 0 0.3 0 8.07 0 0.35 0 8.86 0 0.4 0 9 0 0.45 0 8.85 0 0.5 0 8.28 0 0.55 0 7.17 0 0.6 0 5.46 0 0.65 0 3.08 0 0.7 0 0 0 1.8 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.15 0 0 0.17 0.35 0 0 1.34 0.5 0.15 0 0.89 0.55 0.61 0 0.4 0.6 2.16 0 -0.15 0.65 5.79 0 -0.61 0.7 11.98 0 -0.92 0.75 14.88 0 -0.69 0.8 15.6 0 -0.31 0.95 14.82 0 0.22 1.15 13.52 0 0.02 1.4 13.36 0 -0.02 1.45 12.41 0 -0.01 1.5 10.74 0 0 1.55 8.48 0 0 1.65 2.29 0 0 1.7 0.56 0 0 1.8 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -0.13 0 0 0.1 -1.02 0 -0.01 0.15 -2.95 0 -0.05 0.2 -5.53 0 -0.17 0.25 -5.6 0 -0.33 0.5 -5.34 0 -0.16 0.55 -4.39 0 -0.03 0.8 2.56 0 -0.26 0.9 3.81 0 -0.14 1.25 2.39 0 0.01 1.55 2.42 0 0 1.8 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.1 -0.06 0 0 0.2 -0.83 0 -0.04 0.25 -3.94 0 -0.15 0.3 -6.1 0 -0.33 0.35 -6.75 0 -0.45 0.4 -6.2 0 -0.48 0.75 1.04 0 0.06 0.9 2.67 0 -0.04 1.5 1.77 0 -0.01 1.8 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -2.05 0 -0.04 0.1 -10.77 0 -0.29 0.15 -22.13 0 -0.82 0.2 -29.8 0 -1.48 0.25 -30.39 0 -1.93 0.3 -26.95 0 -2.09 0.35 -24.36 0 -2.14 0.45 -23.58 0 -2.13 0.5 -22.47 0 -2.09 0.55 -20.26 0 -2.01 0.6 -16.63 0 -1.9 0.65 -10.93 0 -1.74 0.7 -1.12 0 -1.56 1.3 -1.12 0 -1.56 1.35 -2.04 0 -1.56 1.4 -6.51 0 -1.56 1.45 -13.42 0 -1.54 1.5 -19.57 0 -1.45 1.55 -21.79 0 -1.2 1.6 -18.77 0 -0.8 1.7 -5.14 0 -0.14 1.75 -0.85 0 -0.02 1.8 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 3.67 0 0 0.1 18.99 0 0 0.15 37.98 0 0 0.2 49.56 0 0 0.25 49.23 0 0 0.3 42.61 0 0 0.35 37.81 0 0 0.45 36.4 0 0 0.5 34.54 0 0 0.55 30.79 0 0 0.6 24.53 0 0 0.65 14.55 0 0 0.7 -3.07 0 0 1.3 -3.07 0 0 1.35 -1.37 0 0 1.4 6.97 0 0 1.45 19.79 0 0 1.5 31.32 0 0 1.55 36.14 0 0 1.6 31.94 0 0 1.65 21.09 0 0 1.7 9.08 0 0 1.75 1.51 0 0 1.8 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -0.81 0 0 0.1 -3.11 0 0 0.2 -3.77 0 0 0.25 -6.67 0 0 0.3 -10.54 0 0 0.35 -12.64 0 0 0.4 -13.02 0 0 0.5 -12.07 0 0 0.55 -10.52 0 0 0.6 -7.9 0 0 0.65 -3.62 0 0 0.7 4.2 0 0 1.3 4.2 0 0 1.35 3.83 0 0 1.45 1.47 0 0 1.55 1.65 0 0 1.65 -1.12 0 0 1.7 -1.05 0 0 1.8 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -0.47 0 0.04 0.1 -2.77 0 0.26 0.2 -10.45 0 1.34 0.25 -13.71 0 2.01 0.3 -15.89 0 2.55 0.35 -16.91 0 2.84 0.4 -17.09 0 2.9 0.45 -16.86 0 2.88 0.5 -15.93 0 2.82 0.55 -14.07 0 2.7 0.6 -10.94 0 2.53 0.65 -5.89 0 2.31 0.7 3.15 0 2.05 1.35 3.12 0 2.03 1.45 2.59 0 1.72 1.65 0.47 0 0.34 1.8 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 0.95 0 0 0.1 5.72 0 0 0.15 13.59 0 0 0.2 22.16 0 0 0.25 29.53 0 0 0.3 34.61 0 0 0.35 37.05 0 0 0.4 37.48 0 0 0.45 37.02 0 0 0.5 35.15 0 0 0.55 31.4 0 0 0.6 25.14 0 0 0.65 15.17 0 0 0.7 -2.46 0 0 1.35 -2.43 0 0 1.65 -0.33 0 0 1.8 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -0.49 0 0 0.1 -2.94 0 0 0.25 -15.82 0 0 0.3 -18.72 0 0 0.35 -20.14 0 0 0.4 -20.39 0 0 0.45 -20.16 0 0 0.5 -19.22 0 0 0.55 -17.33 0 0 0.6 -14.21 0 0 0.65 -9.27 0 0 0.7 -0.69 0 0 1.4 -0.66 0 0 1.8 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition fuentes() {
-        return AnimationDefinition.Builder.withLength(1.6F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -152.555F, -0.017F, 21.565F),
-                        seco(0.8F, -37.145F, -0.008F, -35.142F),
-                        rot(1.6F, -25.856F, -0.002F, -39.118F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 33.519F, 0F, 0F),
-                        seco(0.8F, 47.465F, 0F, 0F),
-                        rot(1.6F, 26.36F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -139.742F, -0.015F, -27.093F),
-                        seco(0.8F, -43.963F, -0.01F, 44.223F),
-                        rot(1.6F, -31.01F, -0.01F, 50.545F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -16.144F, 0F, 0F),
-                        seco(0.8F, 18.908F, 0F, 0F),
-                        rot(1.6F, -6.36F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -49.449F, 77.91F, -34.315F),
-                        seco(0.8F, 31.305F, -10.108F, 24.52F),
-                        rot(1.6F, -62.008F, 121.775F, -29.557F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -24F, 0F, 0F),
-                        seco(0.8F, 10F, 0F, 0F),
-                        rot(1.6F, -30F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -12F, 0F, 0F),
-                        seco(0.8F, 12F, 0F, 0F),
-                        rot(1.6F, 8F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 20F, 0F, 0F),
-                        seco(0.8F, 8F, 0F, 0F),
-                        rot(1.6F, 8F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 10F, 0F, 0F),
-                        seco(0.8F, 24F, 0F, 0F),
-                        rot(1.6F, 24F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 12F, 0F, 0F),
-                        seco(0.8F, 50F, 0F, 0F),
-                        rot(1.6F, 50F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.45F, 0F, 3F, 0F),
-                        posSeco(0.8F, 0F, -30F, 0F),
-                        pos(1.6F, 0F, -30F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        seco(0.8F, -70F, 0F, 0F),
-                        rot(1.6F, -70F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        seco(0.8F, -86F, 0F, -6F),
-                        rot(1.6F, -86F, 0F, -6F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        seco(0.8F, 86F, 0F, 0F),
-                        rot(1.6F, 86F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        seco(0.8F, 6F, 0F, 5F),
-                        rot(1.6F, 6F, 0F, 5F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        seco(0.8F, 86F, 0F, 0F),
-                        rot(1.6F, 86F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        seco(0.8F, -62F, 0F, 0F),
-                        rot(1.6F, -62F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(1.2F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 -19.67 0 2.99 0.1 -87.94 -0.01 13.36 0.15 -140.59 -0.02 21.36 0.2 -145.76 -0.02 22.14 0.35 -145.76 -0.02 22.14 0.4 -142.74 -0.02 20.55 0.45 -126.28 -0.02 11.87 0.5 -91.95 -0.01 -6.24 0.55 -37.15 -0.01 -35.14 0.75 -37.05 -0.01 -35.18 0.8 -36.49 -0.01 -35.37 0.9 -33.56 -0.01 -36.4 1.05 -27.7 0 -38.47 1.1 -26.51 0 -38.89 1.2 -25.86 0 -39.12"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 2.92 0 0 0.1 13.06 0 0 0.15 20.88 0 0 0.2 21.64 0 0 0.35 21.64 0 0 0.4 22.36 0 0 0.45 26.27 0 0 0.5 34.44 0 0 0.55 47.47 0 0 0.75 47.28 0 0 0.8 46.24 0 0 0.85 44.02 0 0 0.9 40.77 0 0 1 33.06 0 0 1.05 29.8 0 0 1.1 27.58 0 0 1.15 26.54 0 0 1.2 26.36 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 -18.57 0 -3.78 0.1 -83.03 -0.01 -16.89 0.15 -132.74 -0.01 -26.99 0.2 -137.63 -0.01 -27.99 0.35 -137.63 -0.01 -27.99 0.4 -135.03 -0.01 -25.98 0.45 -120.83 -0.01 -15.04 0.5 -91.22 -0.01 7.79 0.55 -43.96 -0.01 44.22 0.75 -43.85 -0.01 44.28 0.8 -43.21 -0.01 44.59 0.85 -41.85 -0.01 45.25 0.9 -39.85 -0.01 46.23 1.05 -33.12 -0.01 49.51 1.1 -31.76 -0.01 50.18 1.2 -31.01 -0.01 50.55"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -2.59 0 0 0.1 -11.6 0 0 0.15 -18.54 0 0 0.2 -19.22 0 0 0.35 -19.22 0 0 0.4 -18.16 0 0 0.45 -12.38 0 0 0.5 -0.33 0 0 0.55 18.91 0 0 0.75 18.69 0 0 0.8 17.44 0 0 0.85 14.79 0 0 0.9 10.89 0 0 1 1.66 0 0 1.05 -2.24 0 0 1.1 -4.9 0 0 1.15 -6.14 0 0 1.2 -6.36 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 0.69 -4.75 3.35 0.1 3.08 -21.24 14.97 0.15 4.93 -33.95 23.93 0.2 5.11 -35.2 24.82 0.35 5.11 -35.2 24.82 0.4 5.84 -34.51 24.81 0.45 9.81 -30.7 24.76 0.5 18.09 -22.77 24.67 0.55 31.3 -10.11 24.52 0.7 31.3 -10.11 24.52 0.75 30.51 -8.98 24.06 0.8 25.9 -2.47 21.39 0.85 16.09 11.4 15.7 0.9 1.68 31.76 7.35 1 -32.39 79.91 -12.39 1.05 -46.79 100.27 -20.74 1.1 -56.6 114.14 -26.43 1.15 -61.21 120.65 -29.09 1.2 -62.01 121.78 -29.56"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 -0.43 0 0 0.1 -3.84 0 0 0.15 -10.31 0 0 0.2 -15.53 0 0 0.25 -19.26 0 0 0.3 -22.07 0 0 0.35 -23.72 0 0 0.4 -24.06 0 0 0.45 -22.08 0 0 0.5 -15.89 0 0 0.55 -3.93 0 0 0.6 7.4 0 0 0.65 11.41 0 0 0.7 11.29 0 0 0.8 9.18 0 0 0.85 6.76 0 0 0.9 2.3 0 0 0.95 -4.08 0 0 1.05 -18.74 0 0 1.1 -24.67 0 0 1.15 -28.52 0 0 1.2 -30.18 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 0.29 0 0 0.15 3.24 0 0 0.2 1.7 0 0 0.25 -5.11 0 0 0.3 -10.48 0 0 0.35 -13.13 0 0 0.4 -13.44 0 0 0.45 -10.91 0 0 0.5 -4.54 0 0 0.55 6.43 0 0 0.6 10.8 0 0 0.65 11.75 0 0 0.8 11.85 0 0 1.1 8.43 0 0 1.2 8.03 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 1.48 0.27 0.1 0 6.64 1.21 0.15 0 10.61 1.93 0.2 0 5.3 1.52 0.25 0 -5.27 0.64 0.3 0 -11.08 0.16 0.35 0 -12.97 0 0.4 0 -11.81 0 0.45 0 -5.29 0 0.5 0 8.3 0 0.55 0 30 0 0.6 0 31.21 0 0.65 0 31.84 0 0.7 0 32 0 0.8 0 31.88 0 0.9 0 31.36 0 1.05 0 30.33 0 1.1 0 30.12 0 1.2 0 30 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.15 0 0 0 0.2 2.48 0 0 0.25 10.51 0 0 0.3 16.43 0 0 0.35 18.69 0 0 0.4 17.98 0 0 0.45 14.31 0 0 0.55 0 0 0 0.95 0.06 0 0 1 0.79 0 0 1.2 8 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.15 -1.28 0 0 0.3 1.18 0 0 0.4 3.47 0 0 0.5 4.78 0 0 0.55 1.2 0 0 0.6 -1.61 0 0 0.75 2.87 0 0 0.85 3.89 0 0 0.95 4.04 0 0 1 5.59 0 0 1.2 20 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.1 0.12 0 0 0.4 1.85 0 0 0.45 2.37 0 0 0.5 3.62 0 0 0.55 29.99 0 0 0.6 29.12 0 0 0.65 29.44 0 0 0.75 24.21 0 0 0.8 22.59 0 0 0.85 21.96 0 0 0.95 22.18 0 0 1 24.06 0 0 1.2 40 0 0"))
+                .addAnimation("tabardo", giro("0 0 0 0 0.4 -0.06 0 0 0.45 -0.8 0 0 0.5 -3.62 0 0 0.55 -49.81 0 0 0.6 -53.84 0 0 0.65 -52.71 0 0 0.7 -54.72 0 0 0.75 -53.29 0 0 0.8 -51.15 0 0 0.85 -52.66 0 0 0.9 -51.6 0 0 0.95 -49.85 0 0 1 -52.48 0 0 1.1 -54.98 0 0 1.15 -58.11 0 0 1.2 -60 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -14 0 -0.23 0.1 -33.92 0 -0.92 0.15 -30.18 0 -0.95 0.2 -24.06 0 -0.79 0.25 -12.45 0 -0.56 0.3 -3.41 0 -0.45 0.35 0.85 0 -0.42 0.4 -7.25 0.13 -0.32 0.45 -33.36 0.9 0.32 0.5 -41.61 1.76 1.16 0.55 -73.82 2 1.11 0.6 -76.15 2 1.08 0.65 -77.35 2 1.06 0.7 -77.66 2 1.06 0.85 -77.03 2 1.07 1.1 -74.04 2 1.1 1.2 -73.82 2 1.11"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 24.08 0 0 0.1 53.27 0 0 0.15 43.91 0 0 0.2 33.59 0 0 0.25 13.75 0 0 0.3 -2.33 0 0 0.35 -10.07 0 0 0.4 2.31 0 0 0.45 32.65 0 0 0.5 30.14 0 0 0.55 63.92 0 0 0.6 66.03 0 0 0.65 67.09 0 0 0.7 67.36 0 0 0.8 67.17 0 0 1.05 64.49 0 0 1.2 63.92 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -3.5 0 0 0.1 -4.18 0 0 0.15 -11.94 0 0 0.2 -14.27 0 0 0.25 -14.86 0 0 0.35 -10.76 0 0 0.4 -10.43 0 0 0.45 5.54 0 0 0.5 14.9 0 0 0.55 9.9 0 0 0.7 10.3 0 0 1.2 9.9 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -4.64 0 0.2 0.1 -15.85 0 0.98 0.15 -22.33 0 1.69 0.2 -18.61 0 1.52 0.25 -8.74 0 1.14 0.3 -0.98 0 0.95 0.35 2.51 0 0.89 0.4 -1.12 -0.13 1.01 0.45 -15.97 -0.9 2.6 0.5 -1.86 -1.76 3.26 0.55 7.47 -2 8.93 0.6 8.47 -2 9.81 0.7 9.18 -2 10.46 1.2 7.47 -2 8.93"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 8.95 0 0 0.1 30.76 0 0 0.15 43.53 0 0 0.2 36.18 0 0 0.25 16.89 0 0 0.3 1.88 0 0 0.35 -4.81 0 0 0.4 5.07 0 0 0.45 58.9 0 0 0.5 63.15 0 0 0.55 84.79 0 0 0.6 86.05 0 0 0.7 86.83 0 0 1.2 84.79 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -4.3 0 0 0.1 -14.91 0 0 0.15 -21.2 0 0 0.2 -22.32 0 0 0.25 -21.7 0 0 0.3 -19.3 0 0 0.35 -17.67 0 0 0.4 -15.2 0 0 0.45 -10.16 0 0 0.5 -3.16 0 0 0.55 -30.26 0 0 0.6 -32.52 0 0 0.65 -33.71 0 0 0.8 -33.79 0 0 1.05 -30.86 0 0 1.2 -30.26 0 0"))
                 .build();
     }
 
     private static AnimationDefinition fuentes_carga() {
         return AnimationDefinition.Builder.withLength(2F).looping()
-                .addAnimation("pelvis", mover(pos(0F, 0F, -30F, 0F),
-                        pos(1F, 0F, -30F, 0F),
-                        pos(2F, 0F, -30F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, -70F, 0F, 0F),
-                        rot(1F, -70F, 0F, 0F),
-                        rot(2F, -70F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, -86F, 0F, -6F),
-                        rot(1F, -86F, 0F, -6F),
-                        rot(2F, -86F, 0F, -6F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 86F, 0F, 0F),
-                        rot(1F, 86F, 0F, 0F),
-                        rot(2F, 86F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 6F, 0F, 5F),
-                        rot(1F, 6F, 0F, 5F),
-                        rot(2F, 6F, 0F, 5F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 86F, 0F, 0F),
-                        rot(1F, 86F, 0F, 0F),
-                        rot(2F, 86F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, -62F, 0F, 0F),
-                        rot(1F, -62F, 0F, 0F),
-                        rot(2F, -62F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 8F, 0F, 0F),
-                        rot(1F, 8F, 0F, 0F),
-                        rot(2F, 8F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 24F, 0F, 0F),
-                        rot(1F, 24F, 0F, 0F),
-                        rot(2F, 24F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 50F, 0F, 0F),
-                        rot(1F, 50F, 0F, 0F),
-                        rot(2F, 50F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 8F, 0F, 0F),
-                        rot(1F, 4F, 2F, 0F),
-                        rot(2F, 8F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, -30F, 0F, 0F),
-                        rot(1F, -34F, 3F, 0F),
-                        rot(2F, -30F, 0F, 0F)))
-                .addAnimation("brazo_der", giro(rot(0F, -25.856F, -0.002F, -39.118F),
-                        rot(1F, -25.856F, -0.002F, -39.118F),
-                        rot(2F, -25.856F, -0.002F, -39.118F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 26.36F, 0F, 0F),
-                        rot(1F, 26.36F, 0F, 0F),
-                        rot(2F, 26.36F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, -31.01F, -0.01F, 50.545F),
-                        rot(1F, -31.01F, -0.01F, 50.545F),
-                        rot(2F, -31.01F, -0.01F, 50.545F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, -6.36F, 0F, 0F),
-                        rot(1F, -6.36F, 0F, 0F),
-                        rot(2F, -6.36F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, -62.008F, 121.775F, -29.557F),
-                        rot(1F, -62.008F, 121.775F, -29.557F),
-                        rot(2F, -62.008F, 121.775F, -29.557F)))
+                .addAnimation("pelvis", mover("0 0 30 0 0.15 0 30.55 0 0.3 0 30.97 0 0.5 0 31.2 0 0.6 0 31.14 0 0.75 0 30.85 0 1.2 0 29.3 0 1.3 0 29.03 0 1.45 0 28.82 0 1.55 0 28.82 0 1.7 0 29.03 0 1.85 0 29.45 0 2 0 30 0"))
+                .addAnimation("tabardo", giro("0 -49.64 0 0 0.05 -52.37 0 0 0.1 -50.48 0 0 0.15 -49.67 0 0 0.2 -52.36 0 0 0.25 -51.44 0 0 0.3 -49.74 0 0 0.35 -52.32 0 0 0.4 -50.25 0 0 0.45 -52.69 0 0 0.5 -51.68 0 0 0.55 -53.92 0 0 0.6 -51.62 0 0 0.65 -50.55 0 0 0.7 -53.02 0 0 0.75 -51.95 0 0 0.8 -49.76 0 0 0.85 -52.28 0 0 0.9 -51.36 0 0 0.95 -49.33 0 0 1 -51.96 0 0 1.05 -50.17 0 0 1.15 -48.18 0 0 1.2 -50.52 0 0 1.25 -49.05 0 0 1.3 -48.57 0 0 1.35 -47.26 0 0 1.4 -50.41 0 0 1.45 -49.03 0 0 1.5 -48.56 0 0 1.55 -47.26 0 0 1.6 -50.41 0 0 1.65 -49.04 0 0 1.75 -47.53 0 0 1.8 -50.05 0 0 1.85 -49.57 0 0 1.9 -48.02 0 0 1.95 -50.99 0 0 2 -49.64 0 0"))
+                .addAnimation("capa_2", giro("0 4.39 0 0.04 0.3 3.11 0 0.02 0.55 2.93 0 -0.06 1.2 5.65 0 -0.01 1.45 6.23 0 -0.02 1.7 5.78 0 0.01 2 4.39 0 0.04"))
+                .addAnimation("capa_3", giro("0 23.3 0 -0.19 0.05 22.52 0 -0.12 0.1 25.85 0 -0.03 0.2 24.34 0 0.09 0.25 24.42 0 0.14 0.45 21.89 0 0.17 0.5 25.3 0 0.16 0.65 23.58 0 0.11 0.7 23.97 0 0.11 0.9 22.62 0 0.05 1.7 23.3 0 -0.16 1.8 22.34 0 -0.17 1.85 25.95 0 -0.17 1.95 24.75 0 -0.19 2 23.3 0 -0.19"))
+                .addAnimation("torso", giro("0 7.79 0.04 0 0.3 10.29 0.84 0 0.5 10.98 1.36 0 0.75 10.25 1.82 0 1.25 6.05 1.87 0 1.45 5.09 1.56 0 1.7 5.47 0.97 0 2 7.79 0.04 0"))
+                .addAnimation("cabeza", giro("0 -31.49 0.09 0 0.1 -32.56 0.15 0 0.25 -33.68 0.99 0 0.5 -33.72 1.99 0 0.7 -32.13 2.59 0 1.15 -26.98 2.96 0 1.4 -26 2.53 0 1.65 -27.36 1.72 0 2 -31.49 0.09 0"))
+                .addAnimation("brazo_der", giro("0 -25.86 0 -39.12 2 -25.86 0 -39.12"))
+                .addAnimation("antebrazo_der", giro("0 26.36 0 0 2 26.36 0 0"))
+                .addAnimation("brazo_izq", giro("0 -31.01 -0.01 50.55 2 -31.01 -0.01 50.55"))
+                .addAnimation("antebrazo_izq", giro("0 -6.36 0 0 2 -6.36 0 0"))
+                .addAnimation("agarre", giro("0 -62.01 121.78 -29.56 2 -62.01 121.78 -29.56"))
+                .addAnimation("pierna_izq", giro("0 -73.82 2 1.11 0.3 -75.68 2 1.08 0.5 -76.12 2 1.08 0.75 -75.44 2 1.09 1.2 -72.48 2 1.12 1.45 -71.56 2 1.13 1.7 -71.96 2 1.13 2 -73.82 2 1.11"))
+                .addAnimation("espinilla_izq", giro("0 63.92 0 0 0.3 65.62 0 0 0.55 65.98 0 0 0.8 65.15 0 0 1.3 62.17 0 0 1.5 61.75 0 0 1.7 62.17 0 0 2 63.92 0 0"))
+                .addAnimation("pie_izq", giro("0 9.9 0 0 2 9.9 0 0"))
+                .addAnimation("pierna_der", giro("0 7.47 -2 8.93 0.5 8.46 -2 9.8 1.4 6.62 -2 8.2 1.7 6.74 -2 8.3 2 7.47 -2 8.93"))
+                .addAnimation("espinilla_der", giro("0 84.79 0 0 0.3 85.81 0 0 0.55 86.02 0 0 1.5 83.46 0 0 2 84.79 0 0"))
+                .addAnimation("pie_der", giro("0 -30.26 0 0 0.3 -32.07 0 0 0.5 -32.5 0 0 0.7 -32.07 0 0 1.25 -28.69 0 0 1.45 -28.07 0 0 1.7 -28.46 0 0 2 -30.26 0 0"))
                 .build();
     }
 
     private static AnimationDefinition ofrenda() {
-        return AnimationDefinition.Builder.withLength(2.6F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -25.862F, -0.006F, 7.465F),
-                        rot(0.7F, -25.862F, -0.006F, 7.465F),
-                        rot(1F, -26.149F, -0.009F, -37.013F),
-                        rot(1.3F, -26.149F, -0.009F, -37.013F),
-                        rot(2.4F, -95.449F, 0.016F, 19.323F),
-                        rot(2.6F, -95.449F, 0.016F, 19.323F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 47.463F, 0F, 0F),
-                        rot(0.7F, 47.463F, 0F, 0F),
-                        rot(1F, -15.197F, 0F, 0F),
-                        rot(1.3F, -15.197F, 0F, 0F),
-                        rot(2.4F, -4.128F, 0F, 0F),
-                        rot(2.6F, -4.128F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 17.327F, -0.005F, 1.201F),
-                        rot(0.7F, 17.327F, -0.005F, 1.201F),
-                        rot(1F, -51.04F, -0.014F, 38.106F),
-                        rot(1.3F, -51.04F, -0.014F, 38.106F),
-                        rot(2.4F, -120.329F, -0.016F, -18.208F),
-                        rot(2.6F, -120.329F, -0.016F, -18.208F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -20.535F, 0F, 0F),
-                        rot(0.7F, -20.535F, 0F, 0F),
-                        rot(1F, -3.664F, 0F, 0F),
-                        rot(1.3F, -3.664F, 0F, 0F),
-                        rot(2.4F, 7.417F, 0F, 0F),
-                        rot(2.6F, 7.417F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 14.69F, 20.319F, -8.308F),
-                        rot(0.7F, 14.69F, 20.319F, -8.308F),
-                        rot(1F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 14F, 10F, 0F),
-                        rot(0.7F, 14F, 10F, 0F),
-                        rot(1F, 24F, 0F, 0F),
-                        rot(1.3F, 24F, 0F, 0F),
-                        rot(2.4F, -6F, 0F, 0F),
-                        rot(2.6F, -6F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 14F, 0F, 0F),
-                        rot(0.7F, 14F, 0F, 0F),
-                        rot(1F, 18F, 0F, 0F),
-                        rot(1.3F, 18F, 0F, 0F),
-                        rot(2.4F, -34F, 0F, 0F),
-                        rot(2.6F, -34F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.45F, 0F, -4F, 0F),
-                        pos(0.7F, 0F, -4F, 0F),
-                        pos(1F, 0F, -6F, 0F),
-                        pos(1.3F, 0F, -6F, 0F),
-                        pos(2.4F, 0F, 0F, 0F),
-                        pos(2.6F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, -10F, 0F, 6F),
-                        rot(0.7F, -10F, 0F, 6F),
-                        rot(1F, 14F, 0F, 6F),
-                        rot(1.3F, 14F, 0F, 6F),
-                        rot(2.4F, 0F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 14F, 0F, 0F),
-                        rot(0.7F, 14F, 0F, 0F),
-                        rot(1F, 20F, 0F, 0F),
-                        rot(1.3F, 20F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1F, -20F, 0F, -6F),
-                        rot(1.3F, -20F, 0F, -6F),
-                        rot(2.4F, 0F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1F, 30F, 0F, 0F),
-                        rot(1.3F, 30F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F),
-                        rot(2.6F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.4F, 20F, 0F, 0F),
-                        rot(2.6F, 20F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.4F, 10F, 0F, 0F),
-                        rot(2.6F, 10F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.45F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.4F, 12F, 0F, 0F),
-                        rot(2.6F, 12F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(2F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 7.92 0 3.54 0.1 14.02 0 6.27 0.15 18.43 0 8.24 0.2 21.28 0 9.52 0.25 22.75 0 10.18 0.3 23.12 0 10.34 0.45 22.8 0 9.9 0.5 21.51 0 8.18 0.55 19.03 0 4.83 0.6 15.19 -0.01 -0.33 0.65 9.87 -0.01 -7.49 0.7 2.96 -0.01 -16.79 0.75 -5.62 -0.01 -28.33 0.8 -15.96 -0.01 -42.24 1.25 -15.96 -0.01 -42.24 1.3 -35.48 0 -27.85 1.35 -52.07 0 -15.62 1.4 -65.85 0.01 -5.47 1.45 -76.94 0.01 2.7 1.5 -85.48 0.01 8.99 1.55 -91.65 0.01 13.54 1.6 -95.64 0.01 16.48 1.65 -97.7 0.01 17.99 1.7 -98.22 0.01 18.38 2 -98.22 0.01 18.38"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -17.7 0 0 0.1 -31.35 0 0 0.15 -41.19 0 0 0.2 -47.56 0 0 0.25 -50.85 0 0 0.3 -51.69 0 0 0.45 -51.54 0 0 0.5 -50.95 0 0 0.55 -49.82 0 0 0.6 -48.07 0 0 0.65 -45.64 0 0 0.7 -42.49 0 0 0.75 -38.57 0 0 0.8 -33.85 0 0 1.25 -33.85 0 0 1.3 -26 0 0 1.35 -19.33 0 0 1.4 -13.78 0 0 1.45 -9.32 0 0 1.5 -5.88 0 0 1.55 -3.4 0 0 1.6 -1.8 0 0 1.65 -0.97 0 0 1.7 -0.76 0 0 2 -0.76 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 8.72 0 -0.83 0.1 15.43 0 -1.46 0.15 20.28 0 -1.92 0.2 23.42 0 -2.22 0.25 25.04 0 -2.37 0.3 25.45 0 -2.41 0.4 25.45 0 -2.41 0.45 24.89 0 -2.03 0.5 22.72 0 -0.53 0.55 18.5 0 2.38 0.6 11.99 0 6.87 0.65 2.96 0 13.1 0.7 -8.75 0 21.18 0.75 -23.31 0 31.22 0.8 -40.84 0 43.31 1.25 -40.84 0 43.31 1.3 -60.36 -0.01 28.93 1.35 -76.95 -0.01 16.71 1.4 -90.72 -0.01 6.56 1.45 -101.81 -0.01 -1.6 1.5 -110.36 -0.02 -7.9 1.55 -116.52 -0.02 -12.44 1.6 -120.51 -0.02 -15.38 1.65 -122.57 -0.02 -16.9 1.7 -123.09 -0.02 -17.28 2 -123.09 -0.02 -17.28"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -9.9 0 0 0.1 -17.52 0 0 0.15 -23.03 0 0 0.2 -26.59 0 0 0.25 -28.43 0 0 0.3 -28.89 0 0 0.5 -28.62 0 0 0.65 -26.67 0 0 0.8 -22.33 0 0 1.25 -22.33 0 0 1.3 -14.48 0 0 1.35 -7.81 0 0 1.4 -2.27 0 0 1.45 2.19 0 0 1.5 5.63 0 0 1.55 8.11 0 0 1.6 9.72 0 0 1.65 10.54 0 0 2 10.76 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 20.88 -0.29 -5.62 0.1 36.98 -0.52 -9.95 0.15 48.59 -0.68 -13.08 0.2 56.1 -0.78 -15.1 0.25 59.98 -0.84 -16.14 0.3 60.97 -0.85 -16.41 0.4 60.97 -0.85 -16.41 0.45 60.46 -0.84 -16.27 0.5 58.45 -0.82 -15.73 0.55 54.58 -0.76 -14.69 0.6 48.59 -0.68 -13.08 0.65 40.28 -0.56 -10.84 0.7 29.51 -0.41 -7.94 0.75 16.12 -0.23 -4.34 0.8 0 0 0 2 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 3.59 2.69 0 0.1 7.85 5.89 0 0.15 11.32 8.49 0 0.2 13.76 10.32 0 0.25 15.21 11.4 0 0.3 15.82 11.86 0 0.4 15.99 11.99 0 0.5 16.28 11.67 0 0.6 17.61 10.07 0 0.7 20.39 6.73 0 0.8 24.84 1.39 0 0.85 25.75 0.3 0 0.95 25.99 0.01 0 1 25.77 0 0 1.05 24.33 0 0 1.15 18.03 0 0 1.2 15.42 0 0 1.25 14.32 0 0 1.4 3.41 0 0 1.45 0.43 0 0 1.55 -3.68 0 0 1.6 -4.89 0 0 1.7 -5.91 0 0 2 -6 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 1.56 0 0 0.15 8.92 0 0 0.2 11.71 0 0 0.25 13.34 0 0 0.3 14.04 0 0 0.6 14.49 0 0 0.7 15.5 0 0 0.85 17.89 0 0 1.25 18 0 0 1.3 14.03 0 0 1.35 4.49 0 0 1.4 -6.27 0 0 1.45 -15.4 0 0 1.5 -22.32 0 0 1.55 -27.33 0 0 1.6 -30.8 0 0 1.65 -32.97 0 0 1.7 -33.99 0 0 2 -34 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 -0.69 2.4 0 0.1 -1.21 4.25 0 0.15 -1.59 5.58 0 0.2 -1.84 6.44 0 0.25 -1.97 6.89 0 0.3 -2 7 0 0.45 -1.98 7.02 -0.03 0.5 -1.92 7.08 -0.17 0.55 -1.79 7.21 -0.42 0.6 -1.59 7.41 -0.81 0.65 -1.32 7.68 -1.36 0.7 -0.97 8.03 -2.06 0.75 -0.53 8.47 -2.94 0.8 0 9 -4 0.85 0 10.21 -4 0.9 0 10.84 -4 0.95 0 11 -4 1 0 10.86 -4 1.05 0 10.16 -4 1.15 0 7.84 -4 1.2 0 7.14 -4 1.25 0 7 -4 1.3 0 5.58 -3.05 1.35 0 4.37 -2.24 1.4 0 3.36 -1.57 1.45 0 2.55 -1.03 1.5 0 1.93 -0.62 1.55 0 1.48 -0.32 1.6 0 1.19 -0.13 1.65 0 1.04 -0.03 2 0 1 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.25 0 0 1.59 0.45 0 0 1.05 0.6 0 0 0.14 0.7 0 0 -1.03 0.8 0 0 -2.87 0.85 0 0 -3.01 1.15 0.38 0 -1.17 1.25 0 0 -0.69 1.35 3.36 0 -0.36 1.6 9.68 0 0.1 1.8 12.26 0 0 2 20 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -3.42 0 -0.07 0.1 -5.6 0 -0.29 0.25 -5.6 0 -0.46 0.8 -5.6 0 0.54 1.05 -5.6 0 -0.02 1.15 -5.11 0 -0.03 1.25 -5.57 0 0.15 1.3 -4.77 0 0.11 1.4 -1.51 0 -0.04 1.5 0.62 0 -0.07 1.75 1.39 0 0.03 1.8 2.23 0 0.02 2 10 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.05 -0.16 0 0 0.1 -2.15 0 -0.05 0.15 -5.04 0 -0.24 0.2 -6.36 0 -0.45 0.25 -6.46 0 -0.55 0.35 -5.29 0 -0.55 0.45 -5.2 0 -0.48 0.55 -6.33 0 -0.32 0.7 -9.16 0 0.28 0.8 -9.27 0 0.93 1 -9.24 0 0.69 1.1 -7.62 0 0.61 1.2 -3.71 0 0.21 1.3 -4.23 0 0.28 1.35 -3.46 0 0.23 1.5 0.69 0 -0.03 1.55 1.57 0 -0.07 1.65 2.06 0 -0.05 1.75 1.71 0 0 1.8 2.5 0 0.02 2 12 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -7.29 0 -0.74 0.1 -11.76 0 -1.35 0.15 -14.63 0 -1.81 0.2 -16.38 0 -2.12 0.25 -17.25 0 -2.29 0.4 -17.47 0 -2.33 0.45 -19.12 0 -2.35 0.5 -27.53 0 -2.49 0.55 -41.08 0 -2.69 0.6 -50.66 0 -2.48 0.65 -48.04 0 -1.54 0.7 -38.15 0 -0.58 0.75 -31.16 0 0.06 0.8 -30.79 0 0.54 0.85 -33.57 0 0.51 0.9 -34.96 0 0.5 0.95 -35.31 0 0.49 1 -35 0 0.5 1.05 -33.45 0 0.51 1.15 -27.98 0 0.57 1.2 -26.2 0 0.59 1.25 -25.82 0 0.59 1.3 -40.32 0 0.05 1.35 -43.76 0 -0.37 1.4 -39.84 0 -0.56 1.45 -32.36 0 -0.59 1.5 -24.05 0 -0.56 1.55 -16.48 0 -0.52 1.6 -10.53 0 -0.49 1.65 -6.93 0 -0.48 1.7 -5.92 0 -0.48 2 -5.92 0 -0.48"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 13.29 0 0 0.1 21.31 0 0 0.15 26.42 0 0 0.2 29.51 0 0 0.25 31.05 0 0 0.4 31.43 0 0 0.45 33.76 0 0 0.5 44.85 0 0 0.55 59.66 0 0 0.6 64.8 0 0 0.65 53.83 0 0 0.7 35.04 0 0 0.75 22.93 0 0 0.8 23.58 0 0 0.85 27.83 0 0 0.9 29.92 0 0 0.95 30.44 0 0 1 29.98 0 0 1.05 27.65 0 0 1.15 19.18 0 0 1.2 16.34 0 0 1.25 15.74 0 0 1.3 42.66 0 0 1.35 51.76 0 0 1.4 49.77 0 0 1.45 41.38 0 0 1.55 19.08 0 0 1.6 9.74 0 0 1.65 3.86 0 0 1.7 2.2 0 0 2 2.2 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -6 0 0 0.1 -9.55 0 0 0.15 -11.79 0 0 0.2 -13.13 0 0 0.25 -13.79 0 0 0.4 -13.96 0 0 0.45 -13.83 0 0 0.5 -12.21 0 0 0.55 -6.42 0 0 0.6 1.86 0 0 0.65 6.38 0 0 0.7 8.22 0 0 0.75 9.04 0 0 0.85 5.74 0 0 0.95 4.87 0 0 1 5.02 0 0 1.05 5.8 0 0 1.15 8.8 0 0 1.2 9.85 0 0 1.25 10.08 0 0 1.3 8.52 0 0 1.35 7.7 0 0 1.45 2.6 0 0 1.5 1.26 0 0 1.55 1.37 0 0 1.65 3.39 0 0 1.7 3.73 0 0 2 3.73 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -25.51 2.74 1.77 0.1 -31.08 4.85 2.76 0.15 -29.31 6.38 2.97 0.2 -25.95 7.36 2.92 0.25 -23.69 7.87 2.86 0.3 -23.07 8 2.85 0.5 -23.03 8 2.98 0.6 -22.85 8 3.53 0.7 -22.42 8 4.6 0.8 -21.52 8 6.29 0.85 -23.48 8 6.51 0.9 -24.46 8 6.62 1 -24.49 8 6.63 1.05 -23.4 8 6.5 1.15 -19.55 8 6.1 1.2 -18.32 8 5.98 1.25 -18.06 8 5.96 1.3 -25.85 6.1 5.92 1.35 -27.47 4.49 5.3 1.4 -24.81 3.15 4.26 1.45 -19.83 2.07 3.2 1.55 -8.47 0.64 1.77 1.6 -4 0.25 1.42 1.65 -1.27 0.05 1.24 1.7 -0.51 0 1.19 2 -0.51 0 1.19"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 45.25 0 0 0.1 52.34 0 0 0.15 46.54 0 0 0.2 38.8 0 0 0.25 33.86 0 0 0.3 32.52 0 0 0.5 32.78 0 0 0.65 34.52 0 0 0.8 37.85 0 0 0.85 41.62 0 0 0.9 43.51 0 0 0.95 43.98 0 0 1 43.56 0 0 1.05 41.46 0 0 1.15 34.06 0 0 1.2 31.68 0 0 1.25 31.18 0 0 1.3 48.28 0 0 1.35 53.34 0 0 1.4 49.57 0 0 1.45 40.77 0 0 1.55 19.64 0 0 1.6 11.22 0 0 1.65 6.07 0 0 1.7 4.64 0 0 2 4.64 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -5.66 0 0 0.1 -6.14 0 0 0.2 -8.87 0 0 0.25 -9.35 0 0 0.45 -9.51 0 0 0.55 -10.2 0 0 0.7 -13.06 0 0 0.85 -18.14 0 0 0.9 -19.05 0 0 0.95 -19.27 0 0 1 -19.07 0 0 1.05 -18.06 0 0 1.15 -14.5 0 0 1.2 -13.36 0 0 1.25 -13.12 0 0 1.35 -10.16 0 0 1.5 -8.54 0 0 1.65 -4.48 0 0 1.7 -4.12 0 0 2 -4.12 0 0"))
                 .build();
     }
 
     private static AnimationDefinition ofrenda_sostiene() {
         return AnimationDefinition.Builder.withLength(2F).looping()
-                .addAnimation("cabeza", giro(rot(0F, -34F, 0F, 0F),
-                        rot(1F, -37F, 0F, 0F),
-                        rot(2F, -34F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, -6F, 0F, 0F),
-                        rot(1F, -8F, 2F, 0F),
-                        rot(2F, -6F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 20F, 0F, 0F),
-                        rot(1F, 20F, 0F, 0F),
-                        rot(2F, 20F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 10F, 0F, 0F),
-                        rot(1F, 10F, 0F, 0F),
-                        rot(2F, 10F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 12F, 0F, 0F),
-                        rot(1F, 12F, 0F, 0F),
-                        rot(2F, 12F, 0F, 0F)))
-                .addAnimation("brazo_der", giro(rot(0F, -95.449F, 0.016F, 19.323F),
-                        rot(1F, -95.449F, 0.016F, 19.323F),
-                        rot(2F, -95.449F, 0.016F, 19.323F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, -4.128F, 0F, 0F),
-                        rot(1F, -4.128F, 0F, 0F),
-                        rot(2F, -4.128F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, -120.329F, -0.016F, -18.208F),
-                        rot(1F, -120.329F, -0.016F, -18.208F),
-                        rot(2F, -120.329F, -0.016F, -18.208F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 7.417F, 0F, 0F),
-                        rot(1F, 7.417F, 0F, 0F),
-                        rot(2F, 7.417F, 0F, 0F)))
+                .addAnimation("cabeza", giro("0 -35.39 0 0 0.25 -36.87 0 0 0.45 -36.85 0 0 0.65 -35.74 0 0 1.1 -31.86 0 0 1.35 -31 0 0 1.6 -31.89 0 0 2 -35.39 0 0"))
+                .addAnimation("torso", giro("0 -5.79 0.04 0 0.3 -8.29 0.84 0 0.5 -8.98 1.36 0 0.75 -8.25 1.82 0 1.25 -4.05 1.87 0 1.45 -3.1 1.56 0 1.7 -3.47 0.97 0 2 -5.79 0.04 0"))
+                .addAnimation("pelvis", mover("0 0 1 0 2 0 1 0"))
+                .addAnimation("capa_1", giro("0 11.68 0 -0.04 0.3 12.93 0 0.06 0.55 13.05 0 0.02 1.2 10.27 0 -0.01 1.45 9.76 0 -0.03 1.7 10.22 0 -0.04 2 11.68 0 -0.04"))
+                .addAnimation("capa_2", giro("0 1.37 0 -0.01 0.55 2.26 0 0.01 1.45 0.77 0 -0.01 2 1.37 0 -0.01"))
+                .addAnimation("capa_3", giro("0 1.43 0 0 0.6 1.91 0 0 1.5 1.24 0 0 2 1.43 0 0"))
+                .addAnimation("brazo_der", giro("0 -98.22 0.01 18.38 2 -98.22 0.01 18.38"))
+                .addAnimation("antebrazo_der", giro("0 -0.76 0 0 2 -0.76 0 0"))
+                .addAnimation("brazo_izq", giro("0 -123.09 -0.02 -17.28 2 -123.09 -0.02 -17.28"))
+                .addAnimation("antebrazo_izq", giro("0 10.76 0 0 2 10.76 0 0"))
+                .addAnimation("pierna_izq", giro("0 -5.92 0 -0.48 2 -5.92 0 -0.48"))
+                .addAnimation("espinilla_izq", giro("0 2.2 0 0 2 2.2 0 0"))
+                .addAnimation("pie_izq", giro("0 3.73 0 0 2 3.73 0 0"))
+                .addAnimation("pierna_der", giro("0 -0.51 0 1.19 2 -0.51 0 1.19"))
+                .addAnimation("espinilla_der", giro("0 4.64 0 0 2 4.64 0 0"))
+                .addAnimation("pie_der", giro("0 -4.12 0 0 2 -4.12 0 0"))
                 .build();
     }
 
     private static AnimationDefinition dios() {
-        return AnimationDefinition.Builder.withLength(5F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, -25.862F, -0.006F, 7.465F),
-                        rot(0.6F, -25.862F, -0.006F, 7.465F),
-                        rot(1F, -119.096F, -0.007F, -43.252F),
-                        seco(1.6F, -26.4F, -0.015F, 48.505F),
-                        rot(2.1F, -119.096F, -0.007F, -43.252F),
-                        seco(2.6F, -26.4F, -0.015F, 48.505F),
-                        rot(3.1F, -119.096F, -0.007F, -43.252F),
-                        seco(3.6F, -26.4F, -0.015F, 48.505F),
-                        rot(4.1F, -119.096F, -0.007F, -43.252F),
-                        rot(4.5F, -25.862F, -0.006F, 7.465F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 47.463F, 0F, 0F),
-                        rot(0.6F, 47.463F, 0F, 0F),
-                        rot(1F, -12.323F, 0F, 0F),
-                        seco(1.6F, -34.515F, 0F, 0F),
-                        rot(2.1F, -12.323F, 0F, 0F),
-                        seco(2.6F, -34.515F, 0F, 0F),
-                        rot(3.1F, -12.323F, 0F, 0F),
-                        seco(3.6F, -34.515F, 0F, 0F),
-                        rot(4.1F, -12.323F, 0F, 0F),
-                        rot(4.5F, 47.463F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 17.327F, -0.005F, 1.201F),
-                        rot(0.6F, 17.327F, -0.005F, 1.201F),
-                        rot(1F, -143.96F, -0.062F, 44.314F),
-                        seco(1.6F, -51.273F, -0.014F, -47.386F),
-                        rot(2.1F, -143.96F, -0.062F, 44.314F),
-                        seco(2.6F, -51.273F, -0.014F, -47.386F),
-                        rot(3.1F, -143.96F, -0.062F, 44.314F),
-                        seco(3.6F, -51.273F, -0.014F, -47.386F),
-                        rot(4.1F, -143.96F, -0.062F, 44.314F),
-                        rot(4.5F, 17.327F, -0.005F, 1.201F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, -20.535F, 0F, 0F),
-                        rot(0.6F, -20.535F, 0F, 0F),
-                        rot(1F, -0.822F, 0F, 0F),
-                        seco(1.6F, -23.008F, 0F, 0F),
-                        rot(2.1F, -0.822F, 0F, 0F),
-                        seco(2.6F, -23.008F, 0F, 0F),
-                        rot(3.1F, -0.822F, 0F, 0F),
-                        seco(3.6F, -23.008F, 0F, 0F),
-                        rot(4.1F, -0.822F, 0F, 0F),
-                        rot(4.5F, -20.535F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 14.69F, 20.319F, -8.308F),
-                        rot(0.6F, 14.69F, 20.319F, -8.308F),
-                        rot(1F, 0F, 0F, 0F),
-                        seco(1.6F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        seco(2.6F, 0F, 0F, 0F),
-                        rot(3.1F, 0F, 0F, 0F),
-                        seco(3.6F, 0F, 0F, 0F),
-                        rot(4.1F, 0F, 0F, 0F),
-                        rot(4.5F, 14.69F, 20.319F, -8.308F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 14F, 10F, 0F),
-                        rot(0.6F, 14F, 10F, 0F),
-                        rot(1F, -8F, 0F, 0F),
-                        seco(1.6F, 14F, 0F, 0F),
-                        rot(2.1F, -8F, 0F, 0F),
-                        seco(2.6F, 14F, 0F, 0F),
-                        rot(3.1F, -8F, 0F, 0F),
-                        seco(3.6F, 14F, 0F, 0F),
-                        rot(4.1F, -8F, 0F, 0F),
-                        rot(4.5F, 14F, 10F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 14F, 0F, 0F),
-                        rot(0.6F, 14F, 0F, 0F),
-                        rot(1F, -16F, 0F, 0F),
-                        seco(1.6F, 4F, 0F, 0F),
-                        rot(2.1F, -16F, 0F, 0F),
-                        seco(2.6F, 4F, 0F, 0F),
-                        rot(3.1F, -16F, 0F, 0F),
-                        seco(3.6F, 4F, 0F, 0F),
-                        rot(4.1F, -16F, 0F, 0F),
-                        rot(4.5F, 14F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.4F, 0F, -4F, 0F),
-                        pos(0.6F, 0F, -4F, 0F),
-                        pos(1F, 0F, 0F, 0F),
-                        posSeco(1.6F, 0F, 0F, 0F),
-                        pos(2.1F, 0F, 0F, 0F),
-                        posSeco(2.6F, 0F, 0F, 0F),
-                        pos(3.1F, 0F, 0F, 0F),
-                        posSeco(3.6F, 0F, 0F, 0F),
-                        pos(4.1F, 0F, 0F, 0F),
-                        pos(4.5F, 0F, -4F, 0F),
-                        pos(5F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, -10F, 0F, 6F),
-                        rot(0.6F, -10F, 0F, 6F),
-                        rot(1F, 14F, 0F, 8F),
-                        seco(1.6F, 18F, 0F, 8F),
-                        rot(2.1F, 14F, 0F, 8F),
-                        seco(2.6F, 18F, 0F, 8F),
-                        rot(3.1F, 14F, 0F, 8F),
-                        seco(3.6F, 18F, 0F, 8F),
-                        rot(4.1F, 14F, 0F, 8F),
-                        rot(4.5F, -10F, 0F, 6F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 14F, 0F, 0F),
-                        rot(0.6F, 14F, 0F, 0F),
-                        rot(1F, 0F, 0F, 0F),
-                        seco(1.6F, 0F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        seco(2.6F, 0F, 0F, 0F),
-                        rot(3.1F, 0F, 0F, 0F),
-                        seco(3.6F, 0F, 0F, 0F),
-                        rot(4.1F, 0F, 0F, 0F),
-                        rot(4.5F, 14F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1F, -16F, 0F, -8F),
-                        seco(1.6F, -22F, 0F, -8F),
-                        rot(2.1F, -16F, 0F, -8F),
-                        seco(2.6F, -22F, 0F, -8F),
-                        rot(3.1F, -16F, 0F, -8F),
-                        seco(3.6F, -22F, 0F, -8F),
-                        rot(4.1F, -16F, 0F, -8F),
-                        rot(4.5F, 0F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1F, 18F, 0F, 0F),
-                        seco(1.6F, 24F, 0F, 0F),
-                        rot(2.1F, 18F, 0F, 0F),
-                        seco(2.6F, 24F, 0F, 0F),
-                        rot(3.1F, 18F, 0F, 0F),
-                        seco(3.6F, 24F, 0F, 0F),
-                        rot(4.1F, 18F, 0F, 0F),
-                        rot(4.5F, 0F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1F, -18F, 0F, 0F),
-                        seco(1.6F, -22F, 0F, 0F),
-                        rot(2.1F, -18F, 0F, 0F),
-                        seco(2.6F, -22F, 0F, 0F),
-                        rot(3.1F, -18F, 0F, 0F),
-                        seco(3.6F, -22F, 0F, 0F),
-                        rot(4.1F, -18F, 0F, 0F),
-                        rot(4.5F, 0F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1F, 20F, 0F, 0F),
-                        seco(1.6F, 20F, 0F, 0F),
-                        rot(2.1F, 20F, 0F, 0F),
-                        seco(2.6F, 20F, 0F, 0F),
-                        rot(3.1F, 20F, 0F, 0F),
-                        seco(3.6F, 20F, 0F, 0F),
-                        rot(4.1F, 20F, 0F, 0F),
-                        rot(4.5F, 0F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1F, 10F, 0F, 0F),
-                        seco(1.6F, 10F, 0F, 0F),
-                        rot(2.1F, 10F, 0F, 0F),
-                        seco(2.6F, 10F, 0F, 0F),
-                        rot(3.1F, 10F, 0F, 0F),
-                        seco(3.6F, 10F, 0F, 0F),
-                        rot(4.1F, 10F, 0F, 0F),
-                        rot(4.5F, 0F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.4F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1F, 12F, 0F, 0F),
-                        seco(1.6F, 12F, 0F, 0F),
-                        rot(2.1F, 12F, 0F, 0F),
-                        seco(2.6F, 12F, 0F, 0F),
-                        rot(3.1F, 12F, 0F, 0F),
-                        seco(3.6F, 12F, 0F, 0F),
-                        rot(4.1F, 12F, 0F, 0F),
-                        rot(4.5F, 0F, 0F, 0F),
-                        rot(5F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(4F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 7.92 0 3.54 0.1 14.02 0 6.27 0.15 18.43 0 8.24 0.2 21.28 0 9.52 0.25 22.75 0 10.18 0.4 23.12 0 10.34 0.45 -21.66 -0.01 -4.89 0.5 -57.71 -0.01 -17.14 0.55 -85.49 -0.01 -26.59 0.6 -105.53 -0.01 -33.41 0.65 -118.5 -0.01 -37.82 0.7 -125.2 -0.01 -40.09 0.75 -126.91 -0.01 -40.68 1 -126.84 -0.01 -40.6 1.05 -123.19 -0.02 -36.13 1.1 -111.94 -0.02 -22.35 1.15 -91.48 -0.02 2.7 1.2 -60.69 -0.02 40.4 1.25 -18.69 -0.03 91.82 1.4 -18.71 -0.03 91.8 1.45 -21.57 -0.03 88.29 1.5 -32.94 -0.03 74.38 1.55 -53.04 -0.02 49.76 1.6 -77.86 -0.02 19.37 1.65 -101.46 -0.02 -9.52 1.7 -118.36 -0.02 -30.22 1.75 -125.98 -0.01 -39.54 1.8 -126.84 -0.01 -40.6 1.85 -123.19 -0.02 -36.13 1.9 -111.94 -0.02 -22.35 1.95 -91.48 -0.02 2.7 2 -60.69 -0.02 40.4 2.05 -18.69 -0.03 91.82 2.2 -18.71 -0.03 91.8 2.25 -21.57 -0.03 88.29 2.3 -32.94 -0.03 74.38 2.35 -53.04 -0.02 49.76 2.4 -77.86 -0.02 19.37 2.45 -101.46 -0.02 -9.52 2.5 -118.36 -0.02 -30.22 2.55 -125.98 -0.01 -39.54 2.6 -126.84 -0.01 -40.6 2.65 -123.19 -0.02 -36.13 2.7 -111.94 -0.02 -22.35 2.75 -91.48 -0.02 2.7 2.8 -60.69 -0.02 40.4 2.85 -18.69 -0.03 91.82 3 -18.69 -0.03 91.81 3.05 -18.12 -0.03 90.72 3.1 -15.74 -0.03 86.06 3.15 -11.09 -0.02 77.02 3.2 -4.56 -0.02 64.28 3.3 10.41 -0.01 35.11 3.35 16.63 -0.01 23 3.4 20.83 -0.01 14.82 3.45 22.79 0 11 3.55 22.93 0 10.26 3.6 21.79 0 9.74 3.65 19.35 0 8.66 3.7 15.78 0 7.06 3.8 7.34 0 3.28 3.85 3.77 0 1.69 3.9 1.34 0 0.6 3.95 0.2 0 0.09 4 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -17.7 0 0 0.1 -31.35 0 0 0.15 -41.19 0 0 0.2 -47.56 0 0 0.25 -50.85 0 0 0.3 -51.69 0 0 0.4 -51.69 0 0 0.45 -36.31 0 0 0.5 -23.93 0 0 0.55 -14.38 0 0 0.6 -7.5 0 0 0.65 -3.05 0 0 0.7 -0.74 0 0 0.75 -0.16 0 0 1 -0.18 0 0 1.05 -1.85 0 0 1.1 -6.98 0 0 1.15 -16.3 0 0 1.2 -30.33 0 0 1.25 -49.47 0 0 1.4 -49.46 0 0 1.45 -48.15 0 0 1.5 -42.98 0 0 1.55 -33.81 0 0 1.65 -11.75 0 0 1.7 -4.05 0 0 1.75 -0.58 0 0 1.8 -0.18 0 0 1.85 -1.85 0 0 1.9 -6.98 0 0 1.95 -16.3 0 0 2 -30.33 0 0 2.05 -49.47 0 0 2.2 -49.46 0 0 2.25 -48.15 0 0 2.3 -42.98 0 0 2.35 -33.81 0 0 2.45 -11.75 0 0 2.5 -4.05 0 0 2.55 -0.58 0 0 2.6 -0.18 0 0 2.65 -1.85 0 0 2.7 -6.98 0 0 2.75 -16.3 0 0 2.8 -30.33 0 0 2.85 -49.47 0 0 3.1 -49.62 0 0 3.35 -51.34 0 0 3.5 -51.69 0 0 3.55 -51.25 0 0 3.6 -48.7 0 0 3.65 -43.26 0 0 3.7 -35.28 0 0 3.8 -16.41 0 0 3.85 -8.43 0 0 3.9 -2.99 0 0 3.95 -0.44 0 0 4 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 8.72 0 -0.83 0.1 15.43 0 -1.46 0.15 20.28 0 -1.92 0.2 23.42 0 -2.22 0.25 25.04 0 -2.37 0.4 25.45 0 -2.41 0.45 -27.45 -0.01 10.77 0.5 -70.03 -0.02 21.38 0.55 -102.85 -0.03 29.55 0.6 -126.53 -0.04 35.45 0.65 -141.84 -0.04 39.27 0.7 -149.75 -0.04 41.24 0.75 -151.77 -0.04 41.74 1 -151.71 -0.04 41.67 1.05 -148.06 -0.04 37.2 1.1 -136.81 -0.04 23.43 1.15 -116.35 -0.03 -1.6 1.2 -85.56 -0.02 -39.27 1.25 -43.56 -0.01 -90.65 1.4 -43.58 -0.01 -90.63 1.45 -46.44 -0.01 -87.13 1.5 -57.8 -0.01 -73.23 1.55 -77.91 -0.02 -48.62 1.6 -102.73 -0.03 -18.26 1.65 -126.33 -0.04 10.61 1.7 -143.23 -0.04 31.29 1.75 -150.85 -0.04 40.61 1.8 -151.71 -0.04 41.67 1.85 -148.06 -0.04 37.2 1.9 -136.81 -0.04 23.43 1.95 -116.35 -0.03 -1.6 2 -85.56 -0.02 -39.27 2.05 -43.56 -0.01 -90.65 2.2 -43.58 -0.01 -90.63 2.25 -46.44 -0.01 -87.13 2.3 -57.8 -0.01 -73.23 2.35 -77.91 -0.02 -48.62 2.4 -102.73 -0.03 -18.26 2.45 -126.33 -0.04 10.61 2.5 -143.23 -0.04 31.29 2.55 -150.85 -0.04 40.61 2.6 -151.71 -0.04 41.67 2.65 -148.06 -0.04 37.2 2.7 -136.81 -0.04 23.43 2.75 -116.35 -0.03 -1.6 2.8 -85.56 -0.02 -39.27 2.85 -43.56 -0.01 -90.65 3 -43.56 -0.01 -90.64 3.05 -42.63 -0.01 -89.46 3.1 -38.69 -0.01 -84.42 3.15 -31.02 -0.01 -74.62 3.2 -20.24 -0.01 -60.83 3.3 4.47 0 -29.23 3.35 14.73 0 -16.12 3.4 21.66 0 -7.26 3.45 24.89 0 -3.12 3.5 25.45 0 -2.41 3.55 25.23 0 -2.39 3.6 23.98 0 -2.27 3.65 21.3 0 -2.02 3.7 17.37 0 -1.65 3.8 8.08 0 -0.77 3.85 4.15 0 -0.39 3.9 1.47 0 -0.14 3.95 0.22 0 -0.02 4 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -9.9 0 0 0.1 -17.52 0 0 0.15 -23.03 0 0 0.2 -26.59 0 0 0.25 -28.43 0 0 0.3 -28.89 0 0 0.4 -28.89 0 0 0.45 -16.88 0 0 0.5 -7.2 0 0 0.55 0.26 0 0 0.6 5.63 0 0 0.65 9.11 0 0 0.7 10.91 0 0 0.75 11.37 0 0 1 11.34 0 0 1.05 9.68 0 0 1.1 4.55 0 0 1.15 -4.78 0 0 1.2 -18.81 0 0 1.25 -37.95 0 0 1.4 -37.94 0 0 1.45 -36.64 0 0 1.5 -31.46 0 0 1.55 -22.29 0 0 1.65 -0.23 0 0 1.7 7.48 0 0 1.75 10.95 0 0 1.8 11.34 0 0 1.85 9.68 0 0 1.9 4.55 0 0 1.95 -4.78 0 0 2 -18.81 0 0 2.05 -37.95 0 0 2.2 -37.94 0 0 2.25 -36.64 0 0 2.3 -31.46 0 0 2.35 -22.29 0 0 2.45 -0.23 0 0 2.5 7.48 0 0 2.55 10.95 0 0 2.6 11.34 0 0 2.65 9.68 0 0 2.7 4.55 0 0 2.75 -4.78 0 0 2.8 -18.81 0 0 2.85 -37.95 0 0 3.05 -37.83 0 0 3.1 -37.31 0 0 3.15 -36.31 0 0 3.35 -30.3 0 0 3.45 -28.97 0 0 3.55 -28.65 0 0 3.6 -27.22 0 0 3.65 -24.18 0 0 3.7 -19.72 0 0 3.8 -9.17 0 0 3.85 -4.71 0 0 3.9 -1.67 0 0 3.95 -0.25 0 0 4 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 20.88 -0.29 -5.62 0.1 36.98 -0.52 -9.95 0.15 48.59 -0.68 -13.08 0.2 56.1 -0.78 -15.1 0.25 59.98 -0.84 -16.14 0.3 60.97 -0.85 -16.41 0.4 60.97 -0.85 -16.41 0.45 42.77 -0.6 -11.51 0.5 28.12 -0.39 -7.57 0.55 16.83 -0.23 -4.53 0.6 8.69 -0.12 -2.34 0.65 3.42 -0.05 -0.92 0.7 0.69 -0.01 -0.19 0.75 0 0 0 2.95 0 0 0 3 0 0 0 3.05 0.83 -0.01 -0.22 3.1 4.31 -0.06 -1.16 3.15 11.08 -0.15 -2.98 3.2 20.61 -0.29 -5.54 3.3 42.44 -0.59 -11.42 3.35 51.49 -0.72 -13.86 3.4 57.62 -0.8 -15.51 3.45 60.48 -0.84 -16.27 3.5 60.97 -0.85 -16.41 3.55 60.45 -0.84 -16.27 3.6 57.44 -0.8 -15.46 3.65 51.03 -0.71 -13.73 3.7 41.62 -0.58 -11.2 3.8 19.35 -0.27 -5.21 3.85 9.94 -0.14 -2.68 3.9 3.53 -0.05 -0.95 3.95 0.52 -0.01 -0.14 4 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 3.59 2.69 0 0.1 7.85 5.89 0 0.15 11.32 8.49 0 0.2 13.76 10.32 0 0.25 15.21 11.4 0 0.3 15.82 11.86 0 0.4 15.99 11.99 0 0.45 11.31 9.66 0 0.5 5.59 6.79 0 0.55 0.69 4.34 0 0.6 -3.05 2.48 0 0.65 -5.63 1.18 0 0.7 -7.16 0.42 0 0.75 -7.81 0.1 0 0.85 -8.92 0 0 0.95 -11.42 0 0 1 -11.87 0 0 1.05 -11.41 0 0 1.1 -9.32 0 0 1.15 -5.06 0 0 1.2 1.73 0 0 1.25 11.31 0 0 1.3 16.7 0 0 1.35 18.99 0 0 1.4 19.78 0 0 1.45 19.48 0 0 1.5 17.16 0 0 1.55 12.32 0 0 1.65 -1.38 0 0 1.7 -7.14 0 0 1.75 -10.53 0 0 1.8 -11.68 0 0 1.85 -11.37 0 0 1.9 -9.31 0 0 1.95 -5.06 0 0 2 1.73 0 0 2.05 11.31 0 0 2.1 16.7 0 0 2.15 18.99 0 0 2.2 19.78 0 0 2.25 19.48 0 0 2.3 17.16 0 0 2.35 12.32 0 0 2.45 -1.38 0 0 2.5 -7.14 0 0 2.55 -10.53 0 0 2.6 -11.68 0 0 2.65 -11.37 0 0 2.7 -9.31 0 0 2.75 -5.06 0 0 2.8 1.73 0 0 2.85 11.31 0 0 2.9 16.7 0 0 2.95 18.99 0 0 3 19.78 0 0 3.05 19.92 0.09 0 3.15 19.46 1.62 0 3.35 16.89 9.32 0 3.4 16.41 10.76 0 3.45 16.13 11.6 0 3.55 15.93 11.93 0 3.6 15.4 11.54 0 3.65 14.09 10.57 0 3.7 11.97 8.98 0 3.85 3.74 2.8 0 3.9 1.73 1.3 0 3.95 0.56 0.42 0 4 0.12 0.09 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 1.56 0 0 0.15 8.92 0 0 0.2 11.71 0 0 0.25 13.34 0 0 0.3 14.04 0 0 0.4 14.08 0 0 0.45 11.11 0 0 0.55 -3.08 0 0 0.6 -8.88 0 0 0.65 -12.76 0 0 0.7 -15.01 0 0 0.75 -16.02 0 0 0.8 -16.21 0 0 1.05 -15.83 0 0 1.1 -14.88 0 0 1.15 -12.53 0 0 1.2 -8.37 0 0 1.3 3.87 0 0 1.35 7.28 0 0 1.4 8.38 0 0 1.45 8.21 0 0 1.5 6.93 0 0 1.55 4 0 0 1.6 -0.63 0 0 1.7 -11.23 0 0 1.75 -14.73 0 0 1.8 -16.22 0 0 1.85 -16.21 0 0 1.9 -15.04 0 0 1.95 -12.54 0 0 2 -8.35 0 0 2.1 3.87 0 0 2.15 7.28 0 0 2.2 8.38 0 0 2.25 8.21 0 0 2.3 6.93 0 0 2.35 4 0 0 2.4 -0.63 0 0 2.5 -11.23 0 0 2.55 -14.73 0 0 2.6 -16.22 0 0 2.65 -16.21 0 0 2.7 -15.04 0 0 2.75 -12.54 0 0 2.8 -8.35 0 0 2.9 3.87 0 0 2.95 7.28 0 0 3 8.38 0 0 3.15 8.54 0 0 3.4 13.24 0 0 3.55 14.03 0 0 3.65 12.9 0 0 3.7 11.32 0 0 3.9 1.86 0 0 3.95 0.52 0 0 4 -0.06 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 -0.69 2.4 0 0.1 -1.21 4.25 0 0.15 -1.59 5.58 0 0.2 -1.84 6.44 0 0.25 -1.97 6.89 0 0.3 -2 7 0 0.4 -2 7 0 0.45 -1.4 5.81 0 0.5 -0.92 4.84 0 0.55 -0.55 4.1 0 0.6 -0.28 3.57 0 0.65 -0.11 3.22 0 0.7 -0.02 3.05 0 0.75 0 3 0 0.8 0 2.94 0.13 0.85 0 2.65 0.69 0.9 0 2.27 1.45 0.95 0 2.04 1.93 1 0 2 2 1.05 0 2.17 1.83 1.1 0 2.69 1.31 1.15 0 3.64 0.36 1.2 0 5.06 -1.06 1.25 0 7 -3 1.4 0 7 -3 1.45 0 6.87 -2.87 1.5 0 6.34 -2.34 1.55 0 5.41 -1.41 1.65 0 3.18 0.82 1.7 0 2.4 1.6 1.75 0 2.04 1.96 1.8 0 2 2 1.85 0 2.17 1.83 1.9 0 2.69 1.31 1.95 0 3.64 0.36 2 0 5.06 -1.06 2.05 0 7 -3 2.2 0 7 -3 2.25 0 6.87 -2.87 2.3 0 6.34 -2.34 2.35 0 5.41 -1.41 2.45 0 3.18 0.82 2.5 0 2.4 1.6 2.55 0 2.04 1.96 2.6 0 2 2 2.65 0 2.17 1.83 2.7 0 2.69 1.31 2.75 0 3.64 0.36 2.8 0 5.06 -1.06 2.85 0 7 -3 3.05 -0.03 7 -2.96 3.1 -0.14 7 -2.79 3.15 -0.36 7 -2.46 3.35 -1.69 7 -0.47 3.4 -1.89 7 -0.17 3.45 -1.98 7 -0.02 3.55 -1.98 6.94 0 3.6 -1.88 6.59 0 3.65 -1.67 5.86 0 3.7 -1.36 4.78 0 3.8 -0.64 2.22 0 3.85 -0.33 1.14 0 3.9 -0.12 0.41 0 3.95 -0.02 0.06 0 4 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.2 0 0 1.45 0.4 0 0 1.22 0.5 5.98 0 -0.58 0.55 8.12 0 -0.94 0.6 9.63 0 -0.88 0.7 11.37 0 -0.26 0.8 11.94 0 0.18 0.95 15.29 0 0.15 1 15.44 0 0.08 1.05 14.66 0 0.02 1.1 12.4 0 -0.01 1.15 8.41 0 -0.03 1.2 2.6 0 -0.03 1.25 0 0 -0.03 1.45 0.14 0 -0.02 1.5 1.68 0 -0.01 1.55 5.18 0 -0.01 1.65 14.51 0 0 1.7 17.36 0 0 1.75 17.76 0 0 1.8 16.31 0 0 1.85 14.16 0 0 1.9 11.21 0 0 1.95 7.09 0 0 2 1.52 0 0 2.05 0 0 0 2.25 0.14 0 0 2.3 1.68 0 0 2.35 5.18 0 0 2.45 14.51 0 0 2.5 17.36 0 0 2.55 17.76 0 0 2.6 16.31 0 0 2.65 14.16 0 0 2.7 11.21 0 0 2.75 7.09 0 0 2.8 1.52 0 0 2.85 0 0 0 3.1 0 0 0.21 3.3 0 0 2.24 3.4 0 0 2.76 3.6 0 0 1.78 3.75 0.07 0 -0.12 3.8 0.84 0 -0.49 3.85 1.01 0 -0.47 4 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -3.42 0 -0.07 0.1 -5.6 0 -0.29 0.4 -5.6 0 -0.18 0.45 -4.53 0 0.09 0.5 -2.77 0 0.24 0.6 0.52 0 -0.1 0.65 1.5 0 -0.29 0.75 2.21 0 -0.28 0.9 2.14 0 0.07 1.1 3.02 0 0.04 1.15 2.64 0 0 1.2 1.64 0 -0.02 1.25 -4.97 0 -0.03 1.3 -5.6 0 -0.02 1.45 -5.51 0 -0.01 1.55 -4.25 0 -0.01 1.6 -2.99 0 0 1.75 2.39 0 0 1.8 3.65 0 0 1.85 4.16 0 0 1.9 3.93 0 0 2 1.54 0 0 2.05 -5.6 0 0 2.25 -5.51 0 0 2.3 -5.08 0 0 2.4 -2.99 0 0 2.55 2.39 0 0 2.6 3.65 0 0 2.65 4.16 0 0 2.7 3.93 0 0 2.8 1.54 0 0 2.85 -5.6 0 0 3.35 -5.6 0 -0.61 3.65 -5.42 0 -0.08 3.7 -4.97 0 -0.06 3.75 -3.47 0 0.03 3.9 -0.35 0 -0.03 4 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.05 -0.16 0 0 0.1 -2.15 0 -0.05 0.15 -5.04 0 -0.24 0.2 -6.36 0 -0.45 0.25 -6.46 0 -0.55 0.45 -4.3 0 -0.28 0.65 1.25 0 0.05 0.75 2.38 0 -0.09 1 1.83 0 0.01 1.2 2.15 0 0.02 1.25 1.76 0 0 1.3 -2.65 0 0 1.35 -3.95 0 0 1.4 -3.47 0 0.01 1.5 -1.49 0 0.01 1.7 -0.06 0 0 1.9 2.67 0 0 2 2.76 0 0 2.05 1.64 0 0 2.1 -3.27 0 0 2.15 -4.28 0 0 2.3 -1.33 0 0 2.5 -0.08 0 0 2.7 2.66 0 0 2.8 2.77 0 0 2.85 1.65 0 0 2.9 -3.27 0 0 2.95 -4.28 0 0 3.1 -1.78 0 -0.02 3.15 -1.62 0 -0.06 3.25 -2.46 0 -0.29 3.4 -5.08 0 -1.13 3.5 -6.22 0 -1.26 3.55 -6.25 0 -1.14 3.6 -5.62 0 -0.92 3.7 -3.19 0 -0.15 3.85 -0.73 0 0.13 4 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -7.29 0 -0.74 0.1 -11.76 0 -1.35 0.15 -14.63 0 -1.81 0.2 -16.38 0 -2.12 0.25 -17.25 0 -2.29 0.4 -17.47 0 -2.33 0.45 -31.39 0 -3.37 0.5 -34.3 0 -3.83 0.55 -30.08 0 -3.75 0.65 -17.25 0 -3.38 0.7 -13.34 0 -3.29 0.75 -12.23 0 -3.27 0.8 -12.09 0 -3.25 0.95 -9.69 0 -3 1 -9.65 0 -2.99 1.05 -18.4 0 -3.25 1.1 -35.12 0 -4.03 1.15 -35.71 0 -4.09 1.2 -24.13 0 -3.68 1.4 -24.54 0 -3.92 1.45 -26.32 0 -3.98 1.5 -32.44 0 -4.24 1.55 -39.3 0 -4.6 1.6 -39.49 0 -4.53 1.65 -30.53 0 -3.88 1.7 -18.44 0 -3.28 1.75 -10.7 0 -3.02 1.8 -9.65 0 -2.99 1.85 -18.4 0 -3.25 1.9 -35.12 0 -4.03 1.95 -35.71 0 -4.09 2 -24.13 0 -3.68 2.2 -24.54 0 -3.92 2.25 -26.32 0 -3.98 2.3 -32.44 0 -4.24 2.35 -39.3 0 -4.6 2.4 -39.49 0 -4.53 2.45 -30.53 0 -3.88 2.5 -18.44 0 -3.28 2.55 -10.7 0 -3.02 2.6 -9.65 0 -2.99 2.65 -18.4 0 -3.25 2.7 -35.12 0 -4.03 2.75 -35.71 0 -4.09 2.8 -24.13 0 -3.68 2.85 -24.53 0 -3.92 3.1 -24.52 0 -4.04 3.35 -24.06 0 -5.38 3.5 -23.9 0 -5.65 3.55 -24.7 0 -5.65 3.6 -28.87 0 -5.6 3.65 -35.67 0 -5.46 3.7 -41.26 0 -5 3.75 -40.9 0 -3.93 3.8 -32.94 0 -2.43 3.9 -8.9 0 -0.38 3.95 -1.52 0 -0.05 4 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 13.29 0 0 0.1 21.31 0 0 0.15 26.42 0 0 0.2 29.51 0 0 0.25 31.05 0 0 0.4 31.43 0 0 0.45 51.01 0 0 0.5 52.41 0 0 0.55 43.29 0 0 0.6 30.69 0 0 0.65 19.29 0 0 0.7 12 0 0 0.75 9.93 0 0 0.8 9.47 0 0 0.85 7.36 0 0 0.9 4.31 0 0 0.95 2.21 0 0 1 2.01 0 0 1.05 15.97 0 0 1.1 38.94 0 0 1.15 35.39 0 0 1.2 15.7 0 0 1.25 18.74 0 0 1.4 18.76 0 0 1.45 21.85 0 0 1.5 32.35 0 0 1.55 44.21 0 0 1.6 46.5 0 0 1.65 34.88 0 0 1.7 16.52 0 0 1.75 3.79 0 0 1.8 2.01 0 0 1.85 15.97 0 0 1.9 38.94 0 0 1.95 35.39 0 0 2 15.7 0 0 2.05 18.74 0 0 2.2 18.76 0 0 2.25 21.85 0 0 2.3 32.35 0 0 2.35 44.21 0 0 2.4 46.5 0 0 2.45 34.88 0 0 2.5 16.52 0 0 2.55 3.79 0 0 2.6 2.01 0 0 2.65 15.97 0 0 2.7 38.94 0 0 2.75 35.39 0 0 2.8 15.7 0 0 2.85 18.74 0 0 3.05 18.67 0 0 3.15 17.75 0 0 3.4 13.01 0 0 3.5 12.63 0 0 3.55 14.18 0 0 3.6 22.25 0 0 3.65 35.72 0 0 3.7 48.46 0 0 3.75 53.52 0 0 3.8 47.21 0 0 3.85 31.91 0 0 3.9 14.45 0 0 3.95 2.54 0 0 4 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -6 0 0 0.1 -9.55 0 0 0.15 -11.79 0 0 0.2 -13.13 0 0 0.3 -13.96 0 0 0.4 -13.96 0 0 0.45 -6.72 0 0 0.5 -2.23 0 0 0.7 1.91 0 0 0.8 2.62 0 0 0.95 7.48 0 0 1 7.67 0 0 1.05 6.62 0 0 1.1 10.62 0 0 1.15 13 0 0 1.2 11.05 0 0 1.25 5.79 0 0 1.45 5.8 0 0 1.5 6.52 0 0 1.55 8.53 0 0 1.6 8.81 0 0 1.65 6.43 0 0 1.7 5.85 0 0 1.75 7.34 0 0 1.8 7.67 0 0 1.85 6.62 0 0 1.9 10.62 0 0 1.95 13 0 0 2 11.05 0 0 2.05 5.79 0 0 2.25 5.8 0 0 2.3 6.52 0 0 2.35 8.53 0 0 2.4 8.81 0 0 2.45 6.43 0 0 2.5 5.85 0 0 2.55 7.34 0 0 2.6 7.67 0 0 2.65 6.62 0 0 2.7 10.62 0 0 2.75 13 0 0 2.8 11.05 0 0 2.85 5.79 0 0 3.1 6.15 0 0 3.35 10.37 0 0 3.5 11.27 0 0 3.55 10.95 0 0 3.7 6.24 0 0 3.75 3.38 0 0 3.8 -0.83 0 0 3.85 -3.39 0 0 3.9 -2.65 0 0 3.95 -0.59 0 0 4 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -25.51 2.74 1.77 0.1 -31.08 4.85 2.76 0.15 -29.31 6.38 2.97 0.2 -25.95 7.36 2.92 0.25 -23.69 7.87 2.86 0.3 -23.07 8 2.85 0.4 -23.07 8 2.85 0.45 -31.13 5.61 4.82 0.5 -29.17 3.69 5.64 0.55 -22.38 2.21 5.46 0.6 -14.54 1.14 5.02 0.65 -7.87 0.45 4.67 0.7 -3.71 0.09 4.49 0.75 -2.54 0 4.45 1.05 -2.69 0 4.18 1.15 -2.56 0 4.64 1.25 -3.47 0 5.53 1.55 -3.85 0 5.06 1.75 -2.72 0 4.14 1.95 -2.56 0 4.64 2.05 -3.47 0 5.53 2.25 -3.52 0 5.49 2.4 -3.8 0 4.73 2.55 -2.72 0 4.14 2.75 -2.56 0 4.64 2.85 -3.47 0 5.53 3 -3.48 0 5.53 3.05 -4.6 0.11 5.6 3.1 -9.02 0.56 5.88 3.2 -24.28 2.7 6.83 3.25 -29.98 4.15 6.6 3.3 -31.41 5.57 5.52 3.35 -29.01 6.76 4.24 3.4 -25.55 7.56 3.33 3.45 -23.46 7.93 2.92 3.5 -23.07 8 2.85 3.55 -23.4 7.93 2.86 3.6 -25.21 7.54 2.9 3.65 -28.39 6.7 2.96 3.7 -30.92 5.46 2.89 3.75 -30 4 2.45 3.8 -24.46 2.54 1.64 3.9 -6.91 0.46 0.28 3.95 -1.19 0.07 0.04 4 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 45.25 0 0 0.1 52.34 0 0 0.15 46.54 0 0 0.2 38.8 0 0 0.25 33.86 0 0 0.3 32.52 0 0 0.4 32.52 0 0 0.45 53.88 0 0 0.5 55.78 0 0 0.55 46.55 0 0 0.6 33.63 0 0 0.65 21.96 0 0 0.7 14.52 0 0 0.75 12.42 0 0 0.8 12.21 0 0 0.95 9.01 0 0 1 8.88 0 0 1.05 9.53 0 0 1.1 11.38 0 0 1.15 14.54 0 0 1.2 19.05 0 0 1.25 24.71 0 0 1.4 24.71 0 0 1.45 24.4 0 0 1.5 23.13 0 0 1.55 20.68 0 0 1.65 13.55 0 0 1.7 10.53 0 0 1.75 9.06 0 0 1.8 8.88 0 0 1.85 9.53 0 0 1.9 11.38 0 0 1.95 14.54 0 0 2 19.05 0 0 2.05 24.71 0 0 2.2 24.71 0 0 2.25 24.4 0 0 2.3 23.13 0 0 2.35 20.68 0 0 2.45 13.55 0 0 2.5 10.53 0 0 2.55 9.06 0 0 2.6 8.88 0 0 2.65 9.53 0 0 2.7 11.38 0 0 2.75 14.54 0 0 2.8 19.05 0 0 2.85 24.71 0 0 3 24.72 0 0 3.05 26.66 0 0 3.1 34.24 0 0 3.15 46.23 0 0 3.2 57.48 0 0 3.25 62.24 0 0 3.3 58.21 0 0 3.4 38.77 0 0 3.45 33.48 0 0 3.5 32.52 0 0 3.55 33.23 0 0 3.6 37.16 0 0 3.7 51.02 0 0 3.75 51.74 0 0 3.8 43.56 0 0 3.85 28.64 0 0 3.9 12.69 0 0 3.95 2.19 0 0 4 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -5.66 0 0 0.1 -6.14 0 0 0.2 -8.87 0 0 0.45 -9.85 0 0 0.55 -11.96 0 0 0.6 -12.16 0 0 0.7 -10.24 0 0 0.8 -9.65 0 0 0.95 -6.33 0 0 1 -6.2 0 0 1.05 -6.84 0 0 1.1 -8.78 0 0 1.15 -11.97 0 0 1.2 -16.17 0 0 1.25 -21.24 0 0 1.45 -20.88 0 0 1.5 -19.44 0 0 1.55 -16.83 0 0 1.65 -10.09 0 0 1.7 -7.54 0 0 1.75 -6.34 0 0 1.8 -6.2 0 0 1.85 -6.84 0 0 1.9 -8.78 0 0 1.95 -11.97 0 0 2 -16.17 0 0 2.05 -21.24 0 0 2.25 -20.88 0 0 2.3 -19.44 0 0 2.35 -16.83 0 0 2.45 -10.09 0 0 2.5 -7.54 0 0 2.55 -6.34 0 0 2.6 -6.2 0 0 2.65 -6.84 0 0 2.7 -8.78 0 0 2.75 -11.97 0 0 2.8 -16.17 0 0 2.85 -21.24 0 0 3.1 -21.69 0 0 3.15 -21.23 0 0 3.2 -19.23 0 0 3.3 -13.74 0 0 3.4 -10.47 0 0 3.45 -9.62 0 0 3.6 -9.05 0 0 3.75 -5.74 0 0 3.85 -5.03 0 0 3.95 -0.57 0 0 4 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition grito() {
-        return AnimationDefinition.Builder.withLength(2.4F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 21.094F, -0.008F, -14.618F),
-                        seco(0.9F, 9.304F, -0.009F, 21.179F),
-                        rot(1.9F, 9.304F, -0.009F, 21.179F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, -65.895F, 0F, 0F),
-                        seco(0.9F, -2.939F, 0F, 0F),
-                        rot(1.9F, -2.939F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, -3.794F, -0.005F, 15.69F),
-                        seco(0.9F, -15.581F, 0.007F, -20.098F),
-                        rot(1.9F, -15.581F, 0.007F, -20.098F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, -54.381F, 0F, 0F),
-                        seco(0.9F, 8.586F, 0F, 0F),
-                        rot(1.9F, 8.586F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, -41.437F, 102.664F, -26.053F),
-                        seco(0.9F, -1.107F, 13.903F, 7.53F),
-                        rot(1.9F, -1.107F, 13.903F, 7.53F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 18F, 0F, 0F),
-                        seco(0.9F, -10F, 0F, 0F),
-                        rot(1.9F, -10F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 14F, 0F, 0F),
-                        seco(0.9F, -26F, 0F, 0F),
-                        rot(1.9F, -30F, 3F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.5F, 0F, -4F, 0F),
-                        posSeco(0.9F, 0F, -1F, 0F),
-                        pos(1.9F, 0F, -1F, 0F),
-                        pos(2.4F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, -14F, 0F, -8F),
-                        rot(1.9F, -14F, 0F, -8F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, 16F, 0F, 0F),
-                        rot(1.9F, 16F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, 12F, 0F, 8F),
-                        rot(1.9F, 12F, 0F, 8F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, -14F, 0F, 0F),
-                        rot(1.9F, -14F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, 20F, 0F, 0F),
-                        rot(1.9F, 20F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, 10F, 0F, 0F),
-                        rot(1.9F, 10F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.5F, 0F, 0F, 0F),
-                        seco(0.9F, 12F, 0F, 0F),
-                        rot(1.9F, 12F, 0F, 0F),
-                        rot(2.4F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(1.8F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 0.38 0 -0.31 0.1 2.42 0 -1.98 0.15 6.33 0 -5.19 0.25 15.95 -0.01 -13.07 0.3 19.17 -0.01 -15.71 0.35 20.44 -0.01 -16.75 0.4 20.48 -0.01 -16.5 0.45 19.58 -0.01 -11.17 0.5 17.25 -0.01 2.71 0.55 13.22 -0.01 26.69 1.25 13.22 -0.01 26.69 1.3 13.14 -0.01 26.52 1.35 12.63 -0.01 25.49 1.4 11.52 -0.01 23.25 1.45 9.83 0 19.84 1.6 3.4 0 6.85 1.65 1.71 0 3.44 1.7 0.59 0 1.2 1.75 0.09 0 0.17 1.8 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -1.36 0 0 0.1 -8.69 0 0 0.15 -22.72 0 0 0.2 -40.47 0 0 0.25 -57.25 0 0 0.3 -68.8 0 0 0.35 -73.36 0 0 0.4 -73.25 0 0 0.45 -65.99 0 0 0.5 -47.11 0 0 0.55 -14.47 0 0 1.25 -14.47 0 0 1.35 -13.82 0 0 1.4 -12.61 0 0 1.45 -10.76 0 0 1.6 -3.72 0 0 1.65 -1.87 0 0 1.7 -0.65 0 0 1.8 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 -0.08 0 0.33 0.1 -0.51 0 2.11 0.15 -1.34 0 5.51 0.25 -3.37 0 13.89 0.3 -4.05 0 16.69 0.35 -4.32 0 17.8 0.4 -4.39 0 17.56 0.45 -5.29 0 12.23 0.5 -7.62 0 -1.64 0.55 -11.65 -0.01 -25.61 1.25 -11.65 -0.01 -25.61 1.3 -11.57 -0.01 -25.45 1.35 -11.12 -0.01 -24.46 1.4 -10.14 -0.01 -22.31 1.45 -8.66 -0.01 -19.04 1.6 -2.99 0 -6.58 1.65 -1.5 0 -3.3 1.7 -0.52 0 -1.15 1.75 -0.08 0 -0.17 1.8 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -1.15 0 0 0.1 -7.33 0 0 0.15 -19.18 0 0 0.2 -34.16 0 0 0.25 -48.31 0 0 0.3 -58.06 0 0 0.35 -61.91 0 0 0.4 -61.75 0 0 0.45 -54.49 0 0 0.5 -35.6 0 0 0.55 -2.96 0 0 1.35 -2.83 0 0 1.65 -0.38 0 0 1.8 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 -1.2 1.9 -0.93 0.1 -7.66 12.09 -5.9 0.15 -20.03 31.62 -15.44 0.2 -35.67 56.33 -27.49 0.25 -50.46 79.68 -38.89 0.3 -60.63 95.75 -46.74 0.35 -64.66 102.1 -49.84 0.4 -64.4 101.69 -49.65 0.45 -55.31 87.15 -42.83 0.5 -31.68 49.36 -25.08 0.55 9.15 -15.96 5.59 1.25 9.15 -15.96 5.59 1.35 8.74 -15.24 5.34 1.4 7.97 -13.9 4.87 1.45 6.8 -11.86 4.15 1.6 2.35 -4.1 1.44 1.65 1.18 -2.06 0.72 1.7 0.41 -0.72 0.25 1.8 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 0.22 0 0 0.1 1.7 0 0 0.15 5.04 0 0 0.25 14.87 0 0 0.3 18.92 0 0 0.35 21.15 0 0 0.4 21.7 0 0 0.45 19.27 0 0 0.5 11.22 0 0 0.55 -4.09 0 0 0.6 -11.92 0 0 0.65 -14.74 0 0 0.7 -15.71 0 0 0.8 -15.43 0 0 0.95 -12.47 0 0 1 -12.11 0 0 1.35 -11.65 0 0 1.45 -9.57 0 0 1.65 -2.25 0 0 1.7 -1.02 0 0 1.8 -0.07 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 0.07 0 0 0.1 0.73 0 0 0.15 2.77 0 0 0.2 6.32 0 0 0.3 14.63 0 0 0.35 17.26 0 0 0.4 18.21 0 0 0.45 16.54 0 0 0.5 8.79 0 0 0.55 -8.49 0 0 0.6 -26.97 0 0 0.65 -35.73 0 0 0.7 -37.54 0 0 0.8 -35.87 0.45 0 0.85 -34.86 1.58 0 0.95 -32.68 4.94 0 1 -32.06 5.91 0 1.05 -31.89 6.03 0 1.1 -31.93 4.71 0 1.15 -31.98 1.46 0 1.2 -32.01 -2.63 0 1.25 -32.01 -5.49 0 1.3 -31.96 -6.4 0 1.35 -31.52 -6.23 0 1.4 -30.04 -5.72 0 1.45 -27.12 -5.07 0 1.5 -22.82 -4.25 0 1.65 -7.18 -1.35 0 1.7 -3.3 -0.62 0 1.75 -0.87 -0.16 0 1.8 0.14 0.03 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 0.15 0 0.1 0 0.94 0 0.15 0 2.47 0 0.25 0 6.22 0 0.3 0 7.47 0 0.35 0 7.96 0 0.4 0 7.97 0 0.45 0 7.48 0 0.5 0 6.21 0 0.55 0 4 0 1.25 0 4 0 1.3 0 3.97 0 1.35 0 3.82 0 1.4 0 3.48 0 1.45 0 2.97 0 1.6 0 1.03 0 1.65 0 0.52 0 1.7 0 0.18 0 1.75 0 0.03 0 1.8 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.4 0 0 0 0.45 0.78 0 0 0.5 5.4 0 0 0.55 16.7 0 0 0.6 20.47 0 0 0.65 19.59 0 0 0.75 16.02 0 0 0.8 14.8 0 0 0.9 13.31 0 0 0.95 13.3 0 0 1.15 15.14 0 0 1.35 14.47 0 0 1.4 13.5 0 0 1.5 9.79 0 0 1.65 1.65 0 0 1.7 0.28 0 0 1.8 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.05 -0.21 0 0 0.1 -1.6 0 0 0.15 -4.55 0 0 0.2 -5.6 0 0 0.4 -5.6 0 0 0.45 -5.1 0 0 0.55 -1.8 0 0 0.65 3.09 0 0 0.7 4.73 0 0 0.75 5.38 0 0 0.8 5.21 0 0 1 2.52 0 0 1.3 3.18 0 0 1.45 2.99 0 0 1.55 2.54 0 0 1.75 0.09 0 0 1.8 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.15 -0.45 0 0 0.25 -7.97 0 0 0.3 -9.27 0 0 0.4 -9.25 0 0 0.45 -7.93 0 0 0.6 -0.19 0 0 0.65 1.76 0 0 0.7 3 0 0 0.75 3.64 0 0 0.85 3.65 0 0 1.1 1.95 0 0 1.45 2.16 0 0 1.7 0.28 0 0 1.8 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -2.28 0 -0.05 0.1 -11.68 0 -0.33 0.15 -23.17 0 -0.91 0.2 -29.58 0 -1.57 0.25 -28.3 0 -1.93 0.3 -24.17 0 -2.04 0.35 -22.07 0 -2.07 0.45 -21.33 0 -2.32 0.5 -19.25 0 -2.63 0.55 -14.25 0 -2.58 1.25 -14.25 0 -2.58 1.3 -14.65 0 -2.58 1.35 -16.85 0 -2.56 1.45 -25.53 0 -2.36 1.5 -27.84 0 -2.05 1.55 -25.97 0 -1.53 1.6 -20.04 0 -0.94 1.65 -12.14 0 -0.45 1.7 -4.96 0 -0.15 1.75 -0.8 0 -0.02 1.8 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 4.08 0 0 0.1 20.54 0 0 0.15 39.58 0 0 0.2 48.92 0 0 0.25 45.5 0 0 0.3 37.76 0 0 0.35 33.89 0 0 0.4 33.49 0 0 0.45 31.39 0 0 0.5 26.05 0 0 0.55 16.9 0 0 1.25 16.9 0 0 1.3 17.64 0 0 1.35 21.79 0 0 1.4 29.63 0 0 1.45 38.36 0 0 1.5 43.64 0 0 1.55 42.12 0 0 1.6 33.53 0 0 1.7 8.68 0 0 1.75 1.41 0 0 1.8 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -0.87 0 0 0.1 -3.07 0 0 0.2 -3.53 0 0 0.3 -10.28 0 0 0.35 -11.6 0 0 0.4 -11.61 0 0 0.45 -10.06 0 0 0.5 -6.8 0 0 0.55 -2.65 0 0 1.35 -2.69 0 0 1.4 -2.31 0 0 1.5 -0.36 0 0 1.55 -0.72 0 0 1.6 -1.94 0 0 1.65 -2.4 0 0 1.75 -0.28 0 0 1.8 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -0.47 0 0.04 0.1 -2.77 0 0.29 0.2 -10.09 0 1.44 0.25 -13 0 2.1 0.3 -14.77 0 2.58 0.35 -15.43 0 2.78 0.4 -15.39 0 2.81 0.45 -13.65 0 3.17 0.5 -9.95 0 3.66 0.55 -5.09 0 3.59 1.25 -5.09 0 3.59 1.3 -5.48 0 3.59 1.35 -7.62 0 3.56 1.45 -16.41 0 3.31 1.5 -19.59 0 2.88 1.55 -19.57 0 2.16 1.6 -16.01 0 1.33 1.7 -4.3 0 0.22 1.75 -0.7 0 0.03 1.8 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 0.98 0 0 0.1 5.76 0 0 0.2 21.66 0 0 0.25 28.34 0 0 0.3 32.53 0 0 0.35 34.11 0 0 0.4 34.1 0 0 0.45 32 0 0 0.5 26.67 0 0 0.55 17.51 0 0 1.25 17.51 0 0 1.3 18.23 0 0 1.35 22.23 0 0 1.4 29.82 0 0 1.45 38.27 0 0 1.5 43.35 0 0 1.55 41.75 0 0 1.6 33.22 0 0 1.7 8.61 0 0 1.75 1.4 0 0 1.8 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -0.5 0 0 0.1 -2.99 0 0 0.2 -11.57 0 0 0.25 -15.34 0 0 0.3 -17.76 0 0 0.35 -18.68 0 0 0.4 -18.72 0 0 0.45 -18.35 0 0 0.5 -16.71 0 0 0.55 -12.42 0 0 1.3 -12.42 0 0 1.4 -11.79 0 0 1.55 -6.74 0 0 1.65 -4.19 0 0 1.75 -0.37 0 0 1.8 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition aturdido() {
-        return AnimationDefinition.Builder.withLength(1.2F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -29.453F, -0.008F, -36.878F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 28.995F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -2.489F, -0.01F, -1.853F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -38.04F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -47.874F, 108.739F, -27.738F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, -14F, 0F, 0F),
-                        rot(1.2F, 26F, 8F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, -18F, 0F, 0F),
-                        rot(1.2F, 30F, 12F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.3F, 0F, 0F, 0F),
-                        pos(1.2F, 0F, -30F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -70F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -86F, 0F, -6F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 86F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 6F, 0F, 5F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 86F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, -62F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 8F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 24F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.3F, 0F, 0F, 0F),
-                        rot(1.2F, 50F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(0.9F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 26.23 0 4.35 0.1 45.17 0 7.5 0.15 57.41 0 9.53 0.2 63.74 0 10.58 0.25 65.35 0 10.84 0.3 64.9 0 10.6 0.35 63.14 0 9.64 0.4 59.72 0 7.8 0.45 54.44 0 4.94 0.5 47.12 0 0.97 0.55 37.62 0 -4.17 0.6 25.82 0 -10.55 0.65 11.6 0 -18.25 0.7 -5.12 -0.01 -27.3 0.75 -24.45 -0.01 -37.76 0.9 -24.45 -0.01 -37.76"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -22.71 0 0 0.1 -39.1 0 0 0.15 -49.7 0 0 0.2 -55.18 0 0 0.25 -56.58 0 0 0.3 -56.2 0 0 0.35 -54.71 0 0 0.4 -51.83 0 0 0.45 -47.38 0 0 0.5 -41.22 0 0 0.55 -33.22 0 0 0.6 -23.28 0 0 0.65 -11.31 0 0 0.7 2.78 0 0 0.75 19.05 0 0 0.9 19.05 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 8.69 0 -12.53 0.1 14.96 0 -21.56 0.15 19.02 0 -27.41 0.2 21.12 0 -30.43 0.25 21.65 0 -31.2 0.35 21.09 0 -30.48 0.4 20.23 0 -29.37 0.45 18.89 0 -27.66 0.5 17.03 -0.01 -25.28 0.55 14.62 -0.01 -22.2 0.6 11.63 -0.01 -18.37 0.65 8.03 -0.01 -13.76 0.7 3.79 -0.01 -8.33 0.75 -1.1 -0.01 -2.06 0.9 -1.1 -0.01 -2.06"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -20.38 0 0 0.1 -35.09 0 0 0.15 -44.61 0 0 0.2 -49.52 0 0 0.25 -50.78 0 0 0.35 -50.52 0 0 0.45 -49.51 0 0 0.6 -46.17 0 0 0.75 -40.32 0 0 0.9 -40.32 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 8.25 -10.41 -0.02 0.1 14.2 -17.92 -0.03 0.15 18.05 -22.78 -0.04 0.2 20.04 -25.29 -0.04 0.25 20.55 -25.93 -0.04 0.3 20.11 -25.26 -0.28 0.35 18.36 -22.63 -1.23 0.4 14.99 -17.56 -3.07 0.45 9.78 -9.7 -5.9 0.5 2.56 1.18 -9.84 0.55 -6.81 15.3 -14.94 0.6 -18.45 32.85 -21.28 0.65 -32.47 53.98 -28.92 0.7 -48.96 78.85 -37.91 0.75 -68.03 107.58 -48.29 0.9 -68.03 107.58 -48.29"))
+                .addAnimation("torso", giro("0 0 0 0 0.1 -7.88 -3.38 0 0.15 -11.04 -4.73 0 0.2 -12.95 -5.55 0 0.25 -13.76 -5.9 0 0.3 -13.83 -5.94 0 0.35 -13.29 -5.76 0 0.4 -12.03 -5.34 0 0.45 -9.95 -4.65 0 0.5 -6.95 -3.65 0 0.55 -2.96 -2.32 0 0.6 2.08 -0.64 0 0.65 8.23 1.41 0 0.7 15.53 3.84 0 0.75 24.02 6.67 0 0.8 27.15 7.71 0 0.9 27.96 7.99 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 -2.37 0 0 0.15 -12.97 0 0 0.2 -16.49 0 0 0.25 -18.07 0 0 0.3 -18.29 0.01 0 0.35 -17.71 0.11 0 0.4 -16.43 0.38 0 0.45 -14.29 0.89 0 0.5 -11.11 1.65 0 0.55 -6.76 2.7 0 0.6 -1.17 4.04 0 0.65 5.72 5.69 0 0.7 13.97 7.67 0 0.75 23.63 9.99 0 0.8 30.94 11.75 0 0.85 33.12 12.27 0 0.9 32.82 12.2 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 1.61 1.61 0.1 0 2.77 2.77 0.15 0 3.51 3.51 0.2 0 3.9 3.9 0.25 0 4 4 0.3 0 4.13 3.98 0.35 0 4.64 3.9 0.4 0 5.63 3.75 0.45 0 7.16 3.51 0.5 0 9.28 3.19 0.55 0 12.03 2.77 0.6 0 15.45 2.24 0.65 0 19.56 1.61 0.7 0 24.41 0.86 0.75 0 30 0 0.8 0 29.07 0 0.85 0 28.92 0 0.9 0 29 0"))
+                .addAnimation("tabardo", giro("0 0 0 0 0.3 -0.01 0 0 0.4 -0.5 0 0 0.5 -2.71 0 0 0.55 -4.81 0 0 0.6 -21.62 0 0 0.65 -32.22 0 0 0.7 -43.57 0 0 0.75 -53.89 0 0 0.85 -57.38 0 0 0.9 -60 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.1 6.76 0 -0.16 0.15 8.55 0 -0.13 0.2 8.86 0 -0.05 0.25 8.14 0 0.03 0.4 4.39 0 0.02 0.5 0.59 0 -0.07 0.55 0 0 -0.08 0.65 0 0 0.28 0.7 0.73 0 0.74 0.75 2.54 0 1.17 0.9 8 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.1 1.04 0 -0.02 0.25 4.23 0 -0.11 0.3 4.68 0 -0.06 0.4 4.39 0 0.06 0.5 3.44 0 0.11 0.55 1.05 0 0.11 0.65 -5.35 0 -0.02 0.7 -3.27 0 -0.17 0.9 20 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.15 0.28 0 -0.01 0.7 4.86 0 0.21 0.75 14.47 0 0.07 0.8 22.73 0 -0.02 0.85 31.83 0 -0.1 0.9 40 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -6.29 0 0.11 0.1 -10.26 0 0.2 0.15 -12.67 0 0.25 0.2 -13.88 0 0.28 0.25 -14.18 0 0.29 0.3 -15.59 0.02 0.29 0.35 -22.56 0.12 0.32 0.4 -35.11 0.33 0.39 0.45 -49.72 0.64 0.53 0.5 -60.41 1 0.78 0.55 -62.75 1.36 1.08 0.6 -59.95 1.67 1.29 0.65 -59.01 1.88 1.36 0.7 -63.88 1.98 1.3 0.75 -73.82 2 1.11 0.8 -72.04 2 1.13 0.9 -71.91 2 1.13"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 8.67 0 0 0.1 13.77 0 0 0.15 16.72 0 0 0.2 18.16 0 0 0.25 18.52 0 0 0.3 20.62 0 0 0.35 30.47 0 0 0.4 46.15 0 0 0.45 60.38 0 0 0.5 65.95 0 0 0.55 61.44 0 0 0.6 52.65 0 0 0.65 48.22 0 0 0.7 52.85 0 0 0.75 63.92 0 0 0.8 62.24 0 0 0.9 62.12 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -2.39 0 0 0.1 -3.51 0 0 0.35 -5.01 0 0 0.4 -3.19 0 0 0.45 2.78 0 0 0.5 10.45 0 0 0.55 14.75 0 0 0.6 15.13 0 0 0.75 9.9 0 0 0.9 9.79 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -20.15 0 1.57 0.1 -16.46 0 2.16 0.15 -8.01 0 2.13 0.2 -1.54 0 2.05 0.25 0.4 0 2.03 0.3 -0.67 -0.02 2.07 0.35 -5.39 -0.12 2.3 0.4 -11.71 -0.33 2.83 0.45 -15.41 -0.64 3.64 0.5 -14.23 -1 4.38 0.6 -5.4 -1.67 4.55 0.65 -1.47 -1.88 4.82 0.7 2.31 -1.98 6.01 0.75 7.47 -2 8.93 0.8 6.77 -2 8.33 0.9 6.72 -2 8.29"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 46.59 0 0 0.1 44.47 0 0 0.15 29.91 0 0 0.2 18.06 0 0 0.25 14.46 0 0 0.3 16.93 0 0 0.35 28.34 0 0 0.4 46.21 0 0 0.45 63.25 0 0 0.5 73.41 0 0 0.55 76.12 0 0 0.6 75.66 0 0 0.65 76.42 0 0 0.7 79.89 0 0 0.75 84.79 0 0 0.8 83.76 0 0 0.9 83.69 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -11.2 0 0 0.1 -14.8 0 0 0.15 -15.94 0 0 0.25 -14.87 0 0 0.3 -15.3 0 0 0.35 -16.46 0 0 0.4 -16.54 0 0 0.55 -10.38 0 0 0.6 -10.53 0 0 0.65 -13.65 0 0 0.7 -20.3 0 0 0.75 -30.26 0 0 0.8 -28.53 0 0 0.9 -28.41 0 0"))
                 .build();
     }
 
     private static AnimationDefinition aturdido_bucle() {
         return AnimationDefinition.Builder.withLength(2.4F).looping()
-                .addAnimation("pelvis", mover(pos(0F, 0F, -30F, 0F),
-                        pos(1.2F, 0F, -30F, 0F),
-                        pos(2.4F, 0F, -30F, 0F)))
-                .addAnimation("tabardo", giro(rot(0F, -70F, 0F, 0F),
-                        rot(1.2F, -70F, 0F, 0F),
-                        rot(2.4F, -70F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, -86F, 0F, -6F),
-                        rot(1.2F, -86F, 0F, -6F),
-                        rot(2.4F, -86F, 0F, -6F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 86F, 0F, 0F),
-                        rot(1.2F, 86F, 0F, 0F),
-                        rot(2.4F, 86F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 6F, 0F, 5F),
-                        rot(1.2F, 6F, 0F, 5F),
-                        rot(2.4F, 6F, 0F, 5F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 86F, 0F, 0F),
-                        rot(1.2F, 86F, 0F, 0F),
-                        rot(2.4F, 86F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, -62F, 0F, 0F),
-                        rot(1.2F, -62F, 0F, 0F),
-                        rot(2.4F, -62F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 8F, 0F, 0F),
-                        rot(1.2F, 8F, 0F, 0F),
-                        rot(2.4F, 8F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 24F, 0F, 0F),
-                        rot(1.2F, 24F, 0F, 0F),
-                        rot(2.4F, 24F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 50F, 0F, 0F),
-                        rot(1.2F, 50F, 0F, 0F),
-                        rot(2.4F, 50F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 26F, 8F, 0F),
-                        rot(1.2F, 30F, -6F, 0F),
-                        rot(2.4F, 26F, 8F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 30F, 12F, 0F),
-                        rot(1.2F, 36F, -14F, 0F),
-                        rot(2.4F, 30F, 12F, 0F)))
-                .addAnimation("brazo_der", giro(rot(0F, -29.453F, -0.008F, -36.878F),
-                        rot(1.2F, -29.453F, -0.008F, -36.878F),
-                        rot(2.4F, -29.453F, -0.008F, -36.878F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 28.995F, 0F, 0F),
-                        rot(1.2F, 28.995F, 0F, 0F),
-                        rot(2.4F, 28.995F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, -2.489F, -0.01F, -1.853F),
-                        rot(1.2F, -2.489F, -0.01F, -1.853F),
-                        rot(2.4F, -2.489F, -0.01F, -1.853F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, -38.04F, 0F, 0F),
-                        rot(1.2F, -38.04F, 0F, 0F),
-                        rot(2.4F, -38.04F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, -47.874F, 108.739F, -27.738F),
-                        rot(1.2F, -47.874F, 108.739F, -27.738F),
-                        rot(2.4F, -47.874F, 108.739F, -27.738F)))
+                .addAnimation("pelvis", mover("0 0 30 0 2.4 0 30 0"))
+                .addAnimation("tabardo", giro("0 -49.87 0 0 0.05 -49.2 0 0 0.1 -52.01 0 0 0.15 -50.21 0 0 0.2 -49.47 0 0 0.25 -52.21 0 0 0.3 -50.36 0 0 0.4 -48.29 0 0 0.45 -50.6 0 0 0.5 -49.99 0 0 0.55 -48.64 0 0 0.6 -50.85 0 0 0.65 -50.19 0 0 0.7 -48.47 0 0 0.75 -51.32 0 0 0.8 -50.61 0 0 0.85 -48.78 0 0 0.9 -51.56 0 0 0.95 -49.87 0 0 1 -49.2 0 0 1.05 -52.01 0 0 1.1 -50.21 0 0 1.2 -48.21 0 0 1.25 -50.54 0 0 1.3 -49.95 0 0 1.35 -48.6 0 0 1.4 -50.83 0 0 1.45 -50.17 0 0 1.5 -48.77 0 0 1.55 -50.95 0 0 1.6 -50.27 0 0 1.65 -48.52 0 0 1.7 -51.36 0 0 1.75 -50.64 0 0 1.8 -48.8 0 0 1.85 -51.57 0 0 1.9 -49.88 0 0 1.95 -49.21 0 0 2 -52.02 0 0 2.05 -50.22 0 0 2.15 -48.21 0 0 2.2 -50.54 0 0 2.25 -49.95 0 0 2.3 -48.6 0 0 2.35 -50.83 0 0 2.4 -49.87 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 -0.95 0.5 0 0 -1.36 1.2 0 0 1.01 1.5 0 0 1.47 1.8 0 0 1.09 2.4 0 0 -0.95"))
+                .addAnimation("capa_2", giro("0 -5.6 0 0.03 1.7 -5.3 0 -0.62 2.4 -5.6 0 0.03"))
+                .addAnimation("capa_3", giro("0 5.09 0 0.34 0.35 3.98 0 0.76 0.6 3.72 0 0.72 0.85 4.05 0 0.38 1.25 5.36 0 -0.33 1.7 6.36 0 -0.32 2.05 6.3 0 -0.18 2.4 5.09 0 0.34"))
+                .addAnimation("torso", giro("0 27.86 8.23 0 0.35 29.88 4.99 0 0.6 30.49 4.02 0 0.9 29.86 5.02 0 1.5 26.35 10.64 0 1.75 25.56 11.91 0 2.05 25.94 11.3 0 2.4 27.86 8.23 0"))
+                .addAnimation("cabeza", giro("0 29.13 16.51 0 0.4 32.99 8.52 0 0.55 34.39 6.04 0 0.7 35.44 4.45 0 0.85 35.96 4 0 1 35.88 4.79 0 1.15 35.21 6.66 0 1.65 30.52 16.38 0 1.85 28.86 19.15 0 2 28.15 19.98 0 2.1 28 19.87 0 2.25 28.28 18.71 0 2.4 29.13 16.51 0"))
+                .addAnimation("brazo_der", giro("0 -24.45 -0.01 -37.76 2.4 -24.45 -0.01 -37.76"))
+                .addAnimation("antebrazo_der", giro("0 19.05 0 0 2.4 19.05 0 0"))
+                .addAnimation("brazo_izq", giro("0 -1.1 -0.01 -2.06 2.4 -1.1 -0.01 -2.06"))
+                .addAnimation("antebrazo_izq", giro("0 -40.32 0 0 2.4 -40.32 0 0"))
+                .addAnimation("agarre", giro("0 -68.03 107.58 -48.29 2.4 -68.03 107.58 -48.29"))
+                .addAnimation("pierna_izq", giro("0 -73.82 2 1.11 2.4 -73.82 2 1.11"))
+                .addAnimation("espinilla_izq", giro("0 63.92 0 0 2.4 63.92 0 0"))
+                .addAnimation("pie_izq", giro("0 9.9 0 0 2.4 9.9 0 0"))
+                .addAnimation("pierna_der", giro("0 7.47 -2 8.93 2.4 7.47 -2 8.93"))
+                .addAnimation("espinilla_der", giro("0 84.79 0 0 2.4 84.79 0 0"))
+                .addAnimation("pie_der", giro("0 -30.26 0 0 2.4 -30.26 0 0"))
                 .build();
     }
 
     private static AnimationDefinition tambaleo() {
-        return AnimationDefinition.Builder.withLength(3F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 67.87F, 0.004F, 10.314F),
-                        rot(0.7F, 67.87F, 0.004F, 10.314F),
-                        rot(1.3F, -20.745F, -0.007F, -7.405F),
-                        rot(2.1F, 9.304F, -0.009F, 21.179F),
-                        rot(2.5F, 9.304F, -0.009F, 21.179F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -55.13F, 0F, 0F),
-                        rot(0.7F, -55.13F, 0F, 0F),
-                        rot(1.3F, 7.874F, 0F, 0F),
-                        rot(2.1F, -2.939F, 0F, 0F),
-                        rot(2.5F, -2.939F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -107.686F, -0.02F, -219.297F),
-                        rot(0.7F, -107.686F, -0.02F, -219.297F),
-                        rot(1.3F, -27.552F, -0.006F, 15.668F),
-                        rot(2.1F, -15.581F, 0.007F, -20.098F),
-                        rot(2.5F, -15.581F, 0.007F, -20.098F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -67.395F, 0F, 0F),
-                        rot(0.7F, -67.395F, 0F, 0F),
-                        rot(1.3F, -5.5F, 0F, 0F),
-                        rot(2.1F, 8.586F, 0F, 0F),
-                        rot(2.5F, 8.586F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -251.814F, -13.061F, -34.601F),
-                        rot(0.7F, -251.814F, -13.061F, -34.601F),
-                        rot(1.3F, 48.022F, -3.399F, -4.393F),
-                        rot(2.1F, -1.107F, 13.903F, 7.53F),
-                        rot(2.5F, -1.107F, 13.903F, 7.53F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -16F, -6F, 0F),
-                        rot(0.7F, -16F, -6F, 0F),
-                        rot(1.3F, 26F, 0F, 0F),
-                        rot(2.1F, -10F, 0F, 0F),
-                        rot(2.5F, -10F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -20F, 0F, 0F),
-                        rot(0.7F, -20F, 0F, 0F),
-                        rot(1.3F, 20F, 0F, 0F),
-                        rot(2.1F, -26F, 0F, 0F),
-                        rot(2.5F, -30F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        posSeco(0.15F, 0F, -3F, 4F),
-                        pos(0.7F, 0F, -3F, 4F),
-                        pos(1.3F, 0F, -8F, 0F),
-                        pos(2.1F, 0F, -1F, 0F),
-                        pos(2.5F, 0F, -1F, 0F),
-                        pos(3F, 0F, 0F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 24F, 0F, 8F),
-                        rot(0.7F, 24F, 0F, 8F),
-                        rot(1.3F, 10F, 0F, 0F),
-                        rot(2.1F, 12F, 0F, 8F),
-                        rot(2.5F, 12F, 0F, 8F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 30F, 0F, 0F),
-                        rot(0.7F, 30F, 0F, 0F),
-                        rot(1.3F, 36F, 0F, 0F),
-                        rot(2.1F, 0F, 0F, 0F),
-                        rot(2.5F, 0F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, -6F, 0F, 0F),
-                        rot(0.7F, -6F, 0F, 0F),
-                        rot(1.3F, -24F, 0F, 0F),
-                        rot(2.1F, -14F, 0F, -8F),
-                        rot(2.5F, -14F, 0F, -8F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.3F, 40F, 0F, 0F),
-                        rot(2.1F, 16F, 0F, 0F),
-                        rot(2.5F, 16F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.1F, -14F, 0F, 0F),
-                        rot(2.5F, -14F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.1F, 20F, 0F, 0F),
-                        rot(2.5F, 20F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.1F, 10F, 0F, 0F),
-                        rot(2.5F, 10F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        seco(0.15F, 0F, 0F, 0F),
-                        rot(0.7F, 0F, 0F, 0F),
-                        rot(1.3F, 0F, 0F, 0F),
-                        rot(2.1F, 12F, 0F, 0F),
-                        rot(2.5F, 12F, 0F, 0F),
-                        rot(3F, 0F, 0F, 0F)))
+        return AnimationDefinition.Builder.withLength(2.2F)
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 53.05 0 10.5 0.1 73.45 0 14.54 0.15 74.41 0 14.73 0.2 71.05 0 14.01 0.25 63.49 0 12.39 0.3 54.41 0 10.45 0.35 47.56 0 8.99 0.4 45.07 0 8.46 0.45 44.8 0 8.38 0.5 42.08 0 7.58 0.55 35.05 0 5.51 0.6 24.54 0 2.42 0.65 12.89 0 -1.01 0.7 2.92 0 -3.95 0.75 -3.24 0 -5.76 0.8 -5.22 0 -6.35 1 -5.28 0 -6.37 1.05 -4.52 0 -5 1.1 -1.52 0 0.35 1.15 4.27 -0.01 10.69 1.2 13.22 -0.01 26.69 1.7 13.22 -0.01 26.69 1.75 13.11 -0.01 26.46 1.8 12.46 -0.01 25.15 1.85 11.07 -0.01 22.34 1.9 9.03 0 18.22 2 4.2 0 8.47 2.05 2.16 0 4.35 2.1 0.77 0 1.55 2.15 0.11 0 0.23 2.2 0 0 0"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -42.54 0 0 0.1 -58.9 0 0 0.15 -59.82 0 0 0.2 -59.11 0 0 0.35 -54.15 0 0 0.45 -53.53 0 0 0.5 -52.43 0 0 0.55 -49.59 0 0 0.7 -36.6 0 0 0.75 -34.1 0 0 0.8 -33.3 0 0 1 -33.28 0 0 1.05 -32.51 0 0 1.1 -29.46 0 0 1.15 -23.58 0 0 1.2 -14.47 0 0 1.7 -14.47 0 0 1.8 -13.64 0 0 1.85 -12.11 0 0 1.9 -9.88 0 0 2.05 -2.36 0 0 2.1 -0.84 0 0 2.2 0 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 15.4 0 -35.07 0.1 21.33 0 -48.56 0.15 21.67 0 -49.15 0.2 21.49 0 -46.42 0.25 21.08 0 -40.28 0.3 20.6 0 -32.89 0.35 20.23 0 -27.33 0.4 20.1 -0.01 -25.3 0.45 19.92 -0.01 -25.08 0.5 17.47 -0.01 -22.8 0.55 11.13 -0.01 -16.94 0.6 1.64 -0.01 -8.17 0.65 -8.87 -0.01 1.54 0.7 -17.86 -0.01 9.86 0.75 -23.42 -0.01 15 0.8 -25.21 -0.01 16.65 1 -25.26 -0.01 16.7 1.05 -24.7 -0.01 14.95 1.1 -22.5 -0.01 8.11 1.15 -18.23 -0.01 -5.13 1.2 -11.65 -0.01 -25.61 1.7 -11.65 -0.01 -25.61 1.75 -11.55 -0.01 -25.39 1.8 -10.97 -0.01 -24.13 1.85 -9.75 -0.01 -21.44 1.9 -7.95 0 -17.48 2 -3.7 0 -8.13 2.05 -1.9 0 -4.18 2.1 -0.68 0 -1.48 2.15 -0.1 0 -0.22 2.2 0 0 0"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -43.17 0 0 0.1 -59.77 0 0 0.15 -60.74 0 0 0.35 -58.85 0 0 0.45 -58.58 0 0 0.5 -57.23 0 0 0.55 -53.74 0 0 0.65 -42.75 0 0 0.7 -37.8 0 0 0.75 -34.75 0 0 0.8 -33.77 0 0 1 -33.74 0 0 1.05 -32.47 0 0 1.1 -27.49 0 0 1.15 -17.86 0 0 1.2 -2.96 0 0 1.8 -2.79 0 0 2.05 -0.48 0 0 2.2 0 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 -58.09 118.38 -3.12 0.1 -80.43 163.9 -4.32 0.15 -80.33 165.21 -3.86 0.2 -61.45 146.72 3.13 0.25 -19.03 105.18 18.85 0.3 31.97 55.25 37.75 0.35 70.41 17.61 51.99 0.4 84.42 3.89 57.18 0.45 84.75 3.43 57.12 0.5 83.1 3.02 53.91 0.55 78.84 1.97 45.6 0.6 72.47 0.39 33.18 0.65 65.41 -1.36 19.42 0.7 59.36 -2.86 7.64 0.75 55.63 -3.79 0.36 0.8 54.43 -4.08 -1.98 1 54.4 -4.09 -2.05 1.05 52.53 -4.58 -1.73 1.1 45.21 -6.5 -0.5 1.15 31.05 -10.21 1.89 1.2 9.15 -15.96 5.59 1.7 9.15 -15.96 5.59 1.75 9.08 -15.82 5.54 1.8 8.62 -15.03 5.27 1.85 7.66 -13.36 4.68 1.9 6.25 -10.89 3.81 2 2.91 -5.07 1.77 2.05 1.49 -2.6 0.91 2.1 0.53 -0.92 0.32 2.15 0.08 -0.14 0.05 2.2 0 0 0"))
+                .addAnimation("torso", giro("0 0 0 0 0.05 -7.64 -3.82 0 0.1 -13.63 -6.81 0 0.15 -15.46 -7.73 0 0.2 -15.14 -7.65 0 0.25 -13.26 -6.9 0 0.35 -7.91 -4.76 0 0.4 -6.49 -4.2 0 0.45 -6.04 -4.02 0 0.5 -4.82 -3.66 0 0.55 -1.24 -2.6 0 0.6 4.83 -0.81 0 0.7 19.41 3.47 0 0.75 24.61 5 0 0.8 27.15 5.75 0 0.9 28.97 5.99 0 0.95 30.69 6 0 1 31.7 6 0 1.05 30.93 5.86 0 1.1 25.98 5.18 0 1.15 15.06 3.69 0 1.2 -2.93 1.24 0 1.25 -11.33 0.27 0 1.3 -14.21 0.06 0 1.35 -15.42 0.01 0 1.45 -15.9 0 0 1.5 -15.44 0 0 1.65 -12.47 0 0 1.8 -11.55 0 0 1.85 -10.57 0 0 1.9 -8.98 0 0 2.05 -2.8 0 0 2.1 -1.3 0 0 2.2 -0.09 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 -5.38 1.47 0 0.1 -15.31 4.18 0 0.15 -21.62 5.89 0 0.2 -22.73 6.1 0 0.25 -20.63 5.16 0 0.35 -13.28 1.65 0 0.4 -10.69 0.36 0 0.5 -9.19 -0.14 0 0.55 -7.14 -0.05 0 0.6 -2.47 0 0 0.7 11.71 0.01 0 0.75 17.82 0 0 0.8 21.41 0 0 0.85 22.51 0 0 1.05 21.5 0 0 1.1 18.03 0 0 1.15 8.36 0 0 1.25 -27.23 0 0 1.3 -35.15 0 0 1.35 -36.82 0 0 1.5 -35.66 0.45 0 1.55 -34.9 1.58 0 1.65 -32.71 4.94 0 1.7 -32.06 5.91 0 1.8 -31.3 5.99 0 1.85 -29.48 5.55 0 1.9 -25.88 4.84 0 1.95 -20.74 3.88 0 2.05 -9 1.69 0 2.1 -4.26 0.8 0 2.15 -1.18 0.22 0 2.2 0.14 -0.03 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 2.13 3.55 0.1 0 2.95 4.92 0.15 0 3.03 5.03 0.2 0 3.49 5.37 0.25 0 4.51 6.13 0.3 0 5.73 7.05 0.35 0 6.65 7.74 0.4 0 6.99 7.99 0.45 0 7.02 7.99 0.5 0 7.35 7.77 0.55 0 8.19 7.21 0.6 0 9.44 6.37 0.65 0 10.83 5.45 0.7 0 12.02 4.65 0.75 0 12.76 4.16 0.8 0 12.99 4 0.85 0 13.04 4 0.95 0 13.87 4 1 0 14 4 1.05 0 13.59 3.83 1.1 0 11.97 3.19 1.15 0 8.84 1.94 1.2 0 4 0 1.7 0 4 0 1.75 0 3.97 0 1.8 0 3.77 0 1.85 0 3.35 0 1.9 0 2.73 0 2 0 1.27 0 2.05 0 0.65 0 2.1 0 0.23 0 2.15 0 0.03 0 2.2 0 0 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.05 7.86 0 -0.25 0.1 14.38 0 -0.42 0.15 16.7 0 -0.37 0.2 16.57 0 -0.2 0.25 14.38 0 0.01 0.35 6.94 0 0.2 0.4 4.19 0 0.15 0.5 0.87 0 0.01 0.55 0 0 0 0.8 0 0 1.69 1.05 0 0 0.89 1.1 1.61 0 0.38 1.15 7.06 0 -0.4 1.2 19 0 -1.19 1.25 21.54 0 -0.95 1.35 16.97 0 0.01 1.4 15.3 0 0.24 1.45 14.52 0 0.31 1.6 13.68 0 0.1 1.75 14.71 0 -0.04 1.8 14.6 0 -0.04 1.85 13.59 0 -0.04 1.9 11.67 0 -0.02 1.95 9.07 0 -0.01 2.05 2.29 0 0 2.1 0.5 0 0 2.2 0 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.1 0.89 0 -0.03 0.25 4.11 0 -0.04 0.35 4.45 0 0.14 0.5 2.29 0 0.05 0.55 -1.15 0 -0.01 0.6 -5.6 0 -0.17 0.75 -5.6 0 -0.45 1.05 -5.6 0 0.03 1.1 -4.98 0 0.11 1.15 -3.81 0 0.2 1.2 -1.99 0 0.2 1.3 3 0 -0.2 1.35 4.63 0 -0.23 1.4 5.25 0 -0.17 1.45 5.05 0 -0.07 1.65 2.74 0 0.08 1.95 2.91 0 -0.02 2.15 0.17 0 0 2.2 0 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.05 0.2 0 -0.02 0.25 2.49 0 0.05 0.55 0.71 0 0 0.6 -1.2 0 0 0.65 -7.8 0 -0.17 0.7 -9.27 0 -0.45 1 -9.27 0 -0.39 1.05 -8.99 0 -0.32 1.1 -8.1 0 -0.18 1.3 1.31 0 0.08 1.35 2.77 0 -0.01 1.4 3.62 0 -0.07 1.5 3.81 0 -0.1 1.7 2.21 0 0.03 1.95 1.74 0 -0.01 2.1 0.39 0 0 2.2 0 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.05 -8.98 0 0.29 0.1 -12.01 0 0.41 0.15 -12.29 0 0.42 0.2 -13.67 0 0.45 0.3 -20.04 0 0.57 0.35 -22.5 0 0.63 0.45 -23.75 0 0.64 0.5 -28.47 0 0.51 0.6 -49.33 0 -0.42 0.65 -51.86 0 -0.88 0.75 -40.89 0 -0.99 0.8 -38.81 0 -0.99 0.85 -38.82 0 -0.99 0.95 -40.47 0 -1.04 1 -40.73 0 -1.05 1.05 -45.27 0 -1.45 1.1 -51.84 0 -2.83 1.15 -32.37 0 -2.85 1.2 -14.25 0 -2.58 1.7 -14.25 0 -2.58 1.75 -14.77 0 -2.58 1.8 -17.56 0 -2.55 1.9 -26.87 0 -2.26 1.95 -27.48 0 -1.81 2 -22.79 0 -1.17 2.1 -6.22 0 -0.2 2.15 -1.04 0 -0.03 2.2 0 0 0"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 10.13 0 0 0.1 13.12 0 0 0.15 13.43 0 0 0.2 15.25 0 0 0.3 23.26 0 0 0.35 26.16 0 0 0.45 27.73 0 0 0.5 34.72 0 0 0.55 49.01 0 0 0.6 60.92 0 0 0.65 61.28 0 0 0.75 42.5 0 0 0.8 39.03 0 0 0.85 39.03 0 0 0.95 41.4 0 0 1 41.78 0 0 1.05 49.48 0 0 1.1 63.57 0 0 1.15 42.38 0 0 1.2 16.9 0 0 1.7 16.9 0 0 1.75 17.87 0 0 1.8 23.11 0 0 1.9 41.12 0 0 1.95 43.84 0 0 2 37.68 0 0 2.05 24.82 0 0 2.1 10.84 0 0 2.15 1.83 0 0 2.2 0 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.05 -1.15 0 0 0.15 -1.14 0 0 0.35 -3.66 0 0 0.45 -3.79 0 0 0.5 -3.35 0 0 0.55 -0.79 0 0 0.6 3.73 0 0 0.65 5.09 0 0 0.75 0.43 0 0 1 -1.05 0 0 1.05 0.9 0 0 1.1 4.27 0 0 1.15 -4.9 0 0 1.2 -2.65 0 0 1.8 -2.66 0 0 1.85 -2.06 0 0 1.9 -0.81 0 0 1.95 -0.36 0 0 2.05 -2.42 0 0 2.1 -1.73 0 0 2.15 -0.36 0 0 2.2 0 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -10.48 0 -0.26 0.1 -13.93 0 -0.36 0.15 -14.89 0 -0.32 0.2 -22.64 0 0.36 0.25 -29.35 0 2.1 0.3 -22.52 0 3.5 0.35 -9.21 0 3.62 0.4 -2.51 0 3.57 0.5 -2.69 0 3.62 0.7 -7.06 0 4.42 1 -8.89 0 4.77 1.05 -12.85 0 5.28 1.1 -21.59 0 6.49 1.15 -14.35 0 4.87 1.2 0.76 0 4.01 1.7 0.76 0 4.01 1.75 0.12 0 4 1.8 -3.31 0 3.98 1.9 -15.4 0 3.61 1.95 -18.74 0 2.92 2 -17.51 0 1.89 2.05 -12.23 0 0.93 2.1 -5.57 0 0.31 2.15 -0.97 0 0.04 2.2 0 0 0"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 13.56 0 0 0.1 17.56 0 0 0.15 19.43 0 0 0.2 37.34 0 0 0.25 59.19 0 0 0.3 57.09 0 0 0.35 36.45 0 0 0.4 24.81 0 0 0.45 24.48 0 0 0.5 25.57 0 0 0.55 28.29 0 0 0.65 36.09 0 0 0.7 39.29 0 0 0.75 41.19 0 0 0.85 41.91 0 0 0.95 44.25 0 0 1 44.62 0 0 1.05 52.53 0 0 1.1 66.73 0 0 1.15 43.3 0 0 1.2 13.73 0 0 1.7 13.73 0 0 1.75 14.91 0 0 1.8 21.16 0 0 1.9 42 0 0 1.95 45.54 0 0 2 39.55 0 0 2.05 26.29 0 0 2.1 11.61 0 0 2.15 1.99 0 0 2.2 0 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -3.08 0 0 0.15 -4.12 0 0 0.2 -8.73 0 0 0.3 -21.13 0 0 0.35 -22.94 0 0 0.4 -22.17 0 0 0.45 -22.17 0 0 0.5 -22.87 0 0 0.55 -24.64 0 0 0.7 -32.23 0 0 0.75 -33.62 0 0 0.85 -34.13 0 0 0.95 -35.51 0 0 1 -35.73 0 0 1.05 -34.57 0 0 1.15 -23.83 0 0 1.2 -14.49 0 0 1.85 -14.74 0 0 1.9 -13.16 0 0 2 -8.6 0 0 2.15 -0.59 0 0 2.2 0 0 0"))
+                .addAnimation("tabardo", giro("0 0 0 0 0.7 0 0 0 0.75 -11.04 0 0 0.85 -12.99 0 0 0.95 -14.26 0 0 1 -14.29 0 0 1.05 -13.74 0 0 1.15 -2.63 0 0 1.2 0.8 0 0 1.25 2.24 0 0 1.3 2.27 0 0 1.5 -0.24 0 0 2.2 0 0 0"))
                 .build();
     }
 
     private static AnimationDefinition liberacion() {
         return AnimationDefinition.Builder.withLength(10F)
-                .addAnimation("brazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 67.87F, 0.004F, 10.314F),
-                        rot(1.6F, -37.145F, -0.008F, -35.142F),
-                        rot(3.5F, -25.856F, -0.002F, -39.118F),
-                        rot(6F, -22.601F, -0.002F, -38.166F),
-                        rot(10F, -22.601F, -0.002F, -38.166F)))
-                .addAnimation("antebrazo_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -55.13F, 0F, 0F),
-                        rot(1.6F, 47.465F, 0F, 0F),
-                        rot(3.5F, 26.36F, 0F, 0F),
-                        rot(6F, 24.491F, 0F, 0F),
-                        rot(10F, 24.491F, 0F, 0F)))
-                .addAnimation("brazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -107.686F, -0.02F, -219.297F),
-                        rot(1.6F, -43.963F, -0.01F, 44.223F),
-                        rot(3.5F, -31.01F, -0.01F, 50.545F),
-                        rot(6F, -176.633F, -0.036F, 18.184F),
-                        rot(10F, -176.633F, -0.036F, 18.184F)))
-                .addAnimation("antebrazo_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -67.395F, 0F, 0F),
-                        rot(1.6F, 18.908F, 0F, 0F),
-                        rot(3.5F, -6.36F, 0F, 0F),
-                        rot(6F, 45.413F, 0F, 0F),
-                        rot(10F, 45.413F, 0F, 0F)))
-                .addAnimation("agarre", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -251.814F, -13.061F, -34.601F),
-                        rot(1.6F, 31.305F, -10.108F, 24.52F),
-                        rot(3.5F, -62.008F, 121.775F, -29.557F),
-                        rot(6F, 48.949F, -24.301F, 21.177F),
-                        rot(10F, 48.949F, -24.301F, 21.177F)))
-                .addAnimation("torso", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -16F, -6F, 0F),
-                        rot(1.6F, 12F, 0F, 0F),
-                        rot(3.5F, 8F, 0F, 0F),
-                        rot(6F, 2F, 0F, 0F),
-                        rot(10F, 2F, 0F, 0F)))
-                .addAnimation("cabeza", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -20F, 0F, 0F),
-                        rot(1.6F, 10F, 0F, 0F),
-                        rot(3.5F, -36F, 0F, 0F),
-                        rot(6F, -38F, 0F, 0F),
-                        rot(10F, -38F, 0F, 0F)))
-                .addAnimation("pelvis", mover(pos(0F, 0F, 0F, 0F),
-                        pos(0.6F, 0F, -3F, 4F),
-                        pos(1.6F, 0F, -30F, 0F),
-                        pos(3.5F, 0F, -30F, 0F),
-                        pos(6F, 0F, -30F, 0F),
-                        pos(10F, 0F, -30F, 0F)))
-                .addAnimation("pierna_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 24F, 0F, 8F),
-                        rot(1.6F, 6F, 0F, 5F),
-                        rot(3.5F, 6F, 0F, 5F),
-                        rot(6F, 6F, 0F, 5F),
-                        rot(10F, 6F, 0F, 5F)))
-                .addAnimation("espinilla_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 30F, 0F, 0F),
-                        rot(1.6F, 86F, 0F, 0F),
-                        rot(3.5F, 86F, 0F, 0F),
-                        rot(6F, 86F, 0F, 0F),
-                        rot(10F, 86F, 0F, 0F)))
-                .addAnimation("pierna_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, -6F, 0F, 0F),
-                        rot(1.6F, -86F, 0F, -6F),
-                        rot(3.5F, -86F, 0F, -6F),
-                        rot(6F, -86F, 0F, -6F),
-                        rot(10F, -86F, 0F, -6F)))
-                .addAnimation("tabardo", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1.6F, -70F, 0F, 0F),
-                        rot(3.5F, -70F, 0F, 0F),
-                        rot(6F, -70F, 0F, 0F),
-                        rot(10F, -70F, 0F, 0F)))
-                .addAnimation("espinilla_izq", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1.6F, 86F, 0F, 0F),
-                        rot(3.5F, 86F, 0F, 0F),
-                        rot(6F, 86F, 0F, 0F),
-                        rot(10F, 86F, 0F, 0F)))
-                .addAnimation("pie_der", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1.6F, -62F, 0F, 0F),
-                        rot(3.5F, -62F, 0F, 0F),
-                        rot(6F, -62F, 0F, 0F),
-                        rot(10F, -62F, 0F, 0F)))
-                .addAnimation("capa_1", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1.6F, 8F, 0F, 0F),
-                        rot(3.5F, 8F, 0F, 0F),
-                        rot(6F, 8F, 0F, 0F),
-                        rot(10F, 8F, 0F, 0F)))
-                .addAnimation("capa_2", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1.6F, 24F, 0F, 0F),
-                        rot(3.5F, 24F, 0F, 0F),
-                        rot(6F, 24F, 0F, 0F),
-                        rot(10F, 24F, 0F, 0F)))
-                .addAnimation("capa_3", giro(rot(0F, 0F, 0F, 0F),
-                        rot(0.6F, 0F, 0F, 0F),
-                        rot(1.6F, 50F, 0F, 0F),
-                        rot(3.5F, 50F, 0F, 0F),
-                        rot(6F, 50F, 0F, 0F),
-                        rot(10F, 50F, 0F, 0F)))
+                .addAnimation("brazo_der", giro("0 0 0 0 0.05 16.07 0 3.18 0.1 29.97 0 5.93 0.15 41.79 0 8.27 0.2 51.6 0 10.22 0.25 59.5 0 11.78 0.3 65.59 0 12.98 0.35 69.98 0 13.86 0.4 72.82 0 14.42 0.45 74.29 0 14.71 0.55 74.57 0 14.74 0.65 73.52 0 14.27 0.7 72.45 0 13.79 0.8 69.03 0 12.27 0.85 66.63 0 11.2 0.95 60.35 0 8.39 1 56.43 0 6.64 1.1 46.93 0 2.4 1.2 35.13 0 -2.87 1.25 28.33 0 -5.91 1.3 20.91 0 -9.22 1.35 12.87 0 -12.81 1.4 4.19 -0.01 -16.69 1.45 -5.14 -0.01 -20.85 1.5 -15.14 -0.01 -25.32 1.55 -25.8 -0.01 -30.08 1.6 -37.15 -0.01 -35.14 1.95 -37.08 -0.01 -35.17 2.2 -36.15 -0.01 -35.49 2.45 -33.9 -0.01 -36.28 2.95 -28.06 0 -38.34 3.15 -26.56 0 -38.87 3.3 -26.01 0 -39.06 4.15 -25.48 0 -39.01 5.65 -22.67 0 -38.19 10 -22.6 0 -38.17"))
+                .addAnimation("antebrazo_der", giro("0 0 0 0 0.05 -12.88 0 0 0.1 -24.04 0 0 0.15 -33.51 0 0 0.2 -41.38 0 0 0.25 -47.72 0 0 0.3 -52.6 0 0 0.35 -56.12 0 0 0.4 -58.4 0 0 0.45 -59.57 0 0 0.55 -59.78 0 0 0.65 -58.77 0 0 0.7 -57.74 0 0 0.8 -54.47 0 0 0.85 -52.16 0 0 0.95 -46.13 0 0 1 -42.37 0 0 1.1 -33.25 0 0 1.2 -21.92 0 0 1.25 -15.39 0 0 1.3 -8.27 0 0 1.35 -0.55 0 0 1.4 7.78 0 0 1.45 16.74 0 0 1.5 26.34 0 0 1.55 36.57 0 0 1.6 47.47 0 0 1.95 47.34 0 0 2.2 45.59 0 0 2.4 42.41 0 0 2.85 32.43 0 0 3 29.64 0 0 3.15 27.68 0 0 3.35 26.49 0 0 4.15 26.15 0 0 5.65 24.53 0 0 10 24.49 0 0"))
+                .addAnimation("brazo_izq", giro("0 0 0 0 0.05 4.67 0 -10.62 0.1 8.7 0 -19.82 0.15 12.13 0 -27.63 0.2 14.98 0 -34.12 0.25 17.28 0 -39.34 0.3 19.05 0 -43.36 0.35 20.32 0 -46.27 0.4 21.14 0 -48.14 0.45 21.57 0 -49.11 0.55 21.63 0 -49.28 0.65 21.01 0 -48.4 0.75 19.51 0 -46.26 0.8 18.37 0 -44.65 0.9 15.27 0 -40.23 1 10.97 0 -34.1 1.05 8.35 0 -30.36 1.15 2.11 0 -21.45 1.25 -5.52 0 -10.58 1.3 -9.88 0 -4.37 1.4 -19.7 -0.01 9.63 1.5 -31.04 -0.01 25.8 1.6 -43.96 -0.01 44.22 1.95 -43.88 -0.01 44.26 2.2 -42.81 -0.01 44.78 2.45 -40.24 -0.01 46.04 2.95 -33.54 -0.01 49.31 3.25 -31.34 -0.01 50.39 3.45 -31.01 -0.01 50.54 3.65 -31.3 -0.01 50.48 3.8 -33.09 -0.01 50.08 3.9 -35.63 -0.01 49.52 4 -39.44 -0.01 48.67 4.1 -44.59 -0.01 47.53 4.2 -51.05 -0.01 46.09 4.35 -63.02 -0.02 43.43 4.45 -72.29 -0.02 41.37 4.55 -82.35 -0.02 39.14 4.9 -120.05 -0.03 30.76 5 -130.41 -0.03 28.46 5.15 -144.62 -0.03 25.3 5.25 -152.88 -0.03 23.46 5.35 -159.98 -0.03 21.88 5.45 -165.79 -0.03 20.59 5.55 -170.27 -0.04 19.6 5.6 -172.01 -0.04 19.21 5.7 -174.55 -0.04 18.65 5.8 -175.97 -0.04 18.33 5.95 -176.62 -0.04 18.19 10 -176.63 -0.04 18.18"))
+                .addAnimation("antebrazo_izq", giro("0 0 0 0 0.05 -13.08 0 0 0.1 -24.39 0 0 0.15 -34.01 0 0 0.2 -41.99 0 0 0.25 -48.42 0 0 0.3 -53.38 0 0 0.35 -56.95 0 0 0.4 -59.26 0 0 0.45 -60.45 0 0 0.55 -60.7 0 0 0.7 -59.18 0 0 0.8 -56.75 0 0 0.85 -55.04 0 0 0.95 -50.56 0 0 1 -47.77 0 0 1.1 -41 0 0 1.2 -32.59 0 0 1.25 -27.74 0 0 1.35 -16.73 0 0 1.45 -3.9 0 0 1.5 3.23 0 0 1.6 18.91 0 0 1.95 18.76 0 0 2.1 17.86 0 0 2.2 16.67 0 0 2.3 14.98 0 0 2.45 11.64 0 0 2.9 -0.3 0 0 3.05 -3.34 0 0 3.15 -4.78 0 0 3.35 -6.21 0 0 3.7 -6.12 0 0 3.85 -5.22 0 0 3.95 -4.1 0 0 4.05 -2.51 0 0 4.2 0.77 0 0 4.45 8.32 0 0 5 28.98 0 0 5.2 35.55 0 0 5.35 39.49 0 0 5.45 41.56 0 0 5.65 44.27 0 0 5.8 45.18 0 0 5.95 45.41 0 0 10 45.41 0 0"))
+                .addAnimation("agarre", giro("0 0 0 0 0.05 -17.59 35.85 -0.94 0.1 -32.82 66.88 -1.76 0.15 -45.76 93.25 -2.46 0.2 -56.51 115.15 -3.04 0.25 -65.15 132.77 -3.5 0.3 -71.82 146.35 -3.86 0.35 -76.63 156.15 -4.12 0.4 -79.74 162.49 -4.28 0.45 -81.34 165.77 -4.37 0.5 -81.75 166.6 -4.39 0.6 -81.3 165.89 -4.28 0.65 -80.6 164.79 -4.1 0.7 -79.51 163.1 -3.82 0.75 -78.01 160.75 -3.44 0.8 -76.06 157.7 -2.94 0.85 -73.64 153.91 -2.32 0.9 -70.72 149.35 -1.57 0.95 -67.28 143.98 -0.69 1 -63.32 137.78 0.32 1.05 -58.8 130.72 1.48 1.1 -53.71 122.77 2.78 1.15 -48.04 113.91 4.23 1.2 -41.78 104.11 5.83 1.25 -34.9 93.37 7.59 1.3 -27.4 81.65 9.51 1.35 -19.27 68.94 11.59 1.4 -10.49 55.22 13.83 1.45 -1.06 40.47 16.24 1.5 9.05 24.68 18.83 1.55 19.83 7.82 21.59 1.6 31.3 -10.11 24.52 1.85 31.28 -10.08 24.51 1.95 30.75 -9.32 24.2 2.05 28.95 -6.78 23.16 2.1 27.44 -4.64 22.28 2.15 25.47 -1.86 21.14 2.2 23.04 1.58 19.73 2.25 20.14 5.67 18.05 2.3 16.8 10.38 16.12 2.4 8.93 21.51 11.55 2.5 -0.23 34.46 6.24 2.75 -25.55 70.25 -8.43 2.85 -35.19 83.87 -14.02 2.95 -43.76 95.98 -18.98 3.05 -50.84 106 -23.09 3.1 -53.74 110.09 -24.77 3.15 -56.17 113.53 -26.18 3.2 -58.14 116.31 -27.32 3.25 -59.66 118.45 -28.19 3.3 -60.74 119.99 -28.82 3.4 -61.84 121.53 -29.46 3.6 -61.94 121.69 -29.53 3.75 -61.06 120.53 -29.12 3.9 -58.48 117.14 -27.95 4 -55.58 113.31 -26.62 4.05 -53.75 110.9 -25.78 4.1 -51.66 108.15 -24.83 4.2 -46.73 101.67 -22.57 4.3 -40.87 93.94 -19.89 4.45 -30.55 80.36 -15.18 4.6 -18.89 65.01 -9.84 4.85 1.76 37.83 -0.4 5 13.73 22.07 5.07 5.1 21.11 12.35 8.45 5.2 27.81 3.53 11.51 5.3 33.68 -4.19 14.19 5.35 36.26 -7.6 15.38 5.45 40.69 -13.43 17.4 5.55 44.1 -17.92 18.96 5.65 46.51 -21.09 20.06 5.8 48.45 -23.64 20.95 5.95 48.94 -24.29 21.17 10 48.95 -24.3 21.18"))
+                .addAnimation("torso", giro("0 0 0 0 0.2 -10.08 -5.04 0 0.3 -13.44 -6.72 0 0.4 -15.3 -7.65 0 0.55 -15.97 -7.99 0 0.7 -15.56 -7.87 0 0.85 -14.25 -7.5 0 1 -11.87 -6.82 0 1.1 -9.61 -6.17 0 1.25 -5.15 -4.9 0 1.35 -1.42 -3.83 0 1.5 5.37 -1.89 0 1.6 10.73 -0.36 0 1.65 11.73 -0.08 0 1.7 11.94 -0.02 0 2.25 11.58 0 0 3.2 8.21 0 0 4.15 7.37 0 0 5.2 3.22 0 0 5.65 2.16 0 0 10 2 0 0"))
+                .addAnimation("cabeza", giro("0 0 0 0 0.05 -1.52 0.41 0 0.2 -13.07 3.56 0 0.25 -15.94 4.35 0 0.3 -18.13 4.94 0 0.35 -19.77 5.39 0 0.45 -21.65 5.91 0 0.55 -22.06 6.02 0 0.65 -21.84 5.97 0 0.8 -20.83 5.78 0 0.9 -19.52 5.54 0 1.05 -16.5 4.97 0 1.15 -13.7 4.44 0 1.25 -10.24 3.79 0 1.35 -6.08 3.02 0 1.5 1.51 1.59 0 1.6 7.52 0.47 0 1.65 9.73 0.05 0 1.7 10.36 -0.07 0 2.05 9.28 0 0 2.2 6.87 0 0 2.3 4.14 0 0 2.4 0.54 0 0 2.55 -6.12 0 0 2.9 -23.34 0 0 3.05 -29.3 0 0 3.2 -33.41 0 0 3.3 -35.02 0 0 3.4 -35.81 0 0 4.2 -36.24 0 0 5.7 -37.96 0 0 10 -38 0 0"))
+                .addAnimation("pelvis", mover("0 0 0 0 0.05 0 0.65 1.08 0.1 0 1.2 2.01 0.15 0 1.68 2.8 0.2 0 2.07 3.46 0.25 0 2.39 3.98 0.35 0 2.81 4.69 0.45 0 2.98 4.97 0.6 0 3.11 4.98 0.7 0 3.54 4.9 0.8 0 4.36 4.75 0.85 0 4.94 4.64 0.9 0 5.64 4.51 0.95 0 6.46 4.36 1 0 7.4 4.18 1.05 0 8.48 3.98 1.1 0 9.7 3.76 1.15 0 11.05 3.51 1.2 0 12.55 3.23 1.25 0 14.19 2.93 1.3 0 15.98 2.6 1.35 0 17.92 2.24 1.4 0 20.02 1.85 1.45 0 22.27 1.43 1.5 0 24.68 0.98 1.55 0 27.26 0.51 1.6 0 30 0 1.65 0 31.59 0 1.7 0 32.13 0 1.8 0 32 0 2.05 0 31.95 0 2.25 0 31.76 0 3 0 30.31 0 3.35 0 30.01 0 10 0 30 0"))
+                .addAnimation("capa_1", giro("0 0 0 0 0.05 2.21 0 -0.07 0.15 7.95 0 -0.18 0.25 12.56 0 -0.17 0.35 15.53 0 -0.1 0.4 16.4 0 -0.06 0.5 17.07 0 0.01 0.65 16.77 0 0.03 0.8 15.82 0 0.02 1.05 12.56 0 0.05 1.25 8.08 0 0.1 1.35 5.16 0 0.13 1.5 0 0 0.19 4.6 0.03 0 0 5.75 1.63 0 0 9.75 1.64 0 0 9.8 2.22 0 0 10 8 0 0"))
+                .addAnimation("capa_2", giro("0 0 0 0 0.1 0.51 0 -0.01 0.35 3.4 0 -0.11 0.5 4.11 0 -0.01 1.5 4.25 0 0.09 1.6 0.73 0 -0.04 1.8 2.98 0 -0.21 2.1 2.3 0 -0.06 3.05 4.31 0 -0.01 4 4.76 0 0 5.35 6.76 0 0 9.75 6.96 0 0 9.8 8.14 0 0 10 20 0 0"))
+                .addAnimation("capa_3", giro("0 0 0 0 0.1 0.27 0 -0.01 0.4 2.56 0 -0.04 0.8 2.92 0 0.01 1 3.75 0 0.02 1.25 5.66 0 0.06 1.5 8.63 0 0.11 1.55 16.26 0 0.23 1.6 21.81 0 0.5 1.65 25.63 0 0.54 1.7 24.07 0 0.45 1.75 26.27 0 0.32 1.85 24.02 0 0.12 1.9 24.25 0 0.07 2 23.29 0 -0.01 2.05 26.43 0 -0.02 2.1 25.48 0 -0.03 2.15 25.31 0 -0.03 2.3 22.55 0 -0.02 2.35 25.77 0 -0.01 2.45 24.33 0 -0.01 2.5 24.53 0 -0.01 2.75 21.84 0 -0.01 2.8 25.49 0 -0.01 2.95 24.11 0 0 3 24.51 0 0 3.15 23.14 0 0 3.25 22.91 0 0 3.4 21.66 0 0 3.45 25.45 0 0 3.65 23.91 0 0 3.7 24.37 0 0 4 22.07 0 0 4.05 25.76 0 0 4.15 24.81 0 0 4.2 25.11 0 0 4.35 23.76 0 0 4.4 27.12 0 0 4.45 26.39 0 0 4.5 26.39 0 0 4.6 24.95 0 0 4.65 28.02 0 0 4.7 27.07 0 0 4.75 26.95 0 0 4.8 25.95 0 0 4.85 29.33 0 0 4.9 28.08 0 0 4.95 27.72 0 0 5 26.75 0 0 5.05 29.31 0 0 5.1 28.86 0 0 5.15 27.32 0 0 5.2 30.32 0 0 5.25 28.79 0 0 5.3 28.25 0 0 5.35 31.16 0 0 5.4 29.4 0 0 5.45 28.72 0 0 5.5 31.51 0 0 5.55 29.65 0 0 5.6 28.91 0 0 5.65 31.64 0 0 5.7 29.75 0 0 5.75 28.98 0 0 5.8 31.69 0 0 5.85 29.78 0 0 5.9 29 0 0 5.95 31.7 0 0 6 29.79 0 0 6.05 29 0 0 6.1 31.7 0 0 6.15 29.79 0 0 6.2 29 0 0 6.25 31.7 0 0 6.3 29.78 0 0 6.35 28.99 0 0 6.4 31.7 0 0 6.45 29.78 0 0 6.5 28.99 0 0 6.55 31.7 0 0 6.6 29.78 0 0 6.65 28.99 0 0 6.7 31.7 0 0 6.75 29.78 0 0 6.8 28.99 0 0 6.85 31.7 0 0 6.9 29.78 0 0 6.95 28.99 0 0 7 31.7 0 0 7.05 29.78 0 0 7.1 28.99 0 0 7.15 31.7 0 0 7.2 29.78 0 0 7.25 28.99 0 0 7.3 31.7 0 0 7.35 29.78 0 0 7.4 28.99 0 0 7.45 31.7 0 0 7.5 29.78 0 0 7.55 28.99 0 0 7.6 31.7 0 0 7.65 29.78 0 0 7.7 28.99 0 0 7.75 31.7 0 0 7.8 29.78 0 0 7.85 28.99 0 0 7.9 31.7 0 0 7.95 29.78 0 0 8 28.99 0 0 8.05 31.7 0 0 8.1 29.78 0 0 8.15 28.99 0 0 8.2 31.7 0 0 8.25 29.78 0 0 8.3 28.99 0 0 8.35 31.7 0 0 8.4 29.78 0 0 8.45 28.99 0 0 8.5 31.7 0 0 8.55 29.78 0 0 8.6 28.99 0 0 8.65 31.7 0 0 8.7 29.78 0 0 8.75 28.99 0 0 8.8 31.7 0 0 8.85 29.78 0 0 8.9 28.99 0 0 8.95 31.7 0 0 9 29.78 0 0 9.05 28.99 0 0 9.1 31.7 0 0 9.15 29.78 0 0 9.2 28.99 0 0 9.25 31.7 0 0 9.3 29.78 0 0 9.35 28.99 0 0 9.4 31.7 0 0 9.45 29.78 0 0 9.5 28.99 0 0 9.55 31.7 0 0 9.6 29.78 0 0 9.65 28.99 0 0 9.7 31.7 0 0 9.75 29.78 0 0 9.8 29.99 0 0 9.85 34.34 0 0 9.9 35.35 0 0 10 40 0 0"))
+                .addAnimation("tabardo", giro("0 0 0 0 0.6 -0.02 0 0 0.8 -0.78 0 0 1 -3.46 0 0 1.2 -8.39 0 0 1.25 -17.02 0 0 1.3 -23.96 0 0 1.35 -30.09 0 0 1.4 -31.51 0 0 1.5 -41.19 0 0 1.6 -49.43 0 0 1.65 -52.37 0 0 1.7 -51.45 0 0 1.75 -53.75 0 0 1.8 -52.53 0 0 1.85 -54.57 0 0 1.9 -53.17 0 0 1.95 -55.06 0 0 2 -52.46 0 0 2.05 -51.26 0 0 2.1 -52.89 0 0 2.15 -51.79 0 0 2.2 -54 0 0 2.25 -52.72 0 0 2.3 -50.72 0 0 2.35 -53.06 0 0 2.4 -50.8 0 0 2.45 -53.1 0 0 2.5 -52 0 0 2.55 -50.16 0 0 2.6 -51.95 0 0 2.65 -51.05 0 0 2.7 -53.43 0 0 2.75 -51.26 0 0 2.8 -50.27 0 0 2.85 -52.81 0 0 2.9 -50.8 0 0 2.95 -49.92 0 0 3 -52.55 0 0 3.05 -50.61 0 0 3.15 -48.44 0 0 3.2 -50.7 0 0 3.25 -50.07 0 0 3.3 -48.7 0 0 3.35 -50.9 0 0 3.4 -50.22 0 0 3.45 -48.49 0 0 3.5 -51.34 0 0 3.55 -50.62 0 0 3.6 -48.79 0 0 3.65 -51.56 0 0 3.7 -49.88 0 0 3.75 -49.21 0 0 3.8 -52.01 0 0 3.85 -50.22 0 0 3.95 -48.21 0 0 4 -50.54 0 0 4.05 -49.95 0 0 4.1 -48.6 0 0 4.15 -50.83 0 0 4.2 -50.17 0 0 4.25 -48.77 0 0 4.3 -50.95 0 0 4.35 -50.27 0 0 4.4 -48.52 0 0 4.45 -51.36 0 0 4.5 -50.64 0 0 4.55 -48.8 0 0 4.6 -51.57 0 0 4.65 -49.88 0 0 4.7 -49.21 0 0 4.75 -52.02 0 0 4.8 -50.22 0 0 4.9 -48.21 0 0 4.95 -50.54 0 0 5 -49.95 0 0 5.05 -48.6 0 0 5.1 -50.83 0 0 5.15 -50.17 0 0 5.2 -48.45 0 0 5.25 -51.31 0 0 5.3 -50.6 0 0 5.35 -48.78 0 0 5.4 -51.55 0 0 5.45 -50.79 0 0 5.5 -48.91 0 0 5.55 -51.65 0 0 5.6 -49.94 0 0 5.65 -49.26 0 0 5.7 -52.05 0 0 5.75 -50.24 0 0 5.85 -48.23 0 0 5.9 -50.55 0 0 5.95 -49.96 0 0 6 -48.61 0 0 6.05 -50.83 0 0 6.1 -50.17 0 0 6.15 -48.46 0 0 6.2 -51.31 0 0 6.25 -50.6 0 0 6.3 -48.78 0 0 6.35 -51.55 0 0 6.4 -49.87 0 0 6.45 -49.2 0 0 6.5 -52.01 0 0 6.55 -50.21 0 0 6.6 -49.47 0 0 6.65 -52.21 0 0 6.7 -50.36 0 0 6.8 -48.29 0 0 6.85 -50.6 0 0 6.9 -49.99 0 0 6.95 -48.64 0 0 7 -50.85 0 0 7.05 -50.19 0 0 7.1 -48.47 0 0 7.15 -51.32 0 0 7.2 -50.61 0 0 7.25 -48.78 0 0 7.3 -51.56 0 0 7.35 -49.87 0 0 7.4 -49.2 0 0 7.45 -52.01 0 0 7.5 -50.21 0 0 7.6 -48.21 0 0 7.65 -50.54 0 0 7.7 -49.95 0 0 7.75 -48.6 0 0 7.8 -50.83 0 0 7.85 -50.17 0 0 7.9 -48.77 0 0 7.95 -50.95 0 0 8 -50.27 0 0 8.05 -48.52 0 0 8.1 -51.36 0 0 8.15 -50.64 0 0 8.2 -48.8 0 0 8.25 -51.57 0 0 8.3 -49.88 0 0 8.35 -49.21 0 0 8.4 -52.02 0 0 8.45 -50.22 0 0 8.55 -48.21 0 0 8.6 -50.54 0 0 8.65 -49.95 0 0 8.7 -48.6 0 0 8.75 -50.83 0 0 8.8 -50.17 0 0 8.85 -48.45 0 0 8.9 -51.31 0 0 8.95 -50.6 0 0 9 -48.78 0 0 9.05 -51.55 0 0 9.1 -50.79 0 0 9.15 -48.91 0 0 9.2 -51.65 0 0 9.25 -49.94 0 0 9.3 -49.26 0 0 9.35 -52.05 0 0 9.4 -50.24 0 0 9.5 -48.23 0 0 9.55 -50.55 0 0 9.6 -49.96 0 0 9.65 -48.61 0 0 9.7 -50.83 0 0 9.8 -49.51 0 0 9.85 -54.08 0 0 9.95 -57.45 0 0 10 -60 0 0"))
+                .addAnimation("pierna_izq", giro("0 0 0 0 0.1 -5.31 0 0.16 0.2 -8.76 0 0.29 0.35 -11.5 0 0.39 0.55 -12.36 0 0.42 0.6 -13.36 0.01 0.42 0.65 -15.62 0.04 0.43 0.7 -19.26 0.09 0.45 0.75 -24.17 0.16 0.47 0.8 -30.1 0.26 0.5 0.95 -49.94 0.67 0.69 1 -55.4 0.83 0.79 1.05 -59.32 1 0.91 1.1 -61.38 1.17 1.04 1.15 -61.72 1.33 1.16 1.3 -58.25 1.74 1.39 1.35 -57.87 1.84 1.41 1.4 -58.69 1.91 1.4 1.45 -60.83 1.96 1.37 1.5 -64.23 1.99 1.31 1.55 -68.66 2 1.22 1.6 -73.82 2 1.11 1.65 -76.86 2 1.07 1.7 -77.92 2 1.05 2.25 -77.2 2 1.06 3 -74.42 2 1.1 3.35 -73.84 2 1.11 10 -73.82 2 1.11"))
+                .addAnimation("espinilla_izq", giro("0 0 0 0 0.05 3.53 0 0 0.1 6.22 0 0 0.2 9.9 0 0 0.25 11.12 0 0 0.35 12.63 0 0 0.55 13.57 0 0 0.6 15.1 0 0 0.65 18.48 0 0 0.7 23.73 0 0 0.75 30.47 0 0 0.85 45.8 0 0 0.9 52.84 0 0 0.95 58.44 0 0 1 62.02 0 0 1.05 63.31 0 0 1.1 62.39 0 0 1.15 59.7 0 0 1.25 51.96 0 0 1.3 48.66 0 0 1.35 46.81 0 0 1.4 46.89 0 0 1.45 49.02 0 0 1.5 52.93 0 0 1.55 58.11 0 0 1.6 63.92 0 0 1.65 66.67 0 0 1.7 67.58 0 0 2.25 66.96 0 0 3 64.47 0 0 3.35 63.94 0 0 10 63.92 0 0"))
+                .addAnimation("pie_izq", giro("0 0 0 0 0.15 -1.07 0 0 0.55 -1.16 0 0 0.75 -2.27 0 0 0.8 -1.68 0 0 0.85 -0.21 0 0 0.9 2.2 0 0 1.05 12.01 0 0 1.1 14.43 0 0 1.15 15.88 0 0 1.2 16.45 0 0 1.25 16.39 0 0 1.35 15.1 0 0 1.5 11.63 0 0 1.6 9.9 0 0 1.7 10.33 0 0 3.3 9.91 0 0 10 9.9 0 0"))
+                .addAnimation("pierna_der", giro("0 0 0 0 0.05 -3.5 0 -0.08 0.1 -6.26 0 -0.14 0.15 -8.47 0 -0.2 0.25 -11.59 0 -0.29 0.35 -13.36 0 -0.34 0.55 -14.29 0 -0.36 0.6 -15.16 -0.01 -0.33 0.65 -17.07 -0.04 -0.26 0.7 -19.95 -0.09 -0.13 0.85 -30.34 -0.38 0.74 0.9 -32.52 -0.51 1.23 0.95 -33.13 -0.67 1.81 1 -31.9 -0.83 2.43 1.05 -28.98 -1 3.02 1.25 -11.97 -1.62 4.09 1.35 -5.28 -1.84 4.42 1.5 2.09 -1.99 6.07 1.6 7.47 -2 8.93 1.65 8.8 -2 10.12 1.7 9.31 -2 10.58 3.35 7.48 -2 8.94 10 7.47 -2 8.93"))
+                .addAnimation("espinilla_der", giro("0 0 0 0 0.05 4.77 0 0 0.1 8.37 0 0 0.15 11.13 0 0 0.2 13.26 0 0 0.3 16.07 0 0 0.4 17.44 0 0 0.55 18.12 0 0 0.6 20.04 0 0 0.65 24.3 0 0 0.7 30.95 0 0 0.75 39.5 0 0 0.9 68.61 0 0 0.95 76.59 0 0 1 82.46 0 0 1.05 85.9 0 0 1.1 87 0 0 1.15 86.28 0 0 1.3 80.19 0 0 1.35 78.89 0 0 1.4 78.54 0 0 1.45 79.16 0 0 1.5 80.62 0 0 1.65 86.42 0 0 1.7 86.95 0 0 2.25 86.59 0 0 3.35 84.8 0 0 10 84.79 0 0"))
+                .addAnimation("pie_der", giro("0 0 0 0 0.05 -1.27 0 0 0.15 -2.66 0 0 0.3 -3.45 0 0 0.55 -3.74 0 0 0.65 -4.94 0 0 0.8 -7.78 0 0 1.1 -10.38 0 0 1.3 -11.5 0 0 1.35 -12.61 0 0 1.4 -14.48 0 0 1.45 -17.2 0 0 1.5 -20.79 0 0 1.55 -25.19 0 0 1.6 -30.26 0 0 1.65 -33.23 0 0 1.7 -34.26 0 0 2.25 -33.56 0 0 3 -30.83 0 0 3.35 -30.28 0 0 10 -30.26 0 0"))
                 .build();
     }
 

@@ -19,15 +19,7 @@ public final class NovilisMalla {
     }
 
     public static LayerDefinition crear() {
-        return crear(CubeDeformation.NONE);
-    }
-
-    /** La misma malla hinchada: la capa del aura de la Furia y del Dios de la Guerra. */
-    public static LayerDefinition crearAura() {
-        return crear(new CubeDeformation(0.9F));
-    }
-
-    private static LayerDefinition crear(CubeDeformation infla) {
+        CubeDeformation infla = CubeDeformation.NONE;
         MeshDefinition malla = new MeshDefinition();
         PartDefinition p_root = malla.getRoot();
         PartDefinition p_raiz = p_root.addOrReplaceChild("raiz", CubeListBuilder.create(),
@@ -41,7 +33,7 @@ public final class NovilisMalla {
                 .texOffs(33, 349).addBox(11F, -2F, -11.6F, 2F, 2F, 0.8F, infla)
                 .texOffs(252, 316).addBox(-4.5F, -5F, -12.2F, 9F, 9F, 1.6F, infla)
                 .texOffs(218, 341).addBox(-2.5F, -3F, -13F, 5F, 5F, 1F, infla),
-                PartPose.offsetAndRotation(0F, -42F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(0F, -39.5F, 0F, 0F, 0F, 0F));
         p_pelvis.addOrReplaceChild("falda_izq", CubeListBuilder.create()
                 .texOffs(432, 316).addBox(-7F, 0F, 0F, 14F, 7F, 2.4F, infla)
                 .texOffs(359, 316).addBox(-7.5F, 6F, -0.4F, 15F, 7F, 2.6F, infla)
@@ -81,7 +73,7 @@ public final class NovilisMalla {
                 .texOffs(176, 316).addBox(-7.8F, 0.4F, -8.3F, 15.6F, 1.2F, 9.6F, infla)
                 .texOffs(38, 316).addBox(-8.1F, 20.4F, -8.7F, 16.2F, 1.2F, 10F, infla)
                 .texOffs(212, 96).addBox(5.7F, 2F, -6F, 1.6F, 18F, 12F, infla),
-                PartPose.offsetAndRotation(8.5F, 2F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(8.5F, 2F, 0F, -0.3648F, -0.1047F, -0.0321F));
         PartDefinition p_espinilla_izq = p_pierna_izq.addOrReplaceChild("espinilla_izq", CubeListBuilder.create()
                 .texOffs(0, 300).addBox(-7F, -5F, -10F, 14F, 9F, 5.5F, infla)
                 .texOffs(446, 330).addBox(-7.3F, -5.4F, -10.3F, 14.6F, 1F, 6F, infla)
@@ -92,7 +84,7 @@ public final class NovilisMalla {
                 .texOffs(395, 235).addBox(-7.2F, 21F, -7.6F, 14.4F, 5F, 15.2F, infla)
                 .texOffs(310, 281).addBox(-7.5F, 25.2F, -7.9F, 15F, 1F, 15.8F, infla)
                 .texOffs(373, 281).addBox(-1F, 3F, -7.6F, 2F, 16F, 1F, infla),
-                PartPose.offsetAndRotation(0F, 30F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(0F, 30F, 0F, 0.5325F, 0F, 0F));
         p_espinilla_izq.addOrReplaceChild("aleta_rodilla_izq", CubeListBuilder.create()
                 .texOffs(371, 259).addBox(-0.8F, -7F, -3F, 1.6F, 10F, 9F, infla)
                 .texOffs(228, 316).addBox(-1F, -7.8F, -3.2F, 2F, 1F, 9.4F, infla),
@@ -103,7 +95,7 @@ public final class NovilisMalla {
                 .texOffs(39, 341).addBox(-5.4F, -3.6F, -16F, 10.8F, 3.6F, 3.4F, infla)
                 .texOffs(116, 281).addBox(-7.3F, -8.4F, -9.3F, 14.6F, 1.2F, 16.6F, infla)
                 .texOffs(244, 341).addBox(-1F, -4F, 6.5F, 2F, 2F, 4F, infla),
-                PartPose.offsetAndRotation(0F, 34F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(0F, 34F, 0F, -0.1677F, 0F, 0F));
         PartDefinition p_pierna_der = p_pelvis.addOrReplaceChild("pierna_der", CubeListBuilder.create()
                 .texOffs(35, 0).addBox(-6.5F, 0F, -6.5F, 13F, 30F, 13F, infla)
                 .texOffs(209, 259).addBox(-7.5F, 1F, -8F, 15F, 11F, 9F, infla)
@@ -111,7 +103,7 @@ public final class NovilisMalla {
                 .texOffs(176, 316).addBox(-7.8F, 0.4F, -8.3F, 15.6F, 1.2F, 9.6F, infla)
                 .texOffs(38, 316).addBox(-8.1F, 20.4F, -8.7F, 16.2F, 1.2F, 10F, infla)
                 .texOffs(212, 96).addBox(-7.3F, 2F, -6F, 1.6F, 18F, 12F, infla),
-                PartPose.offsetAndRotation(-8.5F, 2F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(-8.5F, 2F, 0F, -0.1799F, 0.1047F, 0.0509F));
         PartDefinition p_espinilla_der = p_pierna_der.addOrReplaceChild("espinilla_der", CubeListBuilder.create()
                 .texOffs(0, 300).addBox(-7F, -5F, -10F, 14F, 9F, 5.5F, infla)
                 .texOffs(446, 330).addBox(-7.3F, -5.4F, -10.3F, 14.6F, 1F, 6F, infla)
@@ -122,7 +114,7 @@ public final class NovilisMalla {
                 .texOffs(395, 235).addBox(-7.2F, 21F, -7.6F, 14.4F, 5F, 15.2F, infla)
                 .texOffs(310, 281).addBox(-7.5F, 25.2F, -7.9F, 15F, 1F, 15.8F, infla)
                 .texOffs(373, 281).addBox(-1F, 3F, -7.6F, 2F, 16F, 1F, infla),
-                PartPose.offsetAndRotation(0F, 30F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(0F, 30F, 0F, 0.5218F, 0F, 0F));
         p_espinilla_der.addOrReplaceChild("aleta_rodilla_der", CubeListBuilder.create()
                 .texOffs(371, 259).addBox(-0.8F, -7F, -3F, 1.6F, 10F, 9F, infla)
                 .texOffs(228, 316).addBox(-1F, -7.8F, -3.2F, 2F, 1F, 9.4F, infla),
@@ -133,7 +125,7 @@ public final class NovilisMalla {
                 .texOffs(39, 341).addBox(-5.4F, -3.6F, -16F, 10.8F, 3.6F, 3.4F, infla)
                 .texOffs(116, 281).addBox(-7.3F, -8.4F, -9.3F, 14.6F, 1.2F, 16.6F, infla)
                 .texOffs(244, 341).addBox(-1F, -4F, 6.5F, 2F, 2F, 4F, infla),
-                PartPose.offsetAndRotation(0F, 34F, 0F, 0F, 0F, 0F));
+                PartPose.offsetAndRotation(0F, 34F, 0F, -0.3419F, 0F, 0F));
         PartDefinition p_torso = p_pelvis.addOrReplaceChild("torso", CubeListBuilder.create()
                 .texOffs(272, 61).addBox(-14F, -14F, -9.5F, 28F, 14F, 19F, infla)
                 .texOffs(109, 156).addBox(-15F, -4F, -10.6F, 30F, 4F, 21.2F, infla)
@@ -704,7 +696,7 @@ public final class NovilisMalla {
                 .texOffs(37, 330).addBox(-15F, 3F, -2F, 3.5F, 6F, 4F, infla)
                 .texOffs(37, 330).addBox(11.5F, 3F, -2F, 3.5F, 6F, 4F, infla)
                 .texOffs(110, 300).addBox(-4F, 5.5F, -3.2F, 8F, 8F, 6.4F, infla),
-                PartPose.offsetAndRotation(-33.7431F, -46.1202F, -13.8121F, -0.0982F, 0.5089F, 0.0723F));
+                PartPose.offsetAndRotation(-33.6222F, -46.1385F, -13.2999F, -0.0904F, -0.0269F, 0.1172F));
         p_espada_suelta.addOrReplaceChild("espada_suelta_hoja", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-3.2F, 12F, -1F, 6.4F, 58F, 2F, infla)
                 .texOffs(18, 0).addBox(-1.1F, 14F, -1.25F, 2.2F, 52F, 2.5F, infla)

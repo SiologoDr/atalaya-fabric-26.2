@@ -261,11 +261,7 @@ def java_malla(uv, alto):
          'public final class NovilisMalla {', '',
          '    private NovilisMalla() {', '    }', '',
          '    public static LayerDefinition crear() {',
-         '        return crear(CubeDeformation.NONE);', '    }', '',
-         '    /** La misma malla hinchada: la capa del aura de la Furia y del Dios de la Guerra. */',
-         '    public static LayerDefinition crearAura() {',
-         '        return crear(new CubeDeformation(0.9F));', '    }', '',
-         '    private static LayerDefinition crear(CubeDeformation infla) {',
+         '        CubeDeformation infla = CubeDeformation.NONE;',
          '        MeshDefinition malla = new MeshDefinition();',
          '        PartDefinition p_root = malla.getRoot();']
     for n in ORDEN:

@@ -43,6 +43,7 @@ final class NovilisDibujo {
     static final RenderType CHARCO = translucido("charco");
     static final RenderType ESTELA = translucido("estela");
     static final RenderType QUEMADO = translucido("chispas_suelo");
+    static final RenderType TAJO = translucido("tajo_estela");
 
     private NovilisDibujo() {
     }

@@ -9,7 +9,10 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import com.mojang.blaze3d.vertex.PoseStack;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -21,22 +24,25 @@ import java.util.function.Function;
  *     de la Guerra la clava para tener las dos manos libres);
  *   - las animaciones de entrada y de bucle (las Fuentes, la Ofrenda y el
  *     aturdido entran una vez y luego siguen en bucle mientras dure);
- *   - el halo que gira despacio y late.
+ *   - el halo que gira despacio y late;
+ *   - el reloj de andar, que lleva la entidad: la animacion avanza lo que el
+ *     anda, y asi los pies no patinan ni a 8 bloques por segundo.
  *
- * La misma malla, hinchada (CAPA_AURA), es la del aura de la Furia y del Dios
- * de la Guerra (NovilisAuraLayer).
+ * aPieza() lleva una PoseStack a cualquier hueso: con eso NovilisLlamasLayer
+ * pone el fuego de la Furia y del Dios de la Guerra donde toca, siga la
+ * animacion que siga.
  */
 public class NovilisModel extends EntityModel<NovilisRenderState> {
 
     public static final ModelLayerLocation CAPA = new ModelLayerLocation(
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "novilis"), "main");
-    public static final ModelLayerLocation CAPA_AURA = new ModelLayerLocation(
-            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "novilis"), "aura");
 
     private final ModelPart cabeza;
     private final ModelPart espada;
     private final ModelPart espadaSuelta;
     private final ModelPart halo;
+    /** De la raiz a cada hueso que lleva fuego. */
+    private final Map<String, ModelPart[]> cadenas = new HashMap<>();
 
     private final KeyframeAnimation reposo;
     private final KeyframeAnimation andar;
@@ -65,6 +71,15 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
         this.espada = pieza.apply("espada");
         this.espadaSuelta = pieza.apply("espada_suelta");
         this.halo = pieza.apply("halo");
+        String[] cuerpo = {"raiz", "pelvis", "torso"};
+        cadena(pieza, "cabeza", cuerpo, "cuello", "cabeza");
+        cadena(pieza, "hombro_izq", cuerpo, "hombro_izq");
+        cadena(pieza, "hombro_der", cuerpo, "hombro_der");
+        cadena(pieza, "mano_izq", cuerpo, "hombro_izq", "brazo_izq", "antebrazo_izq", "mano_izq");
+        cadena(pieza, "mano_der", cuerpo, "hombro_der", "brazo_der", "antebrazo_der", "mano_der");
+        cadena(pieza, "espada", cuerpo, "hombro_der", "brazo_der", "antebrazo_der", "mano_der", "agarre", "espada");
+        cadena(pieza, "espada_suelta", new String[]{"raiz"}, "espada_suelta");
+        cadena(pieza, "torso", new String[]{"raiz", "pelvis"}, "torso");
 
         this.reposo = NovilisAnimaciones.REPOSO.bake(raiz);
         this.andar = NovilisAnimaciones.ANDAR.bake(raiz);
@@ -85,6 +100,29 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
         this.aturdidoBucle = NovilisAnimaciones.ATURDIDO_BUCLE.bake(raiz);
         this.tambaleo = NovilisAnimaciones.TAMBALEO.bake(raiz);
         this.liberacion = NovilisAnimaciones.LIBERACION.bake(raiz);
+    }
+
+    private void cadena(Function<String, ModelPart> pieza, String nombre, String[] desde, String... resto) {
+        ModelPart[] c = new ModelPart[desde.length + resto.length];
+        for (int i = 0; i < desde.length; i++) {
+            c[i] = pieza.apply(desde[i]);
+        }
+        for (int i = 0; i < resto.length; i++) {
+            c[desde.length + i] = pieza.apply(resto[i]);
+        }
+        cadenas.put(nombre, c);
+    }
+
+    /** Lleva la pose (la del modelo, tras setupAnim) al espacio de un hueso (en bloques: 16 px de modelo = 1). */
+    public void aPieza(PoseStack pose, String nombre) {
+        root().translateAndRotate(pose);
+        for (ModelPart p : cadenas.get(nombre)) {
+            p.translateAndRotate(pose);
+        }
+    }
+
+    public boolean espadaEnMano() {
+        return espada.visible;
     }
 
     @Override
@@ -111,10 +149,10 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
         if (muriendo) {
             liberacion.apply((long) (s.segundosLibera * 1000.0F), 1.0F);
         } else {
-            float paso = Math.min(s.walkAnimationSpeed * 2.5F, 1.0F);
+            float paso = s.andar;
             if (peso > 0.0F) {
-                // Una vuelta de la animacion (2 s) cada ZANCADA bloques; walkAnimationPos sube unas 4 por bloque.
-                andar.apply((long) (s.walkAnimationPos * 500.0F / NovilisGeometria.ZANCADA), paso * peso);
+                // El reloj de andar lo lleva la entidad: avanza lo que anda (sin patinar).
+                andar.apply((long) s.relojAndar, paso * peso);
                 reposo.apply((long) (s.ageInTicks * 50.0F), (1.0F - paso) * peso);
             }
             long ms = (long) (seg * 1000.0F);

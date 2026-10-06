@@ -1,1 +1,1 @@
-execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run tp @a ~-26 ~12 ~14 facing ~0 ~9 ~0
+execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run tp @a ~-22 ~12 ~12 facing ~0 ~10 ~0

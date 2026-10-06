@@ -5,7 +5,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Medidas de Novilis que comparten servidor y cliente. GENERADO por
  * materiales/generadores/novilis_juego_anim.py desde las mismas poses que las
- * animaciones: si una animacion cambia, estos puntos cambian.
+ * animaciones (ya con la fisica): si una animacion cambia, estos puntos cambian.
  *
  * Los puntos van en bloques y en el espacio del cuerpo: x hacia SU izquierda,
  * y hacia arriba desde los pies, z hacia delante. NovilisEntity los pasa al
@@ -17,82 +17,84 @@ public final class NovilisGeometria {
     }
 
     /** Lo que alcanza la hoja en el Barrido, desde sus pies (bloques). */
-    public static final double ALCANCE_HOJA = 13.37;
-    /** Lo que avanza el cuerpo por vuelta de la animacion de andar (bloques). */
-    public static final float ZANCADA = 11.411F;
+    public static final double ALCANCE_HOJA = 13.56;
+    /** Lo que avanza el cuerpo por vuelta de la animacion de andar (bloques): con los pies en el suelo, sin patinar. */
+    public static final float ZANCADA = 8.329F;
+    /** Lo que dura una vuelta de la animacion de andar (segundos de animacion). */
+    public static final float PERIODO_ANDAR = 1.600F;
 
-    public static final Vec3 PECHO = new Vec3(0.000, 11.618, 1.753);
-    public static final Vec3 CABEZA = new Vec3(0.000, 14.906, 0.110);
-    public static final Vec3 HALO = new Vec3(0.000, 15.563, -1.370);
-    public static final Vec3 PUNTA_ALZA = new Vec3(0.198, 25.449, -1.070);
-    public static final Vec3 PUNTA_CLAVA = new Vec3(-0.248, -4.418, 2.841);
-    public static final Vec3 PUNTA_FUENTES = new Vec3(-0.090, -3.971, 2.820);
-    public static final Vec3 PECHO_FUENTES = new Vec3(0.000, 8.050, 2.255);
-    public static final Vec3 MANO_SOL = new Vec3(4.164, 16.221, 1.096);
-    public static final Vec3 MANO_INVOCA = new Vec3(-3.078, 25.331, 0.624);
-    public static final Vec3 OFRENDA_ALZADO_P = new Vec3(0.000, 14.906, 3.288);
-    public static final Vec3 DIOS_MANO_IZQ = new Vec3(4.822, 15.563, 1.096);
-    public static final Vec3 DIOS_MANO_DER = new Vec3(-4.822, 15.564, 1.096);
+    public static final Vec3 PECHO = new Vec3(0.000, 11.344, 1.753);
+    public static final Vec3 CABEZA = new Vec3(0.000, 14.632, 0.110);
+    public static final Vec3 HALO = new Vec3(0.000, 15.289, -1.370);
+    public static final Vec3 PUNTA_ALZA = new Vec3(-0.005, 25.173, -0.253);
+    public static final Vec3 PUNTA_CLAVA = new Vec3(-0.248, -4.306, 3.859);
+    public static final Vec3 PUNTA_FUENTES = new Vec3(-0.090, -4.247, 2.815);
+    public static final Vec3 PECHO_FUENTES = new Vec3(-0.002, 7.784, 2.242);
+    public static final Vec3 MANO_SOL = new Vec3(4.161, 15.936, 0.082);
+    public static final Vec3 MANO_INVOCA = new Vec3(-3.118, 24.976, 1.713);
+    public static final Vec3 OFRENDA_ALZADO_P = new Vec3(-0.002, 14.620, 3.313);
+    public static final Vec3 DIOS_MANO_IZQ = new Vec3(4.820, 15.285, 1.131);
+    public static final Vec3 DIOS_MANO_DER = new Vec3(-4.824, 15.286, 1.114);
     public static final Vec3 SOL_PROPIO = new Vec3(0.000, 24.500, -1.500);
-    public static final Vec3 PUNTA_TAJO_1 = new Vec3(9.570, 9.120, 8.437);
-    public static final Vec3 PUNTA_TAJO_2 = new Vec3(-10.638, 8.921, 8.104);
-    public static final Vec3 PUNTA_TAJO_3 = new Vec3(3.871, 1.759, 10.184);
-    public static final Vec3 PUNTA_TAJO_4 = new Vec3(10.642, 9.648, 7.262);
-    public static final Vec3 MANO_LANZA_1 = new Vec3(0.877, 9.207, 5.041);
-    public static final Vec3 MANO_LANZA_2 = new Vec3(0.877, 9.207, 5.041);
-    public static final Vec3 MANO_LANZA_3 = new Vec3(0.877, 9.207, 5.041);
-    public static final Vec3 DIOS_LANZA_1_P = new Vec3(-0.000, 10.303, 4.603);
-    public static final Vec3 DIOS_LANZA_2_P = new Vec3(-0.000, 10.303, 4.603);
-    public static final Vec3 DIOS_LANZA_3_P = new Vec3(-0.000, 10.303, 4.603);
+    public static final Vec3 PUNTA_TAJO_1 = new Vec3(4.869, 10.013, 12.010);
+    public static final Vec3 PUNTA_TAJO_2 = new Vec3(-5.452, 8.420, 12.421);
+    public static final Vec3 PUNTA_TAJO_3 = new Vec3(0.562, 4.191, 13.417);
+    public static final Vec3 PUNTA_TAJO_4 = new Vec3(6.155, 9.472, 11.861);
+    public static final Vec3 MANO_LANZA_1 = new Vec3(1.475, 9.226, 5.209);
+    public static final Vec3 MANO_LANZA_2 = new Vec3(1.516, 9.247, 5.187);
+    public static final Vec3 MANO_LANZA_3 = new Vec3(1.516, 9.247, 5.187);
+    public static final Vec3 DIOS_LANZA_1_P = new Vec3(0.000, 10.386, 4.547);
+    public static final Vec3 DIOS_LANZA_2_P = new Vec3(0.000, 10.386, 4.547);
+    public static final Vec3 DIOS_LANZA_3_P = new Vec3(0.000, 10.386, 4.547);
 
-    public static final int DURACION_REPOSO = 80;
-    public static final int DURACION_ANDAR = 40;
+    public static final int DURACION_REPOSO = 64;
+    public static final int DURACION_ANDAR = 32;
     public static final int DURACION_DORMIDO = 120;
-    public static final int DURACION_DESPERTAR = 68;
-    public static final int DURACION_BARRIDO = 76;
-    public static final int DURACION_CASTIGO = 56;
-    public static final int DURACION_CASTIGO_ONDA = 84;
-    public static final int DURACION_SOL = 76;
-    public static final int DURACION_TROMPETAS = 52;
-    public static final int DURACION_FUENTES = 32;
+    public static final int DURACION_DESPERTAR = 48;
+    public static final int DURACION_BARRIDO = 52;
+    public static final int DURACION_CASTIGO = 44;
+    public static final int DURACION_CASTIGO_ONDA = 60;
+    public static final int DURACION_SOL = 50;
+    public static final int DURACION_TROMPETAS = 36;
+    public static final int DURACION_FUENTES = 24;
     public static final int DURACION_FUENTES_CARGA = 40;
-    public static final int DURACION_OFRENDA = 52;
+    public static final int DURACION_OFRENDA = 40;
     public static final int DURACION_OFRENDA_SOSTIENE = 40;
-    public static final int DURACION_DIOS = 100;
-    public static final int DURACION_GRITO = 48;
-    public static final int DURACION_ATURDIDO = 24;
+    public static final int DURACION_DIOS = 80;
+    public static final int DURACION_GRITO = 36;
+    public static final int DURACION_ATURDIDO = 18;
     public static final int DURACION_ATURDIDO_BUCLE = 48;
-    public static final int DURACION_TAMBALEO = 60;
+    public static final int DURACION_TAMBALEO = 44;
     public static final int DURACION_LIBERACION = 200;
-    public static final int DESPERTAR_RUGE = 48;
-    public static final int TAJO_1 = 12;
-    public static final int TAJO_2 = 28;
-    public static final int TAJO_3 = 44;
-    public static final int TAJO_4 = 62;
-    public static final int CASTIGO_ALZA = 14;
-    public static final int CASTIGO_MARCA = 20;
-    public static final int CASTIGO_RAYO = 42;
-    public static final int ONDA_CLAVA = 52;
-    public static final int SOL_LANZA_1 = 20;
-    public static final int SOL_LANZA_2 = 40;
-    public static final int SOL_LANZA_3 = 60;
-    public static final int TROMPETAS_ALZA = 22;
-    public static final int FUENTES_CLAVA = 16;
-    public static final int OFRENDA_SUELTA = 14;
-    public static final int OFRENDA_AGARRA = 26;
-    public static final int OFRENDA_ALZADO = 48;
-    public static final int DIOS_SUELTA = 12;
-    public static final int DIOS_MARCA = 20;
-    public static final int DIOS_RECOGE = 90;
-    public static final int DIOS_LANZA_1 = 32;
-    public static final int DIOS_LANZA_2 = 52;
-    public static final int DIOS_LANZA_3 = 72;
-    public static final int GRITO_RUGE = 18;
-    public static final int TAMBALEO_RUGE = 42;
+    public static final int DESPERTAR_RUGE = 29;
+    public static final int TAJO_1 = 8;
+    public static final int TAJO_2 = 20;
+    public static final int TAJO_3 = 30;
+    public static final int TAJO_4 = 42;
+    public static final int CASTIGO_ALZA = 6;
+    public static final int CASTIGO_MARCA = 10;
+    public static final int CASTIGO_RAYO = 32;
+    public static final int ONDA_CLAVA = 42;
+    public static final int SOL_LANZA_1 = 12;
+    public static final int SOL_LANZA_2 = 24;
+    public static final int SOL_LANZA_3 = 36;
+    public static final int TROMPETAS_ALZA = 14;
+    public static final int FUENTES_CLAVA = 11;
+    public static final int OFRENDA_SUELTA = 8;
+    public static final int OFRENDA_AGARRA = 19;
+    public static final int OFRENDA_ALZADO = 34;
+    public static final int DIOS_SUELTA = 8;
+    public static final int DIOS_MARCA = 15;
+    public static final int DIOS_RECOGE = 70;
+    public static final int DIOS_LANZA_1 = 25;
+    public static final int DIOS_LANZA_2 = 41;
+    public static final int DIOS_LANZA_3 = 57;
+    public static final int GRITO_RUGE = 11;
+    public static final int TAMBALEO_RUGE = 24;
     public static final int LIBERACION_ORO = 70;
 
     /** Entre las dos manos en la Ofrenda, desde OFRENDA_AGARRA hasta el final, tick a tick. */
-    public static final float[][] MANOS_OFRENDA = {{0.00F, 7.67F, 4.60F}, {0.00F, 7.79F, 4.69F}, {0.00F, 7.94F, 4.78F}, {0.00F, 8.13F, 4.89F}, {-0.00F, 8.37F, 5.00F}, {-0.00F, 8.65F, 5.11F}, {-0.00F, 8.98F, 5.21F}, {-0.00F, 9.35F, 5.30F}, {-0.00F, 9.76F, 5.36F}, {-0.00F, 10.20F, 5.39F}, {-0.00F, 10.67F, 5.39F}, {-0.00F, 11.16F, 5.35F}, {-0.00F, 11.65F, 5.27F}, {-0.00F, 12.13F, 5.15F}, {-0.00F, 12.59F, 4.99F}, {-0.00F, 13.03F, 4.80F}, {-0.00F, 13.43F, 4.59F}, {-0.00F, 13.79F, 4.36F}, {-0.00F, 14.11F, 4.12F}, {0.00F, 14.37F, 3.88F}, {0.00F, 14.59F, 3.66F}, {0.00F, 14.77F, 3.46F}, {0.00F, 14.91F, 3.29F}, {0.00F, 15.22F, 2.79F}, {0.00F, 15.19F, 2.85F}, {0.00F, 15.02F, 3.13F}, {0.00F, 14.91F, 3.29F}};
+    public static final float[][] MANOS_OFRENDA = {{-0.00F, 7.18F, 4.82F}, {-0.00F, 7.21F, 4.82F}, {-0.00F, 7.40F, 4.80F}, {-0.00F, 7.76F, 4.74F}, {-0.00F, 8.13F, 4.67F}, {-0.00F, 8.39F, 4.61F}, {-0.00F, 8.49F, 4.58F}, {-0.00F, 9.42F, 5.06F}, {-0.00F, 10.68F, 5.21F}, {-0.00F, 11.95F, 5.02F}, {-0.00F, 12.97F, 4.64F}, {-0.00F, 13.67F, 4.24F}, {-0.00F, 14.17F, 3.82F}, {-0.00F, 14.45F, 3.53F}, {-0.00F, 14.57F, 3.38F}, {-0.00F, 14.63F, 3.30F}, {-0.00F, 14.63F, 3.30F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}};
 
     /** Donde estan las manos en la Ofrenda a los tantos ticks (de animacion) de empezar. */
     public static Vec3 manosOfrenda(float ticks) {

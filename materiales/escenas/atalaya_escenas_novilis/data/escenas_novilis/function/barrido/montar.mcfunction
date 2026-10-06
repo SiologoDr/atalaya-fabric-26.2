@@ -20,11 +20,12 @@ execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run title @a subt
 execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run title @a title {"text": "Barrido Solar", "color": "#FFC23A"}
 schedule function escenas_novilis:barrido/t0000 45t append
 schedule function escenas_novilis:barrido/t0075 120t append
-schedule function escenas_novilis:barrido/t0087 132t append
-schedule function escenas_novilis:barrido/t0103 148t append
-schedule function escenas_novilis:barrido/t0121 166t append
-schedule function escenas_novilis:barrido/t0140 185t append
-schedule function escenas_novilis:barrido/t0150 195t append
+schedule function escenas_novilis:barrido/t0083 128t append
+schedule function escenas_novilis:barrido/t0095 140t append
+schedule function escenas_novilis:barrido/t0105 150t append
+schedule function escenas_novilis:barrido/t0117 162t append
+schedule function escenas_novilis:barrido/t0128 173t append
 schedule function escenas_novilis:barrido/t0165 210t append
-schedule function escenas_novilis:barrido/t0193 238t append
+schedule function escenas_novilis:barrido/t0173 218t append
+schedule function escenas_novilis:barrido/t0185 230t append
 schedule function escenas_novilis:barrido/fin 295t append

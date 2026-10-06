@@ -156,7 +156,6 @@ public class AtalayaClient implements ClientModInitializer {
         // Novilis: malla y animaciones generadas desde novilis_juego*.py, y lo
         // que lanza (medias lunas, sellos, la onda, los soles, estatuas y fuentes).
         ModelLayerRegistry.registerModelLayer(NovilisModel.CAPA, NovilisMalla::crear);
-        ModelLayerRegistry.registerModelLayer(NovilisModel.CAPA_AURA, NovilisMalla::crearAura);
         EntityRendererRegistry.register(AtalayaEntities.NOVILIS, NovilisRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.TAJO_NOVILIS, com.atalaya.client.TajoNovilisRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.SELLO_SOL, com.atalaya.client.SelloSolRenderer::new);

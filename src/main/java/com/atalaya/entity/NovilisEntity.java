@@ -223,6 +223,23 @@ public class NovilisEntity extends Monster {
     public int inicioEstado;
     /** Ritmo de la animacion actual en el cliente (el mismo que usa el servidor). */
     public float ritmoCliente = 1.0F;
+    /** Hasta cuando solo anda (la orden de pruebas "perseguir"). */
+    private int soloAndarHasta;
+    /**
+     * El reloj de la animacion de andar (ms), en el cliente: avanza lo que anda,
+     * una vuelta (dos pasos) cada NovilisGeometria.ZANCADA bloques, asi que los
+     * pies van con el suelo a cualquier velocidad (con walkAnimationPos se
+     * saturaba: pasado 0,25 bloques por tick los pies patinaban).
+     */
+    public float relojAndar;
+    public float relojAndarAnt;
+    /** Lo que pesa andar (0 quieto, 1 andando), suavizado. */
+    public float andar;
+    public float andarAnt;
+    private float velocidadCliente;
+    /** El tick (cliente) en que le prendio la Furia. */
+    public int furiaDesde = -1000;
+    private boolean furiaVista;
     /** Cuanto pesan andar y reposo (0 a 1): baja al empezar un ataque y sube al acabar. */
     public float pesoLibre = 1.0F;
     public float pesoLibreAnt = 1.0F;
@@ -523,6 +540,21 @@ public class NovilisEntity extends Monster {
             arrancarAnimacion();
         }
         pesoLibreAnt = pesoLibre;
+        relojAndarAnt = relojAndar;
+        andarAnt = andar;
+        double vx = getX() - xo;
+        double vz = getZ() - zo;
+        float v = getEstado() == LIBRE && !muriendo ? (float) Math.sqrt(vx * vx + vz * vz) : 0.0F;
+        velocidadCliente += (v - velocidadCliente) * 0.35F;
+        relojAndar += 1000.0F * NovilisGeometria.PERIODO_ANDAR * velocidadCliente / NovilisGeometria.ZANCADA;
+        float objetivoAndar = Mth.clamp(velocidadCliente / 0.06F, 0.0F, 1.0F);
+        andar += (objetivoAndar - andar) * 0.3F;
+        if (tieneFuria() != furiaVista) {
+            furiaVista = tieneFuria();
+            if (furiaVista) {
+                furiaDesde = tickCount;
+            }
+        }
         float objetivoPeso = getEstado() == LIBRE && !muriendo ? 1.0F : 0.0F;
         pesoLibre = objetivoPeso > pesoLibre ? Math.min(objetivoPeso, pesoLibre + 0.2F) : Math.max(objetivoPeso, pesoLibre - 0.25F);
         if (muriendo && !liberacion.isStarted()) {
@@ -662,7 +694,7 @@ public class NovilisEntity extends Monster {
             return;
         }
         getLookControl().setLookAt(objetivo, 20.0F, 20.0F);
-        if (respiro <= 0 && elegirAtaque(nivel, objetivo)) {
+        if (respiro <= 0 && tickCount >= soloAndarHasta && elegirAtaque(nivel, objetivo)) {
             return;
         }
         if (horizontal(position(), objetivo.position()) > 11.0) {
@@ -818,6 +850,17 @@ public class NovilisEntity extends Monster {
             }
             case "grito" -> {
                 ponerGrito(nivel, !tieneGrito());
+                return true;
+            }
+            case "perseguir" -> {
+                // Para ver el paso: anda tras el blanco 8 s sin atacar.
+                if (getEstado() == DORMIDO) {
+                    despertarse(blanco);
+                }
+                if (blanco != null) {
+                    setTarget(blanco);
+                }
+                soloAndarHasta = tickCount + 160;
                 return true;
             }
             case "fuente" -> {
