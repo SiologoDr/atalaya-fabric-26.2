@@ -1040,5 +1040,53 @@
         "stream": true
       }
     ]
+  },
+  "musica.nerea.golpe": {
+    "sounds": [
+      "atalaya:musica/nerea_golpe1",
+      "atalaya:musica/nerea_golpe2"
+    ]
+  },
+  "musica.nerea.grande": {
+    "sounds": [
+      "atalaya:musica/nerea_grande"
+    ]
+  },
+  "musica.nerea.fase": {
+    "sounds": [
+      "atalaya:musica/nerea_fase"
+    ]
+  },
+  "musica.aeralis.golpe": {
+    "sounds": [
+      "atalaya:musica/aeralis_golpe1",
+      "atalaya:musica/aeralis_golpe2"
+    ]
+  },
+  "musica.aeralis.grande": {
+    "sounds": [
+      "atalaya:musica/aeralis_grande"
+    ]
+  },
+  "musica.aeralis.fase": {
+    "sounds": [
+      "atalaya:musica/aeralis_fase"
+    ]
+  },
+  "musica.rajang.golpe": {
+    "sounds": [
+      "atalaya:musica/rajang_golpe1",
+      "atalaya:musica/rajang_golpe2"
+    ]
+  },
+  "musica.rajang.grande": {
+    "sounds": [
+      "atalaya:musica/rajang_grande"
+    ]
+  },
+  "musica.rajang.fase": {
+    "sounds": [
+      "atalaya:musica/rajang_fase"
+    ]
   }
 }

@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.3**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.4**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -1179,7 +1179,7 @@ lo heredó.
 | **Aleteo Cortante** | de 3 a 10 cuchillas de viento en abanico, a ras de suelo, alternando bajas y altas | 31 / 39 / 49 / 61 | **saltar las bajas y apartarse de las altas**. El escudo la para de frente |
 | **Tornados** | de 3 a 9 tornados que nacen junto a los jugadores y los persiguen 12 s. Atrapan, suben en espiral y revientan a los 3 s | 7 / 10 / 14 / 21 por segundo, más el estallido: 27 / 37 / 44 / 55 | **3 golpes** de lo que sea lo deshacen y sueltan a la víctima con suavidad, pero **la caída duele** |
 | **Cacería del Vendaval** | marca a una presa 15 s y le tira ráfagas que la persiguen. La marca no se quita: si la leche la borra, vuelve. Si nadie se queda cerca de la presa, acelera | 34 / 42 / 53 / 70, explota en 3,5 bloques | **reventar la ráfaga** en el aire (1 + jugadores/12 golpes) o ponerse delante |
-| **Juicio del Ciclón** | se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos** | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos** (**10 golpes** cada uno). Así cae aturdida 5 s, con daño doble |
+| **Juicio del Ciclón** | sale poco, como el Sello de Rajang: el primero a los 30 s de entrar en la III y luego no vuelve hasta 1,5 min después de acabar (1,3 en la IV). Se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos** | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos** (**10 golpes** cada uno). Así cae aturdida 5 s, con daño doble |
 | **Picado del Vendaval** (nuevo) | sube y marca en el suelo la línea por donde se va a lanzar (36 a 60 bloques, galones que se encienden). Se lanza en picado a 45 bloques/s | a quien pille, **la muerte salvo tótem** (pasa armadura, escudo, encantamientos y efectos) y lo **lanza al cielo** (unos 24 bloques): la caída duele | **salir de la línea**. Al final **se posa 3 s** y recibe **daño doble**: la ventana de la espada |
 | **Escamas de Tormenta** (nuevo) | sacude las alas y suelta escamas en un círculo de 15 bloques. Cada mancha se carga y descarga cada 1,5 s durante 6 s | 20 / 20 / 20 / 28 por descarga y **Parálisis 2 s**: ni andar ni saltar, pero sí pegar, el inventario y usar objetos. No te vuelve a paralizar hasta 1 s después de soltarte, para que puedas salir de la mancha | **no pisar las manchas** mientras brillan |
 | **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya fina bajo su barra lo cuenta: con **10** en la fase II, **20** en la III y **30** en la IV, **cae aturdida 5 s** con daño doble, como tras el Juicio (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
@@ -1680,7 +1680,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.3.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.1.4.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -1711,7 +1711,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.3
+	- atalaya 1.1.4
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2084,7 +2084,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.3.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.1.4.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

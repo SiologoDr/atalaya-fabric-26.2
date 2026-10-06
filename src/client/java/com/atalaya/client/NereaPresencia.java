@@ -33,6 +33,10 @@ public final class NereaPresencia {
     public static void sacudir(double x, double y, double z, float fuerza, float alcance) {
         float k = caida(x, y, z, alcance);
         temblor = Math.max(temblor, fuerza * k);
+        // Un golpe gordo que se nota: la musica del jefe lo acentua (MusicaJefes).
+        if (k > 0.15F) {
+            MusicaJefes.golpe(fuerza);
+        }
     }
 
     /** Temblor sostenido mientras se pida, tick a tick. */

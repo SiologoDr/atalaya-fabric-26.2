@@ -202,6 +202,12 @@ public class AeralisEntity extends Monster {
     private static final int CAZA = 300;
     /** Lo que sostiene el ciclon del Juicio antes del golpe: 12 s. */
     public static final int JUICIO_TICKS = 240;
+    /**
+     * Lo que tarda en volver el Juicio desde que acaba (como el Sello de Rajang):
+     * 1,5 min en la III y 1,3 en la IV (con la Furia, menos). Cuenta desde que
+     * acaba, no desde que empieza.
+     */
+    private static final int JUICIO_DESCANSO = 2400;
     /** A partir de cuantos bloques del resto del grupo se acelera la caza. */
     private static final double LEJOS_DEL_GRUPO = 12.0;
     private static final double RANGO_DESPERTAR = 40.0;
@@ -909,7 +915,7 @@ public class AeralisEntity extends Monster {
         if (enfTornados <= 0 && tornadosVivos.size() < 10) opciones.add(new int[]{TORNADOS, 4});
         LivingEntity cazable = fase >= 2 && enfCaza <= 0 ? elegirPresa(nivel) : null;
         if (cazable != null) opciones.add(new int[]{MARCA, 5});
-        if (fase >= 3 && enfJuicio <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{JUICIO_SUBE, 7});
+        if (fase >= 3 && enfJuicio <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{JUICIO_SUBE, 2});
         if (fase >= 2 && enfPicado <= 0 && d >= 12.0 && d <= 50.0) opciones.add(new int[]{PICADO_AVISO, 4});
         if (fase >= 3 && enfEscamas <= 0) opciones.add(new int[]{ESCAMAS, 3});
         if (opciones.isEmpty()) {
@@ -962,7 +968,7 @@ public class AeralisEntity extends Monster {
                 sonido(AtalayaSonidos.AERALIS_CHILLIDO, 6.0F);
             }
             case JUICIO_SUBE -> {
-                enfJuicio = (int) (900 * k);
+                enfJuicio = (int) (1100 * k);
                 empezarJuicio(nivel);
             }
             case PICADO_AVISO -> {
@@ -1657,6 +1663,7 @@ public class AeralisEntity extends Monster {
         }
         if (nucleosRotos >= 4) {
             // Los cuatro: el ciclon se deshace y ella cae aturdida.
+            descansarJuicio();
             if (ciclon != null) {
                 ciclon.deshacer(true);
                 ciclon = null;
@@ -1734,8 +1741,14 @@ public class AeralisEntity extends Monster {
         }
     }
 
+    /** El Juicio ha acabado (bien o mal): no vuelve hasta pasado su descanso. */
+    private void descansarJuicio() {
+        enfJuicio = Math.max(enfJuicio, (int) (JUICIO_DESCANSO * enfriamiento()));
+    }
+
     /** Quita el ciclon, los nucleos y la marca del Juicio. */
     private void cancelarJuicio(ServerLevel nivel) {
+        descansarJuicio();
         if (ciclon != null) {
             ciclon.deshacer(true);
             ciclon = null;
@@ -2083,7 +2096,8 @@ public class AeralisEntity extends Monster {
             enfCaza = 80;
         }
         if (nueva == 3) {
-            enfJuicio = 140;
+            // El primero de la fase III, a los 30 s (como el Sello en la II).
+            enfJuicio = 600;
         }
         if (nueva == 4) {
             relojAgotado = 300;

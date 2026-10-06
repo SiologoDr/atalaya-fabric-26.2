@@ -10,7 +10,7 @@ a pasar aeralis_extras.py reescribiria todo lo de antes.
     picado_punta.png   el final de la linea, donde se posa
     aro.png            el aro del suelo de los tornados y las corrientes (64x64)
     rayo.png           una veta de rayo para las ataduras del Juicio (8x32)
-    aeralis_furia_N.png  el aura de la Furia del Vendaval, cuatro cuadros sobre
+    aeralis_furia_N.png  el aura de la Furia del Vendaval, doce cuadros sobre
                        el atlas de Aeralis (respeta el recorte de las alas):
                        rayos en zigzag violetas que corren, como la de Rajang
     embudo.png         el embudo de los tornados: un velo de aire con vetas
@@ -190,9 +190,14 @@ def embudo():
 #  El aura de la Furia: sobre el mismo atlas de Aeralis (solo donde hay
 #  piel, asi respeta el recorte de las alas), bandas en diagonal que se
 #  quiebran en zigzag como rayos, del blanco violeta al violeta oscuro, y un
-#  brillo tenue debajo. Cuatro cuadros con las bandas corridas: el juego los
-#  alterna y parecen correr. Fuera de las bandas, transparente.
+#  brillo tenue debajo. Doce cuadros con las bandas corridas 2 px cada uno (el
+#  ultimo empalma con el primero): el juego funde cada cuadro con el siguiente
+#  y las bandas corren seguidas, sin saltos (con cuatro cuadros de 6 px se veia
+#  a tirones). Fuera de las bandas, transparente.
 # ----------------------------------------------------------------------
+CUADROS_FURIA = 12
+
+
 def aura_furia(cuadro):
     import numpy as np
     base = np.array(Image.open(os.path.join(ENT, 'aeralis_f1.png')).convert('RGBA'))
@@ -201,11 +206,12 @@ def aura_furia(cuadro):
     # Rayos gruesos: el atlas va a media resolucion y las alas son enormes, asi
     # que con bandas finas no se veian.
     quiebro = np.where((yy // 10) % 2 == 0, 5.0, -5.0)
-    s = (xx + yy + quiebro + 3.0 * np.sin(2 * np.pi * yy / 48.0) + cuadro * 6.0) % 24.0
+    s = (xx + yy + quiebro + 3.0 * np.sin(2 * np.pi * yy / 48.0) + cuadro * 24.0 / CUADROS_FURIA) % 24.0
     out = np.zeros((h, w, 4), np.uint8)
-    out[s < 11.0] = (110, 50, 200, 120)
-    out[s < 8.0] = (175, 105, 255, 215)
-    out[s < 3.5] = (246, 232, 255, 255)
+    # Algo mas finas y mas transparentes que al principio: se ve el cuerpo debajo.
+    out[s < 9.0] = (110, 50, 200, 85)
+    out[s < 6.0] = (175, 105, 255, 175)
+    out[s < 2.5] = (246, 232, 255, 245)
     out[base[..., 3] < 16] = 0
     return Image.fromarray(out)
 
@@ -284,7 +290,7 @@ punta().save(os.path.join(ENT, 'picado_punta.png'))
 aro().save(os.path.join(ENT, 'aro.png'))
 rayo().save(os.path.join(ENT, 'rayo.png'))
 embudo().save(os.path.join(ENT, 'embudo.png'))
-for k in range(4):
+for k in range(CUADROS_FURIA):
     aura_furia(k).save(os.path.join(ENT, f'aeralis_furia_{k}.png'))
 if os.path.exists(os.path.join(ENT, 'aeralis_furia.png')):
     os.remove(os.path.join(ENT, 'aeralis_furia.png'))

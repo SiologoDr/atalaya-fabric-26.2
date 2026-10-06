@@ -85,6 +85,16 @@ public final class AtalayaSonidos {
     public static SoundEvent MUSICA_NEREA;
     public static SoundEvent MUSICA_AERALIS;
     public static SoundEvent MUSICA_RAJANG;
+    // Los acentos de cada pista: los golpes gordos, la Furia (y los grandes momentos) y el cambio de fase.
+    public static SoundEvent MUSICA_NEREA_GOLPE;
+    public static SoundEvent MUSICA_NEREA_GRANDE;
+    public static SoundEvent MUSICA_NEREA_FASE;
+    public static SoundEvent MUSICA_AERALIS_GOLPE;
+    public static SoundEvent MUSICA_AERALIS_GRANDE;
+    public static SoundEvent MUSICA_AERALIS_FASE;
+    public static SoundEvent MUSICA_RAJANG_GOLPE;
+    public static SoundEvent MUSICA_RAJANG_GRANDE;
+    public static SoundEvent MUSICA_RAJANG_FASE;
 
     public static SoundEvent AERALIS_AMBIENTE;
     public static SoundEvent AERALIS_ALETEO;
@@ -248,6 +258,15 @@ public final class AtalayaSonidos {
         MUSICA_NEREA = registrar("musica.nerea");
         MUSICA_AERALIS = registrar("musica.aeralis");
         MUSICA_RAJANG = registrar("musica.rajang");
+        MUSICA_NEREA_GOLPE = registrar("musica.nerea.golpe");
+        MUSICA_NEREA_GRANDE = registrar("musica.nerea.grande");
+        MUSICA_NEREA_FASE = registrar("musica.nerea.fase");
+        MUSICA_AERALIS_GOLPE = registrar("musica.aeralis.golpe");
+        MUSICA_AERALIS_GRANDE = registrar("musica.aeralis.grande");
+        MUSICA_AERALIS_FASE = registrar("musica.aeralis.fase");
+        MUSICA_RAJANG_GOLPE = registrar("musica.rajang.golpe");
+        MUSICA_RAJANG_GRANDE = registrar("musica.rajang.grande");
+        MUSICA_RAJANG_FASE = registrar("musica.rajang.fase");
 
         AERALIS_AMBIENTE = registrar("aeralis.ambiente");
         AERALIS_ALETEO = registrar("aeralis.aleteo");
