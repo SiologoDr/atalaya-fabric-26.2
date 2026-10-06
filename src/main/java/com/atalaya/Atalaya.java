@@ -102,6 +102,8 @@ public class Atalaya implements ModInitializer {
         PesoTierraEffect.registrar();
         ParalisisEffect.registrar();
         BendicionTierraEffect.registrar();
+        com.atalaya.effect.QuemaduraEffect.registrar();
+        com.atalaya.effect.BendicionSolEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
         Frio.registrar();
@@ -189,6 +191,8 @@ public class Atalaya implements ModInitializer {
                 salida.insertAfter(AtalayaItems.HUEVO_NEREA, AtalayaItems.HUEVO_AERALIS));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(AtalayaItems.HUEVO_AERALIS, AtalayaItems.HUEVO_RAJANG));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_RAJANG, AtalayaItems.HUEVO_NOVILIS));
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> AtalayaCommand.registrar(dispatcher));

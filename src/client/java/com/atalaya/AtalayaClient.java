@@ -36,6 +36,10 @@ import com.atalaya.client.RajangParteRenderer;
 import com.atalaya.client.RajangParticula;
 import com.atalaya.client.RajangRenderer;
 import com.atalaya.client.TotemSelloRenderer;
+import com.atalaya.client.NovilisMalla;
+import com.atalaya.client.NovilisModel;
+import com.atalaya.client.NovilisParticula;
+import com.atalaya.client.NovilisRenderer;
 import com.atalaya.client.CuchillaVientoRenderer;
 import com.atalaya.client.NucleoVientoRenderer;
 import com.atalaya.client.RafagaAeralisRenderer;
@@ -149,6 +153,22 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.PLATAFORMA_SELLO, PlataformaSelloRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.FRAGMENTO_JADE, FragmentoJadeRenderer::new);
 
+        // Novilis: malla y animaciones generadas desde novilis_juego*.py, y lo
+        // que lanza (medias lunas, sellos, la onda, los soles, estatuas y fuentes).
+        ModelLayerRegistry.registerModelLayer(NovilisModel.CAPA, NovilisMalla::crear);
+        ModelLayerRegistry.registerModelLayer(NovilisModel.CAPA_AURA, NovilisMalla::crearAura);
+        EntityRendererRegistry.register(AtalayaEntities.NOVILIS, NovilisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.TAJO_NOVILIS, com.atalaya.client.TajoNovilisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.SELLO_SOL, com.atalaya.client.SelloSolRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.ONDA_FUEGO, com.atalaya.client.OndaFuegoRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.SOL_NOVILIS, com.atalaya.client.SolNovilisRenderer::new);
+        ModelLayerRegistry.registerModelLayer(com.atalaya.client.EstatuaNovilisRenderer.CAPA, com.atalaya.client.EstatuaNovilisMalla::crear);
+        ModelLayerRegistry.registerModelLayer(com.atalaya.client.EstatuaNovilisRenderer.CAPA_ROTA, com.atalaya.client.EstatuaNovilisMalla::crearRota);
+        EntityRendererRegistry.register(AtalayaEntities.ESTATUA_NOVILIS, com.atalaya.client.EstatuaNovilisRenderer::new);
+        ModelLayerRegistry.registerModelLayer(com.atalaya.client.FuenteSolarRenderer.CAPA, com.atalaya.client.FuenteSolarMalla::crear);
+        ModelLayerRegistry.registerModelLayer(com.atalaya.client.FuenteSolarRenderer.CAPA_ROTA, com.atalaya.client.FuenteSolarMalla::crearRota);
+        EntityRendererRegistry.register(AtalayaEntities.FUENTE_SOLAR, com.atalaya.client.FuenteSolarRenderer::new);
+
         // El aviso de la tecla va DESPUES de la hotbar para quedar por encima:
         // es una instruccion, y taparla con cualquier cosa la haria inutil.
         HudElementRegistry.attachElementAfter(
@@ -230,6 +250,19 @@ public class AtalayaClient implements ClientModInitializer {
         rajang(AtalayaParticulas.RAJANG_ORO, RajangParticula.Tipo.ORO);
         rajang(AtalayaParticulas.RAJANG_ZARPAZO, RajangParticula.Tipo.ZARPAZO);
 
+        // Las once de Novilis.
+        novilis(AtalayaParticulas.NOVILIS_BRASA, NovilisParticula.Tipo.BRASA);
+        novilis(AtalayaParticulas.NOVILIS_CHISPA, NovilisParticula.Tipo.CHISPA);
+        novilis(AtalayaParticulas.NOVILIS_CENIZA, NovilisParticula.Tipo.CENIZA);
+        novilis(AtalayaParticulas.NOVILIS_LLAMA, NovilisParticula.Tipo.LLAMA);
+        novilis(AtalayaParticulas.NOVILIS_HUMO, NovilisParticula.Tipo.HUMO);
+        novilis(AtalayaParticulas.NOVILIS_ONDA, NovilisParticula.Tipo.ONDA);
+        novilis(AtalayaParticulas.NOVILIS_ROCA, NovilisParticula.Tipo.ROCA);
+        novilis(AtalayaParticulas.NOVILIS_NOTA, NovilisParticula.Tipo.NOTA);
+        novilis(AtalayaParticulas.NOVILIS_LUZ, NovilisParticula.Tipo.LUZ);
+        novilis(AtalayaParticulas.NOVILIS_AZUL, NovilisParticula.Tipo.AZUL);
+        novilis(AtalayaParticulas.NOVILIS_CARMESI, NovilisParticula.Tipo.CARMESI);
+
         // La presencia de Nerea: temblor, retumbo y miedo. El miedo va con los
         // velos de camara (calabaza, nieve polvo...): un velo bajo el resto del
         // HUD. NO cuelga de la hotbar como la vineta del calor: en espectador
@@ -237,6 +270,9 @@ public class AtalayaClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.AeralisEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.RajangEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NereaEfectosCliente::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NovilisEfectosCliente::tick);
+        // La Ofrenda al Sol: la secuencia de teclas de quien Novilis tiene en las manos.
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.OfrendaCliente::tick);
         // La musica de cada jefe mientras pelea cerca (y la de vanilla calla: MusicaJefesMixin).
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MusicaJefes::tick);
         HudElementRegistry.attachElementAfter(
@@ -261,6 +297,21 @@ public class AtalayaClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_aeralis"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
                 new com.atalaya.client.RajangBarraHud());
+        // Y la de Novilis, debajo de las tres.
+        HudElementRegistry.attachElementAfter(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_novilis"),
+                new com.atalaya.client.NovilisBarraHud());
+        // La pantalla de la Ofrenda al Sol (la del atrapado), por encima de la hotbar.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ofrenda"),
+                new com.atalaya.client.OfrendaHud());
+        // La quemadura de Novilis, a la izquierda de los corazones.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "quemadura"),
+                new com.atalaya.client.QuemaduraHud());
 
         // Solo en el entorno de pruebas (con run/atalaya_fotos.flag).
         com.atalaya.client.FotosPrueba.registrar();
@@ -276,6 +327,11 @@ public class AtalayaClient implements ClientModInitializer {
     private static void rajang(SimpleParticleType tipo, RajangParticula.Tipo comportamiento) {
         ParticleProviderRegistry.getInstance().register(tipo,
                 sprites -> new RajangParticula.Fabrica(sprites, comportamiento));
+    }
+
+    private static void novilis(SimpleParticleType tipo, NovilisParticula.Tipo comportamiento) {
+        ParticleProviderRegistry.getInstance().register(tipo,
+                sprites -> new NovilisParticula.Fabrica(sprites, comportamiento));
     }
 
     private static void aeralis(SimpleParticleType tipo, AeralisParticula.Tipo comportamiento) {

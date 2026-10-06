@@ -41,17 +41,45 @@ public final class AtalayaRed {
         }
     }
 
+    /**
+     * Una tecla de la Ofrenda al Sol (la secuencia que sale en pantalla a quien
+     * Novilis tiene en las manos): que jefe, que tecla de la secuencia y si era
+     * la buena. La secuencia la saca cada lado de la misma semilla, asi que basta
+     * con decir si acerto: el servidor lleva la cuenta y decide.
+     */
+    public record OfrendaTecla(int jefe, int indice, boolean bien) implements CustomPacketPayload {
+
+        public static final Type<OfrendaTecla> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ofrenda_tecla"));
+
+        public static final StreamCodec<FriendlyByteBuf, OfrendaTecla> CODEC = StreamCodec.of(
+                (buf, t) -> {
+                    buf.writeVarInt(t.jefe());
+                    buf.writeVarInt(t.indice());
+                    buf.writeBoolean(t.bien());
+                },
+                buf -> new OfrendaTecla(buf.readVarInt(), buf.readVarInt(), buf.readBoolean()));
+
+        @Override
+        public Type<OfrendaTecla> type() {
+            return TIPO;
+        }
+    }
+
     private AtalayaRed() {
     }
 
     /** Registra el tipo. Tiene que correr en los DOS lados. */
     public static void registrarTipos() {
         PayloadTypeRegistry.serverboundPlay().register(Salto.TIPO, Salto.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(OfrendaTecla.TIPO, OfrendaTecla.CODEC);
     }
 
     /** Y esto solo en el servidor: quien atiende el aviso. */
     public static void registrarServidor() {
         ServerPlayNetworking.registerGlobalReceiver(Salto.TIPO, (carga, contexto) ->
                 AturdimientoManager.alSaltar(contexto.player()));
+        ServerPlayNetworking.registerGlobalReceiver(OfrendaTecla.TIPO, (carga, contexto) ->
+                com.atalaya.entity.NovilisEntity.alPulsarTecla(contexto.player(), carga.jefe(), carga.indice(), carga.bien()));
     }
 }

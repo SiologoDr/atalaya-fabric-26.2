@@ -1041,6 +1041,14 @@
       }
     ]
   },
+  "musica.novilis": {
+    "sounds": [
+      {
+        "name": "atalaya:musica/novilis",
+        "stream": true
+      }
+    ]
+  },
   "musica.nerea.golpe": {
     "sounds": [
       "atalaya:musica/nerea_golpe1",
@@ -1089,6 +1097,22 @@
       "atalaya:musica/rajang_fase"
     ]
   },
+  "musica.novilis.golpe": {
+    "sounds": [
+      "atalaya:musica/novilis_golpe1",
+      "atalaya:musica/novilis_golpe2"
+    ]
+  },
+  "musica.novilis.grande": {
+    "sounds": [
+      "atalaya:musica/novilis_grande"
+    ]
+  },
+  "musica.novilis.fase": {
+    "sounds": [
+      "atalaya:musica/novilis_fase"
+    ]
+  },
   "espada.mareas_golpe": {
     "subtitle": "subtitles.atalaya.espada.golpe",
     "sounds": [
@@ -1111,6 +1135,313 @@
       "atalaya:espada/vendaval_golpe1",
       "atalaya:espada/vendaval_golpe2",
       "atalaya:espada/vendaval_golpe3"
+    ]
+  },
+  "novilis.ambiente": {
+    "subtitle": "subtitles.atalaya.novilis.ambiente",
+    "sounds": [
+      "atalaya:novilis/ambiente1",
+      "atalaya:novilis/ambiente2",
+      "atalaya:novilis/ambiente3"
+    ]
+  },
+  "novilis.paso": {
+    "subtitle": "subtitles.atalaya.novilis.paso",
+    "sounds": [
+      "atalaya:novilis/paso1",
+      "atalaya:novilis/paso2",
+      "atalaya:novilis/paso3",
+      "atalaya:novilis/paso4"
+    ]
+  },
+  "novilis.herido": {
+    "subtitle": "subtitles.atalaya.novilis.herido",
+    "sounds": [
+      "atalaya:novilis/herido1",
+      "atalaya:novilis/herido2",
+      "atalaya:novilis/herido3"
+    ]
+  },
+  "novilis.inmune": {
+    "subtitle": "subtitles.atalaya.novilis.inmune",
+    "sounds": [
+      "atalaya:novilis/inmune1",
+      "atalaya:novilis/inmune2",
+      "atalaya:novilis/inmune3"
+    ]
+  },
+  "novilis.rugido": {
+    "subtitle": "subtitles.atalaya.novilis.rugido",
+    "sounds": [
+      "atalaya:novilis/rugido1",
+      "atalaya:novilis/rugido2"
+    ]
+  },
+  "novilis.despertar": {
+    "subtitle": "subtitles.atalaya.novilis.despertar",
+    "sounds": [
+      "atalaya:novilis/despertar"
+    ]
+  },
+  "novilis.tajo": {
+    "subtitle": "subtitles.atalaya.novilis.tajo",
+    "sounds": [
+      "atalaya:novilis/tajo1",
+      "atalaya:novilis/tajo2",
+      "atalaya:novilis/tajo3"
+    ]
+  },
+  "novilis.tajo_fuego": {
+    "subtitle": "subtitles.atalaya.novilis.tajo_fuego",
+    "sounds": [
+      "atalaya:novilis/tajo_fuego1",
+      "atalaya:novilis/tajo_fuego2"
+    ]
+  },
+  "novilis.castigo_alza": {
+    "subtitle": "subtitles.atalaya.novilis.castigo_alza",
+    "sounds": [
+      "atalaya:novilis/castigo_alza"
+    ]
+  },
+  "novilis.castigo_aviso": {
+    "subtitle": "subtitles.atalaya.novilis.castigo_aviso",
+    "sounds": [
+      "atalaya:novilis/castigo_aviso1",
+      "atalaya:novilis/castigo_aviso2"
+    ]
+  },
+  "novilis.castigo_rayo": {
+    "subtitle": "subtitles.atalaya.novilis.castigo_rayo",
+    "sounds": [
+      "atalaya:novilis/castigo_rayo1",
+      "atalaya:novilis/castigo_rayo2"
+    ]
+  },
+  "novilis.castigo_clava": {
+    "subtitle": "subtitles.atalaya.novilis.castigo_clava",
+    "sounds": [
+      "atalaya:novilis/castigo_clava"
+    ]
+  },
+  "novilis.onda": {
+    "subtitle": "subtitles.atalaya.novilis.onda",
+    "sounds": [
+      "atalaya:novilis/onda1",
+      "atalaya:novilis/onda2"
+    ]
+  },
+  "novilis.sol_forma": {
+    "subtitle": "subtitles.atalaya.novilis.sol_forma",
+    "sounds": [
+      "atalaya:novilis/sol_forma"
+    ]
+  },
+  "novilis.sol_lanza": {
+    "subtitle": "subtitles.atalaya.novilis.sol_lanza",
+    "sounds": [
+      "atalaya:novilis/sol_lanza1",
+      "atalaya:novilis/sol_lanza2"
+    ]
+  },
+  "novilis.sol_explota": {
+    "subtitle": "subtitles.atalaya.novilis.sol_explota",
+    "sounds": [
+      "atalaya:novilis/sol_explota1",
+      "atalaya:novilis/sol_explota2"
+    ]
+  },
+  "novilis.lava": {
+    "subtitle": "subtitles.atalaya.novilis.lava",
+    "sounds": [
+      "atalaya:novilis/lava1",
+      "atalaya:novilis/lava2"
+    ]
+  },
+  "novilis.estatuas": {
+    "subtitle": "subtitles.atalaya.novilis.estatuas",
+    "sounds": [
+      "atalaya:novilis/estatuas"
+    ]
+  },
+  "novilis.estatua_golpe": {
+    "subtitle": "subtitles.atalaya.novilis.estatua_golpe",
+    "sounds": [
+      "atalaya:novilis/estatua_golpe1",
+      "atalaya:novilis/estatua_golpe2",
+      "atalaya:novilis/estatua_golpe3"
+    ]
+  },
+  "novilis.estatua_rota": {
+    "subtitle": "subtitles.atalaya.novilis.estatua_rota",
+    "sounds": [
+      "atalaya:novilis/estatua_rota1",
+      "atalaya:novilis/estatua_rota2"
+    ]
+  },
+  "novilis.fuentes": {
+    "subtitle": "subtitles.atalaya.novilis.fuentes",
+    "sounds": [
+      "atalaya:novilis/fuentes"
+    ]
+  },
+  "novilis.fuente_golpe": {
+    "subtitle": "subtitles.atalaya.novilis.fuente_golpe",
+    "sounds": [
+      "atalaya:novilis/fuente_golpe1",
+      "atalaya:novilis/fuente_golpe2",
+      "atalaya:novilis/fuente_golpe3"
+    ]
+  },
+  "novilis.fuente_rota": {
+    "subtitle": "subtitles.atalaya.novilis.fuente_rota",
+    "sounds": [
+      "atalaya:novilis/fuente_rota1",
+      "atalaya:novilis/fuente_rota2"
+    ]
+  },
+  "novilis.carga": {
+    "subtitle": "subtitles.atalaya.novilis.carga",
+    "sounds": [
+      "atalaya:novilis/carga"
+    ]
+  },
+  "novilis.supernova": {
+    "subtitle": "subtitles.atalaya.novilis.supernova",
+    "sounds": [
+      "atalaya:novilis/supernova"
+    ]
+  },
+  "novilis.sol_apaga": {
+    "subtitle": "subtitles.atalaya.novilis.sol_apaga",
+    "sounds": [
+      "atalaya:novilis/sol_apaga"
+    ]
+  },
+  "novilis.ofrenda_marca": {
+    "subtitle": "subtitles.atalaya.novilis.ofrenda_marca",
+    "sounds": [
+      "atalaya:novilis/ofrenda_marca1",
+      "atalaya:novilis/ofrenda_marca2"
+    ]
+  },
+  "novilis.ofrenda_agarra": {
+    "subtitle": "subtitles.atalaya.novilis.ofrenda_agarra",
+    "sounds": [
+      "atalaya:novilis/ofrenda_agarra"
+    ]
+  },
+  "novilis.ofrenda_tecla": {
+    "subtitle": "subtitles.atalaya.novilis.ofrenda_tecla",
+    "sounds": [
+      "atalaya:novilis/ofrenda_tecla"
+    ]
+  },
+  "novilis.ofrenda_fallo": {
+    "subtitle": "subtitles.atalaya.novilis.ofrenda_fallo",
+    "sounds": [
+      "atalaya:novilis/ofrenda_fallo"
+    ]
+  },
+  "novilis.ofrenda_libre": {
+    "subtitle": "subtitles.atalaya.novilis.ofrenda_libre",
+    "sounds": [
+      "atalaya:novilis/ofrenda_libre"
+    ]
+  },
+  "novilis.dios": {
+    "subtitle": "subtitles.atalaya.novilis.dios",
+    "sounds": [
+      "atalaya:novilis/dios"
+    ]
+  },
+  "novilis.dios_aviso": {
+    "subtitle": "subtitles.atalaya.novilis.dios_aviso",
+    "sounds": [
+      "atalaya:novilis/dios_aviso1",
+      "atalaya:novilis/dios_aviso2"
+    ]
+  },
+  "novilis.dios_explosion": {
+    "subtitle": "subtitles.atalaya.novilis.dios_explosion",
+    "sounds": [
+      "atalaya:novilis/dios_explosion1",
+      "atalaya:novilis/dios_explosion2",
+      "atalaya:novilis/dios_explosion3"
+    ]
+  },
+  "novilis.grito": {
+    "subtitle": "subtitles.atalaya.novilis.grito",
+    "sounds": [
+      "atalaya:novilis/grito1",
+      "atalaya:novilis/grito2"
+    ]
+  },
+  "novilis.furia": {
+    "subtitle": "subtitles.atalaya.novilis.furia",
+    "sounds": [
+      "atalaya:novilis/furia"
+    ]
+  },
+  "novilis.aturdido": {
+    "subtitle": "subtitles.atalaya.novilis.aturdido",
+    "sounds": [
+      "atalaya:novilis/aturdido"
+    ]
+  },
+  "novilis.tambaleo": {
+    "subtitle": "subtitles.atalaya.novilis.tambaleo",
+    "sounds": [
+      "atalaya:novilis/tambaleo1",
+      "atalaya:novilis/tambaleo2"
+    ]
+  },
+  "novilis.liberacion": {
+    "subtitle": "subtitles.atalaya.novilis.liberacion",
+    "sounds": [
+      "atalaya:novilis/liberacion"
+    ]
+  },
+  "novilis.disolver": {
+    "subtitle": "subtitles.atalaya.novilis.disolver",
+    "sounds": [
+      "atalaya:novilis/disolver"
+    ]
+  },
+  "novilis.melodia_1": {
+    "subtitle": "subtitles.atalaya.novilis.melodia_1",
+    "sounds": [
+      {
+        "name": "atalaya:novilis/melodia_1",
+        "stream": true
+      }
+    ]
+  },
+  "novilis.melodia_2": {
+    "subtitle": "subtitles.atalaya.novilis.melodia_2",
+    "sounds": [
+      {
+        "name": "atalaya:novilis/melodia_2",
+        "stream": true
+      }
+    ]
+  },
+  "novilis.melodia_3": {
+    "subtitle": "subtitles.atalaya.novilis.melodia_3",
+    "sounds": [
+      {
+        "name": "atalaya:novilis/melodia_3",
+        "stream": true
+      }
+    ]
+  },
+  "novilis.melodia_4": {
+    "subtitle": "subtitles.atalaya.novilis.melodia_4",
+    "sounds": [
+      {
+        "name": "atalaya:novilis/melodia_4",
+        "stream": true
+      }
     ]
   }
 }

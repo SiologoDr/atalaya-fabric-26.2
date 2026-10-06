@@ -4,6 +4,7 @@ import com.atalaya.config.AtalayaConfig;
 import com.atalaya.effect.HipotermiaEffect;
 import com.atalaya.entity.AtalayaEntities;
 import com.atalaya.entity.AeralisEntity;
+import com.atalaya.entity.NovilisEntity;
 import com.atalaya.entity.RajangEntity;
 import com.atalaya.entity.NereaEntity;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -57,6 +58,10 @@ import java.util.List;
  *                                    sello, romper, escalon, cataclismo, salto,
  *                                    aturdido, paralizado, estampado, furia, fase,
  *                                    liberar).
+ *   /atalaya novilis &lt;orden&gt;       -> lo mismo con el Novilis mas cercano (despertar,
+ *                                    barrido, castigo, onda, sol, trompetas, estatua,
+ *                                    fuentes, fuente, ofrenda, dios, aturdido, furia,
+ *                                    grito, fase, liberar).
  *
  *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
  *                                    peto o elitros, grebas y botas) tuya o de
@@ -104,6 +109,12 @@ public final class AtalayaCommand {
                                 .then(Commands.argument("orden", StringArgumentType.word())
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_RAJANG, sb))
                                         .executes(ctx -> probarRajang(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("novilis")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NOVILIS, sb))
+                                        .executes(ctx -> probarNovilis(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
@@ -259,6 +270,33 @@ public final class AtalayaCommand {
             return 0;
         }
         fuente.sendSuccess(() -> Component.literal("Nerea: " + orden), false);
+        return 1;
+    }
+
+    private static final String[] ORDENES_NOVILIS = {"despertar", "barrido", "castigo", "onda", "sol", "trompetas",
+            "estatua", "fuentes", "fuente", "ofrenda", "dios", "aturdido", "furia", "grito", "fase", "liberar"};
+
+    /** Fuerza al Novilis mas cercano (en 80 bloques) a hacer algo ya. */
+    private static int probarNovilis(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        NovilisEntity novilis = null;
+        double mejor = 80 * 80;
+        for (NovilisEntity n : nivel.getEntitiesOfClass(NovilisEntity.class, new AABB(desde, desde).inflate(80))) {
+            if (n.isAlive() && n.distanceToSqr(desde) < mejor) {
+                mejor = n.distanceToSqr(desde);
+                novilis = n;
+            }
+        }
+        if (novilis == null) {
+            fuente.sendFailure(Component.literal("No hay ningun Novilis a menos de 80 bloques."));
+            return 0;
+        }
+        if (!novilis.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Novilis: " + orden), false);
         return 1;
     }
 

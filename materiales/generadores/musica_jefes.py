@@ -55,6 +55,25 @@ CLIMAX -> acecho (dron, latido, notas sueltas) -> vuelta al principio.
              de hombres lo grita, tambores de guerra, terremotos.
       61-72  acecho: dron, latido de taiko, kalimba suelta, piedras.
 
+  NOVILIS, el Caballero Solar (novilis.ogg). Fa menor con el solb (frigio)
+  y el mi (la sensible), 4/4 a 144: una forja tribal e industrial.
+  76 compases, 2:07.
+      1-12   intro: retumbo, latido de taiko, el fa de los trombones (resuelve
+             el do7 del final del bucle), el coro en "u", el yunque en
+             el 2 y el 4, entra el riff de las cuerdas distorsionadas, la
+             celda del tema en trompas, do7 con subida y llamarada.
+      13-36  combate: el riff (fa-fa-do-fa-fa-solb-fa-mi, 3+3+2), taikos y
+             martillos con sus acentos, yunques, toms; el tema en trompas
+             (fa-do-reb-do, sib-lab-solb) y en trompas graves y trombones;
+             el lamento en el coro con los metales que se hinchan.
+      37-46  crece: la celda sube a medios tonos (fa, fa#, sol, lab menor),
+             pedal de do7(b9), gritos del coro, redobles, racimo que sube.
+      47-66  CLIMAX: el sol revienta; tema en metales y el coro que lo grita,
+             platillos, bombo, toques del yunque, llamaradas; cierre
+             reb-solb-do7(b9).
+      67-76  acecho: las brasas; latido, coro en "u", yunques sueltos a lo
+             lejos, la celda en una trompa sola y el riff que vuelve.
+
 GOLPES DE MUSICA (stingers), por jefe, en la misma carpeta: el juego los
 dispara encima de la pista cuando el jefe pega (y baja la pista un momento).
 Mismos instrumentos, salas, tonalidad y modo: acorde de tonica, sin chocar.
@@ -88,7 +107,8 @@ COMO SE HACE
     leer cada .ogg para medir picos, RMS, LUFS y la costura.
 
 Escribe src/main/resources/assets/atalaya/sounds/musica/: nerea.ogg,
-aeralis.ogg, rajang.ogg y los golpes <jefe>_golpe1/_golpe2/_grande/_fase.ogg.
+aeralis.ogg, rajang.ogg, novilis.ogg y los golpes
+<jefe>_golpe1/_golpe2/_grande/_fase.ogg.
 NO toca sounds.json: los eventos se dan de alta aparte (pistas con
 "stream": true).
 
@@ -96,7 +116,10 @@ Uso: python musica_jefes.py <raiz del proyecto> [carpeta_de_revision] [pista,...
   - carpeta_de_revision: por pista, espectrograma y forma de onda en PNG,
     los ultimos 15 s + los primeros 15 s en WAV (para oir la costura), los
     niveles de cada bus y un PNG por golpe.
-  - pista: solo esas (nerea, aeralis, rajang).
+  - pista: solo esas (nerea, aeralis, rajang, novilis). Cada pista tiene
+    su propia semilla y vacia las caches: generar una sola no cambia las
+    demas. Para anadir la de Novilis sin tocar las otras:
+    python musica_jefes.py <raiz> <revision> novilis
   - Con MEDIR=1 en el entorno imprime niveles por seccion y por bandas.
 """
 import numpy as np
@@ -2928,6 +2951,565 @@ def golpes_rajang():
 
 
 # ======================================================================
+#  Sonidos del fuego y de la forja (Novilis): el yunque, el martillo, la
+#  llamarada, el fuego de fondo y las cuerdas graves distorsionadas
+# ======================================================================
+@cacheado
+def yunque(m, fuerza=2, variante=0):
+    """Yunque: un bloque de acero golpeado por el martillo. Los modos de una
+    barra gruesa y corta (inarmonicos y largos, cada uno partido en dos),
+    afinado a la nota m; el golpe seco del martillo, el tablero del bloque y
+    el rebote (un segundo toque flojo enseguida, como en una forja)."""
+    f = float(hz(m))
+    N = n_(2.0)
+    t = np.arange(N) / SR
+    y = np.zeros(N)
+    for r, a, tau in ((1.0, 1.0, 0.8), (2.32, 0.45, 0.4), (3.86, 0.25, 0.22), (5.1, 0.15, 0.12), (6.7, 0.08, 0.07)):
+        if f * r < 14000:
+            for d in (-0.0016, 0.0016):
+                y += a * np.sin(2 * np.pi * f * r * (1 + d) * t + rng.uniform(0, 6.28)) * np.exp(-t / tau)
+    y /= np.max(np.abs(y)) + 1e-9
+    golpe = bp(rng.standard_normal(N), 1500, 9000) * np.exp(-t / 0.0025) * (0.5 + 0.12 * fuerza)
+    bloque = np.sin(2 * np.pi * 210 * t) * np.exp(-t / 0.025) * 0.5
+    y = y * (0.55 + 0.15 * fuerza) + golpe + bloque
+    d = n_(0.07 + 0.02 * rng.random())
+    rebote = np.zeros(N)
+    rebote[d:] = 0.22 * y[:N - d]
+    y = (y + rebote) * caida(N, 10.0, 0.0005)
+    return pb(y / (np.max(np.abs(y)) + 1e-9), 10000)
+
+
+@cacheado
+def martillo(fuerza=2, variante=0):
+    """Martillo contra hierro al rojo: un golpe sordo y metalico ('tunk'),
+    corto: los modos graves de la pieza, el tablero del yunque y el golpe."""
+    N = n_(0.7)
+    t = np.arange(N) / SR
+    f = rng.uniform(290, 340)
+    y = np.zeros(N)
+    for r, a, tau in ((1.0, 1.0, 0.09), (1.47, 0.6, 0.06), (2.09, 0.45, 0.04), (2.94, 0.3, 0.025), (4.11, 0.18, 0.015)):
+        y += a * np.sin(2 * np.pi * f * r * t + rng.uniform(0, 6.28)) * np.exp(-t / tau)
+    y += np.sin(2 * np.pi * 96 * t * (1 + 0.15 * np.exp(-t / 0.01))) * np.exp(-t / 0.06) * 0.9
+    y += pb(rng.standard_normal(N), 2500 + 800 * fuerza) * np.exp(-t / 0.005) * 0.7
+    y *= caida(N, 10.0, 0.0006)
+    return y / (np.max(np.abs(y)) + 1e-9)
+
+
+def llamarada_st(dur=2.5, pan0=-0.5, pan1=0.5, sube=0.2, brillo=1.0):
+    """Una llamarada: el fuego que se aviva y se apaga. Ruido en bandas
+    (grave, media y algo de aguda, sin siseo) que se abren con la llama, un
+    parpadeo rapido, brasas que saltan y el paso de un lado al otro del
+    estereo. `sube`: en que fraccion llega al maximo (0,04: de golpe; 0,9:
+    una subida hasta el final, para entrar en un tiempo fuerte)."""
+    N = n_(dur)
+    t = np.arange(N) / SR
+    u = t / dur
+    forma = np.where(u < sube, paso(u / max(sube, 1e-3)) ** 1.3, np.exp(-(u - sube) / max(1e-3, 1 - sube) * 3.2))
+    forma = forma * paso((1 - u) / 0.05)
+    x = ruido(N, 'rosa')
+    z = suavizar(rng.standard_normal(N), 0.03)
+    parpadeo = np.exp(0.45 * z / (np.std(z) + 1e-9))
+    y = (pb(x, 230, 2) * forma * (0.6 + 0.4 * forma) + bp(x, 230, 850) * forma ** 1.4 * 0.75
+         + bp(x, 850, 2600) * forma ** 2.2 * 0.4 * brillo + bp(x, 2600, 5500) * forma ** 3.0 * 0.12 * brillo) * parpadeo
+    y /= np.max(np.abs(y)) + 1e-9
+    imp = (rng.random(N) < 70 * forma / SR) * rng.uniform(-1, 1, N) * forma
+    k = n_(0.004)
+    nucleo = bp(rng.standard_normal(k), 1200, 5000) * np.exp(-np.arange(k) / SR / 0.001)
+    chasq = signal.fftconvolve(imp, nucleo)[:N]
+    y = y + 0.25 * chasq / (np.max(np.abs(chasq)) + 1e-9)
+    th = (np.clip(pan0 + (pan1 - pan0) * paso(u), -1, 1) + 1) * np.pi / 4
+    st = np.vstack([y * np.cos(th), y * np.sin(th)])
+    return st / (np.max(np.abs(st)) + 1e-9)
+
+
+def fuego_lecho(p):
+    """El fuego de fondo de la forja: un rugido grave que late (sin agudos:
+    no es un siseo constante) y brasas sueltas que saltan a un lado y a
+    otro. Cubre todo el bucle y el final se funde con el principio: no hay
+    costura."""
+    L = p.L
+    bucle = getattr(p, 'bucle', True)
+    if not bucle:
+        return np.zeros((2, L))        # los golpes de musica no llevan el fondo: ya traen su llamarada
+    X = n_(2.0)
+    N = L + X
+    out = np.zeros((2, N))
+    k = n_(0.005)
+    for c in range(2):
+        x = ruido(N, 'rosa')
+        z = suavizar(rng.standard_normal(N), 0.06)
+        z2 = suavizar(rng.standard_normal(N), 0.6)
+        late = np.exp(0.45 * z / (np.std(z) + 1e-9) + 0.35 * z2 / (np.std(z2) + 1e-9))
+        ruge = pb(x, 320, 2) * late
+        cuando = rng.random(N) < 5.0 / SR
+        imp = cuando * np.clip(rng.pareto(2.0, N) * 0.3 + 0.1, 0, 1) * rng.choice([-1.0, 1.0], N)
+        nucleo = bp(rng.standard_normal(k), 800, 3200) * np.exp(-np.arange(k) / SR / 0.0015)
+        chasq = signal.fftconvolve(imp, nucleo)[:N]
+        # las brasas mas fuertes se aplastan (tanh): chasquidos, no petardos
+        chasq = np.tanh(chasq / (np.percentile(np.abs(chasq[chasq != 0]), 99) + 1e-9))
+        out[c] = 0.5 * ruge / (np.std(ruge) + 1e-9) + 0.35 * chasq
+    w = 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, X))
+    out[:, :X] = out[:, :X] * w + out[:, L:L + X] * (1 - w)
+    out = out[:, :L]
+    # por sonoridad (-20 dB RMS), no por pico: el parpadeo y alguna brasa
+    # fuerte darian picos que dejarian el fuego en nada
+    return out * (0.1 / (np.sqrt(np.mean(out ** 2)) + 1e-9))
+
+
+def cuerdas_dist(p, P, inst='dist', drive=2.6):
+    """Cuerdas graves distorsionadas: chelos que tocan el riff y pasan por un
+    saturador (tanh: lo flojo queda igual y lo fuerte se aplasta y se llena
+    de armonicos) y por una caja (paso alto, joroba en 750 Hz, hueco en
+    2,5 kHz y paso bajo, para que no chille). Con la misma sonoridad que
+    sin distorsion; en el bucle, las colas dan la vuelta."""
+    notas = p.notas.get(inst)
+    bucle = getattr(p, 'bucle', True)
+    n = p.L + (n_(4.0) if bucle else 0)
+    bus = np.zeros((2, n), dtype=np.float32)
+    if notas:
+        tocar(notas, P, bus, p.L)
+    x = bus.astype(np.float64)
+    if not np.any(x):
+        return np.zeros((2, p.L))
+    limpio = np.sqrt(np.mean(x ** 2))
+    ref = np.percentile(np.abs(x[x != 0]), 99.5)
+    y = np.tanh(drive * x / ref) * (ref / drive)
+    y = ecualizar(y, [('pa', 55), ('pico', 750, 3.0, 0.9), ('pico', 2500, -3.0, 1.0), ('pb', 4200, 2)])
+    y *= limpio / (np.sqrt(np.mean(y ** 2)) + 1e-12)
+    if bucle:
+        y = plegar(y, p.L)
+    return y[:, :p.L]
+
+
+# ======================================================================
+#  NOVILIS, el Caballero Solar: musica de COMBATE. Fa menor con el solb
+#  (frigio) y el mi (la sensible): el sabor del desierto y del sol. 4/4 a
+#  144: una forja tribal e industrial. Taikos que pegan con los acentos del
+#  riff (3+3+2), yunques en el 2 y el 4 como una caja, martillos, cuerdas
+#  graves distorsionadas, metales graves, el coro y el fuego que crepita.
+# ======================================================================
+NOV_AC = {
+    # acorde: (raiz grave, riff de las cuerdas (8 corcheas), notas del acorde, voces)
+    'Fm': ('F1', 'F2 F2 C3 F2 F2 Gb2 F2 E2', 'F Ab C', 'C4 F4 Ab4'),
+    'Gb/F': ('F1', 'F2 F2 Db3 F2 F2 Gb2 F2 Gb2', 'Gb Bb Db', 'Db4 Gb4 Bb4'),
+    'Db': ('Db2', 'Db2 Db2 Ab2 Db2 Db2 D2 Db2 C2', 'Db F Ab', 'Db4 F4 Ab4'),
+    'Gb': ('Gb1', 'Gb2 Gb2 Db3 Gb2 Gb2 G2 Gb2 F2', 'Gb Bb Db', 'Db4 Gb4 Bb4'),
+    'Bbm': ('Bb1', 'Bb2 Bb2 F3 Bb2 Bb2 B2 Bb2 A2', 'Bb Db F', 'Db4 F4 Bb4'),
+    'C7': ('C2', 'C3 C3 G2 C3 C3 Db3 C3 B2', 'C E G Bb', 'E4 G4 Bb4'),
+    'C7b9': ('C2', 'C3 C3 G2 C3 C3 Db3 C3 B2', 'C E G Bb Db', 'E4 Bb4 Db5'),
+    'F#m': ('F#1', 'F#2 F#2 C#3 F#2 F#2 G2 F#2 F2', 'F# A C#', 'C#4 F#4 A4'),
+    'Gm': ('G1', 'G2 G2 D3 G2 G2 Ab2 G2 F#2', 'G Bb D', 'D4 G4 Bb4'),
+    'Abm': ('Ab1', 'Ab2 Ab2 Eb3 Ab2 Ab2 A2 Ab2 G2', 'Ab B Eb', 'Eb4 Ab4 B4'),
+}
+
+# El tema: fa - do - reb - do (la sexta menor que cae en la quinta), el
+# acorde de solb (el medio tono de arriba) y la dominante con la novena
+# menor (mi - sol - sib - reb): la vuelta oscura del fuego.
+NOV_M1 = ("F4:1.5 C5:1.5 Db5:0.5 C5:0.5 | Bb4:1.5 Ab4:1.5 Gb4:1 | F4:1.5 C5:1.5 Db5:0.5 Eb5:0.5 | F5:1.5 Eb5:1.5 Db5:1 | "
+          "Db5:1.5 F5:1.5 Gb5:0.5 F5:0.5 | Db5:1.5 Bb4:1.5 Gb4:1 | E4:1.5 G4:1.5 Bb4:0.5 Db5:0.5 | C5:4")
+NOV_M2 = ("C5:1.5 F5:1.5 Gb5:0.5 F5:0.5 | Eb5:1.5 Db5:1.5 Bb4:1 | C5:1.5 F5:1.5 Ab5:0.5 G5:0.5 | F5:1.5 Ab5:1.5 Gb5:0.5 F5:0.5 | "
+          "F5:1.5 Db5:1.5 Bb4:1 | Gb5:1.5 F5:1.5 Eb5:0.5 Db5:0.5 | E5:1.5 Db5:1.5 Bb4:0.5 G4:0.5 | F4:4")
+NOV_LAM = "Db5:3 C5:1 | Bb4:2 Db5:2 | C5:3 Ab4:1 | F4:2 Ab4:2 | Bb4:3 Ab4:1 | F4:2 Ab4:2 | G4:2 Bb4:2 | E4:4"
+NOV_CELDA = "F4:1.5 C5:1.5 Db5:0.5 C5:0.5 | Bb4:1.5 Ab4:1.5 Gb4:1"
+
+
+def novilis():
+    global rng
+    rng = np.random.default_rng(20261014)
+    p = Partitura('novilis', 76, 4, 60.0 / 144)
+    p.bucle = True
+    AC = NOV_AC
+    arm = {}
+
+    def armonia(desde, lista):
+        for i, c in enumerate(lista):
+            arm[desde + i] = c
+    m1 = ['Fm', 'Gb/F', 'Fm', 'Db', 'Bbm', 'Gb', 'C7b9', 'C7b9']
+    m2 = ['Fm', 'Gb/F', 'Fm', 'Db', 'Bbm', 'Gb', 'C7b9', 'Fm']
+    lam = ['Bbm', 'Bbm', 'Fm', 'Fm', 'Gb', 'Db', 'C7', 'C7']
+    pedal = ['Fm', 'Fm', 'Fm', 'Gb/F']
+    armonia(1, pedal * 2 + ['Fm', 'Fm', 'C7', 'C7'])
+    armonia(13, m1 + m2 + lam)
+    armonia(37, ['Fm', 'Fm', 'F#m', 'F#m', 'Gm', 'Gm', 'Abm', 'Abm', 'C7b9', 'C7b9'])
+    armonia(47, m1 + m2 + ['Db', 'Gb', 'C7b9', 'C7b9'])
+    armonia(67, ['Fm', 'Gb/F'] * 4 + ['C7', 'C7'])
+    assert sorted(arm) == list(range(1, 77))
+
+    def lineal(c, c0, c1, v0, v1):
+        v1 = v0 if v1 is None else v1
+        return v0 + (v1 - v0) * (c - c0) / max(1, c1 - c0)
+
+    def riff(c0, c1, v0, v1=None):
+        """El riff de la forja en las cuerdas distorsionadas: corcheas de la
+        raiz rozada por el medio tono de arriba (el solb de fa) y el de abajo
+        (el mi), con la quinta; acentos 3+3+2."""
+        for c in range(c0, c1 + 1):
+            v = lineal(c, c0, c1, v0, v1)
+            for k, nm in enumerate(AC[arm[c]][1].split()):
+                ac = k in (0, 3, 6)
+                p.nota('dist', nm, c, k * 0.5, 0.5, v * (1.0 if ac else 0.62), 'marc' if ac else 'stac')
+
+    def bajos(c0, c1, v0, v1=None):
+        for c in range(c0, c1 + 1):
+            p.nota('contrabajos', AC[arm[c]][0], c, 0, 4, lineal(c, c0, c1, v0, v1), 'marc')
+
+    def forja(c0, c1, v, lleno=True):
+        """La forja: taikos con los acentos del riff (3+3+2), el martillo con
+        ellos, el yunque en el 2 y el 4 como una caja, toms que empujan y,
+        llena, los toques del yunque entre medias y el bombo a contratiempo."""
+        p.patron('taiko', 'X.....X.....X.x.', c0, c1, 0.25, v)
+        p.patron('martillo', 'x.....x.....x...', c0, c1, 0.25, v * 0.7)
+        p.patron('yunque', '....X.......X...', c0, c1, 0.25, v * 0.8)
+        p.patron('tom_grave', '..x.....x.x.....' if lleno else '........x.......', c0, c1, 0.25, v * 0.65)
+        if lleno:
+            p.patron('toque', 'o.g.....o.g.o.g.', c0, c1, 0.25, v * 0.6)
+            p.patron('bombo', '...x.....x......', c0, c1, 0.25, v * 0.6)
+        for c in range(c0, c1 + 1):
+            if (c - c0) % 4 == 3:
+                p.patron('tom_medio', 'xxxx', c, c, 0.25, v * 0.7, offset=3.0)
+                p.patron('taiko', '.x.x', c, c, 0.25, v * 0.8, offset=3.0)
+
+    def golpes_metal(c0, c1, v, posiciones=(1.5, 3.0)):
+        """Golpes de metales con los acentos del riff."""
+        for c in range(c0, c1 + 1):
+            voces = subir(_pcs(AC[arm[c]][2]), midi(AC[arm[c]][0]) + 12, 3)
+            for pos in posiciones:
+                for m in voces:
+                    p.nota('trombones', m, c, pos, 0.5, v, 'stac')
+
+    def coro_pad(c0, c1, v0, v1=None, vocal=0.0):
+        """El coro que sostiene las voces del acorde, hinchandose en cada
+        cambio de armonia."""
+        for c in range(c0, c1 + 1):
+            if c > c0 and arm[c] == arm[c - 1]:
+                continue
+            dur = 4
+            while c + dur // 4 <= c1 and arm.get(c + dur // 4) == arm[c]:
+                dur += 4
+            v = lineal(c, c0, c1, v0, v1)
+            for nm in AC[arm[c]][3].split():
+                p.nota('coro', nm, c, 0, dur, v, 'swell', vocal=vocal)
+            p.nota('coro', midi(AC[arm[c]][0]) + 24, c, 0, dur, v * 0.9, 'swell', vocal=vocal)
+
+    def hinchar(c0, c1, v0, v1=None):
+        """Trompas graves que se hinchan en cada cambio de armonia."""
+        for c in range(c0, c1 + 1):
+            if c > c0 and arm[c] == arm[c - 1]:
+                continue
+            dur = 4
+            while c + dur // 4 <= c1 and arm.get(c + dur // 4) == arm[c]:
+                dur += 4
+            p.acorde('trompas', AC[arm[c]][3], c, 0, dur, lineal(c, c0, c1, v0, v1), 'fpc', transp=-12)
+
+    def grito(c, pos, v, vocal=1.0, dur=0.5):
+        """Un grito del coro (HO / HA) en las voces del acorde."""
+        r = midi(AC[arm[c]][0]) + 12
+        for m in subir(_pcs(AC[arm[c]][2]), r, 3):
+            p.nota('canto', m, c, pos, dur, v, 'stac', vocal=vocal)
+            p.nota('canto', m + 12, c, pos, dur, v * 0.8, 'stac', vocal=vocal)
+
+    def canto_golpes(c0, c1, v, posiciones=(0, 1.5, 3)):
+        for c in range(c0, c1 + 1):
+            for i, pos in enumerate(posiciones):
+                grito(c, pos, v * (1.0 if i == 0 else 0.8), vocal=(1.0 if i % 2 == 0 else 0.2))
+
+    def corazon(c0, c1, v0, v1=None):
+        """El latido de la forja: un taiko grave, lub-dub."""
+        for c in range(c0, c1 + 1):
+            v = lineal(c, c0, c1, v0, v1)
+            p.golpe('taiko', c, 0, v)
+            p.golpe('taiko', c, 0.5, v * 0.6)
+
+    def subida(c, compases, v, base=('C4', 'Db4', 'E4', 'G4'), semitonos=12):
+        """Subida disonante: un racimo de cuerdas a medio tono que sube."""
+        for nm in base:
+            p.nota('subida', nm, c, 0, 4 * compases, v, 'cresc', gl=float(semitonos))
+
+    def llamas(c, v, compases=1.5, pan0=-0.5, pan1=0.5, sube=0.15, brillo=1.0, pos=0.0):
+        p.golpe('llamarada', c, pos, v, dur=compases * 4 * p.u, pan0=pan0, pan1=pan1, sube=sube, brillo=brillo)
+
+    def redoble(c, pos, dur, m, v0, v1, ritmo=0.07):
+        t = 0.0
+        k = 0
+        while t < dur * p.u - 0.02:
+            p.nota('timbales', m, c, pos + t / p.u, 0.5, (v0 + (v1 - v0) * t / (dur * p.u)) * (0.85 + 0.15 * (k % 2)))
+            t += ritmo * (1 + 0.08 * rng.standard_normal())
+            k += 1
+
+    # ------------------------------------------------ INTRO (1-12): la forja despierta
+    p.seccion(1, 'intro')
+    p.golpe('retumbo', 1, 0, 0.7, dur=7.0, f_sub=43.65)
+    corazon(1, 12, 0.35, 0.6)
+    p.nota('sub', 'F1', 1, 0, 32, 0.5, 'swell')
+    p.acorde('trombones', 'F2 C3', 1, 0, 8, 0.4, 'dim')      # el do7 del final del bucle se resuelve aqui
+    coro_pad(3, 10, 0.25, 0.4, vocal=0.0)
+    p.patron('yunque', '....x.......x...', 5, 12, 0.25, 0.45)
+    riff(5, 12, 0.32, 0.68)
+    p.patron('martillo', 'x.....x.....x...', 7, 12, 0.25, 0.45)
+    p.patron('taiko', 'X.....X.....X...', 9, 11, 0.25, 0.6)
+    p.melodia('trompas', 'mf ' + NOV_CELDA, 7, lig=False)
+    p.melodia('trompas', 'mf ' + NOV_CELDA, 9, lig=False)
+    p.melodia('trombones', 'mp ' + NOV_CELDA, 9, transp=-12, lig=False)
+    p.acorde('trompas', 'E3 Bb3 Db4', 11, 0, 8, 0.6, 'cresc')
+    p.acorde('trombones', 'C2 G2 C3', 11, 0, 8, 0.6, 'cresc')
+    p.patron('taiko', 'X.X.X.X.XXXXXXXX', 12, 12, 0.25, 0.8)
+    subida(11, 2, 0.4, base=('C4', 'Db4', 'E4'), semitonos=7)
+    llamas(11, 0.6, compases=2.0, sube=0.92)
+    redoble(12, 0, 4, 'C2', 0.3, 0.9)
+
+    # ------------------------------------------------ COMBATE (13-36): el caballero ataca
+    p.seccion(13, 'combate')
+    llamas(13, 0.9, compases=2.0, sube=0.04)
+    p.golpe('platillos', 13, 0, 0.8)
+    riff(13, 36, 0.72, 0.8)
+    bajos(13, 36, 0.6, 0.66)
+    forja(13, 20, 0.78, lleno=False)
+    forja(21, 36, 0.85)
+    p.melodia('trompas', 'mf ' + NOV_M1, 13, lig=False)
+    p.melodia('trombones', 'mp ' + NOV_M1, 13, transp=-12, lig=False)
+    p.melodia('trompas', 'f ' + NOV_M2, 21, transp=-12, lig=False)
+    p.melodia('trombones', 'mf ' + NOV_M2, 21, transp=-24, lig=False)
+    p.melodia('coro', 'mp ' + NOV_M2, 21, vocal=0.4)
+    golpes_metal(21, 28, 0.55)
+    for c in range(21, 37):
+        p.nota('tuba', midi(AC[arm[c]][0]) + 12, c, 0, 2, 0.55, 'marc')
+    # el lamento: el coro canta y los metales se hinchan debajo
+    p.melodia('coro', 'mf ' + NOV_LAM, 29, vocal=0.85)
+    p.melodia('coro', 'mf ' + NOV_LAM, 29, transp=-12, vocal=0.6)
+    hinchar(29, 36, 0.5, 0.65)
+    golpes_metal(29, 36, 0.6)
+    for c in range(33, 37):
+        grito(c, 0, 0.6)
+        grito(c, 1.5, 0.45, vocal=0.2)
+    llamas(21, 0.7, compases=1.5, pan0=0.6, pan1=-0.6, sube=0.05)
+    llamas(29, 0.7, compases=1.5, pan0=-0.6, pan1=0.6, sube=0.05)
+    redoble(36, 2, 2, 'C2', 0.35, 0.85)
+
+    # ------------------------------------------------ CRECE (37-46): la forja sube a medios tonos
+    p.seccion(37, 'crece')
+    for i, c in enumerate(range(37, 45, 2)):
+        v = 0.6 + 0.1 * i
+        p.melodia('trompas', NOV_CELDA, c, vel=v, transp=i, lig=False)
+        p.melodia('trombones', NOV_CELDA, c, vel=v * 0.9, transp=i - 12, lig=False)
+        p.melodia('coro', NOV_CELDA, c, vel=v * 0.7, transp=i, vocal=0.7)
+    riff(37, 46, 0.78, 0.95)
+    bajos(37, 46, 0.65, 0.85)
+    p.patron('taiko', 'X.....X.....X.x.', 37, 40, 0.25, 0.85)
+    p.patron('taiko', 'X..X..X.X..X..X.', 41, 44, 0.25, 0.9)
+    p.patron('martillo', 'x.....x.....x...', 37, 44, 0.25, 0.65)
+    p.patron('yunque', '....X.......X...', 37, 46, 0.25, 0.75)
+    p.patron('toque', 'o.g.o.g.o.g.o.g.', 41, 46, 0.25, 0.55)
+    p.patron('tom_grave', '..x.....x.x.....', 37, 44, 0.25, 0.65)
+    p.acorde('trompas', 'E4 Bb4 Db5', 45, 0, 8, 0.75, 'cresc', transp=-12)
+    p.acorde('trombones', 'C2 G2 C3', 45, 0, 8, 0.75, 'cresc')
+    p.nota('tuba', 'C2', 45, 0, 8, 0.7, 'cresc')
+    canto_golpes(45, 46, 0.7, posiciones=(0, 1.5, 3, 3.5))
+    p.patron('taiko', 'XxXxXxXxXXXXXXXX', 45, 46, 0.25, 0.9)
+    p.patron('tom_medio', 'x.x.x.x.x.x.x.x.', 46, 46, 0.25, 0.75)
+    redoble(45, 0, 8, 'C2', 0.35, 1.0)
+    subida(45, 2, 0.55)
+    llamas(45, 0.85, compases=2.0, sube=0.92, pan0=-0.6, pan1=0.6)
+    p.golpe('retumbo', 45, 0, 0.7, dur=3.5, f_sub=65.4)
+
+    # ------------------------------------------------ CLIMAX (47-66): el sol revienta
+    p.seccion(47, 'CLIMAX')
+    for c in (47, 55):
+        llamas(c, 1.0 if c == 47 else 0.85, compases=2.0, sube=0.04)
+        p.golpe('platillos', c, 0, 0.95)
+        p.golpe('taiko', c, 0, 1.0)
+        p.nota('timbales', 'F2', c, 0, 2, 1.0)
+    p.acorde('trombones', 'F2 C3 F3', 47, 0, 2, 1.0, 'fp')
+    p.nota('tuba', 'F2', 47, 0, 2, 1.0, 'fp')
+    p.melodia('trompas', 'ff ' + NOV_M1, 47, lig=False)
+    p.melodia('trombones', 'f ' + NOV_M1, 47, transp=-12, lig=False)
+    p.melodia('canto', 'f ' + NOV_M1, 47, art='stac', vocal=1.0)
+    p.melodia('canto', 'f ' + NOV_M1, 47, transp=-12, art='stac', vocal=0.3)
+    p.melodia('trompas', 'ff ' + NOV_M2, 55, transp=-12, lig=False)
+    p.melodia('trombones', 'f ' + NOV_M2, 55, transp=-24, lig=False)
+    p.melodia('canto', 'f ' + NOV_M2, 55, art='stac', vocal=1.0)
+    p.melodia('canto', 'f ' + NOV_M2, 55, transp=-12, art='stac', vocal=0.3)
+    coro_pad(47, 62, 0.45, 0.5, vocal=0.9)
+    golpes_metal(47, 62, 0.68)
+    forja(47, 66, 0.95)
+    p.patron('bombo', 'X.......X.......', 47, 62, 0.25, 0.75)
+    riff(47, 66, 0.88, 0.92)
+    bajos(47, 66, 0.75, 0.8)
+    for c in range(47, 67):
+        p.nota('tuba', midi(AC[arm[c]][0]) + 12, c, 0, 2, 0.62, 'marc')
+    llamas(51, 0.6, compases=1.5, pan0=0.6, pan1=-0.6, sube=0.05)
+    llamas(59, 0.6, compases=1.5, pan0=-0.6, pan1=0.6, sube=0.05)
+    # cierre: reb - solb - do (b9), todo el coro y los metales
+    for c in range(63, 67):
+        p.acorde('trompas', AC[arm[c]][3], c, 0, 4, 0.9, 'fpc', transp=-12)
+        p.acorde('trombones', ' '.join(_nombre(m) for m in subir(_pcs(AC[arm[c]][2]), midi(AC[arm[c]][0]) + 12, 3)), c, 0, 4, 0.9, 'fpc')
+    canto_golpes(63, 66, 0.8, posiciones=(0, 1.5, 3, 3.5))
+    p.patron('taiko', 'XxXxXxXxXXXXXXXX', 66, 66, 0.25, 0.95)
+    subida(65, 2, 0.5)
+
+    # ------------------------------------------------ ACECHO (67-76): las brasas
+    p.seccion(67, 'acecho')
+    p.golpe('retumbo', 67, 0, 0.6, dur=6.0, f_sub=43.65)
+    p.golpe('retumbo', 72, 0, 0.5, dur=5.0, f_sub=43.65)
+    corazon(67, 76, 0.42, 0.5)
+    p.nota('sub', 'F1', 67, 0, 32, 0.45, 'swell')
+    coro_pad(67, 74, 0.28, 0.32, vocal=0.0)
+    for c in range(67, 77, 2):
+        p.golpe('yunque', c, float(rng.choice([1, 2, 3])), 0.35 * rng.uniform(0.7, 1.0), m=midi(str(rng.choice(['F6', 'C6']))),
+                pan=float(rng.uniform(-0.5, 0.5)))
+    p.melodia('trompas', 'p ' + NOV_CELDA, 69, transp=-12, lig=False)
+    p.melodia('trompas', 'p ' + NOV_CELDA, 73, transp=-12, lig=False)
+    llamas(70, 0.4, compases=2.0, pan0=0.6, pan1=-0.6, sube=0.5)
+    riff(75, 76, 0.25, 0.35)
+    p.acorde('trompas', 'E3 Bb3', 75, 0, 8, 0.35, 'cresc')
+
+    p.automatizar('fuego', [(1, -2), (12, -2), (13, -6), (46, -6), (47, -3), (66, -3), (67, -1), (77, -2)])
+    p.automatizar('_mezcla', p.respiro([(1, 6.0), (12, 3.0), (13, 0), (36, 0), (46, 0), (47, 0), (66, 0), (67, 0), (68, 8.0), (77, 6.0)], 47))
+    return p
+
+
+def instrumentos_novilis():
+    P = presets()
+    dist = dict(P['chelos'], V=4, det=7.0, pan=0.0, ancho=0.45, b0=0.45, bk=0.5, hum_t=0.004, disp=0.01,
+                ruido=((1500, 5000, 0.015, 'nivel'),))
+    coro = dict(P['coro'], vocales=('u', 'a'), V=6, det=9.0, ataque=0.4, soltar=0.8)
+    canto = dict(P['coro'], vocales=('o', 'a'), tilt=1.0, suave=0.4, V=7, det=9.0, vib=(5.0, 6, 0.3, 0.5), ataque=0.02,
+                 soltar=0.15, ruido=((350, 2500, 0.08, 'soplo'),), disp=0.012, hum_t=0.004, mono=False)
+    sub = dict(timbre=t_seno, B=1, V=1, det=0.0, pan=0.0, ancho=0.0, vib=(5.0, 0, 0.5, 0.5), glide=0.2, ataque=0.8,
+               soltar=1.2, b0=0.0, bk=0.0, bexp=1.0)
+    subida_ = dict(P['violas'], V=3, det=8.0, pan=0.0, ancho=0.6, vib=(5.5, 0, 0.3, 0.4), ataque=0.3, soltar=0.08, b0=0.3, bk=0.5)
+    sala = {'sala': respuesta_sala(2.6, 0.024, 6000, semilla=9, graves=1.15, agudos=0.5, tempranas=14),
+            'camara': respuesta_sala(0.85, 0.008, 5500, semilla=10, graves=1.0, agudos=0.55, densidad=0.008, tempranas=12),
+            'eco': respuesta_eco(0.75 * 60 / 144, 5, 0.42, 3500)}
+    tam = lambda v: _nivel(v)
+    yunque_eq = [('pa', 300), ('pico', 3000, -3, 1.0), ('pb', 8000)]
+    I = {
+        'sub': dict(tipo='frase', P=sub, gan=-12, eq=[('pa', 28), ('pb', 200)], envios={'sala': 0.05}),
+        'contrabajos': dict(tipo='frase', P=dict(P['contrabajos'], hum_t=0.004), gan=-10, eq=[('pa', 35), ('pico', 250, -2, 1.0), ('pb', 2000)],
+                            envios={'sala': 0.1}),
+        'tuba': dict(tipo='frase', P=P['tuba'], gan=-10, eq=[('pa', 30), ('pb', 1600)], envios={'sala': 0.12}),
+        'dist': dict(tipo='lecho', fn=lambda p: cuerdas_dist(p, dist, 'dist', 2.6), gan=-6.5, eq=[('pa', 50), ('pb', 6000)],
+                     envios={'sala': 0.12, 'camara': 0.15}),
+        'subida': dict(tipo='frase', P=subida_, gan=-12, eq=[('pa', 200), ('pb', 6500)], envios={'sala': 0.35}),
+        'trombones': dict(tipo='frase', P=P['trombones'], gan=-7.5, eq=[('pa', 50), ('pico', 300, -2, 1.0), ('pb', 5500)], envios={'sala': 0.28}),
+        'trompas': dict(tipo='frase', P=dict(P['trompas'], V=5), gan=-4, eq=[('pa', 90), ('pico', 300, -2, 1.0), ('pico', 1200, 1.0, 1.0), ('pb', 6500)],
+                        envios={'sala': 0.32}),
+        'coro': dict(tipo='frase', P=coro, gan=-9, eq=[('pa', 100), ('pico', 300, -2, 1.0), ('pb', 7000)], envios={'sala': 0.45}),
+        'canto': dict(tipo='frase', P=canto, gan=-7, eq=[('pa', 80), ('pico', 300, -2.5, 1.0), ('pico', 2500, 1.0, 1.0), ('pb', 7000)],
+                      envios={'sala': 0.35}),
+        'timbales': dict(tipo='nota_golpe', fn=timbal, pan=0.12, gan=-7, eq=[('pa', 40), ('pb', 4500)], envios={'sala': 0.22, 'camara': 0.3}),
+        'taiko': dict(tipo='golpe', fn=lambda v, var, **kw: taiko(tam(v), var, 0.95), pan=0.0, gan=-4.5, eq=[('pa', 32), ('pb', 3500)],
+                      envios={'sala': 0.18, 'camara': 0.35}),
+        'bombo': dict(tipo='golpe', fn=lambda v, var, **kw: bombo_seco(tam(v), var), pan=0.0, gan=-8, eq=[('pa', 35), ('pb', 3500)],
+                      envios={'sala': 0.12, 'camara': 0.3}),
+        'tom_grave': dict(tipo='golpe', fn=lambda v, var, **kw: tom(88.0, tam(v), var, 0.2), pan=0.28, gan=-7.5, eq=[('pa', 55), ('pb', 4500)],
+                          envios={'sala': 0.12, 'camara': 0.35}),
+        'tom_medio': dict(tipo='golpe', fn=lambda v, var, **kw: tom(132.0, tam(v), var, 0.16), pan=-0.3, gan=-11, eq=[('pa', 80), ('pb', 5000)],
+                          envios={'sala': 0.12, 'camara': 0.35}),
+        'martillo': dict(tipo='golpe', fn=lambda v, var, **kw: martillo(tam(v), var), pan=-0.2, gan=-7, eq=[('pa', 70), ('pb', 5000)],
+                         envios={'sala': 0.15, 'camara': 0.4}),
+        'yunque': dict(tipo='golpe', fn=lambda v, var, m=89, **kw: yunque(m, tam(v), var), pan=0.25, gan=-12, eq=yunque_eq,
+                       envios={'sala': 0.25, 'camara': 0.3}),
+        'toque': dict(tipo='golpe', fn=lambda v, var, m=84, **kw: yunque(m, tam(v), var), pan=-0.35, gan=-18, eq=yunque_eq,
+                      envios={'sala': 0.25, 'camara': 0.3}),
+        'platillos': dict(tipo='golpe', fn=lambda v, var, **kw: platillo(tam(v), var), pan=0.2, gan=-9, eq=[('pa', 400), ('pb', 7000)],
+                          envios={'sala': 0.35}),
+        'llamarada': dict(tipo='golpe', fn=lambda v, var, dur=2.5, pan0=-0.5, pan1=0.5, sube=0.2, brillo=1.0, **kw:
+                          llamarada_st(dur, pan0, pan1, sube, brillo), gan=-2, eq=[('pa', 40), ('pb', 5000)], envios={'sala': 0.3}),
+        'retumbo': dict(tipo='golpe', fn=lambda v, var, dur=5.0, f_sub=43.65, **kw: retumbo(dur, f_sub), gan=-9, eq=[('pa', 25), ('pb', 300)],
+                        envios={'sala': 0.15}),
+        'fuego': dict(tipo='lecho', fn=fuego_lecho, gan=-8, eq=[('pa', 40), ('pb', 4000)], envios={'sala': 0.15}),
+    }
+    return I, sala
+
+
+def golpes_novilis():
+    u = 60.0 / 144
+    o = 0.1
+
+    def base(nombre):
+        p = Partitura('novilis_' + nombre, 8, 4, u)
+        p.bucle = False
+        return p
+
+    def golpe1():
+        p = base('golpe1')
+        p.golpe('taiko', 1, o, 1.0)
+        p.golpe('martillo', 1, o, 0.9)
+        p.golpe('yunque', 1, o, 0.8)
+        for k, nm in enumerate(['F2', 'F2', 'C3']):
+            p.nota('dist', nm, 1, o + 0.5 * k, 0.5, 1.0 - 0.15 * k, 'marc' if k == 0 else 'stac')
+        p.acorde('trombones', 'F2 C3 F3', 1, o, 0.5, 1.0, 'stac')
+        p.acorde('trompas', 'F3 Ab3 C4', 1, o, 0.5, 0.9, 'stac')
+        p.nota('tuba', 'F2', 1, o, 0.5, 0.95, 'stac')
+        p.nota('contrabajos', 'F1', 1, o, 0.5, 0.9, 'stac')
+        p.golpe('llamarada', 1, o, 0.6, dur=1.1, pan0=-0.3, pan1=0.3, sube=0.05)
+        return p
+
+    def golpe2():
+        p = base('golpe2')
+        p.golpe('taiko', 1, o, 1.0)
+        p.golpe('taiko', 1, o + 0.12, 0.7)
+        p.golpe('tom_grave', 1, o + 0.25, 0.8)
+        p.golpe('yunque', 1, o, 0.85, m=84)
+        p.golpe('toque', 1, o + 0.5, 0.6, m=89)
+        p.golpe('toque', 1, o + 0.75, 0.45, m=89)
+        p.acorde('canto', 'F3 C4 F4 Ab4', 1, o, 0.5, 0.85, 'stac', vocal=0.2)
+        p.acorde('trompas', 'F3 Ab3 C4', 1, o, 0.5, 0.95, 'stac')
+        p.acorde('trombones', 'F2 C3', 1, o, 0.5, 0.95, 'stac')
+        for k, (nm, v) in enumerate((('F2', 1.0), ('Gb2', 0.75), ('F2', 0.7))):
+            p.nota('dist', nm, 1, o + 0.5 * k, 0.5, v, 'marc' if k == 0 else 'stac')
+        p.golpe('llamarada', 1, o, 0.5, dur=1.2, pan0=0.4, pan1=-0.4, sube=0.05)
+        return p
+
+    def grande():
+        p = base('grande')
+        p.golpe('llamarada', 1, o, 1.0, dur=3.2, pan0=0.0, pan1=0.0, sube=0.03, brillo=1.2)
+        p.golpe('taiko', 1, o, 1.0)
+        p.golpe('platillos', 1, o, 0.8)
+        p.golpe('martillo', 1, o, 0.9)
+        p.golpe('retumbo', 1, o, 0.6, dur=3.0, f_sub=43.65)
+        p.acorde('trombones', 'F2 C3 F3', 1, o, 0.5, 1.0, 'stac')
+        p.acorde('canto', 'F3 C4 F4 Ab4', 1, o, 0.5, 0.9, 'stac', vocal=1.0)
+        p.acorde('trombones', 'F2 C3 F3 Ab3', 1, o + 0.2, 2.2, 0.75, 'fpc')
+        p.acorde('trompas', 'F3 C4 Ab4', 1, o + 0.2, 2.2, 0.7, 'fpc')
+        p.acorde('canto', 'F3 C4 F4 Ab4', 1, o + 0.2, 2.2, 0.6, 'fpc', vocal=0.6)
+        p.acorde('trombones', 'F2 C3 F3 Ab3', 1, o + 2.4, 4.6, 0.85, 'dim')
+        p.acorde('trompas', 'F3 C4 Ab4', 1, o + 2.4, 4.6, 0.8, 'dim')
+        p.nota('tuba', 'F2', 1, o + 2.4, 4.6, 0.8, 'dim')
+        p.acorde('canto', 'F3 C4 F4 Ab4', 1, o + 2.4, 4.6, 0.7, 'dim', vocal=0.3)
+        p.golpe('taiko', 1, o + 2.4, 0.7)
+        p.golpe('yunque', 1, o + 2.4, 0.6, m=89)
+        p.nota('contrabajos', 'F1', 1, o, 7, 0.8, 'dim')
+        p.nota('sub', 'F1', 1, o, 7, 0.55, 'dim')
+        return p
+
+    def fase():
+        p = base('fase')
+        h = 2.0
+        for nm in ('C4', 'Db4', 'E4', 'G4'):
+            p.nota('subida', nm, 1, o, h - o, 0.75, 'cresc', gl=12.0)
+        p.golpe('llamarada', 1, o, 0.75, dur=(h - o) * u + 0.15, pan0=-0.6, pan1=0.6, sube=0.9)
+        _redoble_golpe(p, 'taiko', None, 1, o + 0.75, h - o - 0.8, 0.4, 0.95, 0.07)
+        _redoble_golpe(p, 'timbales', 'C2', 1, o, h - o - 0.1, 0.3, 0.9, 0.07)
+        p.golpe('taiko', 1, h, 1.0)
+        p.golpe('platillos', 1, h, 0.85)
+        p.golpe('martillo', 1, h, 0.9)
+        p.golpe('yunque', 1, h, 0.75, m=89)
+        p.acorde('trombones', 'F2 C3 F3', 1, h, 0.5, 1.0, 'stac')
+        cabeza = 'F4:1.5 C5:1.5 Db5:0.5 C5:0.5'
+        p.melodia('trompas', 'ff ' + cabeza, 1, pos=h, lig=False, comprobar=False)
+        p.melodia('trombones', 'f ' + cabeza, 1, pos=h, transp=-12, lig=False, comprobar=False)
+        p.melodia('canto', 'f ' + cabeza, 1, pos=h, art='stac', vocal=1.0, comprobar=False)
+        for k, nm in enumerate('F2 F2 C3 F2 F2 Gb2 F2 E2'.split()):
+            p.nota('dist', nm, 1, h + 0.5 * k, 0.5, 0.9 * (1.0 if k in (0, 3, 6) else 0.62), 'marc' if k in (0, 3, 6) else 'stac')
+        p.nota('contrabajos', 'F1', 1, h, 5, 0.75, 'dim')
+        p.nota('sub', 'F1', 1, h, 5, 0.5, 'dim')
+        return p
+
+    return [('golpe1', golpe1, 1.2), ('golpe2', golpe2, 1.3), ('grande', grande, 3.2), ('fase', fase, 3.4)]
+
+
+# ======================================================================
 #  Revision: espectrograma + forma de onda en PNG (para ver sin escuchar)
 # ======================================================================
 _PALETA = np.array([(0.0, 4, 4, 12), (0.18, 40, 12, 80), (0.38, 110, 25, 120), (0.56, 190, 55, 110),
@@ -3101,6 +3683,7 @@ def registrar(nombre, compositor, instrumentos, objetivo=-16.0, golpes=None):
 registrar('nerea', nerea, instrumentos_nerea, -17.0, golpes_nerea)
 registrar('aeralis', aeralis, instrumentos_aeralis, -17.0, golpes_aeralis)
 registrar('rajang', rajang, instrumentos_rajang, -17.0, golpes_rajang)
+registrar('novilis', novilis, instrumentos_novilis, -17.0, golpes_novilis)
 
 
 if __name__ == '__main__':

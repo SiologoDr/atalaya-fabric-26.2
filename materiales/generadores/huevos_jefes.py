@@ -1,5 +1,5 @@
 """
-Huevos generadores del Vigia, de Nerea, de Aeralis y de Rajang, dibujados pixel a pixel (16x16).
+Huevos generadores del Vigia, de Nerea, de Aeralis, de Rajang y de Novilis, dibujados pixel a pixel (16x16).
 
 Siguen el estilo de los huevos de vanilla de 26.x: la misma silueta y la luz
 desde arriba a la izquierda, con contorno de dos tonos, y encima los rasgos
@@ -16,6 +16,13 @@ puas del guardian:
   Rajang  jade con manchas de oro, la cresta de cristales arriba, las orejas
           con la punta de oro, la mascara de oro con los ojos de la maldicion,
           los dos sables que cuelgan y el sol de jade encendido en el pecho
+  Novilis acero quemado, el halo de oro detras del yelmo, los cuernos con la
+          punta de oro, la rendija en T encendida, la gola de oro, grietas de
+          lava y el nucleo solar en el pecho
+
+Solo se escribe un huevo si sus pixeles cambian: otra version de Pillow
+codifica distinto el mismo dibujo, y reescribirlos cambiaria los bytes de
+huevos que nadie ha tocado.
 
 Uso: python huevos_jefes.py <raiz del proyecto> [vista_previa.png]
 """
@@ -24,6 +31,16 @@ import os, sys, random
 
 RAIZ = sys.argv[1]
 ITEM = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/item')
+
+
+def guardar(im, nombre):
+    """Escribe el huevo solo si es nuevo o si algun pixel ha cambiado."""
+    ruta = os.path.join(ITEM, nombre)
+    if os.path.exists(ruta):
+        with Image.open(ruta) as viejo:
+            if viejo.convert('RGBA').tobytes() == im.convert('RGBA').tobytes() and viejo.size == im.size:
+                return
+    im.save(ruta)
 
 
 def hexc(s):
@@ -100,7 +117,7 @@ p = vigia.load()
 for x in (6, 8, 10):
     p[x, 15] = (0, 0, 0, 0)
 p[11, 15] = VIGIA['O']
-vigia.save(os.path.join(ITEM, 'huevo_vigia.png'))
+guardar(vigia, 'huevo_vigia.png')
 
 # ---------------------------------------------------------------- Nerea
 NEREA = {
@@ -132,7 +149,7 @@ pintar(nerea, [
     "................",
 ], NEREA)
 # La cadena le cruza el pecho y se sale por los lados; debajo, el corazon.
-nerea.save(os.path.join(ITEM, 'huevo_nerea.png'))
+guardar(nerea, 'huevo_nerea.png')
 
 # ---------------------------------------------------------------- Aeralis
 AERALIS = {
@@ -163,7 +180,7 @@ pintar(aeralis, [
     "................",
     "................",
 ], AERALIS)
-aeralis.save(os.path.join(ITEM, 'huevo_aeralis.png'))
+guardar(aeralis, 'huevo_aeralis.png')
 
 # ---------------------------------------------------------------- Rajang
 RAJANG = {
@@ -195,11 +212,42 @@ pintar(rajang, [
     "......hGGh......",
     "................",
 ], RAJANG)
-rajang.save(os.path.join(ITEM, 'huevo_rajang.png'))
+guardar(rajang, 'huevo_rajang.png')
+
+# ---------------------------------------------------------------- Novilis
+NOVILIS = {
+    'o': hexc('2b1d1c'), 'O': hexc('120b0b'),                       # contorno
+    '1': hexc('1c1416'), '2': hexc('2b1d1c'), '3': hexc('3d2a25'), '4': hexc('54382d'),  # acero quemado
+    'y': hexc('ffd77a'), 'Y': hexc('e8a83a'), 'G': hexc('c07c22'),  # oro: el halo y la gola
+    'h': hexc('6e4a38'), 'H': hexc('3d2a25'),                       # los cuernos
+    'e': hexc('fff0d0'), 'L': hexc('ffc070'), 'l': hexc('ff8a1e'), 'r': hexc('b84a0c'),  # rendija y lava
+    'n': hexc('fffae0'), 'N': hexc('ffc23a'), 'm': hexc('ff8a1e'),  # el nucleo solar
+}
+novilis = cascara([NOVILIS['1'], NOVILIS['2'], NOVILIS['3'], NOVILIS['3'], NOVILIS['4']], NOVILIS['o'], NOVILIS['O'], 'novilis')
+pintar(novilis, [
+    "......yYYy......",
+    "....yY....Yy....",
+    ".y.Y........Y.y.",
+    ".Hh..........hH.",
+    "..hH........Hh..",
+    ".....rlLLlr.....",
+    ".......eL.......",
+    ".......lr.......",
+    "...GyYYYYYYYG...",
+    "...l............",
+    "....l.mNNm......",
+    "...l.mNnnNm.r...",
+    ".....mNnnNm.l...",
+    "......mNNm..r...",
+    "................",
+    "................",
+], NOVILIS)
+# El halo se sale por arriba y los cuernos por los lados; en el pecho, el nucleo.
+guardar(novilis, 'huevo_novilis.png')
 
 if len(sys.argv) > 2:
     VAN = sys.argv[3] if len(sys.argv) > 3 else None
-    fila = [vigia, nerea, aeralis, rajang]
+    fila = [vigia, nerea, aeralis, rajang, novilis]
     if VAN:
         for f in ('warden', 'guardian', 'drowned', 'wither_skeleton'):
             fila.append(Image.open(os.path.join(VAN, f + '_spawn_egg.png')).convert('RGBA'))

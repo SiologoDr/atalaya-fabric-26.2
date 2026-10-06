@@ -902,19 +902,18 @@ cerca y entrega su pieza.
 | **Nerea**, Guardián de los Mares | agua | 12 500 | 14 / 8 | 300 | Lágrima de Nerea |
 | **Aeralis**, la Mariposa del Vendaval | aire | 13 500 | 14 / 8 | 400 | Escama del Vendaval |
 | **Rajang**, el Jaguar de Jade | tierra | 15 000 | 16 / 10 | 450 | Colmillo de Jade |
-| *pendiente* | fuego | | | | |
+| **Novilis**, el Caballero Solar | fuego | 16 500 | 16 / 10 | 500 | Núcleo Solar |
 
-Las tres piezas **todavía no hacen nada**: no tienen receta ni uso. Son tres de
-cuatro, y esperan al jefe que falta. Caen siempre, sin pedir que mate un
-jugador, y no se apilan.
+Las cuatro piezas **todavía no hacen nada**: no tienen receta ni uso. Caen
+siempre, sin pedir que mate un jugador, y no se apilan.
 
 ### Lo que comparten
 
 No hay clase base. Cada jefe es una clase de unas 1 800 líneas que hereda de
-`Monster` y copia y adapta la del anterior. Lo que se repite en los tres:
+`Monster` y copia y adapta la del anterior. Lo que se repite en los cuatro:
 
 **Nacen dormidos.** Nerea encadenado, Aeralis posada con las alas cerradas,
-Rajang tumbado como una esfinge. Despiertan al ver a un jugador a 40 bloques, o
+Rajang tumbado como una esfinge, Novilis de rodilla sobre su espada. Despiertan al ver a un jugador a 40 bloques, o
 al recibir un golpe, que no hace daño. Al despertar cuentan los jugadores que hay
 a 80 bloques. Ese número **no cambia la vida**: escala cuántos proyectiles salen
 y cuánto aguanta lo que hay que romper.
@@ -937,7 +936,8 @@ es inmune y lo único que sirve es que el grupo rompa algo a la vez:
 
 - a Nerea, los **dos ojos**;
 - a Aeralis, los **cuatro núcleos**;
-- a Rajang, los **cuatro tótems**.
+- a Rajang, los **cuatro tótems**;
+- a Novilis, las **tres fuentes solares**.
 
 Si sale bien, cae aturdido con **daño doble**. Si sale mal, el castigo es gordo:
 los atrapados mueren salvo tótem y el jefe entra en **Furia** (más rápido, más
@@ -987,15 +987,17 @@ de vanilla:
 | de las Mareas (Nerea) | +1,0 de eficiencia en el agua, +0,8 a picar sumergido, el aire se rellena |
 | de los Vientos (Aeralis) | +20 % de velocidad, −35 % de gravedad, +7 de caída segura |
 | de la Tierra (Rajang) | +6 de armadura, +3 de dureza, +1,0 de resistencia al empuje |
+| del Sol (Novilis) | +3 de daño de ataque, y el fuego no prende: te apaga cada tick (y quita la Quemadura al darla) |
 
 **Presencia.** Hay dos cosas, y las lleva `NereaPresencia`, que a pesar del
-nombre es compartido por los tres jefes:
+nombre es compartido por los cuatro jefes:
 
 - **Temblor de cámara.** Lo aplica `TemblorCamaraMixin` en `bobHurt` y respeta la
   opción de accesibilidad "efectos de pantalla". Las ondas en el suelo sacuden la
   cámara solas al nacer.
 - **Viñeta de miedo.** Es una por jefe, y la pinta `MiedoHud`: el fondo marino,
-  las nubes de tormenta y la selva con grietas de jade.
+  las nubes de tormenta, la selva con grietas de jade y el borde de la pantalla
+  que se quema.
 
 **Barra de jefe propia.** No usan la de vanilla: no hay `ServerBossEvent`. Cada
 barra lleva:
@@ -1023,8 +1025,16 @@ que baja con el tiempo que le queda al chorro. Con la Furia, todo en verde abism
 La de Rajang al mismo estilo está **solo en propuesta**
 (`rajang_remake_hud.py`, ficha en `materiales/fichas/rajang_barra/`).
 
-Las barras **se apilan**: Nerea arriba, Aeralis debajo y Rajang debajo de las
-dos (cada una usa el `ALTO` de las de encima). Cada una enseña el jefe despierto
+La de **Novilis** es del mismo estilo desde el principio: lenguas de fuego que
+salen del emblema (su yelmo ante el sol), lava del color de la fase y muescas
+que son rayos de sol. Debajo, lo que esté haciendo: los **cuatro ángeles** de
+las Trompetas (enteros, rajados o en cascotes) y la melodía que avanza; las
+**tres fuentes** y la **carga** de su sol, del oro al rojo; o el **sol** de la
+Ofrenda con lo que lleva el atrapado. Con la Furia, todo en fuego azul; con el
+Grito de guerra, un cuerno carmesí junto al rótulo.
+
+Las barras **se apilan**: Nerea arriba, Aeralis debajo, Rajang debajo de las
+dos y Novilis la última (cada una usa el `ALTO` de las de encima). Cada una enseña el jefe despierto
 más cercano.
 
 **Lo que se ve y lo que pega van juntos.** `<Jefe>Geometria.java` guarda los ticks
@@ -1042,7 +1052,8 @@ vanilla, partículas, sonidos sintetizados, barra, iconos y huevo. Nada sale de
 vanilla.
 
 **Música propia.** Cada uno tiene la suya mientras pelea cerca (a menos de 96
-bloques): Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra. La compone
+bloques): Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra; Novilis, la
+fragua (yunques, taikos, coro y metales en fa menor). La compone
 `musica_jefes.py` (`sounds/musica/`), la pone `MusicaJefes` en el cliente, en la
 categoría de música, y entra y sale fundiéndose. Mientras suena, la de vanilla
 calla (`MusicaJefesMixin`); al liberarlo, se apaga.
@@ -1305,6 +1316,75 @@ En la barra, el rótulo pasa a **FURIA** y la energía late en verde vivo.
 > `materiales/fichas/rajang_mejoras/`, con las hojas de control de las
 > animaciones de antes y de después.
 
+### Novilis, el Caballero Solar
+
+> *Rompe sus fuentes. Apaga su sol.*
+
+Un guerrero de leyenda con una armadura forjada en lava, que trae **su propio
+sol** flotando sobre él y saca de él su poder:
+
+- **16 bloques hasta el yelmo** y 18 con el halo;
+- yelmo con **cuernos** y una **corona de púas** de oro, y detrás un **halo** de
+  rayos que gira y late;
+- hombreras por capas con aletas, peto en V, gola alta, tabardo y capa doble;
+- una espada de fuego tan larga como medio cuerpo.
+
+Las grietas de lava crecen fase a fase. Nace **de rodilla**, con la espada
+clavada delante y la cabeza gacha.
+
+| | |
+|---|---|
+| Vida | 16 500 · armadura 16, dureza 10 |
+| Caja | 4,6 × 15 |
+| Correa | 40 bloques |
+| Inmune | dormido, al despertar, en la Ofrenda y mientras carga las Fuentes |
+
+No le hace nada el fuego (ni lava ni llamas). En cada fase ataca más rápido
+(`ritmo()` ×1,12, ×1,25 y ×1,4) y espera menos (×0,85, ×0,72 y ×0,6).
+
+| Fase | Nombre | Qué se añade |
+|---|---|---|
+| I | Brasa | Barrido Solar, Castigo Divino |
+| II | Llamarada | el Castigo acaba en **Onda de Fuego**; Sol Abrasador; **Trompetas del Apocalipsis** |
+| III | Mediodía | **Fuentes Solares** (el golpe cooperativo); **Ofrenda al Sol** |
+| IV | Dios de la Guerra | **Dios de la Guerra** |
+
+**La Quemadura.** Casi todo su fuego la deja. Tiene tres niveles (I leve, II
+fuerte, III grave) y cada golpe suma. Por sí sola no quita vida: es una marca,
+y con la III el **Dios de la Guerra mata**. Baja sola un nivel cada 10 s. El
+agua **no** la quita; **beberse una botella de agua, sí**
+(`QuemaduraAguaMixin`). Se ve a la izquierda de los corazones: una llama con
+su número, y la III con calavera.
+
+| Ataque | Qué hace | Daño | Cómo se sale |
+|---|---|---|---|
+| **Barrido Solar** | cuatro tajos seguidos. Cada uno pega con la hoja a 12 bloques por delante y suelta **tres medias lunas de fuego** en abanico (una sola y grande en el tajo de arriba) que vuelan unos 28 bloques | hoja 36 / 47 / 60 / 80; media luna 26 / 34 / 44 / 58 y Quemadura I | salir del frente; las medias lunas, de lado |
+| **Castigo Divino** | alza la espada y su sol le manda un haz. Marca con un sello a **cada jugador** a 48 bloques y, 1,1 s después, cae un rayo en cada sello | 34 / 44 / 56 / 74 y Quemadura I; no lo para el escudo | salir del sello |
+| **Onda de Fuego** (II) | el Castigo acaba clavando la espada: un anillo de llamas corre por el suelo hasta 26 bloques | 24 / 32 / 40 / 54 y Quemadura I | **saltarla**: solo pega a quien esté en el suelo |
+| **Sol Abrasador** (II) | se le forman tres soles en la mano y los lanza en arco, cada uno a un jugador. El sello del suelo marca dónde caen (1,4 s) | 55 / 70 / 88 / 110 en 4 bloques y **Quemadura II**; deja un charco de lava 5 s que prende | apartarse del sello |
+| **Trompetas del Apocalipsis** (II) | alza la espada y salen del suelo **cuatro ángeles de mármol** a 15 bloques, que tocan una melodía de 24 s. Él sigue peleando mientras suena | si queda alguno en pie al acabar, entra en **Furia** | romper los cuatro (**10 golpes** cada uno) |
+| **Fuentes Solares** (III) | se arrodilla, clava la espada y carga su sol, que crece. Salen **tres fuentes** a 13 bloques que le mandan fuego: con las tres llena la carga en 15 s, con dos en 20 y con una en 30 | si se llena: **Supernova** a 56 bloques, 80 / 80 / 96 / 120, **Quemadura III**, fuego y el **Grito de guerra** | romper las tres (**10 golpes** cada una): se le apaga el sol y cae **aturdido 6 s** con daño doble |
+| **Ofrenda al Sol** (III) | el haz de su sol señala a uno (no se puede esquivar), lo agarra y lo alza al sol. El atrapado tiene que seguir **15 letras en 8 s** (**20** en la fase IV); mientras, se quema un 4 % de su vida por segundo | si falla una o se acaba el tiempo: **la muerte salvo tótem**, y él entra en **Furia** | acertarlas todas: lo suelta y cae **aturdido 5 s** con daño doble |
+| **Dios de la Guerra** (IV) | suelta la espada, se envuelve en llamas carmesí y marca **tres zonas** de 6 bloques (sobre los jugadores, al azar). Les lanza un sol a cada una y estallan en cadena | 174 y Quemadura I. Con **Quemadura III**, o con el **Grito de guerra** puesto, **mata a todos** los que pille (salvo tótem) | salir de las zonas, y no llegar con la Quemadura III |
+
+**Las teclas de la Ofrenda** (`OfrendaCliente`, `OfrendaTecladoMixin`). Son solo
+letras de la A a la Z y salen de una semilla que el servidor manda al cliente.
+Cada letra se comprueba en el cliente al momento, así que el lag no hace fallar,
+y el servidor lleva la cuenta con medio segundo de margen. Vale la letra de la
+distribución del teclado (en AZERTY, la A es la A) y solo al pulsar: mantener
+no falla. Mientras dura, ninguna otra tecla llega al juego, salvo Escape y las
+F. El atrapado lo ve en tercera persona, de cara a Novilis.
+
+**La Furia del Sol** es **azul**: un 25 % más rápido, un 35 % más de daño y un
+35 % menos de espera. **El Grito de guerra** (de la Supernova) le pone un aura
+carmesí y hace que el Dios de la Guerra mate a todos. Los dos se van cuando cae
+aturdido: una Ofrenda superada o las Fuentes rotas a tiempo.
+
+El generador del cuerpo es `novilis_juego.py` (149 piezas, 390 cajas, atlas de
+512×512) y el de las 19 animaciones, `novilis_juego_anim.py`, con IK para que la
+espada y las manos lleguen donde tienen que llegar. Las estatuas y las fuentes
+son mallas propias (`novilis_props.py`).
+
 ### Las armaduras y las espadas de los jefes
 
 Tres juegos, uno por jefe. **Por ahora no se fabrican: solo salen del inventario
@@ -1443,9 +1523,10 @@ Los scripts de cada jefe:
 | Nerea | `nerea_modelo`, `nerea_b_modelo`, `nerea_c_modelo`, `nerea_escenas`, `nerea_v2`, `nerea_c_escenas` | `nerea_juego`, `nerea_fisica`, `nerea_juego_anim` | `nerea_extras`, `nerea_hud`, `nerea_sonidos` | `nerea_poster`, `video/nerea_teaser` |
 | Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas`, `viento_remake_escenas`, `viento_remake_hud`, `viento_remake_iconos` | `vendaval_juego` (y `vendaval_juego_v1`, el de antes), `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_mejoras_extras`, `aeralis_hud`, `aeralis_sonidos`, `aeralis_mejoras_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
 | Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas`, `rajang_mejoras_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_mejoras_extras`, `rajang_hud`, `rajang_sonidos`, `rajang_mejoras_sonidos` | `rajang_poster`, `video/rajang_teaser` |
+| Novilis | `fuego_modelo`, `fuego_escenas`, `fuego_hud_propuesta` | `novilis_juego`, `novilis_juego_anim` | `novilis_auras`, `novilis_extras`, `novilis_props`, `novilis_hud`, `novilis_sonidos` | aún no |
 
 Los nombres de los scripts del boceto van por **elemento** (`viento_`,
-`tierra_`) y los del juego por **jefe**, porque el nombre se decidió después del
+`tierra_`, `fuego_`) y los del juego por **jefe**, porque el nombre se decidió después del
 diseño.
 
 **Cómo se añade algo a un jefe que ya existe** (lo que se hizo con las mejoras
@@ -1472,7 +1553,7 @@ de Rajang), sin regenerar lo que ya está:
 
 ### Los sonidos
 
-Los cuatro `*_sonidos.py` sintetizan desde cero con numpy y scipy, a partir de
+Los cinco `*_sonidos.py` sintetizan desde cero con numpy y scipy, a partir de
 **la física de lo que el bicho lleva encima**:
 
 | Jefe | De qué salen |
@@ -1480,6 +1561,7 @@ Los cuatro `*_sonidos.py` sintetizan desde cero con numpy y scipy, a partir de
 | Nerea | burbujas (la resonancia de Minnaert), chapuzones y olas; hueso, coral y cadenas mojadas; una garganta de leviatán con un lamento de sirena |
 | Aeralis | turbulencia, tonos eólicos que silban, aletazos de membrana, tornados y truenos; la voz de una cigarra del tamaño de una tormenta |
 | Rajang | la resonancia de una barra de jade, piedra que muele, grava; una voz felina |
+| Novilis | fragua: yunques, metal al rojo, fuelles, lava; trompetas de bronce para la melodía de los ángeles; una voz de yelmo |
 
 Todos producen OGG Vorbis **mono** a 44,1 kHz, que es lo que hace falta para que
 el juego los coloque en 3D. Las semillas son fijas, pero **añadir un sonido
@@ -1494,6 +1576,7 @@ con la vista.
 | Nerea | 34 | 67 |
 | Aeralis | 33 | 70 |
 | Rajang | 42 | 77 |
+| Novilis | 44 | 75 |
 
 ### 3. El póster
 
@@ -1584,6 +1667,7 @@ El esquema es siempre el mismo:
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
+| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `fase`, `liberar` |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
 En las órdenes de los jefes:

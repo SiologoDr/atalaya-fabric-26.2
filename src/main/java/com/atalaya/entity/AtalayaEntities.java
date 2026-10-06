@@ -77,6 +77,13 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_TOTEM_SELLO = clave("totem_sello");
     public static final ResourceKey<EntityType<?>> CLAVE_PLATAFORMA_SELLO = clave("plataforma_sello");
     public static final ResourceKey<EntityType<?>> CLAVE_FRAGMENTO_JADE = clave("fragmento_jade");
+    public static final ResourceKey<EntityType<?>> CLAVE_NOVILIS = clave("novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_TAJO_NOVILIS = clave("tajo_novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_SELLO_SOL = clave("sello_sol");
+    public static final ResourceKey<EntityType<?>> CLAVE_ONDA_FUEGO = clave("onda_fuego");
+    public static final ResourceKey<EntityType<?>> CLAVE_SOL_NOVILIS = clave("sol_novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_ESTATUA_NOVILIS = clave("estatua_novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_FUENTE_SOLAR = clave("fuente_solar");
 
     /** Aeralis, la Mariposa del Vendaval: el jefe elemental del aire. */
     public static EntityType<AeralisEntity> AERALIS;
@@ -103,6 +110,21 @@ public final class AtalayaEntities {
     public static EntityType<PlataformaSelloEntity> PLATAFORMA_SELLO;
     /** Los fragmentos del Cataclismo de Jade. */
     public static EntityType<FragmentoJadeEntity> FRAGMENTO_JADE;
+
+    /** Novilis, el Caballero Solar: el jefe elemental del fuego. */
+    public static EntityType<NovilisEntity> NOVILIS;
+    /** Las medias lunas de fuego del Barrido. */
+    public static EntityType<TajoNovilisEntity> TAJO_NOVILIS;
+    /** Los sellos de sol del suelo (Castigo solar y Dios de la Guerra). */
+    public static EntityType<SelloSolEntity> SELLO_SOL;
+    /** La onda de fuego del Castigo solar. */
+    public static EntityType<OndaFuegoEntity> ONDA_FUEGO;
+    /** Los soles que lanza (Sol x3 y Dios de la Guerra). */
+    public static EntityType<SolNovilisEntity> SOL_NOVILIS;
+    /** Las estatuas de las Trompetas del Apocalipsis. */
+    public static EntityType<EstatuaNovilisEntity> ESTATUA_NOVILIS;
+    /** Las fuentes solares. */
+    public static EntityType<FuenteSolarEntity> FUENTE_SOLAR;
 
     private AtalayaEntities() {
     }
@@ -158,6 +180,47 @@ public final class AtalayaEntities {
         registrarNerea();
         registrarAeralis();
         registrarRajang();
+        registrarNovilis();
+    }
+
+    private static void registrarNovilis() {
+        // La caja tapa el cuerpo, no las hombreras ni el halo: 16 bloques hasta el
+        // yelmo. Se ve desde muy lejos, como los otros tres.
+        NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_NOVILIS,
+                EntityType.Builder.of(NovilisEntity::new, MobCategory.MONSTER)
+                        .sized(4.6F, 15.0F)
+                        .eyeHeight(14.2F)
+                        .fireImmune()
+                        .clientTrackingRange(24)
+                        .build(CLAVE_NOVILIS));
+        FabricDefaultAttributeRegistry.register(NOVILIS, NovilisEntity.crearAtributos());
+
+        // Lo que lanza no se mueve: lo lejos que va sale de su edad (como las olas de Nerea).
+        TAJO_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_TAJO_NOVILIS,
+                EntityType.Builder.<TajoNovilisEntity>of(TajoNovilisEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_TAJO_NOVILIS));
+        SELLO_SOL = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_SELLO_SOL,
+                EntityType.Builder.<SelloSolEntity>of(SelloSolEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 0.2F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_SELLO_SOL));
+        ONDA_FUEGO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_ONDA_FUEGO,
+                EntityType.Builder.<OndaFuegoEntity>of(OndaFuegoEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_ONDA_FUEGO));
+        SOL_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_SOL_NOVILIS,
+                EntityType.Builder.<SolNovilisEntity>of(SolNovilisEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_SOL_NOVILIS));
+        // Las estatuas y las fuentes se pegan: cajas de su tamano.
+        ESTATUA_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_ESTATUA_NOVILIS,
+                EntityType.Builder.<EstatuaNovilisEntity>of(EstatuaNovilisEntity::new, MobCategory.MISC)
+                        .sized(2.6F, 7.5F).fireImmune().noSummon().clientTrackingRange(16)
+                        .build(CLAVE_ESTATUA_NOVILIS));
+        FUENTE_SOLAR = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_FUENTE_SOLAR,
+                EntityType.Builder.<FuenteSolarEntity>of(FuenteSolarEntity::new, MobCategory.MISC)
+                        .sized(2.2F, 5.6F).fireImmune().noSummon().clientTrackingRange(16)
+                        .build(CLAVE_FUENTE_SOLAR));
     }
 
     private static void registrarAeralis() {

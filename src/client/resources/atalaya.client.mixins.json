@@ -6,7 +6,8 @@
     "EquipmentLayerRendererMixin",
     "MareoMixin",
     "TemblorCamaraMixin",
-    "MusicaJefesMixin"
+    "MusicaJefesMixin",
+    "OfrendaTecladoMixin"
   ],
   "injectors": {
     "defaultRequire": 1

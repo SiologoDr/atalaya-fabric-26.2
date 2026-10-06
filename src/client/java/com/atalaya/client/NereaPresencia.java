@@ -25,6 +25,7 @@ public final class NereaPresencia {
     private static float miedoAnt;
     private static boolean miedoAire;
     private static boolean miedoTierra;
+    private static boolean miedoFuego;
 
     private NereaPresencia() {
     }
@@ -59,6 +60,7 @@ public final class NereaPresencia {
             miedo = m;
             miedoAire = aire;
             miedoTierra = false;
+            miedoFuego = false;
         }
     }
 
@@ -69,7 +71,24 @@ public final class NereaPresencia {
             miedo = m;
             miedoAire = false;
             miedoTierra = true;
+            miedoFuego = false;
         }
+    }
+
+    /** El miedo de Novilis: los bordes se queman y se cierran entre brasas. */
+    public static void asustarFuego(double x, double y, double z, float nivel, float alcance) {
+        float m = Math.min(1.0F, nivel * caida(x, y, z, alcance));
+        if (m > miedo) {
+            miedo = m;
+            miedoAire = false;
+            miedoTierra = false;
+            miedoFuego = true;
+        }
+    }
+
+    /** Si el miedo de ahora es de Novilis. */
+    public static boolean miedoDeFuego() {
+        return miedoFuego;
     }
 
     /** Si el miedo de ahora es de Rajang. */

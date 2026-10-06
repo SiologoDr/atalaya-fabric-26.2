@@ -85,6 +85,7 @@ public final class AtalayaSonidos {
     public static SoundEvent MUSICA_NEREA;
     public static SoundEvent MUSICA_AERALIS;
     public static SoundEvent MUSICA_RAJANG;
+    public static SoundEvent MUSICA_NOVILIS;
     // El clink de las espadas de los jefes al golpear (armaduras_sonidos.py).
     public static SoundEvent ESPADA_MAREAS_GOLPE;
     public static SoundEvent ESPADA_JADE_GOLPE;
@@ -99,6 +100,9 @@ public final class AtalayaSonidos {
     public static SoundEvent MUSICA_RAJANG_GOLPE;
     public static SoundEvent MUSICA_RAJANG_GRANDE;
     public static SoundEvent MUSICA_RAJANG_FASE;
+    public static SoundEvent MUSICA_NOVILIS_GOLPE;
+    public static SoundEvent MUSICA_NOVILIS_GRANDE;
+    public static SoundEvent MUSICA_NOVILIS_FASE;
 
     public static SoundEvent AERALIS_AMBIENTE;
     public static SoundEvent AERALIS_ALETEO;
@@ -196,6 +200,54 @@ public final class AtalayaSonidos {
     public static SoundEvent RAJANG_ESCALON_CAE;
     public static SoundEvent RAJANG_TOTEM_PULSO;
 
+    // Novilis, el Caballero Solar (novilis_sonidos.py): fuego, lava, acero, su sol y
+    // una voz por el yelmo. Las cuatro melodias son las voces de las trompetas de las
+    // estatuas, de la misma duracion exacta (24 s), en streaming.
+    public static SoundEvent NOVILIS_DESPERTAR;
+    public static SoundEvent NOVILIS_PASO;
+    public static SoundEvent NOVILIS_AMBIENTE;
+    public static SoundEvent NOVILIS_HERIDO;
+    public static SoundEvent NOVILIS_RUGIDO;
+    public static SoundEvent NOVILIS_TAJO;
+    public static SoundEvent NOVILIS_TAJO_FUEGO;
+    public static SoundEvent NOVILIS_CASTIGO_ALZA;
+    public static SoundEvent NOVILIS_CASTIGO_AVISO;
+    public static SoundEvent NOVILIS_CASTIGO_RAYO;
+    public static SoundEvent NOVILIS_CASTIGO_CLAVA;
+    public static SoundEvent NOVILIS_ONDA;
+    public static SoundEvent NOVILIS_SOL_FORMA;
+    public static SoundEvent NOVILIS_SOL_LANZA;
+    public static SoundEvent NOVILIS_SOL_EXPLOTA;
+    public static SoundEvent NOVILIS_LAVA;
+    public static SoundEvent NOVILIS_ESTATUAS;
+    public static SoundEvent NOVILIS_MELODIA_1;
+    public static SoundEvent NOVILIS_MELODIA_2;
+    public static SoundEvent NOVILIS_MELODIA_3;
+    public static SoundEvent NOVILIS_MELODIA_4;
+    public static SoundEvent NOVILIS_ESTATUA_GOLPE;
+    public static SoundEvent NOVILIS_ESTATUA_ROTA;
+    public static SoundEvent NOVILIS_FUENTES;
+    public static SoundEvent NOVILIS_FUENTE_GOLPE;
+    public static SoundEvent NOVILIS_FUENTE_ROTA;
+    public static SoundEvent NOVILIS_CARGA;
+    public static SoundEvent NOVILIS_SUPERNOVA;
+    public static SoundEvent NOVILIS_SOL_APAGA;
+    public static SoundEvent NOVILIS_OFRENDA_MARCA;
+    public static SoundEvent NOVILIS_OFRENDA_AGARRA;
+    public static SoundEvent NOVILIS_OFRENDA_TECLA;
+    public static SoundEvent NOVILIS_OFRENDA_FALLO;
+    public static SoundEvent NOVILIS_OFRENDA_LIBRE;
+    public static SoundEvent NOVILIS_DIOS;
+    public static SoundEvent NOVILIS_DIOS_AVISO;
+    public static SoundEvent NOVILIS_DIOS_EXPLOSION;
+    public static SoundEvent NOVILIS_GRITO;
+    public static SoundEvent NOVILIS_FURIA;
+    public static SoundEvent NOVILIS_ATURDIDO;
+    public static SoundEvent NOVILIS_TAMBALEO;
+    public static SoundEvent NOVILIS_INMUNE;
+    public static SoundEvent NOVILIS_LIBERACION;
+    public static SoundEvent NOVILIS_DISOLVER;
+
     private AtalayaSonidos() {
     }
 
@@ -262,6 +314,7 @@ public final class AtalayaSonidos {
         MUSICA_NEREA = registrar("musica.nerea");
         MUSICA_AERALIS = registrar("musica.aeralis");
         MUSICA_RAJANG = registrar("musica.rajang");
+        MUSICA_NOVILIS = registrar("musica.novilis");
         ESPADA_MAREAS_GOLPE = registrar("espada.mareas_golpe");
         ESPADA_JADE_GOLPE = registrar("espada.jade_golpe");
         ESPADA_VENDAVAL_GOLPE = registrar("espada.vendaval_golpe");
@@ -274,6 +327,9 @@ public final class AtalayaSonidos {
         MUSICA_RAJANG_GOLPE = registrar("musica.rajang.golpe");
         MUSICA_RAJANG_GRANDE = registrar("musica.rajang.grande");
         MUSICA_RAJANG_FASE = registrar("musica.rajang.fase");
+        MUSICA_NOVILIS_GOLPE = registrar("musica.novilis.golpe");
+        MUSICA_NOVILIS_GRANDE = registrar("musica.novilis.grande");
+        MUSICA_NOVILIS_FASE = registrar("musica.novilis.fase");
 
         AERALIS_AMBIENTE = registrar("aeralis.ambiente");
         AERALIS_ALETEO = registrar("aeralis.aleteo");
@@ -366,6 +422,50 @@ public final class AtalayaSonidos {
         RAJANG_ESCALON_TIEMBLA = registrar("rajang.escalon_tiembla");
         RAJANG_ESCALON_CAE = registrar("rajang.escalon_cae");
         RAJANG_TOTEM_PULSO = registrar("rajang.totem_pulso");
+        NOVILIS_DESPERTAR = registrar("novilis.despertar");
+        NOVILIS_PASO = registrar("novilis.paso");
+        NOVILIS_AMBIENTE = registrar("novilis.ambiente");
+        NOVILIS_HERIDO = registrar("novilis.herido");
+        NOVILIS_RUGIDO = registrar("novilis.rugido");
+        NOVILIS_TAJO = registrar("novilis.tajo");
+        NOVILIS_TAJO_FUEGO = registrar("novilis.tajo_fuego");
+        NOVILIS_CASTIGO_ALZA = registrar("novilis.castigo_alza");
+        NOVILIS_CASTIGO_AVISO = registrar("novilis.castigo_aviso");
+        NOVILIS_CASTIGO_RAYO = registrar("novilis.castigo_rayo");
+        NOVILIS_CASTIGO_CLAVA = registrar("novilis.castigo_clava");
+        NOVILIS_ONDA = registrar("novilis.onda");
+        NOVILIS_SOL_FORMA = registrar("novilis.sol_forma");
+        NOVILIS_SOL_LANZA = registrar("novilis.sol_lanza");
+        NOVILIS_SOL_EXPLOTA = registrar("novilis.sol_explota");
+        NOVILIS_LAVA = registrar("novilis.lava");
+        NOVILIS_ESTATUAS = registrar("novilis.estatuas");
+        NOVILIS_MELODIA_1 = registrar("novilis.melodia_1");
+        NOVILIS_MELODIA_2 = registrar("novilis.melodia_2");
+        NOVILIS_MELODIA_3 = registrar("novilis.melodia_3");
+        NOVILIS_MELODIA_4 = registrar("novilis.melodia_4");
+        NOVILIS_ESTATUA_GOLPE = registrar("novilis.estatua_golpe");
+        NOVILIS_ESTATUA_ROTA = registrar("novilis.estatua_rota");
+        NOVILIS_FUENTES = registrar("novilis.fuentes");
+        NOVILIS_FUENTE_GOLPE = registrar("novilis.fuente_golpe");
+        NOVILIS_FUENTE_ROTA = registrar("novilis.fuente_rota");
+        NOVILIS_CARGA = registrar("novilis.carga");
+        NOVILIS_SUPERNOVA = registrar("novilis.supernova");
+        NOVILIS_SOL_APAGA = registrar("novilis.sol_apaga");
+        NOVILIS_OFRENDA_MARCA = registrar("novilis.ofrenda_marca");
+        NOVILIS_OFRENDA_AGARRA = registrar("novilis.ofrenda_agarra");
+        NOVILIS_OFRENDA_TECLA = registrar("novilis.ofrenda_tecla");
+        NOVILIS_OFRENDA_FALLO = registrar("novilis.ofrenda_fallo");
+        NOVILIS_OFRENDA_LIBRE = registrar("novilis.ofrenda_libre");
+        NOVILIS_DIOS = registrar("novilis.dios");
+        NOVILIS_DIOS_AVISO = registrar("novilis.dios_aviso");
+        NOVILIS_DIOS_EXPLOSION = registrar("novilis.dios_explosion");
+        NOVILIS_GRITO = registrar("novilis.grito");
+        NOVILIS_FURIA = registrar("novilis.furia");
+        NOVILIS_ATURDIDO = registrar("novilis.aturdido");
+        NOVILIS_TAMBALEO = registrar("novilis.tambaleo");
+        NOVILIS_INMUNE = registrar("novilis.inmune");
+        NOVILIS_LIBERACION = registrar("novilis.liberacion");
+        NOVILIS_DISOLVER = registrar("novilis.disolver");
     }
 
     private static SoundEvent registrar(String nombre) {

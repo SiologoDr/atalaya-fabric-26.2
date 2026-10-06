@@ -24,6 +24,9 @@ public class MiedoHud implements HudElement {
     /** El de Rajang: la selva y las grietas de jade que se cierran (rajang_extras.py). */
     private static final Identifier TEXTURA_TIERRA =
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/miedo_rajang.png");
+    /** El de Novilis: los bordes se queman y se cierran entre brasas (novilis_extras.py). */
+    private static final Identifier TEXTURA_FUEGO =
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/miedo_novilis.png");
     private static final int TAM = 256;
     private static final int ABISMO = 0xFFFFFF;
     private static final float ALFA_MAXIMA = 0.82F;
@@ -35,7 +38,8 @@ public class MiedoHud implements HudElement {
         if (alfa <= 2) {
             return;
         }
-        grafico.blit(RenderPipelines.GUI_TEXTURED, NereaPresencia.miedoDeTierra() ? TEXTURA_TIERRA : NereaPresencia.miedoDeAire() ? TEXTURA_AIRE : TEXTURA,
+        grafico.blit(RenderPipelines.GUI_TEXTURED, NereaPresencia.miedoDeFuego() ? TEXTURA_FUEGO : NereaPresencia.miedoDeTierra() ? TEXTURA_TIERRA
+                        : NereaPresencia.miedoDeAire() ? TEXTURA_AIRE : TEXTURA,
                 0, 0, 0.0F, 0.0F,
                 grafico.guiWidth(), grafico.guiHeight(),
                 TAM, TAM, TAM, TAM,

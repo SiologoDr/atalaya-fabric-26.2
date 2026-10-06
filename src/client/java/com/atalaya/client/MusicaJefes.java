@@ -2,6 +2,7 @@ package com.atalaya.client;
 
 import com.atalaya.entity.AeralisEntity;
 import com.atalaya.entity.NereaEntity;
+import com.atalaya.entity.NovilisEntity;
 import com.atalaya.entity.RajangEntity;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.minecraft.client.Minecraft;
@@ -18,7 +19,7 @@ import java.util.List;
 
 /**
  * La musica de los jefes (musica_jefes.py): cada uno con la suya mientras pelea
- * cerca (Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra). Suena en la
+ * cerca (Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra; Novilis, el fuego). Suena en la
  * categoria de musica, asi que la regula su barra de volumen; entra y sale
  * fundiendose, y al cambiar de jefe una se funde con la otra. Mientras suena,
  * la musica de vanilla calla (MusicaJefesMixin) y vuelve sola al acabar.
@@ -44,13 +45,14 @@ public final class MusicaJefes {
 
     /** Cada jefe: su pista y sus acentos. */
     private enum Jefe {
-        NEREA, AERALIS, RAJANG;
+        NEREA, AERALIS, RAJANG, NOVILIS;
 
         SoundEvent pista() {
             return switch (this) {
                 case NEREA -> AtalayaSonidos.MUSICA_NEREA;
                 case AERALIS -> AtalayaSonidos.MUSICA_AERALIS;
                 case RAJANG -> AtalayaSonidos.MUSICA_RAJANG;
+                case NOVILIS -> AtalayaSonidos.MUSICA_NOVILIS;
             };
         }
 
@@ -59,6 +61,7 @@ public final class MusicaJefes {
                 case NEREA -> AtalayaSonidos.MUSICA_NEREA_GOLPE;
                 case AERALIS -> AtalayaSonidos.MUSICA_AERALIS_GOLPE;
                 case RAJANG -> AtalayaSonidos.MUSICA_RAJANG_GOLPE;
+                case NOVILIS -> AtalayaSonidos.MUSICA_NOVILIS_GOLPE;
             };
         }
 
@@ -67,6 +70,7 @@ public final class MusicaJefes {
                 case NEREA -> AtalayaSonidos.MUSICA_NEREA_GRANDE;
                 case AERALIS -> AtalayaSonidos.MUSICA_AERALIS_GRANDE;
                 case RAJANG -> AtalayaSonidos.MUSICA_RAJANG_GRANDE;
+                case NOVILIS -> AtalayaSonidos.MUSICA_NOVILIS_GRANDE;
             };
         }
 
@@ -75,6 +79,7 @@ public final class MusicaJefes {
                 case NEREA -> AtalayaSonidos.MUSICA_NEREA_FASE;
                 case AERALIS -> AtalayaSonidos.MUSICA_AERALIS_FASE;
                 case RAJANG -> AtalayaSonidos.MUSICA_RAJANG_FASE;
+                case NOVILIS -> AtalayaSonidos.MUSICA_NOVILIS_FASE;
             };
         }
     }
@@ -203,17 +208,20 @@ public final class MusicaJefes {
         if (e instanceof RajangEntity r) {
             return r.getEstado() != RajangEntity.DORMIDO && !r.isDeadOrDying() ? Jefe.RAJANG : null;
         }
+        if (e instanceof NovilisEntity v) {
+            return v.getEstado() != NovilisEntity.DORMIDO && !v.isDeadOrDying() ? Jefe.NOVILIS : null;
+        }
         return null;
     }
 
     private static int fase(Entity e) {
         return e instanceof NereaEntity n ? n.fase() : e instanceof AeralisEntity a ? a.fase()
-                : e instanceof RajangEntity r ? r.fase() : 0;
+                : e instanceof RajangEntity r ? r.fase() : e instanceof NovilisEntity v ? v.fase() : 0;
     }
 
     private static boolean furia(Entity e) {
         return e instanceof NereaEntity n ? n.tieneFuria() : e instanceof AeralisEntity a ? a.tieneFuria()
-                : e instanceof RajangEntity r && r.tieneFuria();
+                : e instanceof RajangEntity r ? r.tieneFuria() : e instanceof NovilisEntity v && v.tieneFuria();
     }
 
     /** Una pista en bucle, sin posicion (suena igual en los dos oidos), que se funde al entrar y al salir. */

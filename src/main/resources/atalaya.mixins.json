@@ -12,7 +12,8 @@
     "RanuraAturdidoMixin",
     "RecipeManagerMixin",
     "SpawnPlacementsInvoker",
-    "VitrificarMixin"
+    "VitrificarMixin",
+    "QuemaduraAguaMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -149,6 +149,34 @@ public final class AtalayaParticulas {
     public static SimpleParticleType JADE_TAJO;
     public static SimpleParticleType VENDAVAL_TAJO;
 
+    // --- Novilis, el Caballero Solar (novilis_extras.py) ---
+    /** Brasa naranja que sube parpadeando y se apaga. */
+    public static SimpleParticleType NOVILIS_BRASA;
+    /** Chispazo casi blanco: sale disparado, cae con su peso y dura poco. */
+    public static SimpleParticleType NOVILIS_CHISPA;
+    /** Copo de ceniza gris que cae despacio, meciendose. */
+    public static SimpleParticleType NOVILIS_CENIZA;
+    /** Bocanada de fuego (cuatro fotogramas) que sube y se encoge. */
+    public static SimpleParticleType NOVILIS_LLAMA;
+    /** Humo oscuro que se abre y se deshace. */
+    public static SimpleParticleType NOVILIS_HUMO;
+    /**
+     * El anillo de fuego que se abre por el suelo, tumbado. Como las ondas de
+     * Nerea y Rajang, lleva la fuerza del temblor en la velocidad X y el radio
+     * en la Y, y al nacer en el cliente sacude la camara de quien este cerca.
+     */
+    public static SimpleParticleType NOVILIS_ONDA;
+    /** Trozos de basalto con una veta de lava: caen y rebotan una vez. */
+    public static SimpleParticleType NOVILIS_ROCA;
+    /** Nota de oro de la melodia de las trompetas: sube flotando y se mece. */
+    public static SimpleParticleType NOVILIS_NOTA;
+    /** Mota de oro de la liberacion. */
+    public static SimpleParticleType NOVILIS_LUZ;
+    /** Lengua de fuego azul: la Furia. */
+    public static SimpleParticleType NOVILIS_AZUL;
+    /** Lengua de fuego carmesi: el Dios de la Guerra y el Grito de guerra. */
+    public static SimpleParticleType NOVILIS_CARMESI;
+
     private AtalayaParticulas() {
     }
 
@@ -216,6 +244,21 @@ public final class AtalayaParticulas {
         MAREAS_TAJO = registrar("mareas_tajo", true);
         JADE_TAJO = registrar("jade_tajo", true);
         VENDAVAL_TAJO = registrar("vendaval_tajo", true);
+
+        // Las de Novilis. Siempre visibles las que avisan: la onda, las notas
+        // (la melodia es la cuenta atras de las trompetas), las llamas y las
+        // lenguas azul (Furia) y carmesi (Dios de la Guerra).
+        NOVILIS_BRASA = registrar("novilis_brasa", false);
+        NOVILIS_CHISPA = registrar("novilis_chispa", false);
+        NOVILIS_CENIZA = registrar("novilis_ceniza", false);
+        NOVILIS_LLAMA = registrar("novilis_llama", true);
+        NOVILIS_HUMO = registrar("novilis_humo", false);
+        NOVILIS_ONDA = registrar("novilis_onda", true);
+        NOVILIS_ROCA = registrar("novilis_roca", false);
+        NOVILIS_NOTA = registrar("novilis_nota", true);
+        NOVILIS_LUZ = registrar("novilis_luz", false);
+        NOVILIS_AZUL = registrar("novilis_azul", true);
+        NOVILIS_CARMESI = registrar("novilis_carmesi", true);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {
