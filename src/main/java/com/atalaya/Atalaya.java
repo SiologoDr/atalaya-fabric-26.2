@@ -108,6 +108,8 @@ public class Atalaya implements ModInitializer {
         Hidratacion.registrar();
         Frio.registrar();
         Aturdimiento.registrar();
+        // Las habilidades de las armaduras elementales (pasivas, activas con R).
+        com.atalaya.habilidad.Habilidades.registrar();
         AtalayaRed.registrarTipos();
         AtalayaRed.registrarServidor();
 
@@ -168,12 +170,12 @@ public class Atalaya implements ModInitializer {
         // El traje aparece en la pestana de combate, justo detras de las botas de hierro.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(Items.IRON_BOOTS, HazmatArmor.todas()));
-        // Las armaduras de los jefes detras de las botas de netherite; sus espadas,
-        // detras de la de netherite.
+        // Las armaduras de los jefes detras de las botas de netherite; sus armas de
+        // rol, detras de la espada de netherite (las espadas de antes ya no salen).
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(Items.NETHERITE_BOOTS, com.atalaya.item.ArmadurasJefes.armaduras()));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(Items.NETHERITE_SWORD, com.atalaya.item.ArmadurasJefes.espadas()));
+                salida.insertAfter(Items.NETHERITE_SWORD, com.atalaya.item.ArmadurasJefes.armas()));
 
         // Carbon activado y filtro van con los materiales, detras del carbon.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->
@@ -195,7 +197,10 @@ public class Atalaya implements ModInitializer {
                 salida.insertAfter(AtalayaItems.HUEVO_RAJANG, AtalayaItems.HUEVO_NOVILIS));
 
         CommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess, entorno) -> AtalayaCommand.registrar(dispatcher));
+                (dispatcher, registryAccess, entorno) -> {
+                    AtalayaCommand.registrar(dispatcher);
+                    com.atalaya.command.PruebaAliados.registrar(dispatcher);
+                });
 
         LOGGER.info("Atalaya iniciado (Minecraft 26.2 / Fabric).");
     }

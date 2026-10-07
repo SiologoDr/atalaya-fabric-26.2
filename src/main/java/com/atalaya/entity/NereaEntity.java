@@ -579,6 +579,11 @@ public class NereaEntity extends Monster {
         // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
         if (getEstado() != DORMIDO && !isDeadOrDying()) {
             objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 64);
+            // La Muralla de Jade: si un tanque le provoca, ese es su objetivo.
+            objetivo = com.atalaya.habilidad.Provocacion.objetivo(this, objetivo, com.atalaya.habilidad.Provocacion.ALCANCE);
+            if (objetivo != null && getTarget() != objetivo) {
+                setTarget(objetivo);
+            }
         }
 
         if (respiro > 0) respiro--;
@@ -709,7 +714,7 @@ public class NereaEntity extends Monster {
             // Con mucha gente no va siempre a por el mismo: elige entre los que tiene a tiro.
             List<Player> cerca = jugadores(nivel, 42, 0);
             if (!cerca.isEmpty()) {
-                setTarget(cerca.get(random.nextInt(cerca.size())));
+                setTarget(com.atalaya.habilidad.Provocacion.objetivo(this, cerca.get(random.nextInt(cerca.size())), 42));
             }
         }
         iniciar(nivel, elegido, elegido == ARPON_LANZAR ? lejano : null);

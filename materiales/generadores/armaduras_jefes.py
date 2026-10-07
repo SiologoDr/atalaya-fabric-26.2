@@ -1,34 +1,40 @@
 """
-Las armaduras de los tres jefes (octubre de 2026), en 3D y con capas. No son
+Las armaduras de los cuatro jefes (octubre de 2026), en 3D y con capas. No son
 la netherite recoloreada: cada pieza tiene su forma y sus piezas propias por
 encima del cuerpo (crestas, venera, cuernos de coral, aletas, capa de algas,
 caracola, cristales de jade, hombreras de oro en espiral, alas de polilla,
-plumas, antenas, garras...), que se mueven: la capa y las aletas ondean, las
-alas aletean, las esquirlas de jade flotan. Se pintan en tres capas:
+plumas, antenas, garras, el halo y las llamas del sol...), que se mueven: la
+capa y las aletas ondean, las alas aletean, las esquirlas de jade flotan, el
+halo gira y las llamas tiemblan. Se pintan en tres capas:
 
   base       lo opaco (metal, escamas, nacar, oro, hueso, plumas)
   membrana   lo translucido (las aletas de las Mareas, los cristales de Jade, las
              alas del Vendaval)
   brillo     lo que brilla sin luz (costuras de prismarina, gemas, ojos, vetas
-             de jade, rayos), en 8 cuadros que el juego alterna: la luz corre
+             de jade, rayos, grietas de lava, llamas), en 8 cuadros que el
+             juego alterna: la luz corre
 
-Las tres:
+Las cuatro:
   mareas    Nerea, agua. Metal abisal con escamas, costuras de prismarina,
             nacar, coral, algas y la venera con su perla.
   jade      Rajang, tierra. Metal verde negro, oro de templo en espiral
             cuadrada, cristales de jade, colmillos y garras de jaguar.
   vendaval  Aeralis, viento. Metal anil, rayos celestes, violeta de tormenta,
             plumas blancas y alas de polilla con su ocelo.
+  solar     Novilis, fuego. Acero quemado casi negro con grietas de lava, oro
+            de sol, el yelmo cerrado con la T que arde, cuernos de obsidiana,
+            una cresta de llamas, el halo de oro con rayos de fuego, el nucleo
+            solar en el pecho y la capa carmesi que arde por abajo.
 
 Escribe (todo generado, no se edita a mano):
   textures/entity/armadura/<tema>.png, <tema>_membrana.png, <tema>_brillo_N.png
   textures/entity/equipment/humanoid(_leggings)/<tema>.png   la capa plana (de
                          respaldo, por si algo la pinta sin el modelo 3D)
-  textures/particle/<tema>_tajo_N.png                        el tajo de la espada
+  textures/particle/<tema>_tajo_N.png                        el tajo del arma
   src/client/java/com/atalaya/client/ArmaduraJefeMalla.java  las mallas y las
                          animaciones de cada pieza
 
-Los iconos de las piezas y de las espadas los pinta armaduras_iconos.py.
+Los iconos de las piezas, las espadas y las armas los pinta armaduras_iconos.py.
 
 Uso: python armaduras_jefes.py <raiz> [hoja.png]
 """
@@ -90,6 +96,22 @@ TEMAS = {
         'hueso': rampa('868cae', 'b6bbd6', 'd6daee', 'eceff9', 'ffffff'),
         'alga': rampa('34206a', '6040b0', '9078f8', 'c4b0ff', 'f0e8ff'),
         'membrana': rampa('2a1f5e', '4a3aa0', '7f78e8', 'b8c8ff', 'eef4ff'),
+    },
+    # (Octubre de 2026) El cuarto: Novilis, el caballero solar. Las rampas
+    # salen de las suyas (fuego_modelo.py y novilis_extras.py): acero quemado
+    # casi negro con el tinte del fuego, la lava de las grietas (del ambar al
+    # nucleo blanco caliente), el oro de sol, la obsidiana de los cuernos
+    # (hueso), el fuego de las llamas y el carmesi de la capa que arde.
+    'solar': {
+        'metal': rampa('110a0b', '1b1113', '271a1b', '362423', '48312a', '614334', '86604a'),
+        'luz': rampa('7a2408', 'd2560e', 'ff8a1e', 'ffb84a', 'fff0c8'),
+        'deco': rampa('5a3410', '8a5418', 'c07c22', 'e8a83a', 'ffd77a'),
+        'extra': rampa('4a0a10', '8a1420', 'c42630', 'ff4a3a', 'ff9a7a'),
+        'hueso': rampa('120c1a', '1e1530', '2c2048', '3e2e62', '5a4888'),
+        'alga': rampa('2a080a', '4a0c10', '6e1418', '962020', 'b8342a'),
+        'membrana': rampa('8a2a08', 'c84a0c', 'ff7a1a', 'ffc23a', 'fff4c4'),
+        'llama': rampa('8a2a08', 'c84a0c', 'ff7a1a', 'ff9e2a', 'ffc23a', 'ffe07a', 'fff4c4'),
+        'capa': rampa('2a080a', '4a0c10', '6e1418', '962020', 'b8342a'),
     },
 }
 
@@ -216,6 +238,46 @@ def material(letra, T, i, j, w, h, rnd):
         if (i + j) % 5 == 0:
             return 'mem', Mb[1][:3] + (170,), None
         return 'mem', Mb[2][:3] + (140,), None
+    if letra in 'XyY':
+        # Llama (solar): opaca y siempre encendida. X el canto rojo, y el cuerpo
+        # naranja, Y el alma blanca caliente. Sin azar: las dos caras de un
+        # plano tienen que salir iguales (si no, parpadean al cruzarse).
+        F = T['llama']
+        base, luz = {'X': (1, 2), 'y': (3, 4), 'Y': (5, 6)}[letra]
+        return 'base', F[base], F[luz]
+    if letra == 'U':
+        # Oro pulido que brilla (el aro del halo, las puntas): lo fino en 'O'
+        # sale entero del tono del bisel de abajo, que es oscuro.
+        D = T['deco']
+        return 'base', D[3 if (i + j) % 3 else 4], D[4]
+    if letra == 'H':
+        # Obsidiana (los cuernos solares): casi negra, con vetas violeta de cristal.
+        O = T['hueso']
+        k = 3 if (i + 2 * j) % 5 == 0 else 2 if (i + j) % 3 == 0 else 1
+        return 'base', O[k], None
+    if letra == 'C':
+        # Capa carmesi: pliegues por columnas (simetricos, por lo mismo que la
+        # llama) y abajo arde: chamuscada, brasa, fuego y el borde roto.
+        Cp, L = T['capa'], T['luz']
+        c = min(i, w - 1 - i)
+        mota = (c * 7 + j * 13 + w) % 17
+        arde = h - 3 - (c + j // 7) % 2                  # donde empieza a arder, irregular
+        if j == h - 1 and mota % 3 == 0:
+            return None, None, None                      # el borde roto
+        if j >= arde + 2:
+            return 'base', L[3], L[4]
+        if j >= arde + 1:
+            return 'base', L[2], L[3]
+        if j >= arde:
+            return 'base', L[1], L[2]
+        if j >= arde - 1:
+            return 'base', Cp[0], (L[1] if mota < 5 else None)
+        if j >= h - 9 and mota == 0:
+            return 'base', Cp[1], L[1]                   # alguna chispa que sube
+        k = 3 if c == w // 2 else 1 if c == 0 else 2    # el pliegue: claro en medio, hondo a los cantos
+        if j == 0:
+            k = 4                                        # el dobladillo de arriba
+        return 'base', Cp[k], None
     raise ValueError(letra)
 
 
@@ -713,6 +775,214 @@ for lado, pierna, s in (('izq', 'left_leg', 1), ('der', 'right_leg', -1)):
     anim(T, 'botas', f'ala_talon_{lado}', 1, s * 0.22, 0.4, 0.0, 0.3)
     parte(T, 'botas', f'puntera_{lado}', pierna, (0, 11.5, -3.0), (0, 0, 0), [caja(-1, -0.5, -1.5, 2, 1, 2, 'N')])
 
+# ======================================================================
+#  SOLAR: el caballero solar (Novilis)
+# ======================================================================
+#  Acero quemado casi negro con grietas de lava (P) y el oro de sol en los
+#  ribetes, como la armadura de Novilis. El yelmo cerrado con la T que arde,
+#  cuernos de obsidiana con la punta de oro, una corona de llamas y, detras de
+#  la cabeza, su halo: un aro de oro con rayos de fuego que gira despacio. En
+#  el pecho el nucleo solar con su corona de luz; a la espalda la capa
+#  carmesi que arde por abajo; llamas en las hombreras y en los talones.
+T = 'solar'
+# Las llamas se dibujan a mano (a este tamano una formula sale en manchas):
+# X el canto, y el cuerpo, Y el alma. La fila de abajo es la que nace.
+LLAMA = ["..X..",
+         ".XX..",
+         ".XyX.",
+         "XXyyX",
+         "XyYyX",
+         "yYYYy"]
+LLAMA_ALTA = ["..X..",
+              "..XX.",
+              ".XyX.",
+              "XXyX.",
+              "XyyXX",
+              "XyYyX",
+              "yYYYy"]
+LLAMA_CHICA = [".X.",
+               "XX.",
+               "XyX",
+               "yYy"]
+
+
+def espejo(filas):
+    return [f[::-1] for f in filas]
+
+
+def llama_cruzada(tema, pieza, nombre, padre, pivote, giro, dibujo, fase, latido=0.12, frec=0.85):
+    """Una llama de dos planos cruzados (se ve de frente y de lado) que tiembla:
+    crece y se encoge desde donde nace. Las dos caras de cada plano llevan el
+    dibujo reflejado, para que por los dos lados se vea la misma llama."""
+    w, h = len(dibujo[0]), len(dibujo)
+    parte(tema, pieza, nombre, padre, pivote, giro, [
+        caja(-w / 2, -h, 0, w, h, 0, {'north': dibujo, 'south': espejo(dibujo)}),
+        caja(0, -h, -w / 2, 0, h, w, {'east': espejo(dibujo), 'west': dibujo})])
+    anim(tema, pieza, nombre, 8, latido, frec, fase, 0.0)
+
+
+def corona_solar(n=11):
+    """La corona de luz del nucleo del pecho: un aro de luz alrededor del disco
+    con ocho lenguas de fuego que salen de el (se ve girar por las lenguas)."""
+    c = (n - 1) / 2
+    filas = []
+    for j in range(n):
+        f = ''
+        for i in range(n):
+            d = math.hypot(i - c, j - c)
+            s = (math.atan2(j - c, i - c) / (2 * math.pi / 8)) % 1.0
+            lengua = abs(s - 0.5) < 0.17                 # en medio de cada octavo
+            if abs(d - 3.6) < 0.5:
+                f += 'Q' if lengua else 'L' if (i + j) % 2 else 'l'
+            elif lengua and 4.1 <= d < 5.2:
+                f += 'L'
+            else:
+                f += '.'
+        filas.append(f)
+    return filas
+
+
+# El yelmo cerrado: la frente de oro, la T que arde (la luz sale de dentro) y
+# grietas de lava por las mejillas, la nuca y los lados.
+parte(T, 'casco', 'casco_solar', 'head', cajas=[caja(-4, -8, -4, 8, 8, 8, {
+    'north': ["OOOOOOOO",
+              "OMMMMMMO",
+              "OLLLLLLO",
+              "MMMQQMMM",
+              "MMMLLMMM",
+              "OMMLLMMO",
+              "OMMllMMO",
+              "OOMMMMOO"],
+    'south': ["OOOOOOOO", "MMMMMMMM", "MMMMMPMM", "MMMMPMMM", "MMMPPMMM", "MMPMMMMM", "OOOOOOOO", "MMMMMMMM"],
+    'west': ["OOOOOOOO", "MMMMMMMM", "MMMMMMMM", "MPMMMMMM", "MMPPMMMM", "MMMMPMMM", "OOOOOOOO", "MMMMMMMM"],
+    'east': ["OOOOOOOO", "MMMMMMMM", "MMMMMMMM", "MMMMMMPM", "MMMMPPMM", "MMMPMMMM", "OOOOOOOO", "MMMMMMMM"],
+    'up': ["OOOOOOOO",
+           "OMMMMMMO",
+           "OMMPMMMO",
+           "OMMMPMMO",
+           "OMPMMMMO",
+           "OMMPMMMO",
+           "OMMMMMMO",
+           "OOOOOOOO"],
+    'down': '.'}, 1.0)])
+# Cuernos de toro de obsidiana: salen de las sienes, se curvan hacia arriba y
+# hacia delante; la punta de oro.
+for lado, s in (('izq', 1), ('der', -1)):
+    parte(T, 'casco', f'cuerno_{lado}', 'head', (s * 4.7, -5.6, -0.5), (12, 0, s * 72), [
+        caja(-1, -3, -1, 2, 3, 2, 'H')])
+    parte(T, 'casco', f'cuerno_{lado}_2', f'cuerno_{lado}', (0, -2.8, 0), (8, 0, s * -40), [
+        caja(-1, -3, -1, 2, 3, 2, 'H')])
+    parte(T, 'casco', f'cuerno_{lado}_3', f'cuerno_{lado}_2', (0, -2.8, 0), (6, 0, s * -30), [
+        caja(-0.5, -3, -0.5, 1, 3, 1, 'H')])
+    parte(T, 'casco', f'cuerno_{lado}_4', f'cuerno_{lado}_3', (0, -2.8, 0), (4, 0, s * -12), [
+        caja(-0.5, -2, -0.5, 1, 2, 1, 'U')])
+# La cresta: una llama que sale de lo alto del yelmo y tiembla.
+llama_cruzada(T, 'casco', 'llama_corona', 'head', (0, -9.0, -1.0), (0, 0, 0), LLAMA_ALTA, 0.0)
+# El halo: un aro de oro detras de la cabeza con doce rayos de fuego, largos
+# y cortos, que gira despacio en su plano.
+R_HALO = 6.5
+parte(T, 'casco', 'halo', 'head', (0, -4.5, 5.6), (0, 0, 0), [])
+for k in range(12):
+    parte(T, 'casco', f'halo_aro_{k}', 'halo', (0, 0, 0), (0, 0, k * 30), [
+        caja(-2, -R_HALO - 0.5, -0.5, 4, 1, 1, 'U')])
+    largo = 4 if k % 2 == 0 else 3
+    rayo = ['X', 'y', 'Y', 'Y'][:largo]
+    parte(T, 'casco', f'halo_rayo_{k}', 'halo', (0, 0, 0), (0, 0, k * 30 + 15), [
+        caja(-0.5, -R_HALO - 0.5 - largo, -0.5, 1, largo, 1, {'north': rayo, 'south': rayo, 'west': rayo,
+                                                               'east': rayo, 'up': 'X', 'down': 'Y'})])
+anim(T, 'casco', 'halo', 7, 0.02, 0.0, 0.0, 0.0)
+
+# La coraza: el oro arriba y en la cintura, las grietas que salen del nucleo.
+parte(T, 'pechera', 'pechera_solar', 'body', cajas=[caja(-4, 0, -2, 8, 12, 4, {
+    'north': ["OOOOOOOO",
+              "OMMMMMMO",
+              "MMMMMMMM",
+              "PPMMMMMM",
+              "MPMEEMMM",
+              "MMMMMMMM",
+              "MMMMMMPP",
+              "MMMMMMPM",
+              "OOOOOOOO",
+              "MMMMMMMM",
+              "MOMMMMOM",
+              "MMMMMMMM"],
+    'south': ["OOOOOOOO",
+              "MMMMMMMM",
+              "MMMMMPMM",
+              "MMMMPPMM",
+              "MMMMPMMM",
+              "MMMPMMMM",
+              "MMPPMMMM",
+              "MMMMMMMM",
+              "OOOOOOOO",
+              "MMMMMMMM",
+              "MOMMMMOM",
+              "MMMMMMMM"],
+    'west': con_banda('M', 12, 4, {0: 'O', 4: 'MPPM', 5: 'MMPM', 8: 'O'}),
+    'east': con_banda('M', 12, 4, {0: 'O', 4: 'MPPM', 5: 'MPMM', 8: 'O'}),
+    'up': 'O', 'down': '.'}, INFLA_TORSO)])
+for brazo, x0 in (('right_arm', -3), ('left_arm', -1)):
+    parte(T, 'pechera', f'manga_{brazo}', brazo, cajas=[caja(x0, -2, -2, 4, 6, 4,
+          lados(con_banda('M', 6, 4, {0: 'O', 5: 'O'}), arriba='O'), INFLA_TORSO)])
+# Hombreras de laminas de acero quemado con ribete de oro y, en cada una, una
+# llama que sube.
+hombreras(T, 'M', 'O')
+for lado, brazo, s in (('izq', 'left_arm', 1), ('der', 'right_arm', -1)):
+    llama_cruzada(T, 'pechera', f'llama_hombro_{lado}', brazo, (s * 3.4, -3.6, 0.6), (-8, 0, s * 30), LLAMA,
+                  0.6 if s > 0 else 2.0)
+gola(T, 'M', 'O')
+# El nucleo solar del pecho, en relieve: el disco de oro con el alma que arde;
+# delante, su corona de luz, que gira.
+halo_pecho(T, corona_solar(), 0.025, 0.1, 0.2)
+parte(T, 'pechera', 'sol_pecho', 'body', (0, 4.6, -3.1), (0, 0, 0), [
+    caja(-2.5, -2.5, -0.5, 5, 5, 1, {'north': ['.OOO.', 'OeEeO', 'OEEEO', 'OeEeO', '.OOO.'], 'south': 'M',
+                                     'up': 'O', 'down': 'O', 'west': 'O', 'east': 'O'})])
+# La capa carmesi: tres tiras desde los hombros, con el sol de oro en la del
+# medio; arde por abajo, ondea y se levanta al correr.
+for k, x in enumerate((-3, 0, 3)):
+    largo = (17, 18, 17)[k]
+    tira_capa = con_banda('C', largo, 3, {3: 'COC', 4: 'OEO', 5: 'COC'} if k == 1 else {})
+    parte(T, 'pechera', f'capa_{k}', 'body', (x, 0.4, 3.0), (8, 0, (k - 1) * -4), [
+        caja(-1.5, 0, 0, 3, largo, 0, {'north': tira_capa, 'south': espejo(tira_capa)})])
+    anim(T, 'pechera', f'capa_{k}', 0, 0.06, 0.1, k * 0.9, 1.0)
+    anim(T, 'pechera', f'capa_{k}', 5, 0.9, 0.0, 0.0, 1.0)
+
+# Las grebas: el cinturon de oro con la hebilla de sol, las rodilleras con su
+# gema y los faldones: tres placas como rayos de sol que caen.
+parte(T, 'grebas', 'cintura_solar', 'body', cajas=[caja(-4, 7, -2, 8, 5, 4, {
+    'north': ["OOOOOOOO", "OMOEEOMO", "MMMOOMMM", "MMMMMMMM", "MMMMMMMM"],
+    'south': ["OOOOOOOO", "OMOOOOMO", "MMMMMMMM", "MMPMMPMM", "MMMMMMMM"],
+    'west': con_banda('M', 5, 4, {0: 'O', 1: 'O'}), 'east': con_banda('M', 5, 4, {0: 'O', 1: 'O'}),
+    'up': '.', 'down': '.'}, 0.55)])
+for pierna in ('right_leg', 'left_leg'):
+    parte(T, 'grebas', f'pernera_{pierna}', pierna, cajas=[caja(-2, 0, -2, 4, 9, 4, {
+        'north': ["MMMM", "MMMM", "MPMM", "MPPM", "OOOO", "OeeO", "OOOO", "MMMM", "MMMM"],
+        'south': con_banda('M', 9, 4, {4: 'O', 6: 'O'}),
+        'west': con_banda('M', 9, 4, {2: 'MMPM', 3: 'MPPM', 4: 'O', 6: 'O'}),
+        'east': con_banda('M', 9, 4, {2: 'MPMM', 3: 'MPPM', 4: 'O', 6: 'O'}), 'up': '.', 'down': '.'}, 0.5)])
+for k, (x, z, gz, largo) in enumerate(((-2.6, -2.7, 14, 4), (0, -2.95, 0, 5), (2.6, -2.7, -14, 4))):
+    ancho = 3
+    cara = ['OOO', 'OMO', 'OPO', 'OMO', '.O.'] if largo == 5 else ['OOO', 'OMO', 'OPO', '.O.']
+    parte(T, 'grebas', f'faldon_{k}', 'body', (x, 11.6, z), (8, 0, gz), [
+        caja(-ancho / 2, 0, -0.5, ancho, largo, 1, {'north': cara, 'south': 'M', 'up': 'O', 'down': 'O',
+                                                     'west': 'O', 'east': 'O'})])
+for lado, sx in (('izq', 1), ('der', -1)):
+    parte(T, 'grebas', f'faldon_detras_{lado}', 'body', (sx * 1.9, 11.6, 2.7), (-8, 0, sx * -10), [
+        caja(-1.5, 0, -0.5, 3, 4, 1, {'south': ['OOO', 'MPM', 'MMM', 'OOO'], 'north': 'M', 'up': 'O', 'down': 'O',
+                                      'west': 'O', 'east': 'O'})])
+
+# Las botas: acero quemado con grietas, el ribete y la puntera de oro, y una
+# llama en cada talon.
+for lado, pierna, s in (('izq', 'left_leg', 1), ('der', 'right_leg', -1)):
+    parte(T, 'botas', f'bota_{pierna}', pierna, cajas=[caja(-2, 6, -2, 4, 6, 4, {
+        'north': ["OOOO", "MPMM", "MPPM", "MMMM", "OOOO", "mmmm"],
+        'south': con_banda('M', 6, 4, {0: 'O', 4: 'O', 5: 'm'}),
+        'west': con_banda('M', 6, 4, {0: 'O', 4: 'O', 5: 'm'}),
+        'east': con_banda('M', 6, 4, {0: 'O', 4: 'O', 5: 'm'}), 'up': '.', 'down': 'm'}, 1.0)])
+    parte(T, 'botas', f'puntera_{lado}', pierna, (0, 11.5, -3.0), (0, 0, 0), [caja(-1, -0.5, -1.5, 2, 1, 2, 'O')])
+    llama_cruzada(T, 'botas', f'llama_talon_{lado}', pierna, (0, 9.6, 3.1), (-40, 0, 0), LLAMA_CHICA,
+                  0.0 if s > 0 else 1.5, 0.15, 1.1)
+
 
 # ----------------------------------------------------------------------
 #  Las caras de una caja y donde caen en el atlas (el UV de caja de vanilla)
@@ -1026,7 +1296,7 @@ with open(JAVA, 'w', encoding='utf-8', newline='\n') as fh:
 print('java', JAVA)
 
 if len(sys.argv) > 2:
-    hoja = Image.new('RGBA', (ANCHO * 4 * 3 + 40, 256 * 4 + 20), (34, 40, 50, 255))
+    hoja = Image.new('RGBA', (ANCHO * 4 * len(TEMAS) + 10 * (len(TEMAS) + 1), 256 * 4 + 20), (34, 40, 50, 255))
     for i, tema in enumerate(TEMAS):
         base, mem, luz = SALIDAS[tema]
         im = Image.new('RGBA', base.size, (0, 0, 0, 0))

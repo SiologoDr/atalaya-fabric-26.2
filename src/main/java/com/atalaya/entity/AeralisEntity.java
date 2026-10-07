@@ -808,6 +808,11 @@ public class AeralisEntity extends Monster {
         // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
         if (getEstado() != DORMIDA && !isDeadOrDying()) {
             objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72);
+            // La Muralla de Jade: si un tanque le provoca, ese es su objetivo.
+            objetivo = com.atalaya.habilidad.Provocacion.objetivo(this, objetivo, com.atalaya.habilidad.Provocacion.ALCANCE);
+            if (objetivo != null && getTarget() != objetivo) {
+                setTarget(objetivo);
+            }
         }
         if (respiro > 0) respiro--;
         if (enfAleteo > 0) enfAleteo--;
@@ -964,7 +969,7 @@ public class AeralisEntity extends Monster {
         if (elegido == ALETEO) {
             List<Player> cerca = jugadores(nivel, ALCANCE_CUCHILLA - 4, 0);
             if (!cerca.isEmpty()) {
-                setTarget(cerca.get(random.nextInt(cerca.size())));
+                setTarget(com.atalaya.habilidad.Provocacion.objetivo(this, cerca.get(random.nextInt(cerca.size())), ALCANCE_CUCHILLA - 4));
             }
         }
         iniciar(nivel, elegido, cazable);
@@ -987,8 +992,9 @@ public class AeralisEntity extends Monster {
                 if (presaElegida == null) {
                     return;
                 }
-                presa = presaElegida;
-                entityData.set(DATA_OBJETIVO, presaElegida.getId());
+                // La caceria va a por el tanque si la provoca y lo tiene a tiro.
+                presa = com.atalaya.habilidad.Provocacion.objetivo(this, presaElegida, 44);
+                entityData.set(DATA_OBJETIVO, presa.getId());
                 ponerEstado(MARCA, AeralisGeometria.DURACION_MARCA);
                 sonido(AtalayaSonidos.AERALIS_CHILLIDO, 6.0F);
             }

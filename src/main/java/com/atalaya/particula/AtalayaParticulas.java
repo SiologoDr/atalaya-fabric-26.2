@@ -148,6 +148,7 @@ public final class AtalayaParticulas {
     public static SimpleParticleType MAREAS_TAJO;
     public static SimpleParticleType JADE_TAJO;
     public static SimpleParticleType VENDAVAL_TAJO;
+    public static SimpleParticleType SOLAR_TAJO;
 
     // --- Novilis, el Caballero Solar (novilis_extras.py) ---
     /** Brasa naranja que sube parpadeando y se apaga. */
@@ -244,6 +245,7 @@ public final class AtalayaParticulas {
         MAREAS_TAJO = registrar("mareas_tajo", true);
         JADE_TAJO = registrar("jade_tajo", true);
         VENDAVAL_TAJO = registrar("vendaval_tajo", true);
+        SOLAR_TAJO = registrar("solar_tajo", true);
 
         // Las de Novilis. Siempre visibles las que avisan: la onda, las notas
         // (la melodia es la cuenta atras de las trompetas), las llamas y las

@@ -1,0 +1,6 @@
+{
+  "parent": "atalaya:item/espada_jefe_en_mano",
+  "textures": {
+    "layer0": "atalaya:item/solar_greatsword_in_hand"
+  }
+}

@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.5**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.6**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -1429,28 +1429,77 @@ hojas de control con dos vistas por fotograma (tres cuartos y de perfil, para
 ver los pies contra el suelo). Las estatuas y las fuentes son mallas propias
 (`novilis_props.py`).
 
-### Las armaduras y las espadas de los jefes
+### Las armaduras y las armas de rol
 
-Tres juegos, uno por jefe. **Por ahora no se fabrican: solo salen del inventario
-de creativo** (pestaña de combate, detrás de la netherite).
+Cuatro juegos, uno por elemento, y cada uno es **un rol** del grupo: tanque,
+sanador, soporte y DPS. **Por ahora no se fabrican: solo salen del inventario de
+creativo** (pestaña de combate, detrás de la netherite). Están pensadas para un
+jefe con **40 a 60 jugadores**: dan ventaja, pero poca, y nada se acumula (veinte
+sanadores no curan veinte veces más; ver más abajo los topes por jugador).
 
-| | Jefe | Lo suyo |
+| | Rol | Jefe | Lo suyo |
+|---|---|---|---|
+| **de Jade** | tanque | Rajang | metal verde negro y oro de templo en espiral cuadrada; casco de jaguar con hocico, colmillos, orejas y cresta de cristales; hombreras de oro con una esquirla de jade que flota y gira, cristales por la espalda; faldones de oro y garras en las botas |
+| **de las Mareas** | sanador | Nerea | metal abisal con escamas y costuras de prismarina que brillan; la venera de nácar con su perla tras el casco, cuernos de coral y branquias que ondean; caracola y coral en los hombros, capa de algas que ondea y se levanta al correr, espinas de hueso; conchas en la cadera y aletas en rodillas y tobillos |
+| **del Vendaval** | soporte | Aeralis | metal añil con rayos celestes y violeta de tormenta; alas de pluma en el casco que aletean y antenas de polilla; hombreras de pluma y **alas de polilla en la espalda** con su ocelo, que aletean; plumas en la cadera y alas en los talones |
+| **Solar** | DPS | Novilis | acero quemado con grietas de lava y oro; yelmo cerrado con visera en T, cuernos de obsidiana, una llama de cresta y un **halo de sol** que gira tras la cabeza; un núcleo de sol en el pecho con su corona de llamas, llamas en los hombros y los talones, y una capa carmesí cuyo bajo arde |
+
+**Protección.** Dureza, resistencia al empuje y durabilidad como la netherite
+(la durabilidad, ×1,5); no se queman, se reparan con netherite y se encantan
+como cualquier armadura (Protección, Irrompibilidad, Reparación…).
+
+| | Casco | Coraza | Grebas | Botas | Total | Extra |
+|---|---|---|---|---|---|---|
+| Jade (tanque) | 4 | 9 | 7 | 4 | 24 | — |
+| Mareas (sanador) | 3 | 8 | 6 | 3 | 20 | +1 corazón (medio por pieza) |
+| Vendaval (soporte) | 3 | 8 | 6 | 3 | 20 | — |
+| Solar (DPS) | 3 | 8 | 6 | 3 | 20 | — |
+
+**Habilidades.** Con el juego **entero** puesto se tiene su pasiva y su activa.
+La activa sale con la tecla **R** (se cambia en Controles, categoría Atalaya),
+dura **30 s** y vuelve a estar lista **120 s** después de usarla. Un icono a la
+derecha de la hotbar la muestra: limpio si está lista; latiendo y con una barra
+que se gasta mientras dura; oscuro y con los segundos que faltan en recarga.
+Las piezas lo explican al pasar el ratón.
+
+| Rol | Pasiva | Activa (120 s, dura 30 s) |
 |---|---|---|
-| **de las Mareas** | Nerea | metal abisal con escamas y costuras de prismarina que brillan; la venera de nácar con su perla tras el casco, cuernos de coral y branquias que ondean; caracola y coral en los hombros, capa de algas que ondea y se levanta al correr, espinas de hueso; conchas en la cadera y aletas en rodillas y tobillos |
-| **de Jade** | Rajang | metal verde negro y oro de templo en espiral cuadrada; casco de jaguar con hocico, colmillos, orejas y cresta de cristales; hombreras de oro con una esquirla de jade que flota y gira, cristales por la espalda; faldones de oro y garras en las botas |
-| **del Vendaval** | Aeralis | metal añil con rayos celestes y violeta de tormenta; alas de pluma en el casco que aletean y antenas de polilla; hombreras de pluma y **alas de polilla en la espalda** con su ocelo, que aletean; plumas en la cadera y alas en los talones |
+| **Tanque** | **Guardián**: los aliados a 4 bloques reciben un 5 % menos de daño (no se acumula con otros tanques) | **Muralla de Jade**: los ataques a un solo objetivo de los jefes (Rompeolas, Aleteo, Garra, Barrido, Cacería) van al tanque si está a su alcance, y al acabar el jefe no se deja provocar otros 15 s; protege a sus **2 aliados más cercanos** (8 bloques): el **30 %** del daño que les hace un enemigo se lo lleva el tanque, con su armadura y sin empuje; y él recibe un **20 % menos** |
+| **Sanador** | **Marea Viva**: cada 5 s, medio corazón al aliado más herido a 6 bloques | **Manantial**: al activarlo quita los efectos malos a los 3 aliados más heridos; luego, cada 3 s, medio corazón a los 3 más heridos a 8 bloques |
+| **Soporte** | **Viento a Favor**: +10 % de velocidad a los aliados a 6 bloques (no se acumula); él recibe un 25 % menos de daño de caída | **Corriente Ascendente**: él y sus 4 aliados más cercanos (8 bloques) tienen **Velocidad I y 2 corazones dorados** durante 30 s (no se puede recibir otra mientras dura), y una ráfaga a su alrededor (4,5 bloques) aparta a los monstruos normales |
+| **DPS** | **Corazón de Brasa**: +10 % de daño | **Furia Solar**: +20 % de daño, y sus 3 aliados más cercanos (8 bloques) pegan un **5 % más** durante 30 s (cada jugador, como mucho una vez cada 20 s) |
 
-**Protegen el doble que la netherite.** Cada pieza (de las tres):
+**Topes para 60 jugadores.** Cada jugador recibe como mucho medio corazón de
+Marea Viva cada 5 s y medio del Manantial cada 3 s, tenga los sanadores que
+tenga cerca; el Guardián y el Viento a Favor valen lo mismo con uno que con
+veinte; la Corriente y la Furia no se renuevan mientras duran. Los golpes que
+matan salvo tótem (la Mirada de Nerea, el Picado, el Rugido de Jade, el meteorito
+y los demás de `bypasses_resistance`) no los toca ninguna habilidad: ni se
+reparten con el tanque ni los baja la Muralla.
 
-| | Casco | Coraza | Grebas | Botas | Total |
-|---|---|---|---|---|---|
-| Armadura | 4 | 9 | 7 | 4 | 24 (la netherite, 20) |
-| Dureza | 6 | 6 | 6 | 6 | 24 (la netherite, 12) |
-| Vida | +1 | +1 | +1 | +1 | **+4: dos corazones** |
+El daño que se lleva el tanque es un tipo propio, `atalaya:muralla_jade` (sin
+empuje y con su armadura, aunque el golpe original la atraviese). Si muere de
+eso, el chat dice que cayó protegiendo a sus aliados. Ni le da ni le gasta la
+invulnerabilidad tras un golpe: si dos aliados reciben a la vez, se lleva las
+dos partes.
 
-Más un 15 % contra el empuje por pieza, la durabilidad ×1,5 de la netherite, no
-se queman y se reparan con netherite. Contra un golpe de 60 de un jefe, la
-netherite entera para un 32 % y estas un 66 %.
+**Las armas** son una por rol. Durabilidad, encantamientos y reparación como la
+netherite; en la mano se ven grandes y animadas (sprite de 32×32, el arco no).
+Lo que hacen a los monstruos normales (aturdir, provocar, quemar) no lo hacen a
+jefes ni minijefes (los cuatro elementales, el Vigía, el Wither, el dragón, el
+guardián anciano y el warden).
+
+| Arma | Rol | Daño | Además |
+|---|---|---|---|
+| **Martillo de Jade** | tanque | 9, lento (0,8 golpes/s) | el golpe **cargado del todo** deja al monstruo aturdido 1 s y hace que vaya a por quien lo lleva |
+| **Tridente de las Mareas** | sanador | 9, en la mano y lanzado | se lanza y vuelve (Lealtad III de serie); cada 8 s, un golpe cura medio corazón al aliado más herido a 8 bloques |
+| **Arco del Vendaval** | soporte | como un arco de Poder III sin encantar; con Poder V, como un Poder VIII | las flechas van un **20 % más rápidas** (sin pegar más por eso); la que da a un aliado no le hace daño y le da Velocidad I y un 5 % más de velocidad 3 s (a cada jugador, como mucho una vez cada 20 s) |
+| **Gran Espada Solar** | DPS | 10 (1,4 golpes/s) | prende fuego 4 s a los monstruos normales y suelta un tajo solar |
+
+Todo lo de las habilidades está en `com.atalaya.habilidad` (`Habilidades`, la
+provocación en `Provocacion`, quién es jefe en `Jefes`); el daño pasa por
+`DanoHabilidadesMixin`. Los sonidos salen de `habilidades_sonidos.py`, los
+iconos del HUD de `habilidades_iconos.py`.
 
 **Se ven en 3D y con capas** (no la capa plana de vanilla): `ArmaduraJefeRender`
 las pinta con Fabric `ArmorRenderer` en todo lo que lleva armadura (jugadores,
@@ -1459,20 +1508,12 @@ postura del cuerpo de quien la lleva y tiene sus piezas por encima, y se pinta e
 cuatro pasadas: lo opaco, lo translúcido (aletas, cristales, alas), lo que brilla
 sin luz (en 8 cuadros que se funden: la luz corre por las costuras) y el destello
 de los encantamientos. Las mallas, las animaciones y las texturas salen de
-`armaduras_jefes.py` (genera `ArmaduraJefeMalla.java`); los iconos y las
-espadas, de `armaduras_iconos.py`.
+`armaduras_jefes.py` (genera `ArmaduraJefeMalla.java`); los iconos y las armas,
+de `armaduras_iconos.py`.
 
-**Las espadas** hacen 16 de daño, el doble que la de netherite (8), aguantan
-3046 usos y en la mano se ven grandes y animadas (su sprite de 32×32); en el
-inventario, su icono. Al golpear sueltan su tajo (una media luna del color del
-tema) y, con un **5 % de suerte**, lo de su jefe. Eso solo a los bichos normales:
-a los jefes (los tres elementales, el Wither y el dragón) no les hace nada.
-
-| Espada | Al golpear (5 %) |
-|---|---|
-| de las Mareas | Corriente Abismal 3 s y agua que salpica |
-| de Jade | Peso de la Tierra 2 s y esquirlas de jade |
-| del Vendaval | una racha que lo echa atrás y Parálisis 1 s |
+Las tres espadas de antes (de las Mareas, de Jade y del Vendaval, 16 de daño)
+siguen existiendo para no romper mundos, pero ya no salen en creativo: las
+sustituyen las armas de rol.
 
 ---
 
@@ -1712,6 +1753,7 @@ El esquema es siempre el mismo:
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
+| `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
 En las órdenes de los jefes:
@@ -1853,7 +1895,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.5.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.1.6.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -1884,7 +1926,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.5
+	- atalaya 1.1.6
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2257,7 +2299,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.5.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.1.6.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

@@ -183,10 +183,14 @@ public class AtalayaClient implements ClientModInitializer {
 
         // Las armaduras de los jefes, en 3D y con capas (sustituyen a la capa plana).
         com.atalaya.client.ArmaduraJefeRender.registrar();
+        // Sus habilidades: la tecla (R), lo que dicen al pasar el raton y lo que lanzan sus armas.
+        com.atalaya.client.HabilidadCliente.registrar();
+        EntityRendererRegistry.register(AtalayaEntities.TRIDENTE_MAREAS, com.atalaya.client.TridenteMareasRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.FLECHA_VENDAVAL, com.atalaya.client.FlechaVendavalRenderer::new);
 
         // El tajo de las espadas de los jefes.
         for (SimpleParticleType tajo : new SimpleParticleType[]{AtalayaParticulas.MAREAS_TAJO, AtalayaParticulas.JADE_TAJO,
-                AtalayaParticulas.VENDAVAL_TAJO}) {
+                AtalayaParticulas.VENDAVAL_TAJO, AtalayaParticulas.SOLAR_TAJO}) {
             ParticleProviderRegistry.getInstance().register(tajo, com.atalaya.client.TajoParticula.Fabrica::new);
         }
 
@@ -306,6 +310,11 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ofrenda"),
                 new com.atalaya.client.OfrendaHud());
+        // El icono de la habilidad de la armadura, a la derecha de la hotbar.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "habilidad"),
+                new com.atalaya.client.HabilidadHud());
         // La quemadura de Novilis, a la izquierda de los corazones.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,

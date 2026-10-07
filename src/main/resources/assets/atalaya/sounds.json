@@ -1443,5 +1443,103 @@
         "stream": true
       }
     ]
+  },
+  "habilidad.muralla": {
+    "subtitle": "subtitles.atalaya.habilidad.muralla",
+    "sounds": [
+      "atalaya:armadura/muralla"
+    ]
+  },
+  "habilidad.manantial": {
+    "subtitle": "subtitles.atalaya.habilidad.manantial",
+    "sounds": [
+      "atalaya:armadura/manantial"
+    ]
+  },
+  "habilidad.manantial_pulso": {
+    "subtitle": "subtitles.atalaya.habilidad.manantial_pulso",
+    "sounds": [
+      "atalaya:armadura/manantial_pulso"
+    ]
+  },
+  "habilidad.corriente": {
+    "subtitle": "subtitles.atalaya.habilidad.corriente",
+    "sounds": [
+      "atalaya:armadura/corriente"
+    ]
+  },
+  "habilidad.furia": {
+    "subtitle": "subtitles.atalaya.habilidad.furia",
+    "sounds": [
+      "atalaya:armadura/furia"
+    ]
+  },
+  "habilidad.lista": {
+    "subtitle": "subtitles.atalaya.habilidad.lista",
+    "sounds": [
+      "atalaya:armadura/lista"
+    ]
+  },
+  "arma.martillo_golpe": {
+    "subtitle": "subtitles.atalaya.arma.martillo_golpe",
+    "sounds": [
+      "atalaya:espada/jade_martillo1",
+      "atalaya:espada/jade_martillo2",
+      "atalaya:espada/jade_martillo3"
+    ]
+  },
+  "arma.martillo_carga": {
+    "subtitle": "subtitles.atalaya.arma.martillo_carga",
+    "sounds": [
+      "atalaya:armadura/martillo_carga",
+      "atalaya:armadura/martillo_carga2"
+    ]
+  },
+  "arma.tridente_lanzar": {
+    "subtitle": "subtitles.atalaya.arma.tridente_lanzar",
+    "sounds": [
+      "atalaya:armadura/tridente_lanzar"
+    ]
+  },
+  "arma.tridente_vuelve": {
+    "subtitle": "subtitles.atalaya.arma.tridente_vuelve",
+    "sounds": [
+      "atalaya:armadura/tridente_vuelve"
+    ]
+  },
+  "arma.tridente_cura": {
+    "subtitle": "subtitles.atalaya.arma.tridente_cura",
+    "sounds": [
+      "atalaya:armadura/tridente_cura"
+    ]
+  },
+  "arma.tridente_golpe": {
+    "subtitle": "subtitles.atalaya.arma.tridente_golpe",
+    "sounds": [
+      "atalaya:espada/mareas_tridente1",
+      "atalaya:espada/mareas_tridente2",
+      "atalaya:espada/mareas_tridente3"
+    ]
+  },
+  "arma.arco_disparo": {
+    "subtitle": "subtitles.atalaya.arma.arco_disparo",
+    "sounds": [
+      "atalaya:armadura/arco_disparo1",
+      "atalaya:armadura/arco_disparo2"
+    ]
+  },
+  "arma.flecha_aliado": {
+    "subtitle": "subtitles.atalaya.arma.flecha_aliado",
+    "sounds": [
+      "atalaya:armadura/flecha_aliado"
+    ]
+  },
+  "espada.solar_golpe": {
+    "subtitle": "subtitles.atalaya.espada.solar_golpe",
+    "sounds": [
+      "atalaya:espada/solar_golpe1",
+      "atalaya:espada/solar_golpe2",
+      "atalaya:espada/solar_golpe3"
+    ]
   }
 }

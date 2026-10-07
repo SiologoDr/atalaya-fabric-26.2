@@ -1,8 +1,8 @@
 """
-Los iconos de las armaduras y las espadas de los tres jefes (octubre de 2026),
-pixel a pixel. Sustituyen a los de armaduras_jefes.py (la netherite
+Los iconos de las armaduras, las espadas y las armas de los jefes (octubre de
+2026), pixel a pixel. Sustituyen a los de armaduras_jefes.py (la netherite
 recoloreada): cada pieza tiene aqui su silueta y sus detalles, y las espadas
-estan dibujadas nuevas y animadas.
+y las armas estan dibujadas nuevas y animadas.
 
   mareas    Nerea, el guardian del abismo: metal azul abisal, prismarina que
             brilla, nacar, coral y algas.
@@ -10,13 +10,29 @@ estan dibujadas nuevas y animadas.
             que brilla, oro de templo y marfil (colmillos y garras).
   vendaval  Aeralis, la reina polilla de la tormenta: metal anil, cielo y rayo,
             violeta de tormenta y pluma blanca.
+  solar     Novilis, el caballero solar: acero quemado casi negro, lava, oro de
+            sol, carmesi y obsidiana (sin espada: su arma es el mandoble).
+
+Cada tema tiene ademas el arma de su papel:
+  mareas_trident     el Tridente de las Mareas (el sanador)
+  jade_hammer        el Martillo de Jade (el tanque)
+  vendaval_bow       el Arco del Vendaval (el apoyo), con su flecha
+  solar_greatsword   el Mandoble Solar (el dano)
 
 Escribe, para cada tema, en textures/item/:
   <tema>_helmet|chestplate|leggings|boots.png   las piezas (16x16)
   <tema>_sword.png + .mcmeta                    la espada en el inventario
-                                                (16x16, tira animada)
+                                                (16x16, tira animada; no el solar)
   <tema>_sword_in_hand.png + .mcmeta            la espada en la mano (32x32,
                                                 tira animada, mas detalle)
+  <arma>.png + .mcmeta                          el arma en el inventario (16x16,
+                                                tira de 12 cuadros)
+  <arma>_in_hand.png + .mcmeta                  el arma en la mano (32x32, tira
+                                                de 12 cuadros)
+  vendaval_bow.png, vendaval_bow_pulling_0|1|2.png   el arco quieto y tensandose
+                                                (16x16, fijos, sin version en la mano)
+y textures/entity/projectiles/vendaval_arrow.png, la flecha del arco (32x32,
+con el mismo reparto que la flecha del juego).
 
 Como se dibuja (ver DISENO.md en la raiz):
   - Cada icono es un mapa de texto: cada caracter es un material y un tono de
@@ -35,8 +51,12 @@ con el filo dentado como un rayo) y un repaso a las mareas (venera con
 costillas, coral, venera chica del pecho, conchas del cinturon y una hoja
 curva con lomo de espuma y filo definido). El jade no se toca.
 
+Tercera ronda (octubre de 2026): el cuarto tema (solar) y las armas de cada
+papel. Lo de antes sale igual, pixel a pixel.
+
 Uso: python armaduras_iconos.py <raiz> [hoja.png] [--temas=vendaval,mareas]
-  --temas  escribe solo esos temas (la hoja de control sale con los tres)
+  --temas  escribe solo esos temas, con sus armas (la hoja de control sale
+           con todos)
 """
 import json, math, os, sys
 from PIL import Image
@@ -100,6 +120,19 @@ TEMAS = {
         'C': rampa('2c3168', '6a74ac', 'a6b0da', 'd6def4', 'f6f9ff'),     # pluma
         'D': rampa('241c5c', '40389c', '6c6ad8', 'a4b4ff', 'e4ecff'),     # ala de polilla
         'H': rampa('10123a', '222c6c', '36479a', '5670c4', '93aee8', 'e0ecff'),  # hoja: acero de tormenta
+    },
+    # (Octubre de 2026) El cuarto: Novilis, el caballero solar. Las rampas
+    # salen de las suyas (novilis_extras.py, fuego_modelo.py y el nucleo
+    # solar): acero quemado casi negro, la lava de las grietas, el oro de sol,
+    # el carmesi de la capa y la obsidiana de los cuernos. La hoja del mandoble
+    # arde: de la brasa honda del alma al blanco caliente del filo.
+    'solar': {
+        'M': rampa('110b0d', '1c1518', '292023', '382c2e', '4a3b3b', '62504c', '836b64'),
+        'A': rampa('6a1e06', 'b84a0c', 'ff8a1e', 'ffc070', 'fff0d0'),     # lava
+        'B': rampa('5a3410', '8a5418', 'c07c22', 'e8a83a', 'ffd77a'),     # oro de sol
+        'C': rampa('3c0a0e', '6e1418', 'a02420', 'd23c2c', 'ff7a5c'),     # carmesi
+        'D': rampa('120a1c', '23163a', '352458', '4e3a7a', '6e58a4'),     # obsidiana
+        'H': rampa('4a1206', '96300a', 'd85a10', 'ff9228', 'ffcc66', 'fff6dc'),  # hoja que arde
     },
 }
 
@@ -409,6 +442,87 @@ PIEZAS['vendaval_boots'] = [
     "jiiiiih.|.hhhhhhg",
     "0000000.|.0000000",
     "........|........",
+    "........|........",
+    "........|........",
+]
+
+# SOLAR -- 0-6 acero quemado; a-e lava; f-j oro; k-o carmesi; p-t obsidiana
+#   casco     el yelmo cerrado con la T que arde, la frente de oro, los cuernos
+#             de obsidiana con la punta de oro y la llama de la cresta
+#   pechera   hombreras de oro con su llama, el nucleo solar en el pecho (el
+#             disco de oro y el alma de lava) y una grieta; la capa asoma
+#   grebas    el cinturon con la hebilla de sol, los faldones de oro como
+#             rayos y las rodilleras con su gema de lava
+#   botas     ribetes y puntera de oro, una grieta y la llama del talon
+PIEZAS['solar_helmet'] = [
+    "........|D.......",
+    "..J....C|d....J..",
+    ".S.....c|eC....S.",
+    ".R....bd|ec....R.",
+    ".rq.fhii|iihf.qr.",
+    "..q45566|65543q..",
+    "...45566|65543...",
+    "...4dddd|eedd3...",
+    "...4555e|d5443...",
+    "...hi55e|d44ih...",
+    "...4555d|c4443...",
+    "...45555|44443...",
+    "...hiiii|iiihh...",
+    "........|........",
+    "........|........",
+    "........|........",
+]
+PIEZAS['solar_chestplate'] = [
+    ".D......|......C.",
+    ".dC.....|.....Cc.",
+    "jcdjjj5.|.4iiicbi",
+    "j6555j54|43i4443i",
+    "j55b5j45|43i4b33i",
+    "jjjjjj54|43iiiiih",
+    "...5545i|i4443...",
+    "...545ii|ih443...",
+    "...55iid|eih43...",
+    "...54iie|dih43...",
+    "...545ii|ih443...",
+    "...5b45i|h4433...",
+    "...ihihi|hihih...",
+    "...54545|44433...",
+    "...ihihi|hihih...",
+    "....4444|3333....",
+]
+PIEZAS['solar_leggings'] = [
+    "........|........",
+    "........|........",
+    "..jjjjjd|ejjjjh..",
+    "..iiiiic|dhhhhg..",
+    "..5554ji|ih4433..",
+    "..555jij|hih433..",
+    "..5545ji|ih.433..",
+    "..5554.j|i.4433..",
+    "..5545..|..4433..",
+    "..jiiij.|.ihhig..",
+    "..icdci.|.hcdcg..",
+    "..jiiij.|.ihhig..",
+    "...5b54.|.4543...",
+    "...54b4.|.4b43...",
+    "...hihi.|.ihih...",
+    "........|........",
+]
+PIEZAS['solar_boots'] = [
+    "........|........",
+    "........|........",
+    ".C......|......B.",
+    ".DCjiih.|.hiigBC.",
+    "BED5554.|.4543CDA",
+    ".CD5b54.|.45b3CB.",
+    "..B5544.|.4433A..",
+    "...5554.|.4443...",
+    "...jiih.|.hiig...",
+    "...5554.|.4543...",
+    "..55444.|.34433..",
+    ".jiiih4.|.3hiiih.",
+    ".jJiih4.|.3hiiJh.",
+    ".000000.|.000000.",
     "........|........",
     "........|........",
 ]
@@ -1007,17 +1121,570 @@ def icono_espada(tema, k):
 ICONO = {t: (lambda k, t=t: icono_espada(t, k)) for t in ICONOS_ESPADA}
 
 
+# ======================================================================
+#  Las armas de cada papel (octubre de 2026). Cada tema da el arma de su
+#  papel en vez de la espada:
+#    mareas_trident    el Tridente de las Mareas   (agua, el sanador)
+#    jade_hammer       el Martillo de Jade         (tierra, el tanque)
+#    vendaval_bow      el Arco del Vendaval        (viento, el apoyo)
+#    solar_greatsword  el Mandoble Solar           (fuego, el dano)
+#  Como las espadas: en la mano (32x32) se calcula con las mismas piezas
+#  (curvas, barras, discos, mapas) y se anima; en el inventario (16x16) va
+#  a mano. Todas en la diagonal de las espadas: el puno abajo a la
+#  izquierda y la cabeza arriba a la derecha (las coloca el mismo modelo).
+#  El arco no: sigue el dibujo de los arcos del juego (ver mas abajo).
+# ======================================================================
+RAIZ2 = math.sqrt(2)
+HACIA_PUNTA = (1 / RAIZ2, -1 / RAIZ2)       # a lo largo del arma, hacia arriba a la derecha
+A_LO_ANCHO = (1 / RAIZ2, 1 / RAIZ2)         # de traves, hacia abajo a la derecha
+
+
+def mas(a, *pasos):
+    """a + v1*k1 + v2*k2...; pasos: (v, k)."""
+    x, y = a
+    for v, k in pasos:
+        x, y = x + v[0] * k, y + v[1] * k
+    return (x, y)
+
+
+# ---------------------------- El Tridente ------------------------------
+#  Tres puntas de agua que sube corriendo, con espuma en la punta y una
+#  lengueta a cada lado (las puntas del tridente). Nacen de una media luna de
+#  metal abisal con su filo de prismarina, encima de la venera de nacar (la de
+#  la espada). El asta larga de metal abisal con anillas de prismarina, el
+#  puno de alga y una perla por regaton. De las puntas de la media luna cae
+#  una gota de vez en cuando.
+TRI_VENERA = (13.5, 18.5)
+TRI_MEDIO = mas(TRI_VENERA, (HACIA_PUNTA, 4.6))                  # el medio de la media luna
+TRI_LUNA = bezier([mas(TRI_MEDIO, (A_LO_ANCHO, -6.4), (HACIA_PUNTA, 2.6)),
+                   mas(TRI_MEDIO, (A_LO_ANCHO, -2.4), (HACIA_PUNTA, -0.8)),
+                   mas(TRI_MEDIO, (A_LO_ANCHO, 2.4), (HACIA_PUNTA, -0.8)),
+                   mas(TRI_MEDIO, (A_LO_ANCHO, 6.4), (HACIA_PUNTA, 2.6))])
+TRI_LADO = [(0, 1.9), (0.6, 1.6), (0.68, 3.1), (0.73, 1.3), (1.0, 0.4)]   # la lengueta, a 2/3
+TRI_PUNTAS = [   # (curva, semianchura): la del medio y las dos de los lados
+    (bezier([mas(TRI_MEDIO, (HACIA_PUNTA, 0.5)), (30.8, 1.2)]),
+     [(0, 2.3), (0.68, 1.8), (0.75, 3.4), (0.79, 1.5), (1.0, 0.4)]),
+    (bezier([TRI_LUNA[0], mas(TRI_LUNA[0], (HACIA_PUNTA, 10.0))]), TRI_LADO),
+    (bezier([TRI_LUNA[-1], mas(TRI_LUNA[-1], (HACIA_PUNTA, 10.0))]), TRI_LADO),
+]
+TRI_ESPUMA = [(0, 0, 0.55), (4, 1, 0.45), (8, 2, 0.5)]           # (cuadro, punta, por donde)
+
+
+def tridente_mano(k):
+    fase = k / CUADROS
+    celdas = {}
+    # El asta, del regaton a la venera: metal con anillas de prismarina y el puno de alga.
+    def asta(t, d, L):
+        if 0.24 < t < 0.5:
+            return ('D', 3 if (t * L / 1.5 + d * 0.6) % 2.0 < 0.9 else 2 if d > 0 else 1)
+        if (t * L) % 4.6 < 1.0 and t > 0.5:
+            return ('A', 3 if d > 0 else 2)
+        return ('M', 5 if d > 0.45 else 4 if d > -0.45 else 3)
+    barra(celdas, (2.6, 29.4), mas(TRI_VENERA, (HACIA_PUNTA, -0.6)), 1.75, asta)
+    bola(celdas, (2.4, 29.6), 2.0,
+         lambda dx, dy, r: ('B', 4 if math.hypot(dx + 0.6, dy + 0.6) < 0.9 else 3 if r < 1.5 else 2))
+    venera(celdas, (int(TRI_VENERA[0]), int(TRI_VENERA[1])), R=4.2, bulto=0.3)
+    # La media luna: metal abisal, con su filo de prismarina por arriba.
+    for p, (u, s, d) in hoja(TRI_LUNA, [(0, 1.6), (0.5, 2.0), (1, 1.6)], [(0, 1.3), (0.5, 1.6), (1, 1.3)]).items():
+        celdas[p] = ('A', 3, False) if s > 0.55 else ('M', 5 if s > 0 else 4 if s > -0.5 else 3, False)
+    # Las tres puntas: agua que sube por bandas, con la espuma en la punta.
+    puntas = []
+    for curva, semi in TRI_PUNTAS:
+        info = hoja(curva, semi, semi)
+        puntas.append(info)
+        for p, (u, s, d) in info.items():
+            t = 4 if s > 0.35 else 3 if s > -0.35 else 2
+            w = (u * 2.2 - fase * 2.0) % 1.0
+            if w < 0.18:
+                t += 1                                   # la ola que sube
+            elif 0.5 <= w < 0.62:
+                t -= 1
+            if u > 0.86:
+                t = 5 if s > -0.3 else 4                 # la espuma de la punta
+            celdas[p] = ('H', max(1, min(5, t)), False)
+    borde = contornear(celdas)
+    for i, info in enumerate(puntas):
+        dentro = {p for p in info if p not in borde and celdas[p][0] == 'H'}
+        for nace, j, u in TRI_ESPUMA:
+            e = (k - nace) % CUADROS
+            if j == i and e < 3:
+                destello(celdas, cerca(info, u, -1.0, 1.0, dentro), e, dentro)
+    # La gota que cae de una punta de la media luna (cada lado a su tiempo).
+    for extremo, nace in ((TRI_LUNA[0], 2), (TRI_LUNA[-1], 8)):
+        e = (k - nace) % CUADROS
+        if e < 4:
+            q = (int(extremo[0] - 0.5), int(extremo[1] + 1.5 + e * 1.4))
+            if q not in celdas and 0 <= q[0] < 32 and 0 <= q[1] < 32:
+                celdas[q] = ('H', 4 if e < 2 else 3, True)
+    return a_imagen(celdas, 'mareas', 32, 32)
+
+
+# ------------------------------ El Martillo ----------------------------
+#  Un martillo de guerra a dos manos: la cabeza grande de metal verde de
+#  traves al mango, con un bloque de jade tallado en cada boca, un ribete de
+#  oro que los separa y, en medio, la placa de oro con la espiral cuadrada del
+#  templo; encima una punta de jade. El mango largo con anillas de oro, el
+#  puno envuelto y un pomo de oro con su jade. Las vetas del jade laten y un
+#  destello salta de bloque en bloque.
+MAR_PUNO = (2.6, 29.4)
+MAR_CENTRO = mas(MAR_PUNO, (HACIA_PUNTA, 24.6))
+MAR_LARGO, MAR_GRUESO, MAR_BOCA = 9.2, 4.6, 2.8     # media cabeza, media anchura, lo que mide cada jade
+
+
+def martillo_mano(k):
+    fase = k / CUADROS
+    celdas = {}
+    # El mango: metal verde con anillas de oro y el puno envuelto (la mano baja, a dos manos).
+    def mango(t, d, L):
+        x = t * L
+        if 2.5 < x < 9.5:
+            return ('M', 3 if (x + d * 0.8) % 2.2 < 1.0 else 2 if d > 0 else 1)
+        if x % 4.4 < 1.1 or x > L - 1.4:
+            return ('B', 4 if d > 0.3 else 3 if d > -0.6 else 2)
+        return ('M', 5 if d > 0.5 else 4 if d > -0.4 else 3)
+    barra(celdas, MAR_PUNO, mas(MAR_CENTRO, (HACIA_PUNTA, -MAR_GRUESO + 0.5)), 1.6, mango)
+    bola(celdas, (2.5, 29.5), 2.3, lambda dx, dy, r: ('A', 4) if r < 0.8 else ('A', 2) if r < 1.3
+         else ('B', 4 if dx + dy < -0.8 else 3 if dx + dy < 0.8 else 2))
+    # La cabeza: de una boca a la otra (a, b), su grueso a lo largo del mango (d).
+    a = mas(MAR_CENTRO, (A_LO_ANCHO, -MAR_LARGO))
+    b = mas(MAR_CENTRO, (A_LO_ANCHO, MAR_LARGO))
+    def cabeza(t, d, L):
+        x = t * L
+        boca = min(x, L - x)
+        if boca < MAR_BOCA:
+            # El jade tallado: la cara de la boca, la arista de arriba y las facetas.
+            if boca < 0.9:
+                return ('A', 4 if x < L / 2 else 3)
+            return ('A', 4 if d > 1.8 else 3 if d > -1.2 else 2)
+        if boca < MAR_BOCA + 1.0:
+            return ('B', 4 if d > 1.2 else 3 if d > -1.6 else 2)          # el ribete de oro
+        if abs(d) > MAR_GRUESO - 1.0:
+            return ('B', 3 if d > 0 else 2)                                # los cantos de oro
+        return ('M', 5 if d > 1.6 else 4 if d > -1.0 else 3)
+    barra(celdas, a, b, MAR_GRUESO, cabeza, encima=True)
+    # La placa de la espiral en medio.
+    calcar(celdas, ESPIRAL, int(round(MAR_CENTRO[0] - 3)), int(round(MAR_CENTRO[1] - 3)))
+    # La punta de jade de arriba, que sale del canto de la cabeza.
+    for p, (u, s, d) in hoja(bezier([mas(MAR_CENTRO, (HACIA_PUNTA, MAR_GRUESO - 0.6)),
+                                     mas(MAR_CENTRO, (HACIA_PUNTA, MAR_GRUESO + 5.4))]),
+                             [(0, 2.0), (0.4, 1.7), (1, 0.3)], [(0, 2.0), (0.4, 1.7), (1, 0.3)]).items():
+        celdas[p] = ('A', 4 if s > 0.25 else 3 if s > -0.35 else 2, False)
+    borde = contornear(celdas)
+    # Las vetas del jade laten: un pulso que va de una boca a la otra.
+    jade = [p for p, v in celdas.items() if v[0] == 'A' and p not in borde]
+    for p in jade:
+        t, d, L = seg((p[0] + 0.5, p[1] + 0.5), a, b)
+        if abs(d - 1.6 * math.sin(t * 9.0)) < 0.55:
+            du = (t - fase) % 1.0
+            m, tono, l = celdas[p]
+            celdas[p] = ('A', 4 if du < 0.2 or du > 0.92 else max(tono, 3), l)
+    # El destello: de un jade al otro y a la punta, tres cuadros en cada uno.
+    sitios = [mas(a, (A_LO_ANCHO, 1.2), (HACIA_PUNTA, 1.6)), mas(MAR_CENTRO, (HACIA_PUNTA, MAR_GRUESO + 1.6)),
+              mas(b, (A_LO_ANCHO, -1.4), (HACIA_PUNTA, 1.4))]
+    s = sitios[(k // 4) % 3]
+    p = min(jade, key=lambda q: (q[0] + 0.5 - s[0]) ** 2 + (q[1] + 0.5 - s[1]) ** 2)
+    destello(celdas, p, k % 4 if k % 4 < 3 else 3, set(jade), m='A', alto=4, libres=True)
+    return a_imagen(celdas, 'jade', 32, 32)
+
+
+# ------------------------------ El Mandoble ----------------------------
+#  El mandoble del caballero solar: una hoja ancha y recta que arde, con la
+#  canal de brasa honda por la que sube la lava, el naranja hacia fuera y el
+#  blanco caliente junto a los dos filos. La guarda de oro, ancha, con el sol
+#  en medio (el disco de oro, el alma de lava y sus rayos); el puno largo de
+#  obsidiana con anillas de oro (a dos manos) y un pomo de oro con su gema.
+#  Una ola de calor sube por la hoja y se desprenden brasas de los filos.
+MAN_GUARDA = (9.6, 22.4)
+MAN_CURVA = bezier([MAN_GUARDA, (31.0, 1.0)])
+MAN_ANCHO = [(0, 3.4), (0.07, 4.3), (0.72, 4.0), (0.9, 2.4), (1.0, 0.4)]
+MAN_BRASAS = [(0, 0.35, 1), (3, 0.62, -1), (6, 0.48, 1), (9, 0.8, -1)]       # (cuadro, por donde, lado)
+
+
+def mandoble_mano(k):
+    fase = k / CUADROS
+    info = hoja_de('solar', MAN_CURVA, MAN_ANCHO, MAN_ANCHO)
+    celdas = {}
+    for p, (u, s, d) in info.items():
+        a = abs(s)
+        if a < 0.16 and u < 0.82:
+            celdas[p] = ('H', 1, False)                                    # la canal, brasa honda
+        else:
+            t = 5 if a > 0.64 else 4 if a > 0.42 else 3 if a > 0.24 else 2
+            if s < 0 and t < 5:
+                t = max(2, t - 1)                                          # el lado de la sombra
+            w = (u * 1.6 - fase) % 1.0
+            if w < 0.12 and t < 5:
+                t += 1                                                     # la ola de calor
+            celdas[p] = ('H', t, False)
+    # La guarda: una barra de oro de traves con las puntas en llama.
+    a, b = mas(MAN_GUARDA, (A_LO_ANCHO, -7.2)), mas(MAN_GUARDA, (A_LO_ANCHO, 7.2))
+    barra(celdas, a, b, 1.35, lambda t, d, L: ('B', 4 if d > 0.5 else 3 if d > -0.5 else 2), encima=True)
+    for punta, lado in ((a, -1), (b, 1)):
+        for p, (u, s, d) in hoja(bezier([punta, mas(punta, (A_LO_ANCHO, lado * 1.6), (HACIA_PUNTA, 2.6))]),
+                                 [(0, 1.5), (1, 0.3)], [(0, 1.5), (1, 0.3)]).items():
+            celdas[p] = ('B', 4 if s > 0 else 3, False)
+    # El puno de obsidiana con anillas de oro, y el pomo.
+    barra(celdas, mas(MAN_GUARDA, (HACIA_PUNTA, -1.5)), (3.4, 28.6), 1.45,
+          lambda t, d, L: ('B', 3 if d > 0 else 2) if (t * L) % 3.0 < 0.9 else ('D', 3 if d > 0.4 else 2 if d > -0.5 else 1))
+    bola(celdas, (2.6, 29.4), 2.3, lambda dx, dy, r: ('A', 3) if r < 1.0 else ('B', 4 if dx + dy < -0.6 else 3 if dx + dy < 0.9 else 2))
+    # El sol de la guarda: el disco de oro, el alma de lava y ocho rayos cortos.
+    for i in range(8):
+        ang = i * math.pi / 4
+        for r in (3.2, 3.9):
+            q = (int(MAN_GUARDA[0] + 0.5 + math.cos(ang) * r), int(MAN_GUARDA[1] + 0.5 - math.sin(ang) * r))
+            if i % 2 == 0 or r < 3.5:
+                celdas[q] = ('B', 4 if r < 3.5 else 3, False)
+    bola(celdas, (MAN_GUARDA[0] + 0.5, MAN_GUARDA[1] + 0.5), 2.7,
+         lambda dx, dy, r: ('A', 4 if r < 0.9 else 3 if r < 1.6 else 2) if r < 2.0 else ('B', 4 if dx + dy < 0 else 3))
+    borde = contornear(celdas)
+    dentro = {p for p in info if p not in borde and celdas[p][0] == 'H'}
+    # La lava que sube por la canal (dos pulsos).
+    for p in dentro:
+        if abs(info[p][1]) >= 0.16 or info[p][0] >= 0.82:
+            continue
+        u = info[p][0]
+        for j in (0.0, 0.5):
+            du = (u - fase - j) % 1.0
+            if du < 0.12:
+                celdas[p] = ('A', 4 if du < 0.05 else 3, False)
+            elif du > 0.9:
+                celdas[p] = ('A', 2, False)
+    # Las brasas: salen del filo y suben hacia la punta, apagandose.
+    for nace, u, lado in MAN_BRASAS:
+        e = (k - nace) % CUADROS
+        if e >= 4:
+            continue
+        c = min((p for p in info if (info[p][1] > 0) == (lado > 0)),
+                key=lambda q: abs(info[q][0] - u) + (1 - abs(info[q][1])) * 0.3)
+        q = (c[0] + (1 + e if lado > 0 else 2 + e), c[1] - (2 + e if lado > 0 else e - 1))
+        if q not in celdas and 0 <= q[0] < 32 and 0 <= q[1] < 32:
+            celdas[q] = ('A', 4 - min(3, e), True)
+    return a_imagen(celdas, 'solar', 32, 32)
+
+
+# ----------------------------------------------------------------------
+#  Las armas en el inventario (16x16), a mano y con la leyenda de las
+#  piezas (u-z la hoja o el agua). La animacion se pinta encima, como en las
+#  espadas: cada pixel se proyecta sobre el eje del arma (u de 0 en el pomo a
+#  1 en la punta) y solo se toca por dentro del contorno.
+# ----------------------------------------------------------------------
+ICONOS_ARMA = {
+    # Las tres puntas de agua (la del medio mas larga), la media luna de
+    # metal con su filo de prismarina, la venera de nacar, el asta con el
+    # puno de alga y la perla abajo.
+    'mareas_trident': [
+        "........|Zw.....Z",
+        ".......Y|w...XxZw",
+        "......Xw|....xyw.",
+        "....CXw.|...xyw.w",
+        "....4C..|..xxw...",
+        ".....4D.|.xxw...Z",
+        "......4D|xxw...Yv",
+        ".....hJ4|D....Xv.",
+        ".....giJ|4D..Xv..",
+        ".....3gi|h4CXv...",
+        "....353g|g.4C3...",
+        "...bdb..|........",
+        "..qsq...|........",
+        ".qsq....|........",
+        "J53.....|........",
+        "hg......|........",
+    ],
+    # La cabeza grande de traves: un jade en cada boca, el ribete de oro, el
+    # metal verde con sus cantos de oro y la placa de oro con su gema en
+    # medio; la punta de jade arriba, el mango con anillas de oro y el pomo.
+    'jade_hammer': [
+        "........|........",
+        ".......e|........",
+        "......ee|d.......",
+        ".....eed|jh...D..",
+        "....cccj|55hdE...",
+        ".....ci4|45ihc...",
+        "......g3|ijE5h...",
+        ".......g|3ihh5h..",
+        "......hj|g34455j.",
+        ".....454|.g344jdd",
+        "....454.|..g3icdd",
+        "...hjg..|...ibcc.",
+        "..454...|....bb..",
+        ".232....|........",
+        "JD2.....|........",
+        "hg......|........",
+    ],
+    # La hoja ancha que arde (el filo blanco caliente, la canal de brasa), la
+    # guarda de oro con el sol en medio, el puno largo de obsidiana con sus
+    # anillas y el pomo de oro.
+    'solar_greatsword': [
+        "........|.......Z",
+        "........|.....zZy",
+        "........|...uzyw.",
+        "........|..uzywy.",
+        "........|.uzywyu.",
+        "........|uzywyu..",
+        "..I....u|zywyu...",
+        "......uz|ywyu....",
+        ".hJ..uzy|wyu.....",
+        "..hJuzyw|yu......",
+        "...hijjy|u.......",
+        "...ijEdi|........",
+        "..hiidi.|........",
+        ".qsr.hhJ|h.......",
+        "Eir....h|........",
+        "hg......|........",
+    ],
+}
+EJE_ICONO = bezier([(0.5, 15.5), (15.5, 0.5)])
+
+
+def icono_arma(nombre, k):
+    tema = nombre.split('_')[0]
+    fase = k / CUADROS
+    celdas = leer(ICONOS_ARMA[nombre])
+    borde = contornear(celdas)
+    info = {p: (u, d) for p, (u, d, _) in proyectar(EJE_ICONO, list(celdas)).items()}
+    dentro = {p for p in celdas if p not in borde}
+    if nombre == 'mareas_trident':
+        # El agua sube por las puntas; la espuma salta en una punta y luego
+        # en otra, y cae una gota de la media luna.
+        for p in dentro:
+            m, t, l = celdas[p]
+            if m != 'H':
+                continue
+            w = (info[p][0] * 3.0 - fase * 2.0) % 1.0
+            if w < 0.2:
+                t = min(5, t + 1)
+            elif 0.5 <= w < 0.66:
+                t = max(1, t - 1)
+            celdas[p] = (m, t, l)
+        for nace, p in ((0, (14, 1)), (4, (8, 1)), (8, (14, 6))):
+            e = (k - nace) % CUADROS
+            if e < 3 and p in celdas:
+                destello(celdas, p, e, dentro)
+        e = (k - 6) % CUADROS
+        if e < 3 and (11, 11 + e) not in celdas:
+            celdas[(11, 11 + e)] = ('H', 4 - e, True)
+    elif nombre == 'jade_hammer':
+        # El pulso cruza la cabeza de una boca a la otra encendiendo el jade, y
+        # un destello salta de un jade a la punta y al otro jade.
+        for p in dentro:
+            m, t, l = celdas[p]
+            if m != 'A':
+                continue
+            du = ((p[0] + p[1] - 8) / 18.0 - fase) % 1.0
+            if du < 0.22:
+                celdas[p] = (m, min(4, t + 1), l)
+        sitio = ((5, 4), (12, 4), (13, 10))[(k // 4) % 3]
+        destello(celdas, sitio, k % 4 if k % 4 < 3 else 3, dentro, m='A', alto=4, libres=True)
+    elif nombre == 'solar_greatsword':
+        # La ola de calor sube por la hoja, la lava sube por la canal y salta
+        # una brasa del filo de vez en cuando.
+        for p in dentro:
+            m, t, l = celdas[p]
+            if m != 'H':
+                continue
+            u = info[p][0]
+            if p[0] + p[1] == 16 and u < 0.85:
+                du = (u * 1.5 - fase) % 1.0
+                if du < 0.18:
+                    celdas[p] = ('A', 4 if du < 0.09 else 3, l)
+                continue
+            if (u * 1.6 - fase) % 1.0 < 0.14 and t < 5:
+                celdas[p] = (m, t + 1, l)
+        for nace, q in ((1, (13, 5)), (5, (8, 4)), (9, (15, 6))):
+            e = (k - nace) % CUADROS
+            r = (q[0] + e // 2, q[1] - e)
+            if e < 3 and r not in celdas and 0 <= r[0] < 16 and 0 <= r[1] < 16:
+                celdas[r] = ('A', 4 - e, True)
+    return a_imagen(celdas, tema, 16, 16)
+
+
+# ------------------------------- El Arco -------------------------------
+#  El arco del vendaval (16x16, sin version en la mano: el modelo de arco del
+#  juego lo coloca). Sigue el dibujo de los arcos de Minecraft para que el
+#  modelo y la animacion de tensar casen: el arco es un cuarto de circulo con
+#  la empunadura arriba a la izquierda y las palas hacia arriba a la derecha y
+#  hacia abajo a la izquierda; la cuerda va en la diagonal entre las dos
+#  puntas. Al tensar (etapas 0, 1 y 2), la cuerda se abre en V hacia abajo a la
+#  derecha, las palas se cierran un poco y la flecha (la del vendaval: asta
+#  anil, plumas de cielo y violeta, punta de acero de tormenta) va por la
+#  diagonal con la punta hacia arriba a la izquierda.
+#  Las palas son de metal anil por dentro y de pluma por fuera: el canto de
+#  fuera alterna pluma blanca, cielo y violeta, y en cada pala salen dos
+#  plumas sueltas. La empunadura, violeta con el ojo de la tormenta.
+# El eje de las palas, de la punta de arriba a la de abajo (un cuarto de
+# circulo de radio 13 alrededor de (15.5, 15.5)), y cuanto pesa cada tramo:
+# 3 en casi toda la pala (canto de pluma, metal y vientre), 2 cerca de las
+# puntas y 1 en ellas.
+ARCO_EJE = [(15, 2, 1), (14, 2, 1), (13, 2, 2), (12, 2, 2), (11, 3, 3), (10, 3, 3), (9, 4, 3), (8, 4, 3),
+            (8, 5, 3), (7, 5, 3), (6, 6, 3), (5, 7, 3), (5, 8, 3), (4, 8, 3), (4, 9, 3), (3, 10, 3),
+            (3, 11, 3), (2, 12, 2), (2, 13, 2), (2, 14, 1), (2, 15, 1)]
+ARCO_V = {None: None, 0: (10, 10), 1: (11, 11), 2: (12, 12)}       # el vertice de la cuerda
+# Al tensar, las puntas se cierran un poco hacia la cuerda.
+ARCO_PUNTAS = {None: ((15, 2), (2, 15)), 0: ((15, 3), (3, 15)), 1: ((14, 3), (3, 14)), 2: ((14, 4), (4, 14))}
+
+
+def linea(a, b):
+    """Los pixeles de una recta de a a b (Bresenham), en enteros."""
+    (x0, y0), (x1, y1) = a, b
+    dx, dy = abs(x1 - x0), -abs(y1 - y0)
+    sx, sy = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
+    err = dx + dy
+    out = []
+    while True:
+        out.append((x0, y0))
+        if (x0, y0) == (x1, y1):
+            return out
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x0 += sx
+        if e2 <= dx:
+            err += dx
+            y0 += sy
+
+
+def arco(etapa=None):
+    celdas = {}
+    arriba, abajo = ARCO_PUNTAS[etapa]
+    eje = list(ARCO_EJE)
+    # Las puntas: el ultimo tramo de cada pala va hasta su punta de esa etapa.
+    eje = [e for e in eje if e[:2] not in ((15, 2), (14, 2), (2, 14), (2, 15))]
+    eje = [(q[0], q[1], 1) for q in linea(arriba, (13, 2))[:-1]] + eje +           [(q[0], q[1], 1) for q in linea((2, 13), abajo)[1:]]
+    for x, y, peso in eje:
+        pala_alta = y < x                                   # la de arriba va tumbada, la de abajo de pie
+        fuera = (x, y - 1) if pala_alta else (x - 1, y)
+        dentro = (x, y + 1) if pala_alta else (x + 1, y)
+        celdas[(x, y)] = ('M', 4, False)
+        if peso >= 2:
+            celdas.setdefault(fuera, ('C', 3, True))       # el canto de pluma
+        if peso >= 3:
+            celdas.setdefault(dentro, ('M', 2, False))      # el vientre
+    # El canto de pluma alterna blanco, cielo y violeta por tramos.
+    for (x, y), (m, t, l) in list(celdas.items()):
+        if m == 'C':
+            n = (x + y) // 3 % 3
+            celdas[(x, y)] = (('C', 4, True), ('A', 3, True), ('B', 3, True))[n]
+    # La empunadura violeta con el ojo de la tormenta.
+    for q in ((6, 6), (7, 5), (5, 7), (6, 7), (7, 6)):
+        if q in celdas:
+            celdas[q] = ('B', 3, False)
+    celdas[(6, 6)] = ('A', 4, True)
+    # Los penachos de las puntas: dos plumas que salen hacia fuera.
+    for (px, py), plumas in ((arriba, ((0, -1, 'C'), (1, -1, 'A'), (-1, -1, 'B'))),
+                             (abajo, ((-1, 0, 'C'), (-1, 1, 'A'), (-1, -1, 'B')))):
+        for dx, dy, m in plumas:
+            q = (px + dx, py + dy)
+            if 0 <= q[0] < 16 and 0 <= q[1] < 16 and q not in celdas:
+                celdas[q] = (m, 4 if m == 'C' else 3, True)
+    contornear(celdas)
+    # La cuerda, fina y clara.
+    v = ARCO_V[etapa]
+    cuerda = linea(arriba, abajo) if v is None else linea(arriba, v) + linea(v, abajo)
+    for q in cuerda:
+        if q not in celdas and 0 <= q[0] < 16 and 0 <= q[1] < 16:
+            celdas[q] = ('C', 2, True)
+    if v is not None:
+        # La flecha: de la cuerda hacia arriba a la izquierda, por la diagonal.
+        for i in range(12):
+            q = (v[0] - i, v[1] - i)
+            if not (0 <= q[0] < 16 and 0 <= q[1] < 16):
+                continue
+            if i < 3:
+                celdas[q] = ('M', 5, True)                              # el asta junto a las plumas
+                if i > 0:
+                    for r, mt in (((q[0] + 1, q[1]), ('A', 3)), ((q[0], q[1] + 1), ('B', 3))):
+                        if 0 <= r[0] < 16 and 0 <= r[1] < 16:
+                            celdas[r] = mt + (True,)                     # las plumas
+            elif i < 10:
+                celdas[q] = ('M', 6, True)
+            else:
+                celdas[q] = ('H', 5, True) if i == 11 else ('H', 4, True)    # la punta de acero
+                if i == 10:
+                    for r in ((q[0] + 1, q[1]), (q[0], q[1] + 1)):
+                        if 0 <= r[0] < 16 and 0 <= r[1] < 16:
+                            celdas[r] = ('H', 3, True)
+    return a_imagen(celdas, 'vendaval', 16, 16)
+
+
+def arcos():
+    """El arco quieto y sus tres tensados."""
+    return [arco(e) for e in (None, 0, 1, 2)]
+
+
+# ------------------------- La flecha del vendaval -----------------------
+#  La textura de la entidad (32x32), con el MISMO reparto que la flecha del
+#  juego, para que su modelo (dos planos en cruz y la cola) la lea igual:
+#    x 0-15,  y 0-4   un costado: la cola de plumas a la izquierda (x 0-4),
+#                     el asta por la fila 2 y la punta a la derecha (x 12-15)
+#    x 16-31, y 0-4   el otro costado, el mismo dibujo en espejo
+#    x 0-4 y x 5-9, y 5-9   la cola vista desde atras: la cruz de las plumas
+#  El dibujo es nuestro: asta anil, plumas de cielo (dentro) y violeta (las
+#  puntas), el culatin de pluma blanca y la punta de cristal de cielo.
+FLECHA_COSTADO = [          # leyenda de las piezas: h-i violeta, c-e cielo, o pluma, 4-6 metal
+    "hii.............",
+    ".ddde.......cd..",
+    "o5i56565656cddee",
+    ".ddde.......cd..",
+    "hii.............",
+]
+FLECHA_COLA = [
+    "..i..",
+    "..d..",
+    "idodi",
+    "..d..",
+    "..i..",
+]
+
+
+def flecha_entidad():
+    T = TEMAS['vendaval']
+    im = Image.new('RGBA', (32, 32), (0, 0, 0, 0))
+    px = im.load()
+    for y, fila in enumerate(FLECHA_COSTADO):
+        for x, ch in enumerate(fila):
+            if ch != '.':
+                m, t = LEYENDA[ch]
+                px[x, y] = T[m][t]
+                px[31 - x, y] = T[m][t]                  # el otro costado, en espejo
+    for y, fila in enumerate(FLECHA_COLA):
+        for x, ch in enumerate(fila):
+            if ch != '.':
+                m, t = LEYENDA[ch]
+                px[x, 5 + y] = T[m][t]
+                px[5 + x, 5 + y] = T[m][t]
+    return im
+
+
+ARMAS = {
+    'mareas_trident': ('mareas', lambda k: icono_arma('mareas_trident', k), tridente_mano),
+    'jade_hammer': ('jade', lambda k: icono_arma('jade_hammer', k), martillo_mano),
+    'solar_greatsword': ('solar', lambda k: icono_arma('solar_greatsword', k), mandoble_mano),
+}
+
+
 # === PRINCIPAL ===
 # (los bancos de pruebas cortan el fichero aqui para no escribir nada)
 PIEZAS_ORDEN = ('helmet', 'chestplate', 'leggings', 'boots')
+ARMA_DE = {'mareas': 'mareas_trident', 'jade': 'jade_hammer', 'vendaval': 'vendaval_bow', 'solar': 'solar_greatsword'}
+ARCO_NOMBRES = ('vendaval_bow', 'vendaval_bow_pulling_0', 'vendaval_bow_pulling_1', 'vendaval_bow_pulling_2')
+FLECHA = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/entity/projectiles/vendaval_arrow.png')
 malas = []
-for _n, _f in list(PIEZAS.items()) + list(ICONOS_ESPADA.items()):
+for _n, _f in list(PIEZAS.items()) + list(ICONOS_ESPADA.items()) + list(ICONOS_ARMA.items()):
     malas += comprobar(_n, _f, 16)
 if malas:
     raise SystemExit('\n'.join(malas))
 
 os.makedirs(ITEM, exist_ok=True)
 MCMETA = json.dumps({'animation': {'frametime': 2}}, indent=2) + '\n'
+
+
+def guardar_tira(cuadros, nombre):
+    """Una tira animada y su .mcmeta (como las espadas)."""
+    tira(cuadros).save(os.path.join(ITEM, f'{nombre}.png'))
+    with open(os.path.join(ITEM, f'{nombre}.png.mcmeta'), 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write(MCMETA)
+
+
 SALIDAS = {}
 ESCRITOS = [t for t in TEMAS if SOLO is None or t in SOLO]
 for tema in TEMAS:
@@ -1027,6 +1694,8 @@ for tema in TEMAS:
         if escribe:
             im.save(os.path.join(ITEM, f'{tema}_{pieza}.png'))
         SALIDAS[f'{tema}_{pieza}'] = im
+    if tema not in ICONOS_ESPADA:
+        continue                                    # el solar no tiene espada: su arma es el mandoble
     icono = [icono_espada(tema, k) for k in range(CUADROS)]
     mano = [MANO[tema](k) for k in range(CUADROS)]
     if escribe:
@@ -1037,14 +1706,35 @@ for tema in TEMAS:
                 fh.write(MCMETA)
     SALIDAS[f'{tema}_sword'] = icono
     SALIDAS[f'{tema}_sword_in_hand'] = mano
-print('ok:', ', '.join(ESCRITOS), '-', len(ESCRITOS) * 4, 'piezas,', len(ESCRITOS),
-      'espadas de', CUADROS, 'cuadros (16x16 y 32x32)')
+# Las armas de cada papel: el icono (16x16) y en la mano (32x32), las dos animadas.
+for nombre, (tema, icono_fn, mano_fn) in ARMAS.items():
+    icono = [icono_fn(k) for k in range(CUADROS)]
+    mano = [mano_fn(k) for k in range(CUADROS)]
+    if tema in ESCRITOS:
+        guardar_tira(icono, nombre)
+        guardar_tira(mano, f'{nombre}_in_hand')
+    SALIDAS[nombre] = icono
+    SALIDAS[f'{nombre}_in_hand'] = mano
+# El arco (quieto y sus tres tensados, fijos) y la textura de su flecha.
+for nombre, im in zip(ARCO_NOMBRES, arcos()):
+    if 'vendaval' in ESCRITOS:
+        im.save(os.path.join(ITEM, f'{nombre}.png'))
+    SALIDAS[nombre] = im
+SALIDAS['vendaval_arrow'] = flecha_entidad()
+if 'vendaval' in ESCRITOS:
+    os.makedirs(os.path.dirname(FLECHA), exist_ok=True)
+    SALIDAS['vendaval_arrow'].save(FLECHA)
+print('ok:', ', '.join(ESCRITOS), '-', len(ESCRITOS) * 4, 'piezas,',
+      len([t for t in ESCRITOS if t in ICONOS_ESPADA]), 'espadas y',
+      len([t for t in ESCRITOS if ARMA_DE[t] in ARMAS]), 'armas de', CUADROS, 'cuadros (16x16 y 32x32)',
+      '+ arco y flecha' if 'vendaval' in ESCRITOS else '')
 
 # ----------------------------------------------------------------------
-#  Hoja de control: por tema, las cinco piezas a 8x sobre el gris del
-#  inventario y sobre oscuro; a tamano real (x1, x2 y x3) y en una barra de
-#  inventario como la del juego; los doce cuadros de la espada del
-#  inventario (x4) y de la espada en la mano (x3).
+#  Hoja de control: por tema, las piezas, la espada (si la tiene) y el arma
+#  de su papel a 8x sobre el gris del inventario y sobre oscuro; el arma en
+#  la mano, grande; a tamano real (x1, x2 y x3) y en una barra de inventario
+#  como la del juego; los doce cuadros de la espada y del arma (el icono a x4
+#  y en la mano a x3). Del arco, sus cuatro dibujos y la flecha.
 # ----------------------------------------------------------------------
 if HOJA:
     from PIL import ImageDraw
@@ -1062,28 +1752,43 @@ if HOJA:
     def grande(im, e):
         return im.resize((im.width * e, im.height * e), Image.NEAREST)
 
-    ANCHO = 1300
-    ALTO_TEMA = 20 + 2 * 136 + 70 + 2 * 72 + 2 * 104 + 30
-    hoja = Image.new('RGBA', (ANCHO, 10 + len(TEMAS) * ALTO_TEMA), FONDO)
+    def tiras_de(tema):
+        """Las filas de cuadros de un tema: (cuadros, escala)."""
+        out = []
+        if f'{tema}_sword' in SALIDAS:
+            out += [(SALIDAS[f'{tema}_sword'], 4), (SALIDAS[f'{tema}_sword_in_hand'], 3)]
+        arma = ARMA_DE[tema]
+        if arma in ARMAS:
+            out += [(SALIDAS[arma], 4), (SALIDAS[f'{arma}_in_hand'], 3)]
+        else:
+            out += [([SALIDAS[n] for n in ARCO_NOMBRES] + [SALIDAS['vendaval_arrow'].crop((0, 0, 32, 16))], 6)]
+        return out
+
+    ANCHO = 1450
+    altos = {t: 20 + 2 * 136 + 70 + sum(2 * (c[0].height * e + 8) for c, e in tiras_de(t)) + 20 for t in TEMAS}
+    hoja = Image.new('RGBA', (ANCHO, 10 + sum(altos.values())), FONDO)
     d = ImageDraw.Draw(hoja)
-    for i, tema in enumerate(TEMAS):
-        y0 = 10 + i * ALTO_TEMA
+    y0 = 10
+    for tema in TEMAS:
         d.text((12, y0), tema.upper(), fill=TEXTO)
         y = y0 + 20
-        cosas = [SALIDAS[f'{tema}_{p}'] for p in PIEZAS_ORDEN] + [SALIDAS[f'{tema}_sword'][0]]
-        # A 8x, sobre gris y sobre oscuro.
+        arma = ARMA_DE[tema]
+        cosas = [SALIDAS[f'{tema}_{p}'] for p in PIEZAS_ORDEN]
+        if f'{tema}_sword' in SALIDAS:
+            cosas.append(SALIDAS[f'{tema}_sword'][0])
+        cosas.append(SALIDAS[arma][0] if arma in ARMAS else SALIDAS['vendaval_bow'])
+        en_mano = SALIDAS[f'{arma}_in_hand'][0] if arma in ARMAS else SALIDAS['vendaval_bow_pulling_2']
+        # A 8x, sobre gris y sobre oscuro; a la derecha el arma en la mano, grande.
         for fila, fondo in enumerate((GRIS, OSCURO)):
             for j, im in enumerate(cosas):
                 x = 12 + j * 136
                 d.rectangle((x, y + fila * 136, x + 131, y + fila * 136 + 131), fill=fondo)
                 hoja.alpha_composite(grande(im, 8), (x + 2, y + fila * 136 + 2))
-        # A la derecha: la espada en la mano, grande.
-        for fila, fondo in enumerate((GRIS, OSCURO)):
-            x = 12 + 5 * 136 + 10
+            x = 12 + 6 * 136 + 10
             d.rectangle((x, y + fila * 136, x + 131, y + fila * 136 + 131), fill=fondo)
-            hoja.alpha_composite(grande(SALIDAS[f'{tema}_sword_in_hand'][0], 4), (x + 2, y + fila * 136 + 2))
-        # A tamano real: x1, x2 y x3 sobre los dos fondos, y la barra del inventario.
-        xr = 12 + 6 * 136 + 30
+            hoja.alpha_composite(grande(en_mano, 128 // en_mano.width), (x + 2, y + fila * 136 + 2))
+        # A tamano real: x1, x2 y x3 sobre los dos fondos.
+        xr = 12 + 7 * 136 + 30
         for fila, fondo in enumerate((GRIS, OSCURO)):
             yy = y + fila * 136
             d.rectangle((xr, yy, ANCHO - 12, yy + 131), fill=fondo)
@@ -1096,22 +1801,22 @@ if HOJA:
             ranura(d, 12 + j * 18 * 3, y, 3)
             hoja.alpha_composite(grande(im, 3), (12 + j * 18 * 3 + 3, y + 3))
         for j, im in enumerate(cosas):
-            ranura(d, 300 + j * 18 * 2, y + 8, 2)
-            hoja.alpha_composite(grande(im, 2), (300 + j * 18 * 2 + 2, y + 10))
-        d.text((500, y + 20), 'en una ranura del inventario, a escala 3 y 2', fill=TEXTO)
+            ranura(d, 360 + j * 18 * 2, y + 8, 2)
+            hoja.alpha_composite(grande(im, 2), (360 + j * 18 * 2 + 2, y + 10))
+        d.text((600, y + 20), 'en una ranura del inventario, a escala 3 y 2', fill=TEXTO)
         y += 64
-        # Los cuadros de la espada del inventario (x4) y de la mano (x3).
-        for fila, fondo in enumerate((GRIS, OSCURO)):
-            for k, im in enumerate(SALIDAS[f'{tema}_sword']):
-                x = 12 + k * 72
-                d.rectangle((x, y + fila * 72, x + 67, y + fila * 72 + 67), fill=fondo)
-                hoja.alpha_composite(grande(im, 4), (x + 2, y + fila * 72 + 2))
-        y += 2 * 72
-        for fila, fondo in enumerate((GRIS, OSCURO)):
-            for k, im in enumerate(SALIDAS[f'{tema}_sword_in_hand']):
-                x = 12 + k * 104
-                d.rectangle((x, y + fila * 104, x + 99, y + fila * 104 + 99), fill=fondo)
-                hoja.alpha_composite(grande(im, 3), (x + 2, y + fila * 104 + 2))
+        # Los cuadros: espada y arma (icono x4, en la mano x3); el arco, sus dibujos y la flecha.
+        for cuadros, e in tiras_de(tema):
+            h = cuadros[0].height * e + 8
+            for fila, fondo in enumerate((GRIS, OSCURO)):
+                x = 12
+                for im in cuadros:
+                    w = im.width * e + 4
+                    d.rectangle((x, y + fila * h, x + w - 1, y + fila * h + h - 5), fill=fondo)
+                    hoja.alpha_composite(grande(im, e), (x + 2, y + fila * h + 2))
+                    x += w + 4
+            y += 2 * h
+        y0 += altos[tema]
     os.makedirs(os.path.dirname(os.path.abspath(HOJA)), exist_ok=True)
     hoja.save(HOJA)
     print('hoja', HOJA)

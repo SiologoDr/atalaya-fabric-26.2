@@ -90,6 +90,22 @@ public final class AtalayaSonidos {
     public static SoundEvent ESPADA_MAREAS_GOLPE;
     public static SoundEvent ESPADA_JADE_GOLPE;
     public static SoundEvent ESPADA_VENDAVAL_GOLPE;
+    // Las armaduras de rol: las activas, el aviso de lista y las armas.
+    public static SoundEvent HABILIDAD_MURALLA;
+    public static SoundEvent HABILIDAD_MANANTIAL;
+    public static SoundEvent HABILIDAD_MANANTIAL_PULSO;
+    public static SoundEvent HABILIDAD_CORRIENTE;
+    public static SoundEvent HABILIDAD_FURIA;
+    public static SoundEvent HABILIDAD_LISTA;
+    public static SoundEvent MARTILLO_GOLPE;
+    public static SoundEvent MARTILLO_CARGA;
+    public static SoundEvent TRIDENTE_LANZAR;
+    public static SoundEvent TRIDENTE_VUELVE;
+    public static SoundEvent TRIDENTE_CURA;
+    public static SoundEvent MAREAS_TRIDENTE_GOLPE;
+    public static SoundEvent ARCO_DISPARO;
+    public static SoundEvent FLECHA_ALIADO;
+    public static SoundEvent ESPADA_SOLAR_GOLPE;
     // Los acentos de cada pista: los golpes gordos, la Furia (y los grandes momentos) y el cambio de fase.
     public static SoundEvent MUSICA_NEREA_GOLPE;
     public static SoundEvent MUSICA_NEREA_GRANDE;
@@ -318,6 +334,21 @@ public final class AtalayaSonidos {
         ESPADA_MAREAS_GOLPE = registrar("espada.mareas_golpe");
         ESPADA_JADE_GOLPE = registrar("espada.jade_golpe");
         ESPADA_VENDAVAL_GOLPE = registrar("espada.vendaval_golpe");
+        HABILIDAD_MURALLA = registrar("habilidad.muralla");
+        HABILIDAD_MANANTIAL = registrar("habilidad.manantial");
+        HABILIDAD_MANANTIAL_PULSO = registrar("habilidad.manantial_pulso");
+        HABILIDAD_CORRIENTE = registrar("habilidad.corriente");
+        HABILIDAD_FURIA = registrar("habilidad.furia");
+        HABILIDAD_LISTA = registrar("habilidad.lista");
+        MARTILLO_GOLPE = registrar("arma.martillo_golpe");
+        MARTILLO_CARGA = registrar("arma.martillo_carga");
+        TRIDENTE_LANZAR = registrar("arma.tridente_lanzar");
+        TRIDENTE_VUELVE = registrar("arma.tridente_vuelve");
+        TRIDENTE_CURA = registrar("arma.tridente_cura");
+        MAREAS_TRIDENTE_GOLPE = registrar("arma.tridente_golpe");
+        ARCO_DISPARO = registrar("arma.arco_disparo");
+        FLECHA_ALIADO = registrar("arma.flecha_aliado");
+        ESPADA_SOLAR_GOLPE = registrar("espada.solar_golpe");
         MUSICA_NEREA_GOLPE = registrar("musica.nerea.golpe");
         MUSICA_NEREA_GRANDE = registrar("musica.nerea.grande");
         MUSICA_NEREA_FASE = registrar("musica.nerea.fase");

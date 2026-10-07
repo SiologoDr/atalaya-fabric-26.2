@@ -41,6 +41,10 @@ public final class ArmaduraJefeMalla {
             case "vendaval/pechera" -> vendaval_pechera();
             case "vendaval/grebas" -> vendaval_grebas();
             case "vendaval/botas" -> vendaval_botas();
+            case "solar/casco" -> solar_casco();
+            case "solar/pechera" -> solar_pechera();
+            case "solar/grebas" -> solar_grebas();
+            case "solar/botas" -> solar_botas();
             default -> throw new IllegalArgumentException(tema + "/" + pieza);
         };
     }
@@ -55,6 +59,9 @@ public final class ArmaduraJefeMalla {
             case "vendaval/casco" -> new Anim[]{new Anim("ala_casco_izq", 1, 0.2F, 0.32F, 0F, 0.2F), new Anim("antena_izq", 2, 0.08F, 0.17F, 0F, 0.5F), new Anim("ala_casco_der", 1, -0.2F, 0.32F, 0F, 0.2F), new Anim("antena_der", 2, -0.08F, 0.17F, 1F, 0.5F)};
             case "vendaval/pechera" -> new Anim[]{new Anim("halo_pecho", 7, -0.09F, 0F, 0F, 0F), new Anim("halo_pecho", 8, 0.06F, 0.45F, 0F, 0F), new Anim("ala_izq", 1, 0.1F, 0.18F, 0F, 0F), new Anim("ala_izq", 6, -0.7F, 0F, 0F, 1F), new Anim("ala_der", 1, -0.1F, 0.18F, 0F, 0F), new Anim("ala_der", 6, 0.7F, 0F, 0F, 1F)};
             case "vendaval/botas" -> new Anim[]{new Anim("ala_talon_izq", 1, 0.22F, 0.4F, 0F, 0.3F), new Anim("ala_talon_der", 1, -0.22F, 0.4F, 0F, 0.3F)};
+            case "solar/casco" -> new Anim[]{new Anim("llama_corona", 8, 0.12F, 0.85F, 0F, 0F), new Anim("halo", 7, 0.02F, 0F, 0F, 0F)};
+            case "solar/pechera" -> new Anim[]{new Anim("llama_hombro_izq", 8, 0.12F, 0.85F, 0.6F, 0F), new Anim("llama_hombro_der", 8, 0.12F, 0.85F, 2F, 0F), new Anim("halo_pecho", 7, 0.025F, 0F, 0F, 0F), new Anim("halo_pecho", 8, 0.1F, 0.2F, 0F, 0F), new Anim("capa_0", 0, 0.06F, 0.1F, 0F, 1F), new Anim("capa_0", 5, 0.9F, 0F, 0F, 1F), new Anim("capa_1", 0, 0.06F, 0.1F, 0.9F, 1F), new Anim("capa_1", 5, 0.9F, 0F, 0F, 1F), new Anim("capa_2", 0, 0.06F, 0.1F, 1.8F, 1F), new Anim("capa_2", 5, 0.9F, 0F, 0F, 1F)};
+            case "solar/botas" -> new Anim[]{new Anim("llama_talon_izq", 8, 0.15F, 1.1F, 0F, 0F), new Anim("llama_talon_der", 8, 0.15F, 1.1F, 1.5F, 0F)};
             default -> new Anim[0];
         };
     }
@@ -684,6 +691,265 @@ public final class ArmaduraJefeMalla {
         PartDefinition p_puntera_der = p_right_leg.addOrReplaceChild("puntera_der", CubeListBuilder.create()
                 .texOffs(106, 46).addBox(-1F, -0.5F, -1.5F, 2F, 1F, 2F, CubeDeformation.NONE),
                 PartPose.offsetAndRotation(0F, 11.5F, -3F, 0F, 0F, 0F));
+        return LayerDefinition.create(malla, 128, 64);
+    }
+
+    private static LayerDefinition solar_casco() {
+        MeshDefinition malla = new MeshDefinition();
+        PartDefinition raiz = malla.getRoot();
+        PartDefinition p_head = raiz.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_body = raiz.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_right_arm = raiz.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offset(-5F, 2F, 0F));
+        PartDefinition p_left_arm = raiz.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(5F, 2F, 0F));
+        PartDefinition p_right_leg = raiz.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offset(-1.9F, 12F, 0F));
+        PartDefinition p_left_leg = raiz.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offset(1.9F, 12F, 0F));
+        PartDefinition p_casco_solar = p_head.addOrReplaceChild("casco_solar", CubeListBuilder.create()
+                .texOffs(18, 0).addBox(-4F, -8F, -4F, 8F, 8F, 8F, new CubeDeformation(1F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_cuerno_izq = p_head.addOrReplaceChild("cuerno_izq", CubeListBuilder.create()
+                .texOffs(20, 45).addBox(-1F, -3F, -1F, 2F, 3F, 2F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(4.7F, -5.6F, -0.5F, 0.2094F, 0F, 1.2566F));
+        PartDefinition p_cuerno_izq_2 = p_cuerno_izq.addOrReplaceChild("cuerno_izq_2", CubeListBuilder.create()
+                .texOffs(28, 45).addBox(-1F, -3F, -1F, 2F, 3F, 2F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -2.8F, 0F, 0.1396F, 0F, -0.6981F));
+        PartDefinition p_cuerno_izq_3 = p_cuerno_izq_2.addOrReplaceChild("cuerno_izq_3", CubeListBuilder.create()
+                .texOffs(120, 45).addBox(-0.5F, -3F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -2.8F, 0F, 0.1047F, 0F, -0.5236F));
+        PartDefinition p_cuerno_izq_4 = p_cuerno_izq_3.addOrReplaceChild("cuerno_izq_4", CubeListBuilder.create()
+                .texOffs(40, 50).addBox(-0.5F, -2F, -0.5F, 1F, 2F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -2.8F, 0F, 0.0698F, 0F, -0.2094F));
+        PartDefinition p_cuerno_der = p_head.addOrReplaceChild("cuerno_der", CubeListBuilder.create()
+                .texOffs(36, 45).addBox(-1F, -3F, -1F, 2F, 3F, 2F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-4.7F, -5.6F, -0.5F, 0.2094F, 0F, -1.2566F));
+        PartDefinition p_cuerno_der_2 = p_cuerno_der.addOrReplaceChild("cuerno_der_2", CubeListBuilder.create()
+                .texOffs(44, 45).addBox(-1F, -3F, -1F, 2F, 3F, 2F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -2.8F, 0F, 0.1396F, 0F, 0.6981F));
+        PartDefinition p_cuerno_der_3 = p_cuerno_der_2.addOrReplaceChild("cuerno_der_3", CubeListBuilder.create()
+                .texOffs(124, 45).addBox(-0.5F, -3F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -2.8F, 0F, 0.1047F, 0F, 0.5236F));
+        PartDefinition p_cuerno_der_4 = p_cuerno_der_3.addOrReplaceChild("cuerno_der_4", CubeListBuilder.create()
+                .texOffs(44, 50).addBox(-0.5F, -2F, -0.5F, 1F, 2F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -2.8F, 0F, 0.0698F, 0F, 0.2094F));
+        PartDefinition p_llama_corona = p_head.addOrReplaceChild("llama_corona", CubeListBuilder.create()
+                .texOffs(0, 38).addBox(-2.5F, -7F, 0F, 5F, 7F, 0F, CubeDeformation.NONE)
+                .texOffs(106, 0).addBox(0F, -7F, -2.5F, 0F, 7F, 5F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, -9F, -1F, 0F, 0F, 0F));
+        PartDefinition p_halo = p_head.addOrReplaceChild("halo", CubeListBuilder.create(),
+                PartPose.offsetAndRotation(0F, -4.5F, 5.6F, 0F, 0F, 0F));
+        PartDefinition p_halo_aro_0 = p_halo.addOrReplaceChild("halo_aro_0", CubeListBuilder.create()
+                .texOffs(62, 50).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_halo_rayo_0 = p_halo.addOrReplaceChild("halo_rayo_0", CubeListBuilder.create()
+                .texOffs(84, 45).addBox(-0.5F, -11F, -0.5F, 1F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0.2618F));
+        PartDefinition p_halo_aro_1 = p_halo.addOrReplaceChild("halo_aro_1", CubeListBuilder.create()
+                .texOffs(72, 50).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0.5236F));
+        PartDefinition p_halo_rayo_1 = p_halo.addOrReplaceChild("halo_rayo_1", CubeListBuilder.create()
+                .texOffs(0, 50).addBox(-0.5F, -10F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0.7854F));
+        PartDefinition p_halo_aro_2 = p_halo.addOrReplaceChild("halo_aro_2", CubeListBuilder.create()
+                .texOffs(82, 50).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 1.0472F));
+        PartDefinition p_halo_rayo_2 = p_halo.addOrReplaceChild("halo_rayo_2", CubeListBuilder.create()
+                .texOffs(88, 45).addBox(-0.5F, -11F, -0.5F, 1F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 1.309F));
+        PartDefinition p_halo_aro_3 = p_halo.addOrReplaceChild("halo_aro_3", CubeListBuilder.create()
+                .texOffs(92, 50).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 1.5708F));
+        PartDefinition p_halo_rayo_3 = p_halo.addOrReplaceChild("halo_rayo_3", CubeListBuilder.create()
+                .texOffs(4, 50).addBox(-0.5F, -10F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 1.8326F));
+        PartDefinition p_halo_aro_4 = p_halo.addOrReplaceChild("halo_aro_4", CubeListBuilder.create()
+                .texOffs(102, 50).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 2.0944F));
+        PartDefinition p_halo_rayo_4 = p_halo.addOrReplaceChild("halo_rayo_4", CubeListBuilder.create()
+                .texOffs(92, 45).addBox(-0.5F, -11F, -0.5F, 1F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 2.3562F));
+        PartDefinition p_halo_aro_5 = p_halo.addOrReplaceChild("halo_aro_5", CubeListBuilder.create()
+                .texOffs(112, 50).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 2.618F));
+        PartDefinition p_halo_rayo_5 = p_halo.addOrReplaceChild("halo_rayo_5", CubeListBuilder.create()
+                .texOffs(8, 50).addBox(-0.5F, -10F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 2.8798F));
+        PartDefinition p_halo_aro_6 = p_halo.addOrReplaceChild("halo_aro_6", CubeListBuilder.create()
+                .texOffs(0, 54).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 3.1416F));
+        PartDefinition p_halo_rayo_6 = p_halo.addOrReplaceChild("halo_rayo_6", CubeListBuilder.create()
+                .texOffs(96, 45).addBox(-0.5F, -11F, -0.5F, 1F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 3.4034F));
+        PartDefinition p_halo_aro_7 = p_halo.addOrReplaceChild("halo_aro_7", CubeListBuilder.create()
+                .texOffs(10, 54).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 3.6652F));
+        PartDefinition p_halo_rayo_7 = p_halo.addOrReplaceChild("halo_rayo_7", CubeListBuilder.create()
+                .texOffs(12, 50).addBox(-0.5F, -10F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 3.927F));
+        PartDefinition p_halo_aro_8 = p_halo.addOrReplaceChild("halo_aro_8", CubeListBuilder.create()
+                .texOffs(20, 54).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 4.1888F));
+        PartDefinition p_halo_rayo_8 = p_halo.addOrReplaceChild("halo_rayo_8", CubeListBuilder.create()
+                .texOffs(100, 45).addBox(-0.5F, -11F, -0.5F, 1F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 4.4506F));
+        PartDefinition p_halo_aro_9 = p_halo.addOrReplaceChild("halo_aro_9", CubeListBuilder.create()
+                .texOffs(30, 54).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 4.7124F));
+        PartDefinition p_halo_rayo_9 = p_halo.addOrReplaceChild("halo_rayo_9", CubeListBuilder.create()
+                .texOffs(16, 50).addBox(-0.5F, -10F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 4.9742F));
+        PartDefinition p_halo_aro_10 = p_halo.addOrReplaceChild("halo_aro_10", CubeListBuilder.create()
+                .texOffs(40, 54).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 5.236F));
+        PartDefinition p_halo_rayo_10 = p_halo.addOrReplaceChild("halo_rayo_10", CubeListBuilder.create()
+                .texOffs(104, 45).addBox(-0.5F, -11F, -0.5F, 1F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 5.4978F));
+        PartDefinition p_halo_aro_11 = p_halo.addOrReplaceChild("halo_aro_11", CubeListBuilder.create()
+                .texOffs(50, 54).addBox(-2F, -7F, -0.5F, 4F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 5.7596F));
+        PartDefinition p_halo_rayo_11 = p_halo.addOrReplaceChild("halo_rayo_11", CubeListBuilder.create()
+                .texOffs(20, 50).addBox(-0.5F, -10F, -0.5F, 1F, 3F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 6.0214F));
+        return LayerDefinition.create(malla, 128, 64);
+    }
+
+    private static LayerDefinition solar_pechera() {
+        MeshDefinition malla = new MeshDefinition();
+        PartDefinition raiz = malla.getRoot();
+        PartDefinition p_head = raiz.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_body = raiz.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_right_arm = raiz.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offset(-5F, 2F, 0F));
+        PartDefinition p_left_arm = raiz.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(5F, 2F, 0F));
+        PartDefinition p_right_leg = raiz.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offset(-1.9F, 12F, 0F));
+        PartDefinition p_left_leg = raiz.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offset(1.9F, 12F, 0F));
+        PartDefinition p_pechera_solar = p_body.addOrReplaceChild("pechera_solar", CubeListBuilder.create()
+                .texOffs(50, 0).addBox(-4F, 0F, -2F, 8F, 12F, 4F, new CubeDeformation(0.85F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_manga_right_arm = p_right_arm.addOrReplaceChild("manga_right_arm", CubeListBuilder.create()
+                .texOffs(42, 18).addBox(-3F, -2F, -2F, 4F, 6F, 4F, new CubeDeformation(0.85F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_manga_left_arm = p_left_arm.addOrReplaceChild("manga_left_arm", CubeListBuilder.create()
+                .texOffs(58, 18).addBox(-1F, -2F, -2F, 4F, 6F, 4F, new CubeDeformation(0.85F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_lamina_izq_0 = p_left_arm.addOrReplaceChild("lamina_izq_0", CubeListBuilder.create()
+                .texOffs(24, 29).addBox(-3.5F, -1F, -3.5F, 7F, 1F, 7F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0.8F, -3.4F, 0F, 0F, 0F, -0.2094F));
+        PartDefinition p_lamina_izq_1 = p_left_arm.addOrReplaceChild("lamina_izq_1", CubeListBuilder.create()
+                .texOffs(80, 29).addBox(-2.5F, -0.5F, -3F, 5F, 1F, 6F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(3.1F, -2.3F, 0F, 0F, 0F, -0.6632F));
+        PartDefinition p_lamina_izq_2 = p_left_arm.addOrReplaceChild("lamina_izq_2", CubeListBuilder.create()
+                .texOffs(42, 38).addBox(-2F, -0.5F, -2.5F, 4F, 1F, 5F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(4.4F, -0.2F, 0F, 0F, 0F, -1.0821F));
+        PartDefinition p_lamina_der_0 = p_right_arm.addOrReplaceChild("lamina_der_0", CubeListBuilder.create()
+                .texOffs(52, 29).addBox(-3.5F, -1F, -3.5F, 7F, 1F, 7F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-0.8F, -3.4F, 0F, 0F, 0F, 0.2094F));
+        PartDefinition p_lamina_der_1 = p_right_arm.addOrReplaceChild("lamina_der_1", CubeListBuilder.create()
+                .texOffs(102, 29).addBox(-2.5F, -0.5F, -3F, 5F, 1F, 6F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-3.1F, -2.3F, 0F, 0F, 0F, 0.6632F));
+        PartDefinition p_lamina_der_2 = p_right_arm.addOrReplaceChild("lamina_der_2", CubeListBuilder.create()
+                .texOffs(60, 38).addBox(-2F, -0.5F, -2.5F, 4F, 1F, 5F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-4.4F, -0.2F, 0F, 0F, 0F, 1.0821F));
+        PartDefinition p_llama_hombro_izq = p_left_arm.addOrReplaceChild("llama_hombro_izq", CubeListBuilder.create()
+                .texOffs(90, 38).addBox(-2.5F, -6F, 0F, 5F, 6F, 0F, CubeDeformation.NONE)
+                .texOffs(22, 18).addBox(0F, -6F, -2.5F, 0F, 6F, 5F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(3.4F, -3.6F, 0.6F, -0.1396F, 0F, 0.5236F));
+        PartDefinition p_llama_hombro_der = p_right_arm.addOrReplaceChild("llama_hombro_der", CubeListBuilder.create()
+                .texOffs(100, 38).addBox(-2.5F, -6F, 0F, 5F, 6F, 0F, CubeDeformation.NONE)
+                .texOffs(32, 18).addBox(0F, -6F, -2.5F, 0F, 6F, 5F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-3.4F, -3.6F, 0.6F, -0.1396F, 0F, -0.5236F));
+        PartDefinition p_gola_detras = p_body.addOrReplaceChild("gola_detras", CubeListBuilder.create()
+                .texOffs(0, 45).addBox(-4.5F, -4F, -0.5F, 9F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0.2F, 2.6F, -0.3142F, 0F, 0F));
+        PartDefinition p_gola_izq = p_body.addOrReplaceChild("gola_izq", CubeListBuilder.create()
+                .texOffs(10, 38).addBox(-0.5F, -3F, -2.5F, 1F, 3F, 4F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(4.4F, 0.2F, 0.6F, -0.1396F, 0F, -0.2443F));
+        PartDefinition p_gola_der = p_body.addOrReplaceChild("gola_der", CubeListBuilder.create()
+                .texOffs(20, 38).addBox(-0.5F, -3F, -2.5F, 1F, 3F, 4F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-4.4F, 0.2F, 0.6F, -0.1396F, 0F, 0.2443F));
+        PartDefinition p_gola_delante = p_body.addOrReplaceChild("gola_delante", CubeListBuilder.create()
+                .texOffs(48, 50).addBox(-3F, -1F, -0.5F, 6F, 1F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0.2F, -2.9F, 0.2094F, 0F, 0F));
+        PartDefinition p_halo_pecho = p_body.addOrReplaceChild("halo_pecho", CubeListBuilder.create()
+                .texOffs(0, 18).addBox(-5.5F, -5.5F, 0F, 11F, 11F, 0F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 4.6F, -3.75F, 0F, 0F, 0F));
+        PartDefinition p_sol_pecho = p_body.addOrReplaceChild("sol_pecho", CubeListBuilder.create()
+                .texOffs(78, 38).addBox(-2.5F, -2.5F, -0.5F, 5F, 5F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 4.6F, -3.1F, 0F, 0F, 0F));
+        PartDefinition p_capa_0 = p_body.addOrReplaceChild("capa_0", CubeListBuilder.create()
+                .texOffs(6, 0).addBox(-1.5F, 0F, 0F, 3F, 17F, 0F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-3F, 0.4F, 3F, 0.1396F, 0F, 0.0698F));
+        PartDefinition p_capa_1 = p_body.addOrReplaceChild("capa_1", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-1.5F, 0F, 0F, 3F, 18F, 0F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 0.4F, 3F, 0.1396F, 0F, 0F));
+        PartDefinition p_capa_2 = p_body.addOrReplaceChild("capa_2", CubeListBuilder.create()
+                .texOffs(12, 0).addBox(-1.5F, 0F, 0F, 3F, 17F, 0F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(3F, 0.4F, 3F, 0.1396F, 0F, -0.0698F));
+        return LayerDefinition.create(malla, 128, 64);
+    }
+
+    private static LayerDefinition solar_grebas() {
+        MeshDefinition malla = new MeshDefinition();
+        PartDefinition raiz = malla.getRoot();
+        PartDefinition p_head = raiz.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_body = raiz.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_right_arm = raiz.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offset(-5F, 2F, 0F));
+        PartDefinition p_left_arm = raiz.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(5F, 2F, 0F));
+        PartDefinition p_right_leg = raiz.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offset(-1.9F, 12F, 0F));
+        PartDefinition p_left_leg = raiz.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offset(1.9F, 12F, 0F));
+        PartDefinition p_cintura_solar = p_body.addOrReplaceChild("cintura_solar", CubeListBuilder.create()
+                .texOffs(0, 29).addBox(-4F, 7F, -2F, 8F, 5F, 4F, new CubeDeformation(0.55F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_pernera_right_leg = p_right_leg.addOrReplaceChild("pernera_right_leg", CubeListBuilder.create()
+                .texOffs(74, 0).addBox(-2F, 0F, -2F, 4F, 9F, 4F, new CubeDeformation(0.5F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_pernera_left_leg = p_left_leg.addOrReplaceChild("pernera_left_leg", CubeListBuilder.create()
+                .texOffs(90, 0).addBox(-2F, 0F, -2F, 4F, 9F, 4F, new CubeDeformation(0.5F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_faldon_0 = p_body.addOrReplaceChild("faldon_0", CubeListBuilder.create()
+                .texOffs(52, 45).addBox(-1.5F, 0F, -0.5F, 3F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-2.6F, 11.6F, -2.7F, 0.1396F, 0F, 0.2443F));
+        PartDefinition p_faldon_1 = p_body.addOrReplaceChild("faldon_1", CubeListBuilder.create()
+                .texOffs(110, 38).addBox(-1.5F, 0F, -0.5F, 3F, 5F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 11.6F, -2.95F, 0.1396F, 0F, 0F));
+        PartDefinition p_faldon_2 = p_body.addOrReplaceChild("faldon_2", CubeListBuilder.create()
+                .texOffs(60, 45).addBox(-1.5F, 0F, -0.5F, 3F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(2.6F, 11.6F, -2.7F, 0.1396F, 0F, -0.2443F));
+        PartDefinition p_faldon_detras_izq = p_body.addOrReplaceChild("faldon_detras_izq", CubeListBuilder.create()
+                .texOffs(68, 45).addBox(-1.5F, 0F, -0.5F, 3F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(1.9F, 11.6F, 2.7F, -0.1396F, 0F, -0.1745F));
+        PartDefinition p_faldon_detras_der = p_body.addOrReplaceChild("faldon_detras_der", CubeListBuilder.create()
+                .texOffs(76, 45).addBox(-1.5F, 0F, -0.5F, 3F, 4F, 1F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(-1.9F, 11.6F, 2.7F, -0.1396F, 0F, 0.1745F));
+        return LayerDefinition.create(malla, 128, 64);
+    }
+
+    private static LayerDefinition solar_botas() {
+        MeshDefinition malla = new MeshDefinition();
+        PartDefinition raiz = malla.getRoot();
+        PartDefinition p_head = raiz.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_body = raiz.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0F, 0F, 0F));
+        PartDefinition p_right_arm = raiz.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offset(-5F, 2F, 0F));
+        PartDefinition p_left_arm = raiz.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(5F, 2F, 0F));
+        PartDefinition p_right_leg = raiz.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offset(-1.9F, 12F, 0F));
+        PartDefinition p_left_leg = raiz.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offset(1.9F, 12F, 0F));
+        PartDefinition p_bota_left_leg = p_left_leg.addOrReplaceChild("bota_left_leg", CubeListBuilder.create()
+                .texOffs(74, 18).addBox(-2F, 6F, -2F, 4F, 6F, 4F, new CubeDeformation(1F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_puntera_izq = p_left_leg.addOrReplaceChild("puntera_izq", CubeListBuilder.create()
+                .texOffs(24, 50).addBox(-1F, -0.5F, -1.5F, 2F, 1F, 2F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 11.5F, -3F, 0F, 0F, 0F));
+        PartDefinition p_llama_talon_izq = p_left_leg.addOrReplaceChild("llama_talon_izq", CubeListBuilder.create()
+                .texOffs(108, 45).addBox(-1.5F, -4F, 0F, 3F, 4F, 0F, CubeDeformation.NONE)
+                .texOffs(30, 38).addBox(0F, -4F, -1.5F, 0F, 4F, 3F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 9.6F, 3.1F, -0.6981F, 0F, 0F));
+        PartDefinition p_bota_right_leg = p_right_leg.addOrReplaceChild("bota_right_leg", CubeListBuilder.create()
+                .texOffs(90, 18).addBox(-2F, 6F, -2F, 4F, 6F, 4F, new CubeDeformation(1F)),
+                PartPose.offsetAndRotation(0F, 0F, 0F, 0F, 0F, 0F));
+        PartDefinition p_puntera_der = p_right_leg.addOrReplaceChild("puntera_der", CubeListBuilder.create()
+                .texOffs(32, 50).addBox(-1F, -0.5F, -1.5F, 2F, 1F, 2F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 11.5F, -3F, 0F, 0F, 0F));
+        PartDefinition p_llama_talon_der = p_right_leg.addOrReplaceChild("llama_talon_der", CubeListBuilder.create()
+                .texOffs(114, 45).addBox(-1.5F, -4F, 0F, 3F, 4F, 0F, CubeDeformation.NONE)
+                .texOffs(36, 38).addBox(0F, -4F, -1.5F, 0F, 4F, 3F, CubeDeformation.NONE),
+                PartPose.offsetAndRotation(0F, 9.6F, 3.1F, -0.6981F, 0F, 0F));
         return LayerDefinition.create(malla, 128, 64);
     }
 }

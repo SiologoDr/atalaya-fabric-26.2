@@ -653,6 +653,11 @@ public class NovilisEntity extends Monster {
         }
         if (getEstado() != DORMIDO && !isDeadOrDying()) {
             objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), LEJOS);
+            // La Muralla de Jade: si un tanque le provoca, ese es su objetivo.
+            objetivo = com.atalaya.habilidad.Provocacion.objetivo(this, objetivo, com.atalaya.habilidad.Provocacion.ALCANCE);
+            if (objetivo != null && getTarget() != objetivo) {
+                setTarget(objetivo);
+            }
         }
 
         if (respiro > 0) respiro--;
@@ -771,7 +776,7 @@ public class NovilisEntity extends Monster {
         if (elegido == BARRIDO) {
             List<LivingEntity> cerca = presas(nivel, 30);
             if (!cerca.isEmpty()) {
-                setTarget(cerca.get(random.nextInt(cerca.size())));
+                setTarget(com.atalaya.habilidad.Provocacion.objetivo(this, cerca.get(random.nextInt(cerca.size())), 30));
             }
         }
         return iniciar(nivel, elegido);

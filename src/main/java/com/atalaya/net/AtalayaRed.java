@@ -66,6 +66,24 @@ public final class AtalayaRed {
         }
     }
 
+    /**
+     * "He pulsado la tecla de la habilidad" (R por defecto). Sin datos: el
+     * servidor mira que conjunto lleva y si la tiene lista.
+     */
+    public record Habilidad() implements CustomPacketPayload {
+
+        public static final Type<Habilidad> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "habilidad"));
+
+        public static final StreamCodec<FriendlyByteBuf, Habilidad> CODEC =
+                StreamCodec.unit(new Habilidad());
+
+        @Override
+        public Type<Habilidad> type() {
+            return TIPO;
+        }
+    }
+
     private AtalayaRed() {
     }
 
@@ -73,6 +91,7 @@ public final class AtalayaRed {
     public static void registrarTipos() {
         PayloadTypeRegistry.serverboundPlay().register(Salto.TIPO, Salto.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(OfrendaTecla.TIPO, OfrendaTecla.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(Habilidad.TIPO, Habilidad.CODEC);
     }
 
     /** Y esto solo en el servidor: quien atiende el aviso. */
@@ -81,5 +100,7 @@ public final class AtalayaRed {
                 AturdimientoManager.alSaltar(contexto.player()));
         ServerPlayNetworking.registerGlobalReceiver(OfrendaTecla.TIPO, (carga, contexto) ->
                 com.atalaya.entity.NovilisEntity.alPulsarTecla(contexto.player(), carga.jefe(), carga.indice(), carga.bien()));
+        ServerPlayNetworking.registerGlobalReceiver(Habilidad.TIPO, (carga, contexto) ->
+                com.atalaya.habilidad.Habilidades.activar(contexto.player()));
     }
 }

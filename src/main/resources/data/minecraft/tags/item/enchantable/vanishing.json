@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    "atalaya:mareas_helmet",
+    "atalaya:mareas_chestplate",
+    "atalaya:mareas_leggings",
+    "atalaya:mareas_boots",
+    "atalaya:jade_helmet",
+    "atalaya:jade_chestplate",
+    "atalaya:jade_leggings",
+    "atalaya:jade_boots",
+    "atalaya:vendaval_helmet",
+    "atalaya:vendaval_chestplate",
+    "atalaya:vendaval_leggings",
+    "atalaya:vendaval_boots",
+    "atalaya:solar_helmet",
+    "atalaya:solar_chestplate",
+    "atalaya:solar_leggings",
+    "atalaya:solar_boots",
+    "atalaya:jade_hammer",
+    "atalaya:solar_greatsword",
+    "atalaya:vendaval_bow",
+    "atalaya:mareas_trident"
+  ]
+}

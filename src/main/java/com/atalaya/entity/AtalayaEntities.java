@@ -84,6 +84,8 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_SOL_NOVILIS = clave("sol_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_ESTATUA_NOVILIS = clave("estatua_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_FUENTE_SOLAR = clave("fuente_solar");
+    public static final ResourceKey<EntityType<?>> CLAVE_TRIDENTE_MAREAS = clave("tridente_mareas");
+    public static final ResourceKey<EntityType<?>> CLAVE_FLECHA_VENDAVAL = clave("flecha_vendaval");
 
     /** Aeralis, la Mariposa del Vendaval: el jefe elemental del aire. */
     public static EntityType<AeralisEntity> AERALIS;
@@ -115,6 +117,10 @@ public final class AtalayaEntities {
     public static EntityType<NovilisEntity> NOVILIS;
     /** Las medias lunas de fuego del Barrido. */
     public static EntityType<TajoNovilisEntity> TAJO_NOVILIS;
+    /** El Tridente de las Mareas lanzado (el arma del sanador). */
+    public static EntityType<TridenteMareasEntity> TRIDENTE_MAREAS;
+    /** Las flechas del Arco del Vendaval (el arma del soporte). */
+    public static EntityType<FlechaVendavalEntity> FLECHA_VENDAVAL;
     /** Los sellos de sol del suelo (Castigo solar y Dios de la Guerra). */
     public static EntityType<SelloSolEntity> SELLO_SOL;
     /** La onda de fuego del Castigo solar. */
@@ -181,6 +187,27 @@ public final class AtalayaEntities {
         registrarAeralis();
         registrarRajang();
         registrarNovilis();
+        registrarArmas();
+    }
+
+    /** Lo que lanzan las armas de rol: como el tridente y la flecha de vanilla. */
+    private static void registrarArmas() {
+        TRIDENTE_MAREAS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_TRIDENTE_MAREAS,
+                EntityType.Builder.<TridenteMareasEntity>of(TridenteMareasEntity::new, MobCategory.MISC)
+                        .noLootTable()
+                        .sized(0.5F, 0.5F)
+                        .eyeHeight(0.13F)
+                        .clientTrackingRange(4)
+                        .updateInterval(20)
+                        .build(CLAVE_TRIDENTE_MAREAS));
+        FLECHA_VENDAVAL = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_FLECHA_VENDAVAL,
+                EntityType.Builder.<FlechaVendavalEntity>of(FlechaVendavalEntity::new, MobCategory.MISC)
+                        .noLootTable()
+                        .sized(0.5F, 0.5F)
+                        .eyeHeight(0.13F)
+                        .clientTrackingRange(4)
+                        .updateInterval(20)
+                        .build(CLAVE_FLECHA_VENDAVAL));
     }
 
     private static void registrarNovilis() {

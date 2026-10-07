@@ -3,9 +3,6 @@ package com.atalaya.item;
 import com.atalaya.effect.CorrienteAbismalEffect;
 import com.atalaya.effect.ParalisisEffect;
 import com.atalaya.effect.PesoTierraEffect;
-import com.atalaya.entity.AeralisEntity;
-import com.atalaya.entity.NereaEntity;
-import com.atalaya.entity.RajangEntity;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.minecraft.ChatFormatting;
@@ -15,8 +12,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
-import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -68,15 +63,17 @@ public class EspadaJefeItem extends Item {
             case MAREAS -> AtalayaParticulas.MAREAS_TAJO;
             case JADE -> AtalayaParticulas.JADE_TAJO;
             case VENDAVAL -> AtalayaParticulas.VENDAVAL_TAJO;
+            case SOLAR -> AtalayaParticulas.SOLAR_TAJO;
         }, tajo, 1, 0.0);
         // Y su clink limpio, en cada golpe.
         nivel.playSound(null, blanco.getX(), blanco.getY() + 1.0, blanco.getZ(), switch (tema) {
             case MAREAS -> AtalayaSonidos.ESPADA_MAREAS_GOLPE;
             case JADE -> AtalayaSonidos.ESPADA_JADE_GOLPE;
             case VENDAVAL -> AtalayaSonidos.ESPADA_VENDAVAL_GOLPE;
+            case SOLAR -> AtalayaSonidos.ESPADA_SOLAR_GOLPE;
         }, SoundSource.PLAYERS, 0.8F, 0.95F + nivel.getRandom().nextFloat() * 0.1F);
         // Lo del jefe: de vez en cuando, y nunca contra un jefe.
-        if (esJefe(blanco) || nivel.getRandom().nextFloat() >= PROBABILIDAD) {
+        if (com.atalaya.habilidad.Jefes.esJefeOMinijefe(blanco) || nivel.getRandom().nextFloat() >= PROBABILIDAD) {
             return;
         }
         switch (tema) {
@@ -103,12 +100,6 @@ public class EspadaJefeItem extends Item {
                 sonido(nivel, blanco, AtalayaSonidos.AERALIS_ALETEO, 1.8F);
             }
         }
-    }
-
-    /** Los jefes: los tres elementales y los de vanilla. */
-    private static boolean esJefe(LivingEntity v) {
-        return v instanceof NereaEntity || v instanceof AeralisEntity || v instanceof RajangEntity
-                || v instanceof WitherBoss || v instanceof EnderDragon;
     }
 
     private static void particulas(ServerLevel nivel, SimpleParticleType tipo, Vec3 p, int n, double vel) {

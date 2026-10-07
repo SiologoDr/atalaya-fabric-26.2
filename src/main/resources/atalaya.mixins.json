@@ -8,12 +8,15 @@
     "BotinSecretoMixin",
     "CreeperAccessor",
     "DanoFulminanteMixin",
+    "DanoHabilidadesMixin",
+    "LivingEntityAccessor",
     "PoisonMobEffectMixin",
+    "QuemaduraAguaMixin",
     "RanuraAturdidoMixin",
     "RecipeManagerMixin",
     "SpawnPlacementsInvoker",
-    "VitrificarMixin",
-    "QuemaduraAguaMixin"
+    "ThrownTridentAccessor",
+    "VitrificarMixin"
   ],
   "injectors": {
     "defaultRequire": 1

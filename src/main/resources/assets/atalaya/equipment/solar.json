@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "atalaya:solar"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "atalaya:solar"
+      }
+    ]
+  }
+}

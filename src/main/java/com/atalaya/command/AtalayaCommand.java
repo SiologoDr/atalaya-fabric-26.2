@@ -63,6 +63,7 @@ import java.util.List;
  *                                    fuentes, fuente, ofrenda, dios, aturdido, furia,
  *                                    grito, fase, liberar).
  *
+ *   /atalaya habilidad            -> lanza la habilidad de tu armadura, como la tecla R
  *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
  *                                    peto o elitros, grebas y botas) tuya o de
  *                                    los jugadores que digas.
@@ -92,6 +93,13 @@ public final class AtalayaCommand {
                         .then(Commands.literal("diagnostico")
                                 .requires(AtalayaCommand::esOperador)
                                 .executes(ctx -> diagnostico(ctx.getSource())))
+                        .then(Commands.literal("habilidad")
+                                .requires(AtalayaCommand::esOperador)
+                                .executes(ctx -> {
+                                    // Lo mismo que pulsar la tecla de la habilidad (para probar).
+                                    com.atalaya.habilidad.Habilidades.activar(ctx.getSource().getPlayerOrException());
+                                    return 1;
+                                }))
                         .then(Commands.literal("nerea")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("orden", StringArgumentType.word())
