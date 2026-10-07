@@ -443,16 +443,40 @@ anim('DORMIDO', 6.0, muestreada(lambda s: sumar(DORMIDO, {'torso': r(2.5 * math.
                                                        'cabeza': r(2 * math.sin(2 * math.pi * s / 6.0 - 0.6))}), 6.0, 12),
      loop=True)
 
-# --- Despertar: alza la cabeza, se pone en pie de un tiron, arranca la espada y ruge ---
-_mira = sumar(DORMIDO, {'cabeza': r(-36), 'cuello': r(-8), 'torso': r(-6)})
-_de_pie = ik(mezcla({'pelvis': P(0, 10, -2), 'torso': r(18), 'cabeza': r(-8)},
-                    pies(izq=(11, -22), der=(-11, 10))), der=(-6, -30, -30), izq=(24, -40, -10), espada=(0, 1, 0.1))
+# --- Despertar (la presentacion, 9,5 s; el mismo guion que los otros tres jefes) ---
+#   0-40    dormido de rodilla sobre la espada: respira hondo, se le escapa un temblor
+#   40      ABRE: alza la cabeza; el visor se enciende (primer plano de la cara)
+#   70      SE_ALZA: agarra la espada, empuja y se pone en pie con la hoja aun clavada
+#   120     ALZADO: la arranca y la alza al sol, que se aviva
+#   145     RUGE: se encoge un instante y ruge al cielo; lo aguanta
+#   178-190 vuelve a la guardia
+T_DESPERTAR_ABRE = 2.0
+T_DESPERTAR_SE_ALZA = 3.5
+T_DESPERTAR_ALZADO = 6.0
+T_DESPERTAR_RUGE = 7.25
+_respira = sumar(DORMIDO, {'torso': r(-4), 'cabeza': r(-3), 'pelvis': P(0, -1, 0)})
+_tiembla = sumar(DORMIDO, {'torso': r(2, 3), 'cabeza': r(4, -4)})
+_mira = sumar(DORMIDO, {'cabeza': r(-40), 'cuello': r(-8), 'torso': r(-8)})
+_mira_lado = sumar(_mira, {'cabeza': r(2, 14)})
+_empuja = ik(mezcla(RODILLA, {'torso': r(26), 'cabeza': r(-24), 'pelvis': P(0, 22, -2)}), der=(0, -16, -30), izq=(0, -26, -30),
+             espada=(0, 1, 0.05))
+_de_pie = ik(mezcla({'pelvis': P(0, 8, -2), 'torso': r(14), 'cabeza': r(-10)},
+                    pies(izq=(11, -22), der=(-11, 10))), der=(-4, -30, -30), izq=(18, -40, -20), espada=(0, 1, 0.1))
 _arranca = ik(mezcla({'cabeza': r(-22), 'torso': r(-8), 'pelvis': P(0, 2, 0)}, CAPA_VIENTO,
                      pies(izq=(12, -12), der=(-12, 9))), der=(-14, -126, -10), izq=(40, -56, -12), espada=(-0.1, -1, 0.05))
-T_DESPERTAR_RUGE = 1.45
-anim('DESPERTAR', 2.4, [(0, DORMIDO, 'e'), (0.4, _mira, 'e'), (0.85, _de_pie, 'o'), (1.15, _arranca, 'i'),
-                        (T_DESPERTAR_RUGE, GRITO, 'o'), (1.75, sumar(GRITO, {'cabeza': r(-4, 6)}), 'e'),
-                        (1.95, sumar(GRITO, {'cabeza': r(-2, -5)}), 'e'), (2.4, G, 'e')])
+_al_sol = mezcla(ALZA, pies(izq=(12, -10), der=(-12, 9)))
+_al_sol_tiembla = sumar(_al_sol, {'torso': r(-4, 3), 'cabeza': r(-6, -4)})
+_carga_grito = ik(mezcla({'torso': r(24), 'cabeza': r(20), 'pelvis': P(0, 9, 0)}, pies(izq=(14, -10), der=(-14, 10))),
+                  izq=(18, -52, -26), der=(-18, -52, -26), espada=(-0.4, 0.5, -0.75))
+_grito = mezcla(GRITO, pies(izq=(14, -10), der=(-14, 10)))
+anim('DESPERTAR', 9.5, [(0, DORMIDO, 'e'), (0.9, _respira, 'e'), (1.4, _tiembla, 'o'), (1.7, DORMIDO, 'e'),
+                        (T_DESPERTAR_ABRE, DORMIDO, 'e'), (2.7, _mira, 'o'), (3.2, _mira_lado, 'e'),
+                        (T_DESPERTAR_SE_ALZA, _mira, 'e'), (4.3, _empuja, 'e'), (5.2, _de_pie, 'o'),
+                        (5.7, sumar(_de_pie, {'torso': r(6), 'pelvis': P(0, 3, 0)}), 'e'), (T_DESPERTAR_ALZADO, _arranca, 'i'),
+                        (6.35, _al_sol, 'o'), (6.75, _al_sol_tiembla, 'e'), (7.0, _carga_grito, 'e'),
+                        (T_DESPERTAR_RUGE, _grito, 'i'), (7.55, sumar(_grito, {'cabeza': r(-6, 5), 'torso': r(-3)}), 'o'),
+                        (8.0, sumar(_grito, {'cabeza': r(-3, -6)}), 'e'), (8.45, sumar(_grito, {'cabeza': r(-5, 4)}), 'e'),
+                        (8.9, _grito, 'e'), (9.5, G, 'e')])
 
 # --- Barrido Solar: cuatro tajos encadenados, cada uno con su paso ---
 # carga (anticipacion corta) -> golpe (llega a toda velocidad) -> el impulso se
@@ -916,7 +940,8 @@ def java_geometria():
     alcance = max(math.hypot(puntos[f'PUNTA_TAJO_{i + 1}'][0], puntos[f'PUNTA_TAJO_{i + 1}'][2]) for i in range(4))
     tiempos = {'DURACION_' + n: tick(a['dur']) for n, a in ANIMS.items()}
     tiempos.update({
-        'DESPERTAR_RUGE': tick(T_DESPERTAR_RUGE),
+        'DESPERTAR_RUGE': tick(T_DESPERTAR_RUGE), 'DESPERTAR_ABRE': tick(T_DESPERTAR_ABRE),
+        'DESPERTAR_SE_ALZA': tick(T_DESPERTAR_SE_ALZA), 'DESPERTAR_ALZADO': tick(T_DESPERTAR_ALZADO),
         'TAJO_1': tick(T_TAJOS[0]), 'TAJO_2': tick(T_TAJOS[1]), 'TAJO_3': tick(T_TAJOS[2]), 'TAJO_4': tick(T_TAJOS[3]),
         'CASTIGO_ALZA': tick(T_CASTIGO_ALZA), 'CASTIGO_MARCA': tick(T_CASTIGO_MARCA), 'CASTIGO_RAYO': tick(T_CASTIGO_RAYO),
         'ONDA_CLAVA': tick(T_ONDA_CLAVA),
@@ -964,6 +989,29 @@ def java_geometria():
         b = p_bloques('OFRENDA', k / 20.0, 'mano_der', (0, 6, 0))
         x, y, z = (np.array(a) + np.array(b)) / 2
         filas.append(f'{{{x:.2f}F, {y:.2f}F, {z:.2f}F}}')
+    # La cabeza y el pecho en el despertar, cada 5 ticks: la camara de la presentacion los sigue.
+    for nombre, pieza, local in (('CABEZA', 'cabeza', (0, -10, 0)), ('PECHO', 'torso', (0, -34, -16))):
+        tabla = []
+        for k in range(0, tick(ANIMS['DESPERTAR']['dur']) + 1, 5):
+            x, y, z = p_bloques('DESPERTAR', k / 20.0, pieza, local)
+            tabla.append(f'{{{x:.2f}F, {y:.2f}F, {z:.2f}F}}')
+        L.append(f'    /** {nombre.capitalize()} en el despertar, cada 5 ticks (bloques; la camara de la presentacion la sigue). */')
+        L.append(f'    public static final float[][] {nombre}_DESPERTAR = {{' + ', '.join(tabla) + '};')
+    L.append('')
+    for nombre in ('cabeza', 'pecho'):
+        L.append(f'    public static Vec3 {nombre}Despertar(float ticks) {{')
+        L.append(f'        return tabla({nombre.upper()}_DESPERTAR, ticks / 5.0F);')
+        L.append('    }')
+        L.append('')
+    L.append('    private static Vec3 tabla(float[][] t, float f) {')
+    L.append('        int n = t.length - 1;')
+    L.append('        f = Math.max(0.0F, Math.min(n, f));')
+    L.append('        int i = Math.min((int) f, n - 1);')
+    L.append('        float k = f - i;')
+    L.append('        return new Vec3(t[i][0] + (t[i + 1][0] - t[i][0]) * k, t[i][1] + (t[i + 1][1] - t[i][1]) * k,')
+    L.append('                t[i][2] + (t[i + 1][2] - t[i][2]) * k);')
+    L.append('    }')
+    L.append('')
     L.append('    /** Entre las dos manos en la Ofrenda, desde OFRENDA_AGARRA hasta el final, tick a tick. */')
     L.append('    public static final float[][] MANOS_OFRENDA = {' + ', '.join(filas) + '};')
     L.append('')

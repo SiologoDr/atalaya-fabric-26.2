@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
@@ -18,6 +19,10 @@ import net.minecraft.util.Mth;
  * un conjunto entero puesto. Lista, el icono limpio; activa, late y una barra
  * del color del elemento se va gastando debajo; en recarga, se oscurece desde
  * arriba lo que le falta y dice los segundos que quedan.
+ *
+ * A su derecha, la tecla que la lanza (la que haya en Controles, categoria
+ * Atalaya; R por defecto), dibujada como una tecla: encendida del color del
+ * elemento cuando esta lista, apagada mientras esta activa o en recarga.
  */
 public class HabilidadHud implements HudElement {
 
@@ -30,6 +35,10 @@ public class HabilidadHud implements HudElement {
     private static final int ICONO = 18;
     private static final int MEDIA_HOTBAR = 91;
     private static final int SEPARACION = 6;
+    /** La tecla dibujada: alto, hueco con el marco y lo que puede medir de ancho. */
+    private static final int TECLA_ALTO = 12;
+    private static final int TECLA_HUECO = 3;
+    private static final int TECLA_MAX = 60;
 
     private static Identifier tex(String nombre) {
         return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/habilidad/" + nombre + ".png");
@@ -76,5 +85,25 @@ public class HabilidadHud implements HudElement {
             String segundos = Integer.toString(Mth.ceil((e.lista() - ahora) / 20.0F));
             g.text(mc.font, segundos, x + MARCO_TAM / 2 - mc.font.width(segundos) / 2, y + 7, 0xFFFFFFFF, true);
         }
+        tecla(g, mc, x + MARCO_TAM + TECLA_HUECO, y + (MARCO_TAM - TECLA_ALTO) / 2, !activa && !recarga ? COLOR[i] : 0xFF5A5A5A);
+    }
+
+    /** La tecla de la habilidad, como una tecla de teclado: borde, cara y la letra. */
+    private static void tecla(GuiGraphicsExtractor g, Minecraft mc, int x, int y, int borde) {
+        if (HabilidadCliente.TECLA == null) {
+            return;
+        }
+        String nombre = HabilidadCliente.TECLA.isUnbound() ? "?" : HabilidadCliente.TECLA.getTranslatedKeyMessage().getString();
+        if (mc.font.width(nombre) > TECLA_MAX - 6) {
+            nombre = mc.font.plainSubstrByWidth(nombre, TECLA_MAX - 10) + "..";
+        }
+        int ancho = Math.max(TECLA_ALTO, mc.font.width(nombre) + 6);
+        boolean lista = borde != 0xFF5A5A5A;
+        // borde del color del elemento, la cara oscura y, debajo, el canto de la tecla
+        g.fill(x, y, x + ancho, y + TECLA_ALTO, borde);
+        g.fill(x + 1, y + 1, x + ancho - 1, y + TECLA_ALTO - 2, 0xFF1C1C22);
+        g.fill(x + 1, y + TECLA_ALTO - 2, x + ancho - 1, y + TECLA_ALTO - 1, 0xFF0C0C10);
+        g.text(mc.font, Component.literal(nombre), x + (ancho - mc.font.width(nombre) + 1) / 2, y + 2,
+                lista ? 0xFFFFFFFF : 0xFF9A9A9A, true);
     }
 }

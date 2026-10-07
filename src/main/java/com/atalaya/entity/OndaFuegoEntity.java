@@ -25,6 +25,10 @@ import java.util.UUID;
  * clava la espada y corre por el suelo. Se salta: solo quema a quien pilla con
  * los pies en el suelo al pasar (y un nivel de quemadura).
  *
+ * Tambien es el pulso de los angeles de las Trompetas (lanzarPulso): un anillo
+ * corto que sale de los pies del angel por su estrado cada 5 s y tira abajo a
+ * quien este encima (empuja mas, apenas hace dano y no quema). Se salta igual.
+ *
  * El radio sale de la edad en los dos lados: no hace falta mandarlo.
  */
 public class OndaFuegoEntity extends Entity {
@@ -41,6 +45,8 @@ public class OndaFuegoEntity extends Entity {
 
     private @Nullable NovilisEntity dueno;
     private float dano;
+    /** El pulso de los angeles: empuja mas, sin quemadura ni fuego. */
+    private boolean pulso;
     private final Set<UUID> golpeados = new HashSet<>();
 
     public OndaFuegoEntity(EntityType<? extends OndaFuegoEntity> tipo, Level nivel) {
@@ -59,6 +65,14 @@ public class OndaFuegoEntity extends Entity {
         o.entityData.set(DATA_COLOR, dueno.tieneFuria() ? 5 : fase);
         o.setPos(centro.x, centro.y, centro.z);
         nivel.addFreshEntity(o);
+        return o;
+    }
+
+    /** El pulso de un angel de las Trompetas: corto, rapido y para tirar del estrado. */
+    public static OndaFuegoEntity lanzarPulso(ServerLevel nivel, NovilisEntity dueno, Vec3 centro, float max, float dano,
+                                              int fase) {
+        OndaFuegoEntity o = lanzar(nivel, dueno, centro, max, 0.7F, dano, fase);
+        o.pulso = true;
         return o;
     }
 
@@ -129,8 +143,13 @@ public class OndaFuegoEntity extends Entity {
                 continue;
             }
             golpeados.add(v.getUUID());
-            if (dueno.quemar(nivel, v, NovilisDanos.ONDA, dano, 1, this)) {
-                Vec3 fuera = new Vec3(dx, 0, dz).normalize();
+            Vec3 fuera = d < 1.0E-3 ? new Vec3(1, 0, 0) : new Vec3(dx, 0, dz).normalize();
+            if (pulso) {
+                // Del estrado abajo: unos 7 bloques hacia fuera, entre o no el dano.
+                dueno.quemar(nivel, v, NovilisDanos.ONDA, dano, 0, this);
+                v.setDeltaMovement(fuera.x * 0.7, 0.45, fuera.z * 0.7);
+                v.hurtMarked = true;
+            } else if (dueno.quemar(nivel, v, NovilisDanos.ONDA, dano, 1, this)) {
                 v.setDeltaMovement(fuera.x * 0.8, 0.55, fuera.z * 0.8);
                 v.hurtMarked = true;
                 v.igniteForSeconds(3.0F);

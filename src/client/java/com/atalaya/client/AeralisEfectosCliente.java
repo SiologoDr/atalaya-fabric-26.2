@@ -98,8 +98,16 @@ public final class AeralisEfectosCliente {
                 }
             }
             case AeralisEntity.DESPERTAR -> {
-                if (t < AeralisGeometria.DESPERTAR_ALZA) {
+                // Se revuelve en el suelo desde que abre los ojos hasta que despega;
+                // cada batida sacude (la primera, la que la despega, mas).
+                if (t >= AeralisGeometria.DESPERTAR_ABRE && t < AeralisGeometria.DESPERTAR_ALZA) {
                     NereaPresencia.retumbar(x, y, z, 0.25F, 40);
+                }
+                int[] batidas = AeralisGeometria.DESPERTAR_BATIDAS;
+                for (int i = 0; i < batidas.length; i++) {
+                    if (t == batidas[i]) {
+                        NereaPresencia.sacudir(x, y, z, i == 0 ? 1.2F : 0.5F, 40);
+                    }
                 }
                 if (t == AeralisGeometria.DESPERTAR_CHILLA) {
                     NereaPresencia.sacudir(x, y, z, 2.6F, 56);

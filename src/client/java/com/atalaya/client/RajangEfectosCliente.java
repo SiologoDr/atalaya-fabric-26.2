@@ -58,12 +58,18 @@ public final class RajangEfectosCliente {
                 hojas(nivel, r, yo);
             }
             case RajangEntity.DESPERTAR -> {
-                if (t > RajangGeometria.DESPERTAR_SE_ALZA - 10 && t < RajangGeometria.DESPERTAR_SE_ALZA + 6) {
+                // la tierra retumba mientras saca las manos de ella, y otra vez cuando
+                // muele la piedra antes del rugido
+                if (t > RajangGeometria.DESPERTAR_SE_ALZA && t < RajangGeometria.DESPERTAR_SE_ALZA + 14
+                        || t > RajangGeometria.DESPERTAR_RUGE - 20 && t < RajangGeometria.DESPERTAR_RUGE) {
                     NereaPresencia.retumbar(x, y, z, 0.35F, 40);
                 }
                 if (t == RajangGeometria.DESPERTAR_RUGE) {
                     NereaPresencia.sacudir(x, y, z, 2.4F, 56);
                     NereaPresencia.asustarTierra(x, y, z, 0.9F, 56);
+                }
+                if (t == RajangGeometria.DESPERTAR_APOYA) {
+                    NereaPresencia.sacudir(x, y, z, 0.8F, 40);
                 }
             }
             case RajangEntity.GARRA -> {

@@ -201,6 +201,7 @@
   "death.attack.atalaya.novilis_supernova": "%1$s se consumió en la Supernova de %2$s",
   "death.attack.atalaya.novilis_dios": "%1$s cayó ante el Dios de la Guerra, %2$s",
   "death.attack.atalaya.novilis_calor": "%1$s ardió en las manos de %2$s",
+  "hud.atalaya.novilis.preparate": "¡Prepárate! Pulsa las letras en orden",
   "hud.atalaya.novilis.rotas": "Rotas %s/%s",
   "death.attack.atalaya.novilis_mortal": "%1$s fue ofrecido al sol por %2$s",
   "subtitles.atalaya.rajang.ambiente": "Rajang respira hondo",

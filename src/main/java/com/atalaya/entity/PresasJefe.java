@@ -23,6 +23,25 @@ import org.jspecify.annotations.Nullable;
  */
 public final class PresasJefe {
 
+    /**
+     * Lo que sigue la presentacion de un jefe tras acabar de despertar (ticks):
+     * unos 5 s mas con su cartel, para que se lea. Mientras esta en escena no se
+     * mueve, no ataca y no se le hace dano (Juan, 07-10-2026: "en ese tiempo el
+     * jefe no podra golpear porque estara en escena").
+     */
+    public static final int ESCENA = 100;
+
+    /** Lo que sigue quieto e inmune tras despertar: la escena y la vuelta de la camara (ticks). */
+    public static final int ESCENA_QUIETO = ESCENA + 26;
+
+    /**
+     * Lo minimo que espera un jefe tras despertar antes de su primer ataque
+     * (ticks): la escena, la vuelta de la camara a los ojos de los jugadores y
+     * un poco mas para que se ubiquen.
+     */
+    public static final int RESPIRO_PRESENTACION = ESCENA_QUIETO + 30;
+
+
     /** Cada cuanto se revisa el objetivo (ticks). */
     public static final int CADA = 10;
     /** Tan cerca, despierta aunque no lo vea (detras de un arbol, debajo de un techo). */

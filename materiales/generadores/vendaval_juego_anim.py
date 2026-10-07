@@ -20,6 +20,7 @@ AeralisGeometria.java (duraciones, ticks clave y puntos para el servidor) y
 las texturas de cada fase.
 
 Uso: python vendaval_juego_anim.py <raiz del proyecto> [carpeta de renders] [ANIM,ANIM]
+     VENDAVAL_SIN_TEXTURAS=1 no rehace las texturas.
 """
 import math, os, sys, copy
 import numpy as np
@@ -225,26 +226,104 @@ anim('DORMIDA', 6.0, [(0, _dorm, 'c'), (1.4, sumar(_dorm, antenas(6, 2)), 'c'), 
                       (4.2, _dorm, 'c'), (4.35, sumar(_dorm, alas2((-8, 8), (0, 0))), 'c'), (4.6, _dorm, 'c'),
                       (6.0, _dorm, 'c')], loop=True)
 
-# --- Despertar: se estremece, despliega las alas de golpe, dos batidas la
-#     despegan y chilla con las alas en alto ---
-_chillido = sumar(alas(4, 46, (2, 30), giro=-10), antenas(-20, 22), colmillos(34), abdomen(-14),
-                  patas(-24, -16), cuerpo(sube=20), {'cabeza': r(-34), 'torax': r(-18)})
+# --- Despertar (la presentacion, 9,5 s; el mismo guion que los otros tres jefes) ---
+#   0-40    dormida, posada con las alas cerradas: respira y se le mueven las antenas
+#   40      ABRE: se le encienden los ojos (crecen un instante); alza la cabeza y las
+#           antenas y mira alrededor (primer plano de la cara)
+#   70      SE_ALZA: se agacha, se yergue y abre las alas despacio hacia arriba
+#           hasta estirarlas (en el suelo no caben mas abiertas: las de abajo van
+#           altas para no clavarse); se agacha otra vez y la primera batida la
+#           despega (el servidor la empieza a subir en DESPERTAR_ALZA, un pelo
+#           antes, porque al cliente le llega la posicion con retraso)
+#   120     ALZADO: en el aire, batidas enormes; la ultima la recoge entera
+#   145     RUGE: estalla abriendose con la cabeza atras y chilla; lo aguanta
+#           temblando
+#   178-190 suelta el chillido, una batida mas y queda en su reposo de vuelo (N):
+#           al acabar, el vuelo entra con su peso desde cero sobre ese reposo
+# despertar.ogg trae dos batidas (a 1,25 y 1,75 s) y el chillido (a 2,1 s): el
+# servidor lo lanza en DESPERTAR_RUGE - 42 y las dos ultimas batidas de aqui
+# (DESPERTAR_BATIDAS) caen con las suyas.
+T_DESPERTAR = 9.5
+T_DESPERTAR_ABRE = 2.0
+T_DESPERTAR_SE_ALZA = 3.5
+T_DESPERTAR_ALZA = 5.0
+T_DESPERTAR_ALZADO = 6.0
+T_DESPERTAR_RUGE = 7.25
+T_DESPERTAR_BATIDAS = (5.15, 5.75, 6.4, 6.9)
+
+
+def _ojos(k):
+    """Los ojos se abren de golpe: crecen un instante y vuelven."""
+    return {'ojo_izq': {'esc': (k, k, k)}, 'ojo_der': {'esc': (k, k, k)}}
+
+
+_de_resp = sumar(_dorm, alas(-1, 3), abdomen(-3), cuerpo(sube=1.5), {'torax': r(-3), 'cabeza': r(-2)})
+_de_gacha = sumar(_dorm, antenas(-6, -2), cuerpo(sube=-1), {'torax': r(3), 'cabeza': r(7)})
+_de_alerta = sumar(_suelo, antenas(26, 14), colmillos(8), {'torax': r(-2), 'cabeza': r(-10)})
+_de_mira = sumar(_suelo, antenas(18, 10), cuerpo(sube=2), {'torax': r(-4), 'cabeza': r(-4)})
+_de_agacha = sumar(alas(-14, 84, (-36, 68)), cuerpo(sube=-50), abdomen(64, 12), patas(30, 18, -20), antenas(8, 6),
+                   {'torax': r(10), 'cabeza': r(6)})
+_de_estira = sumar(alas(20, 30, (0, 66), giro=-8), cuerpo(sube=-36), abdomen(56, 10), patas(14, 6, -8),
+                   antenas(-8, 24), colmillos(12), {'torax': r(-16), 'cabeza': r(-16)})
+_de_carga = sumar(alas(-30, 62, (-30, 66), giro=-14), cuerpo(sube=-46), abdomen(62, 12), patas(32, 20, -22),
+                  antenas(6, 12), {'torax': r(6), 'cabeza': r(2)})
+_de_recoge = sumar(alas(50, -28, (38, -16), giro=18), antenas(26, 4), colmillos(4), abdomen(-18), patas(22, 16),
+                   cuerpo(x=8, sube=12), {'torax': r(16), 'cabeza': r(20)})
+_chillido = sumar(alas(8, 52, (6, 34), giro=-10), antenas(-24, 26), colmillos(38), abdomen(-16),
+                  patas(-26, -18), cuerpo(x=-6, sube=22), {'cabeza': r(-36), 'torax': r(-20)})
+# Tras el golpe de cabeza atras, baja la cara hacia ellos sin dejar de chillar
+# (la toma de frente y el cartel la pillan de cara).
+_chillido2 = sumar(_chillido, antenas(10, 2), colmillos(4), cuerpo(x=4, sube=-2), {'cabeza': r(22), 'torax': r(8)})
+_b1, _b2, _b3, _b4 = T_DESPERTAR_BATIDAS
 _cl = [(0, _dorm, 'c'),
-       (0.4, sumar(_dorm, antenas(18, 6), {'cabeza': r(-18)}), 'c'),
-       (0.5, sumar(_dorm, antenas(18, 6), {'cabeza': r(-18)}, alas(4, 4)), 'c'),
-       (0.6, sumar(_dorm, antenas(18, 6), {'cabeza': r(-18)}, alas(-4, -4)), 'c'),
-       (0.7, sumar(_dorm, antenas(18, 6), {'cabeza': r(-18)}, alas(4, 4)), 'c'),
-       (0.85, sumar(alas(-30, 10, giro=-10), cuerpo(sube=-4), {'torax': r(-4), 'cabeza': r(-6)}), 'c'),
-       (1.0, sumar(alas(18, 34, giro=-18), antenas(-12, 16), {'cabeza': r(-12)}), 'c'),
-       (1.25, sumar(alas(48, -24, giro=16), cuerpo(sube=14), {'torax': r(8)}), 'l'),
-       (1.5, sumar(alas(-34, 26, giro=-12), cuerpo(sube=12)), 'c'),
-       (1.75, sumar(alas(44, -20, giro=14), cuerpo(sube=22), {'torax': r(6)}), 'l'),
-       (2.0, sumar(alas(-20, 40, giro=-8), colmillos(16), cuerpo(sube=20), {'torax': r(-14), 'cabeza': r(-20)}), 'c'),
-       (2.2, _chillido, 'l')]
-temblor(_chillido, 2.3, 2.9, 0.07, {'cabeza': {'rot': (2.5, 2.0, 0)}, 'ala_sup_izq': {'rot': (0, 2, -2)},
-                                     'ala_sup_der': {'rot': (0, -2, 2)}}, _cl)
-_cl += [(3.1, sumar(alas(-10, 20), cuerpo(sube=6), {'cabeza': r(-6)}), 'c'), (3.6, N, 'c')]
-anim('DESPERTAR', 3.6, _cl)
+       (0.55, _de_resp, 'c'),
+       (0.8, sumar(_de_resp, antenas(8, 3)), 'c'), (0.92, _de_resp, 'c'),
+       (1.3, _dorm, 'c'),
+       (1.5, sumar(_dorm, {'antena_der': r(10, 0, -4)}), 'c'), (1.62, _dorm, 'c'),
+       (1.8, sumar(_de_resp, cuerpo(sube=0.5)), 'c'),
+       (1.95, _de_gacha, 'c'),
+       (T_DESPERTAR_ABRE, sumar(_de_gacha, _ojos(1.0)), 'c'),
+       (2.1, sumar(_de_gacha, _ojos(1.4), {'cabeza': r(-12)}, antenas(10, 6)), 'c'),
+       (2.25, sumar(_de_alerta, _ojos(1.15)), 'c'),
+       (2.45, sumar(_de_mira, _ojos(1.0)), 'c'),
+       (2.8, sumar(_de_mira, {'cabeza': r(-2, 20), 'torax': r(0, 5)}, antenas(4, 6)), 'c'),
+       (3.15, sumar(_de_mira, {'cabeza': r(-4, -12), 'torax': r(0, -3)}), 'c'),
+       (3.3, sumar(_de_mira, colmillos(16), {'cabeza': r(-2)}), 'c'),
+       (3.38, sumar(_de_mira, colmillos(2)), 'c'),
+       (T_DESPERTAR_SE_ALZA, _de_agacha, 'c'),
+       (3.9, sumar(alas(-12, 72, (-28, 70)), cuerpo(sube=-46), abdomen(60, 10), patas(26, 14, -16), antenas(10, 16),
+                   {'torax': r(2), 'cabeza': r(-4)}), 'c'),
+       (4.3, sumar(alas(4, 48, (-12, 68), giro=-6), cuerpo(sube=-41), abdomen(58, 10), patas(20, 10, -12),
+                   antenas(0, 20), {'torax': r(-8), 'cabeza': r(-10)}), 'c'),
+       (4.65, _de_estira, 'c')]
+temblor(_de_estira, 4.7, 4.85, 0.05, {'ala_sup_izq': {'rot': (0, 1.5, -2)}, 'ala_sup_der': {'rot': (0, -1.5, 2)}}, _cl)
+_cl += [(4.95, _de_carga, 'c'),
+        (_b1, sumar(alas(42, 12, (24, 40), giro=16), cuerpo(sube=-18), abdomen(24), patas(-10, -6, 10),
+                    {'torax': r(10), 'cabeza': r(4)}), 'l'),
+        (5.32, sumar(alas(30, 4, (20, 30), giro=10), cuerpo(sube=-12), abdomen(14), patas(-12, -8), {'torax': r(6)}), 'c'),
+        (5.5, sumar(alas(-34, 40, (-26, 40), giro=-12), cuerpo(sube=-8), abdomen(8), patas(-14, -10), {'torax': r(-4)}), 'c'),
+        (_b2, sumar(alas(46, -14, (34, 6), giro=15), cuerpo(sube=2), abdomen(10), patas(-16, -10), {'torax': r(8)}), 'l'),
+        (T_DESPERTAR_ALZADO, sumar(alas(-38, 44, (-28, 30), giro=-14), antenas(-10, 20), abdomen(-4), patas(-18, -12),
+                                   cuerpo(sube=4), {'torax': r(-8), 'cabeza': r(-10)}), 'c'),
+        (_b3, sumar(alas(54, -30, (40, -20), giro=18), abdomen(10), patas(-16, -10), cuerpo(sube=12),
+                    {'torax': r(10), 'cabeza': r(2)}), 'l'),
+        (6.58, sumar(alas(40, -20, giro=12), cuerpo(sube=14), {'torax': r(6)}), 'c'),
+        (6.75, sumar(alas(-22, 54, (-16, 38), giro=-12), antenas(-14, 22), abdomen(-6), patas(-20, -14),
+                     cuerpo(sube=10), {'torax': r(-12), 'cabeza': r(-14)}), 'c'),
+        (_b4, _de_recoge, 'l'),
+        (7.08, sumar(_de_recoge, alas(4, -2), cuerpo(sube=-1), {'torax': r(2), 'cabeza': r(3)}), 'c'),
+        (T_DESPERTAR_RUGE, _chillido, 'l')]
+_tiembla = {'cabeza': {'rot': (2.5, 2.0, 0)}, 'torax': {'rot': (1.0, 0, 0)},
+            'ala_sup_izq': {'rot': (0, 2.5, -2.5)}, 'ala_sup_der': {'rot': (0, -2.5, 2.5)},
+            'ala_inf_izq': {'rot': (0, 1.5, -1.5)}, 'ala_inf_der': {'rot': (0, -1.5, 1.5)}}
+temblor(_chillido, 7.32, 7.5, 0.06, _tiembla, _cl)
+_cl += [(7.68, _chillido2, 'c')]
+temblor(_chillido2, 7.75, 8.45, 0.07, _tiembla, _cl)
+_cl += [(8.6, sumar(alas(26, -12, giro=8), colmillos(10), abdomen(4), cuerpo(sube=12), {'torax': r(4), 'cabeza': r(-8)}), 'c'),
+        (8.9, sumar(alas(-16, 22, giro=-6), cuerpo(sube=6), {'cabeza': r(-3)}), 'c'),
+        (9.2, sumar(alas(8, 2), cuerpo(sube=2)), 'c'),
+        (T_DESPERTAR, N, 'c')]
+anim('DESPERTAR', T_DESPERTAR, _cl)
 
 # --- Aleteo Cortante: se retuerce como un lanzador, con las alas en alto
 #     temblando de tension, y suelta un tajo horizontal girando el cuerpo y
@@ -647,7 +726,10 @@ def java_geometria():
     def tick(s):
         return int(round(s * 20))
     tiempos = {
-        'DURACION_DESPERTAR': tick(ANIMS['DESPERTAR']['dur']), 'DESPERTAR_ALZA': tick(1.25), 'DESPERTAR_CHILLA': tick(2.2),
+        'DURACION_DESPERTAR': tick(ANIMS['DESPERTAR']['dur']), 'DESPERTAR_ALZA': tick(T_DESPERTAR_ALZA),
+        'DESPERTAR_CHILLA': tick(T_DESPERTAR_RUGE), 'DESPERTAR_ABRE': tick(T_DESPERTAR_ABRE),
+        'DESPERTAR_SE_ALZA': tick(T_DESPERTAR_SE_ALZA), 'DESPERTAR_ALZADO': tick(T_DESPERTAR_ALZADO),
+        'DESPERTAR_RUGE': tick(T_DESPERTAR_RUGE),
         'DURACION_ALETEO': tick(ANIMS['ALETEO']['dur']), 'ALETEO_CARGA': tick(0.12), 'ALETEO_SUELTA': tick(T_ALETEO),
         'DURACION_TORNADOS': tick(ANIMS['TORNADOS']['dur']), 'TORNADOS_GOLPE': tick(T_TORNADOS),
         'DURACION_MARCA': tick(ANIMS['MARCA']['dur']), 'MARCA_FIJA': tick(T_MARCA),
@@ -683,6 +765,35 @@ def java_geometria():
     L.append('')
     for k, v in tiempos.items():
         L.append(f'    public static final int {k} = {v};')
+    L.append('')
+    batidas = ', '.join(str(tick(b)) for b in T_DESPERTAR_BATIDAS)
+    L.append('    /** Los golpes de alas del despertar (ticks): el primero la despega; los dos ultimos suenan en despertar.ogg. */')
+    L.append(f'    public static final int[] DESPERTAR_BATIDAS = {{{batidas}}};')
+    L.append('')
+    # La cabeza y el pecho en el despertar, cada 5 ticks: la camara de la presentacion
+    # los sigue. Solo lo que mueve la animacion: lo que la sube el servidor va aparte.
+    for nombre, pieza, local in (('CABEZA', 'cabeza', (0, -12, -10)), ('PECHO', 'nucleo', (0, 0, 0))):
+        filas = []
+        for k in range(0, tick(ANIMS['DESPERTAR']['dur']) + 1, 5):
+            x, y, z = p_bloques('DESPERTAR', k / 20.0, pieza, local)
+            filas.append('{' + ', '.join(('%.2f' % c).replace('-0.00', '0.00') + 'F' for c in (x, y, z)) + '}')
+        L.append(f'    /** {nombre.capitalize()} en el despertar, cada 5 ticks (bloques; sin la altura que le da el servidor). */')
+        L.append(f'    public static final float[][] {nombre}_DESPERTAR = {{' + ', '.join(filas) + '};')
+    L.append('')
+    for nombre, quien in (('cabeza', 'la cabeza'), ('pecho', 'el pecho')):
+        L.append(f'    /** Donde va {quien} a los tantos ticks (de animacion) de empezar a despertar. */')
+        L.append(f'    public static Vec3 {nombre}Despertar(float ticks) {{')
+        L.append(f'        return tabla({nombre.upper()}_DESPERTAR, ticks / 5.0F);')
+        L.append('    }')
+        L.append('')
+    L.append('    private static Vec3 tabla(float[][] t, float f) {')
+    L.append('        int n = t.length - 1;')
+    L.append('        f = Math.max(0.0F, Math.min(n, f));')
+    L.append('        int i = Math.min((int) f, n - 1);')
+    L.append('        float k = f - i;')
+    L.append('        return new Vec3(t[i][0] + (t[i + 1][0] - t[i][0]) * k, t[i][1] + (t[i + 1][1] - t[i][1]) * k,')
+    L.append('                t[i][2] + (t[i + 1][2] - t[i][2]) * k);')
+    L.append('    }')
     L.append('}')
     return '\n'.join(L) + '\n', puntos, tiempos
 
@@ -740,12 +851,13 @@ if __name__ == '__main__':
     uv, alto = vj.empaquetar()
     TEX = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/entity/aeralis')
     os.makedirs(TEX, exist_ok=True)
-    for fase in (4, 3, 2, 1):
-        base, brillo = vj.pintar_atlas(uv, alto, fase)
-        Image.fromarray(base).save(os.path.join(TEX, f'aeralis_f{fase}.png'))
-        Image.fromarray(brillo).save(os.path.join(TEX, f'aeralis_brillo_f{fase}.png'))
-    base_l, brillo_l = vj.pintar_atlas(uv, alto, 'libre')
-    Image.fromarray(brillo_l).save(os.path.join(TEX, 'aeralis_brillo_libre.png'))
+    if not os.environ.get('VENDAVAL_SIN_TEXTURAS'):
+        for fase in (4, 3, 2, 1):
+            base, brillo = vj.pintar_atlas(uv, alto, fase)
+            Image.fromarray(base).save(os.path.join(TEX, f'aeralis_f{fase}.png'))
+            Image.fromarray(brillo).save(os.path.join(TEX, f'aeralis_brillo_f{fase}.png'))
+        base_l, brillo_l = vj.pintar_atlas(uv, alto, 'libre')
+        Image.fromarray(brillo_l).save(os.path.join(TEX, 'aeralis_brillo_libre.png'))
     base, brillo = vj.pintar_atlas(uv, alto, 1)
 
     CLI = os.path.join(RAIZ, 'src/client/java/com/atalaya/client')

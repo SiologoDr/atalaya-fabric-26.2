@@ -69,7 +69,7 @@ public class AtalayaClient implements ClientModInitializer {
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "aviso_traje"),
-                new AvisoTrajeHud());
+                oculto(new AvisoTrajeHud()));
 
         // Los dos medidores van enganchados a la HOTBAR, no al numero de
         // experiencia.
@@ -84,14 +84,14 @@ public class AtalayaClient implements ClientModInitializer {
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "hidratacion"),
-                new HidratacionHud());
+                oculto(new HidratacionHud()));
 
         // El copo de frio, en el mismo sitio que la gota. La separacion, cuando
         // hace falta, la pone el propio elemento.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "frio"),
-                new FrioHud());
+                oculto(new FrioHud()));
 
         // El halo va ANTES de la hotbar, al contrario que los otros: es un velo
         // a pantalla completa, asi que tiene que quedar por DEBAJO de todo lo
@@ -103,7 +103,7 @@ public class AtalayaClient implements ClientModInitializer {
         HudElementRegistry.attachElementBefore(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "vineta"),
-                new VinetaHud());
+                oculto(new VinetaHud()));
 
         // El fulminante: su capa de modelo y quien lo pinta. Las animaciones
         // salen de heredar el modelo del creeper, asi que aqui no hay nada
@@ -167,13 +167,14 @@ public class AtalayaClient implements ClientModInitializer {
         ModelLayerRegistry.registerModelLayer(com.atalaya.client.FuenteSolarRenderer.CAPA, com.atalaya.client.FuenteSolarMalla::crear);
         ModelLayerRegistry.registerModelLayer(com.atalaya.client.FuenteSolarRenderer.CAPA_ROTA, com.atalaya.client.FuenteSolarMalla::crearRota);
         EntityRendererRegistry.register(AtalayaEntities.FUENTE_SOLAR, com.atalaya.client.FuenteSolarRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.ESTRADO_NOVILIS, com.atalaya.client.EstradoNovilisRenderer::new);
 
         // El aviso de la tecla va DESPUES de la hotbar para quedar por encima:
         // es una instruccion, y taparla con cualquier cosa la haria inutil.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "aturdimiento"),
-                new AturdimientoHud());
+                oculto(new AturdimientoHud()));
 
         // Y quien cuenta las pulsaciones mientras dura.
         //
@@ -281,7 +282,7 @@ public class AtalayaClient implements ClientModInitializer {
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.MISC_OVERLAYS,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "miedo"),
-                new com.atalaya.client.MiedoHud());
+                oculto(new com.atalaya.client.MiedoHud()));
         // Su barra de jefe, propia: la ola, el marco de prismarina, el corazon de
         // la fase (la calavera mientras mira) y el agua del color de la
         // maldicion. Va con la barra de jefe de vanilla,
@@ -289,42 +290,76 @@ public class AtalayaClient implements ClientModInitializer {
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.BOSS_BAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_nerea"),
-                new com.atalaya.client.NereaBarraHud());
+                oculto(new com.atalaya.client.NereaBarraHud()));
         // La de Aeralis, despues: si las dos estan a la vista, va debajo.
         HudElementRegistry.attachElementAfter(
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_nerea"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_aeralis"),
-                new com.atalaya.client.AeralisBarraHud());
+                oculto(new com.atalaya.client.AeralisBarraHud()));
         // Y la de Rajang, debajo de las dos.
         HudElementRegistry.attachElementAfter(
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_aeralis"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
-                new com.atalaya.client.RajangBarraHud());
+                oculto(new com.atalaya.client.RajangBarraHud()));
         // Y la de Novilis, debajo de las tres.
         HudElementRegistry.attachElementAfter(
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_novilis"),
-                new com.atalaya.client.NovilisBarraHud());
+                oculto(new com.atalaya.client.NovilisBarraHud()));
         // La pantalla de la Ofrenda al Sol (la del atrapado), por encima de la hotbar.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ofrenda"),
-                new com.atalaya.client.OfrendaHud());
+                oculto(new com.atalaya.client.OfrendaHud()));
         // El icono de la habilidad de la armadura, a la derecha de la hotbar.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "habilidad"),
-                new com.atalaya.client.HabilidadHud());
+                oculto(new com.atalaya.client.HabilidadHud()));
         // La quemadura de Novilis, a la izquierda de los corazones.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "quemadura"),
-                new com.atalaya.client.QuemaduraHud());
+                oculto(new com.atalaya.client.QuemaduraHud()));
 
         // Solo en el entorno de pruebas (con run/atalaya_fotos.flag).
         com.atalaya.client.FotosPrueba.registrar();
 
         Atalaya.LOGGER.info("Atalaya (cliente) iniciado.");
+
+        // La presentacion de los jefes al despertar: la camara de cine (en sus
+        // mixins), las bandas y el cartel por encima de todo, y mientras la camara
+        // esta fuera, el resto del HUD escondido.
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.START_CLIENT_TICK.register(
+                com.atalaya.client.PresentacionJefe::tick);
+        // En combate con un jefe, los corazones del jugador son los suyos (CorazonesJefe).
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.START_CLIENT_TICK.register(
+                com.atalaya.client.CorazonesJefe::tick);
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "presentacion"),
+                new com.atalaya.client.PresentacionHud());
+        java.util.List<Identifier> escondidos = new java.util.ArrayList<>(java.util.List.of(
+                VanillaHudElements.CROSSHAIR, VanillaHudElements.HOTBAR, VanillaHudElements.ARMOR_BAR,
+                VanillaHudElements.HEALTH_BAR, VanillaHudElements.FOOD_BAR, VanillaHudElements.AIR_BAR,
+                VanillaHudElements.MOUNT_HEALTH, VanillaHudElements.INFO_BAR, VanillaHudElements.EXPERIENCE_LEVEL,
+                VanillaHudElements.HELD_ITEM_TOOLTIP, VanillaHudElements.MOB_EFFECTS, VanillaHudElements.BOSS_BAR,
+                VanillaHudElements.SCOREBOARD, VanillaHudElements.OVERLAY_MESSAGE, VanillaHudElements.CHAT));
+        for (Identifier id : escondidos) {
+            HudElementRegistry.replaceElement(id, original -> (g, delta) -> {
+                if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
+                    original.extractRenderState(g, delta);
+                }
+            });
+        }
+    }
+
+    /** Un elemento del HUD propio que se esconde mientras la camara de la presentacion de un jefe esta fuera. */
+    private static net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement oculto(
+            net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement e) {
+        return (g, delta) -> {
+            if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
+                e.extractRenderState(g, delta);
+            }
+        };
     }
 
     private static void nerea(SimpleParticleType tipo, NereaParticula.Tipo comportamiento) {

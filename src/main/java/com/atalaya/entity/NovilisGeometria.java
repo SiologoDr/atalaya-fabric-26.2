@@ -54,7 +54,7 @@ public final class NovilisGeometria {
     public static final int DURACION_ANDAR = 28;
     public static final int DURACION_CORRER = 22;
     public static final int DURACION_DORMIDO = 120;
-    public static final int DURACION_DESPERTAR = 48;
+    public static final int DURACION_DESPERTAR = 190;
     public static final int DURACION_BARRIDO = 52;
     public static final int DURACION_CASTIGO = 44;
     public static final int DURACION_CASTIGO_ONDA = 60;
@@ -70,7 +70,10 @@ public final class NovilisGeometria {
     public static final int DURACION_ATURDIDO_BUCLE = 48;
     public static final int DURACION_TAMBALEO = 44;
     public static final int DURACION_LIBERACION = 200;
-    public static final int DESPERTAR_RUGE = 29;
+    public static final int DESPERTAR_RUGE = 145;
+    public static final int DESPERTAR_ABRE = 40;
+    public static final int DESPERTAR_SE_ALZA = 70;
+    public static final int DESPERTAR_ALZADO = 120;
     public static final int TAJO_1 = 8;
     public static final int TAJO_2 = 20;
     public static final int TAJO_3 = 30;
@@ -96,6 +99,28 @@ public final class NovilisGeometria {
     public static final int GRITO_RUGE = 11;
     public static final int TAMBALEO_RUGE = 24;
     public static final int LIBERACION_ORO = 70;
+
+    /** Cabeza en el despertar, cada 5 ticks (bloques; la camara de la presentacion la sigue). */
+    public static final float[][] CABEZA_DESPERTAR = {{0.00F, 10.58F, 2.85F}, {0.00F, 10.62F, 2.80F}, {0.00F, 10.77F, 2.59F}, {0.00F, 10.88F, 2.42F}, {-0.04F, 10.77F, 2.60F}, {-0.11F, 10.46F, 3.04F}, {-0.09F, 10.44F, 3.06F}, {-0.00F, 10.57F, 2.86F}, {0.00F, 10.58F, 2.85F}, {0.00F, 11.08F, 1.89F}, {0.00F, 11.22F, 1.23F}, {0.00F, 11.23F, 1.09F}, {0.03F, 11.23F, 1.10F}, {0.06F, 11.23F, 1.12F}, {0.00F, 11.23F, 1.06F}, {0.00F, 11.34F, 1.36F}, {0.00F, 11.57F, 2.34F}, {0.00F, 11.58F, 2.92F}, {0.00F, 12.45F, 2.52F}, {0.00F, 13.16F, 2.10F}, {0.00F, 13.48F, 1.89F}, {0.00F, 13.54F, 1.86F}, {0.00F, 13.22F, 2.24F}, {0.00F, 13.04F, 2.50F}, {0.00F, 14.32F, -0.70F}, {-0.00F, 14.55F, -1.11F}, {0.01F, 14.55F, -1.17F}, {0.05F, 14.42F, -1.62F}, {-0.01F, 12.88F, 3.09F}, {-0.00F, 14.11F, -0.86F}, {0.05F, 13.63F, -2.23F}, {0.03F, 13.67F, -2.14F}, {-0.06F, 13.77F, -1.90F}, {-0.02F, 13.76F, -1.90F}, {0.04F, 13.75F, -1.91F}, {0.02F, 13.79F, -1.86F}, {-0.00F, 13.83F, -1.82F}, {0.00F, 14.41F, -0.78F}, {0.00F, 14.63F, 0.10F}};
+    /** Pecho en el despertar, cada 5 ticks (bloques; la camara de la presentacion la sigue). */
+    public static final float[][] PECHO_DESPERTAR = {{0.00F, 7.33F, 2.82F}, {0.00F, 7.37F, 2.80F}, {0.00F, 7.51F, 2.70F}, {0.00F, 7.60F, 2.63F}, {-0.04F, 7.51F, 2.71F}, {-0.14F, 7.27F, 2.89F}, {-0.12F, 7.25F, 2.90F}, {-0.00F, 7.33F, 2.82F}, {0.00F, 7.33F, 2.82F}, {0.00F, 7.55F, 2.57F}, {0.00F, 7.66F, 2.42F}, {0.00F, 7.68F, 2.39F}, {0.00F, 7.69F, 2.39F}, {0.00F, 7.69F, 2.38F}, {0.00F, 7.69F, 2.38F}, {0.00F, 7.75F, 2.55F}, {0.00F, 7.84F, 3.11F}, {0.00F, 7.80F, 3.41F}, {0.00F, 8.71F, 3.21F}, {0.00F, 9.49F, 2.98F}, {0.00F, 9.85F, 2.86F}, {0.00F, 9.92F, 2.84F}, {0.00F, 9.55F, 3.01F}, {0.00F, 9.34F, 3.12F}, {0.00F, 11.23F, 1.50F}, {-0.00F, 11.61F, 1.32F}, {-0.01F, 11.64F, 1.30F}, {-0.06F, 11.70F, 1.08F}, {-0.01F, 9.39F, 3.05F}, {0.00F, 11.06F, 1.37F}, {0.00F, 11.23F, 0.75F}, {0.00F, 11.22F, 0.81F}, {0.00F, 11.19F, 0.94F}, {0.00F, 11.19F, 0.94F}, {0.00F, 11.19F, 0.95F}, {0.00F, 11.19F, 0.95F}, {0.00F, 11.20F, 0.96F}, {0.00F, 11.33F, 1.41F}, {0.00F, 11.35F, 1.75F}};
+
+    public static Vec3 cabezaDespertar(float ticks) {
+        return tabla(CABEZA_DESPERTAR, ticks / 5.0F);
+    }
+
+    public static Vec3 pechoDespertar(float ticks) {
+        return tabla(PECHO_DESPERTAR, ticks / 5.0F);
+    }
+
+    private static Vec3 tabla(float[][] t, float f) {
+        int n = t.length - 1;
+        f = Math.max(0.0F, Math.min(n, f));
+        int i = Math.min((int) f, n - 1);
+        float k = f - i;
+        return new Vec3(t[i][0] + (t[i + 1][0] - t[i][0]) * k, t[i][1] + (t[i + 1][1] - t[i][1]) * k,
+                t[i][2] + (t[i + 1][2] - t[i][2]) * k);
+    }
 
     /** Entre las dos manos en la Ofrenda, desde OFRENDA_AGARRA hasta el final, tick a tick. */
     public static final float[][] MANOS_OFRENDA = {{-0.00F, 7.18F, 4.82F}, {-0.00F, 7.21F, 4.82F}, {-0.00F, 7.40F, 4.80F}, {-0.00F, 7.76F, 4.74F}, {-0.00F, 8.13F, 4.67F}, {-0.00F, 8.39F, 4.61F}, {-0.00F, 8.49F, 4.58F}, {-0.00F, 9.42F, 5.06F}, {-0.00F, 10.68F, 5.21F}, {-0.00F, 11.95F, 5.02F}, {-0.00F, 12.97F, 4.64F}, {-0.00F, 13.67F, 4.24F}, {-0.00F, 14.17F, 3.82F}, {-0.00F, 14.45F, 3.53F}, {-0.00F, 14.57F, 3.38F}, {-0.00F, 14.63F, 3.30F}, {-0.00F, 14.63F, 3.30F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}, {-0.00F, 14.63F, 3.29F}};

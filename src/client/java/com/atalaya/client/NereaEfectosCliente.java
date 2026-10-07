@@ -64,10 +64,18 @@ public final class NereaEfectosCliente {
         int t = (int) ((n.tickCount - n.inicioEstado) * n.ritmoCliente);
         switch (estado) {
             case NereaEntity.DESPERTAR -> {
-                if (t < 30) {
-                    NereaPresencia.retumbar(x, y, z, 0.35F, 40);
+                // Dormido aun, el fondo apenas tiembla; tirando de las cadenas,
+                // retumba; al soltarse, un golpe; y el rugido, con todo.
+                if (t < NereaGeometria.DESPERTAR_ABRE) {
+                    NereaPresencia.retumbar(x, y, z, 0.2F, 40);
                 }
-                if (t == 40) {
+                if (t >= NereaGeometria.DESPERTAR_SE_ALZA && t < NereaGeometria.DESPERTAR_ROMPE) {
+                    NereaPresencia.retumbar(x, y, z, 0.45F, 40);
+                }
+                if (t == NereaGeometria.DESPERTAR_ROMPE) {
+                    NereaPresencia.sacudir(x, y, z, 1.4F, 40);
+                }
+                if (t == NereaGeometria.DESPERTAR_RUGE) {
                     NereaPresencia.sacudir(x, y, z, 2.6F, 48);
                     NereaPresencia.asustar(x, y, z, 0.9F, 44);
                 }

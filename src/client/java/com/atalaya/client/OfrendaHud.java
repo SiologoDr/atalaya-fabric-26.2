@@ -6,6 +6,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
@@ -153,7 +154,13 @@ public class OfrendaHud implements HudElement {
         int yc = Math.min(g.guiHeight() / 2 + 28, g.guiHeight() - 86);
 
         pieza(g, TITULO, cx - TITULO_ANCHO / 2, yc - 42, TITULO_ANCHO, LETRAS_ALTO, blanco);
-        if (fallo) {
+        float prepara = fin ? 0.0F : OfrendaCliente.preparacion(parcial);
+        if (prepara > 0.0F) {
+            // Los 3 s para prepararse: PREPARATE y la cuenta atras grande, encima de las
+            // teclas (que se ven ya, apagadas, para irlas leyendo).
+            preparacion(g, mc, cx, yc, prepara, a);
+            blanco = apagado(0.45F, a);
+        } else if (fallo) {
             pieza(g, FALLASTE, cx - FALLASTE_ANCHO / 2, yc - 29, FALLASTE_ANCHO, LETRAS_ALTO, blanco);
         } else if (exito) {
             pieza(g, LIBRE, cx - LIBRE_ANCHO / 2, yc - 29, LIBRE_ANCHO, LETRAS_ALTO, blanco);
@@ -243,6 +250,21 @@ public class OfrendaHud implements HudElement {
         if (w > 0) {
             recorte(g, TIEMPO, bx + 1, ty + 1, w, TIEMPO_ALTO - 2, ancho, parpadeo ? apagado(0.3F, a) : blanco);
         }
+    }
+
+    /** La cuenta atras de la preparacion: el numero grande y, encima, PREPARATE. */
+    private static void preparacion(GuiGraphicsExtractor g, Minecraft mc, int cx, int yc, float queda, int a) {
+        int seg = Math.max(1, (int) Math.ceil(queda));
+        float k = queda - (float) Math.floor(queda);         // cada numero entra grande y se encoge
+        float escala = 3.0F + 1.0F * (k <= 0.0F ? 0.0F : k);
+        String n = Integer.toString(seg);
+        g.pose().pushMatrix();
+        // por encima del titulo (OFRENDA AL SOL, a yc - 42): el numero mide 8 x escala
+        g.pose().translate(cx, yc - 46 - 4 * escala);
+        g.pose().scale(escala, escala);
+        g.centeredText(mc.font, n, 0, -4, (a << 24) | 0xFFD24A);
+        g.pose().popMatrix();
+        g.centeredText(mc.font, Component.translatable("hud.atalaya.novilis.preparate"), cx, yc - 28, (a << 24) | 0xFFF0C8);
     }
 
     /** La letra de la tecla grande (fila 0 la de ahora, 1 la rota). Solo A-Z. */

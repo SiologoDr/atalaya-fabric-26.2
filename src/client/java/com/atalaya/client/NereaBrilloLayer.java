@@ -2,6 +2,7 @@ package com.atalaya.client;
 
 import com.atalaya.Atalaya;
 import com.atalaya.entity.NereaEntity;
+import com.atalaya.entity.NereaGeometria;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -46,9 +47,13 @@ public class NereaBrilloLayer extends RenderLayer<NereaRenderState, NereaModel> 
         if (s.estado == NereaEntity.ATURDIDO && ((int) s.ageInTicks % 5) < 2) {
             k *= 0.35F;
         }
-        // Dormido, el brillo respira despacio.
+        // Dormido, el brillo respira despacio. Despertando sigue asi hasta que
+        // abre los ojos (DESPERTAR_ABRE), y entonces se enciende de golpe.
         if (s.estado == NereaEntity.DORMIDO) {
             k *= 0.55F + 0.25F * Mth.sin(s.ageInTicks * 0.08F);
+        } else if (s.estado == NereaEntity.DESPERTAR) {
+            float enciende = Mth.clamp((s.segundosEstado * 20.0F - NereaGeometria.DESPERTAR_ABRE) / 3.0F, 0.0F, 1.0F);
+            k *= Mth.lerp(enciende, 0.55F + 0.25F * Mth.sin(s.ageInTicks * 0.08F), 1.0F);
         }
         if (k <= 0.01F) {
             return;

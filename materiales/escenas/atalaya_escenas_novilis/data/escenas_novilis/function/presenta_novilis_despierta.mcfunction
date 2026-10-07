@@ -1,0 +1,12 @@
+execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run atalaya novilis despertar
+schedule function escenas_novilis:presenta_novilis_1_dormido 20t append
+schedule function escenas_novilis:presenta_novilis_2_ojos 55t append
+schedule function escenas_novilis:presenta_novilis_3_se_alza 95t append
+schedule function escenas_novilis:presenta_novilis_4_poder 135t append
+schedule function escenas_novilis:presenta_novilis_5_ruge 151t append
+schedule function escenas_novilis:presenta_novilis_6_cartel 163t append
+schedule function escenas_novilis:presenta_novilis_7_cartel2 181t append
+schedule function escenas_novilis:presenta_novilis_8_escena 270t append
+schedule function escenas_novilis:presenta_novilis_9_vuelta 306t append
+schedule function escenas_novilis:presenta_novilis_10_jugador 330t append
+schedule function escenas_novilis:presenta_novilis_11_corazones 355t append

@@ -1083,11 +1083,82 @@ def tajo_estela():
     return de_array(out)
 
 
+# ----------------------------------------------------------------------
+#  El estrado de los angeles de las Trompetas: marmol con filo de oro.
+#  estrado_cima (64x64, la losa de arriba entera: el borde de oro, el marmol
+#  vetado y un sol de oro en medio) y estrado_lado (32x32, se repite cada dos
+#  bloques: sillares de marmol, la moldura de oro arriba y una costura de
+#  fuego abajo, que avisa de que de ahi sale el pulso).
+# ----------------------------------------------------------------------
+MARMOL = rampa('6e675a', '9a917e', 'c9c1ae', 'e2dccd', 'f2eee3')
+ORO_E = rampa('5a3c12', '8e6420', 'c8902a', 'f0bd52', 'ffe39a')
+
+
+def _vetas(n, semilla):
+    v = 0.6 * ruido(n, n, 8, semilla) + 0.4 * ruido(n, n, 3, semilla + 1)
+    return (v - v.min()) / (v.max() - v.min())
+
+
+def estrado_cima():
+    n = 64
+    out = np.zeros((n, n, 4))
+    v = _vetas(n, 801)
+    yy, xx = np.mgrid[0:n, 0:n] + 0.5
+    for y in range(n):
+        for x in range(n):
+            k = 2 + (1 if v[y, x] > 0.62 else 0) - (1 if v[y, x] < 0.25 else 0)
+            out[y, x, :3] = MARMOL[k][:3]
+            out[y, x, 3] = 255
+    # el filo de oro (dos pixeles) con su sombra por dentro
+    borde = (xx < 3) | (yy < 3) | (xx > n - 3) | (yy > n - 3)
+    sombra = ((xx < 4) | (yy < 4) | (xx > n - 4) | (yy > n - 4)) & ~borde
+    out[borde, :3] = ORO_E[3][:3]
+    out[(xx < 1.5) | (yy < 1.5), :3] = ORO_E[4][:3]
+    out[(xx > n - 1.5) | (yy > n - 1.5), :3] = ORO_E[2][:3]
+    out[sombra, :3] = MARMOL[1][:3]
+    # el sol de oro en medio: disco con rayos
+    d = np.hypot(xx - n / 2, yy - n / 2)
+    a = np.arctan2(yy - n / 2, xx - n / 2)
+    rayo = (d < 22) & (d > 9) & (np.abs(((a / TAU * 12) % 1.0) - 0.5) < 0.12 + 0.06 * (1 - (d - 9) / 13))
+    out[rayo, :3] = ORO_E[2][:3]
+    out[(d < 9.5), :3] = ORO_E[3][:3]
+    out[(d < 7), :3] = ORO_E[4][:3]
+    out[(d < 9.5) & (d > 8.5), :3] = ORO_E[1][:3]
+    return de_array(out)
+
+
+def estrado_lado():
+    n = 32
+    out = np.zeros((n, n, 4))
+    v = _vetas(n, 811)
+    for y in range(n):
+        for x in range(n):
+            k = 2 + (1 if v[y, x] > 0.6 else 0) - (1 if v[y, x] < 0.25 else 0)
+            out[y, x, :3] = MARMOL[k][:3]
+            out[y, x, 3] = 255
+    # sillares: juntas horizontales y verticales al tresbolillo
+    for y in (10, 21):
+        out[y, :, :3] = MARMOL[0][:3]
+        out[y - 1, :, :3] = MARMOL[1][:3]
+    for fila, (y0, y1) in enumerate(((3, 10), (11, 21), (22, 29))):
+        for x in ((8, 24) if fila % 2 == 0 else (0, 16)):
+            out[y0:y1, x, :3] = MARMOL[0][:3]
+    # la moldura de oro arriba y la costura de fuego abajo
+    out[0:3, :, :3] = ORO_E[3][:3]
+    out[0, :, :3] = ORO_E[4][:3]
+    out[2, :, :3] = ORO_E[1][:3]
+    out[29:32, :, :3] = MARMOL[0][:3]
+    out[30, :, :3] = (255, 150, 50)
+    out[30, ::5, :3] = (255, 220, 120)
+    return de_array(out)
+
+
 ENTIDAD = {
     'sello': sello(), 'haz': haz(), 'llamas_n': pared_llamas(PARED_N), 'llamas_c': pared_llamas(PARED_C),
     'llamas_a': pared_llamas(PARED_A), 'media_luna': media_luna(), 'sol': sol(), 'sol_superficie': sol_superficie(),
     'charco': charco(), 'estela': estela(), 'chispas_suelo': chispas_suelo(), 'novilis_disolver': disolver(),
     'llama_sprite': llama_sprite(), 'tajo_estela': tajo_estela(),
+    'estrado_cima': estrado_cima(), 'estrado_lado': estrado_lado(),
 }
 for nombre, im in ENTIDAD.items():
     im.save(os.path.join(ENT, nombre + '.png'))

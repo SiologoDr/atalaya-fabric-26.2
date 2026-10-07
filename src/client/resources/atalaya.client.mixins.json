@@ -7,7 +7,12 @@
     "MareoMixin",
     "TemblorCamaraMixin",
     "MusicaJefesMixin",
-    "OfrendaTecladoMixin"
+    "OfrendaTecladoMixin",
+    "CamaraPresentacionMixin",
+    "TecladoPresentacionMixin",
+    "ClientInputAccesor",
+    "CorazonesJefeMixin",
+    "IconosArmaduraMixin"
   ],
   "injectors": {
     "defaultRequire": 1

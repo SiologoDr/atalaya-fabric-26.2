@@ -43,6 +43,8 @@ public class EstatuaNovilisRenderer extends EntityRenderer<EstatuaNovilisEntity,
         public float rumbo;
         public boolean rota;
         public float desdeGolpe = 100.0F;
+        /** Va a dar su pulso: la trompeta se enciende del todo y parpadea. */
+        public boolean avisa;
     }
 
     /** La malla tal cual (no se anima: es una estatua). */
@@ -73,6 +75,7 @@ public class EstatuaNovilisRenderer extends EntityRenderer<EstatuaNovilisEntity,
         s.rumbo = e.getYRot();
         s.rota = e.isRoto();
         s.desdeGolpe = e.tickCount - e.ultimoGolpe + parcial;
+        s.avisa = e.avisa();
     }
 
     @Override
@@ -94,7 +97,7 @@ public class EstatuaNovilisRenderer extends EntityRenderer<EstatuaNovilisEntity,
         Modelo m = s.rota ? rota : entera;
         colector.order(1).submitModel(m, s, pose, PIEL, s.lightCoords, OverlayTexture.NO_OVERLAY, s.outlineColor, null);
         if (!s.rota) {
-            float late = 0.75F + 0.25F * Mth.sin(s.edad * 0.25F);
+            float late = s.avisa ? 0.85F + 0.15F * Mth.sin(s.edad * 1.6F) : 0.75F + 0.25F * Mth.sin(s.edad * 0.25F);
             colector.order(2).submitModel(m, s, pose, BRILLO, NovilisDibujo.A_PLENA_LUZ, OverlayTexture.NO_OVERLAY,
                     ARGB.colorFromFloat(late, late, late, late), null, s.outlineColor, null);
         }

@@ -21,12 +21,14 @@ comando corta lo que haya en marcha. Las presas son maniquies.
 
 Las dos "_tu" no van en el recorrido: te dejan en supervivencia con un totem.
 
-Uso: python novilis_escenas_juego.py <raiz del proyecto> [carpeta del mundo] [--auto[=escena]]
+Uso: python novilis_escenas_juego.py <raiz del proyecto> [carpeta del mundo] [--auto[=escena]] [--jefes=a,b]
 """
 import json, os, shutil, sys
 
 AUTO = next((a.split('=', 1)[1] if '=' in a else 'recorrido' for a in sys.argv[1:] if a.startswith('--auto')), None)
-ARGS = [a for a in sys.argv[1:] if not a.startswith('--auto')]
+# --jefes=a,b: las presentaciones solo de esos jefes.
+JEFES = next((a.split('=', 1)[1].split(',') for a in sys.argv[1:] if a.startswith('--jefes=')), None)
+ARGS = [a for a in sys.argv[1:] if not a.startswith('--')]
 RAIZ = ARGS[0]
 NS = 'escenas_novilis'
 DESTINO = os.path.join(RAIZ, 'materiales/escenas/atalaya_escenas_novilis')
@@ -166,17 +168,21 @@ ESCENAS['sol'] = (
      (240, [camara(30, 8, -18, 18, 1, 0)]), (250, [foto('charcos_cerca')])],
     300, 'trompetas')
 
+# Los angeles en sus estrados: uno con un maniqui encima (el pulso lo tira), y
+# Novilis plantado en medio sin atacar mientras suena la melodia.
 ESCENAS['trompetas'] = (
-    [novilis(), camara(-30, 16, -32, 0, 5, 0)] +
-    titulo('Trompetas del Apocalipsis', 'Cuatro angeles tocan su melodia: rompedlos antes de que acabe'),
+    [novilis(), maniqui(26, 0), camara(-30, 16, -32, 0, 5, 0)] +
+    titulo('Trompetas del Apocalipsis', 'Cada angel en su estrado: cada 5 s un pulso de fuego tira a quien este encima'),
     [(0, [orden('despertar')])] + subir(2, 0) +
     [(150, [orden('trompetas')]), (176, [foto('alza')]), (192, [foto('salen')]), (215, [foto('estatuas')]),
-     (225, [camara(0, 34, -34, 0, 0, 0)]), (235, [foto('estatuas_arriba')]),
-     (245, [camara(-24, 6, -10, 0, 5, 0)]), (255, [foto('estatua_cerca')])] +
-    [(270 + 3 * i, [orden('estatua')]) for i in range(10)] +
-    [(305, [foto('estatua_rota'), camara(0, 34, -34, 0, 0, 0)]), (315, [foto('rota_arriba')]),
-     (325, [camara(-30, 16, -32, 0, 5, 0)]),
-     (640, [foto('melodia_acaba')]), (670, [foto('furia')]), (700, [foto('furia_2')])],
+     # un maniqui en el estrado del segundo angel (a -10,6 / +10,6 del centro)
+     (212, ['summon minecraft:mannequin ~-10.6 ~2.1 ~8.2 {Tags:["escena"],CustomName:"en el estrado",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}']),
+     (220, [camara(-24, 7, -6, -10.6, 3, 10.6)]), (230, [foto('estrado')]),
+     (276, [foto('aviso')]), (296, [foto('pulso')]), (302, [foto('pulso_2')]), (312, [foto('pulso_3')]),
+     (330, [camara(0, 34, -34, 0, 0, 0)]), (340, [foto('estatuas_arriba')]), (360, [foto('novilis_quieto')])] +
+    [(380 + 3 * i, [orden('estatua')]) for i in range(10)] +
+    [(415, [foto('estatua_rota')]),
+     (640, [camara(-30, 16, -32, 0, 5, 0)]), (650, [foto('melodia_acaba')]), (680, [foto('furia')])],
     740, 'fuentes')
 
 ESCENAS['fuentes'] = (
@@ -220,6 +226,17 @@ ESCENAS['dios'] = (
      (400, [camara(28, 10, -16, 0, 9, 0)]), (420, [foto('recoge')])],
     450, 'furia')
 
+# La punteria: Novilis empieza de espaldas a su presa y tiene que encararla
+# (el Barrido) y lanzarle los soles de frente.
+ESCENAS['punteria'] = (
+    [novilis(giro=90), maniqui(10, 0), maniqui(16, 10), maniqui(18, -10), camara(6, 20, -40, 6, 4, 0)] +
+    titulo('Punteria', 'Empieza de espaldas: tiene que encarar a su presa antes de pegar'),
+    [(0, [orden('despertar')]), (60, [orden('barrido')]), (64, [foto('barrido_gira')]), (70, [foto('barrido_tajo1')]),
+     (82, [foto('barrido_tajo2')])] + [(130 + CAMBIO * i, [orden('fase')]) for i in range(1)] +
+    [(220, ['tp @e[type=atalaya:novilis] ~ ~ ~ 90 0', orden('sol')]), (228, [foto('sol_gira')]), (232, [foto('sol_1')]),
+     (244, [foto('sol_2')]), (256, [foto('sol_3')])],
+    300, 'furia')
+
 ESCENAS['furia'] = (
     [novilis(), camara(24, 10, -6, 0, 10, 0)] +
     titulo('Furia y Grito', 'Furia: aura azul, mas rapido. Grito: el aura carmesi'),
@@ -251,9 +268,10 @@ TU['ofrenda_tu'] = (
     [(215, ['effect clear @a', 'tp @a ~12 ~ ~ facing ~0 ~10 ~0', 'gamemode survival @a', ARMADURA,
             'item replace entity @a weapon.offhand with minecraft:totem_of_undying']),
      (225, [orden('ofrenda')]), (240, [foto('tu_marca')]),
-     (260, [foto('tu_agarra')]), (290, [foto('tu_teclas')]), (330, [foto('tu_teclas_2')]),
-     (420, [foto('tu_fin')]), (436, [foto('tu_fin_2')])],
-    480)
+     (250, [foto('tu_agarra')]), (262, [foto('tu_cuenta_3')]), (282, [foto('tu_cuenta_2')]), (302, [foto('tu_cuenta_1')]),
+     (330, [foto('tu_teclas')]), (370, [foto('tu_teclas_2')]),
+     (480, [foto('tu_fin')]), (496, [foto('tu_fin_2')])],
+    540)
 TU['sol_tu'] = (
     [novilis(), 'tp @a ~16 ~ ~ facing ~0 ~10 ~0'] +
     titulo('La Quemadura (tu)', 'Un sol te deja quemado; el agua no la apaga, una botella de agua si'),
@@ -391,6 +409,96 @@ escribir(os.path.join(FN, 'armadura.mcfunction'), [
       for hueco, pieza in (('head', 'helmet'), ('chest', 'chestplate'), ('legs', 'leggings'), ('feet', 'boots'))],
     'effect give @a minecraft:instant_health 1 9 true',
     'effect give @a minecraft:saturation 1 9 true'])
+
+# Para probar el dano a mano: lo que lleva un jugador del servidor (netherita
+# con Proteccion IV, 4 totems, manzanas de Notch) y los huevos de los cuatro.
+escribir(os.path.join(FN, 'kit.mcfunction'), [
+    'clear @s',
+    'gamemode survival @s',
+    'effect clear @s',
+    *[f'item replace entity @s armor.{hueco} with minecraft:netherite_{pieza}{PROTE}'
+      for hueco, pieza in (('head', 'helmet'), ('chest', 'chestplate'), ('legs', 'leggings'), ('feet', 'boots'))],
+    'item replace entity @s weapon.mainhand with minecraft:netherite_sword[minecraft:enchantments={"minecraft:sharpness":5}]',
+    'item replace entity @s weapon.offhand with minecraft:totem_of_undying',
+    'give @s minecraft:totem_of_undying 3',
+    'give @s minecraft:enchanted_golden_apple 8',
+    'give @s minecraft:golden_apple 16',
+    'give @s minecraft:bow[minecraft:enchantments={"minecraft:power":5,"minecraft:infinity":1}]',
+    'give @s minecraft:arrow 1',
+    'give @s minecraft:torch 8',
+    'give @s minecraft:potion[minecraft:potion_contents={potion:"minecraft:water"}] 4',
+    *[f'give @s atalaya:huevo_{j}' for j in ('nerea', 'aeralis', 'rajang', 'novilis')],
+    'effect give @s minecraft:instant_health 1 9 true',
+    'effect give @s minecraft:saturation 1 9 true',
+    'gamerule spawn_mobs false',
+    'time set noon',
+    'weather clear',
+    'tellraw @s {"text":"[Atalaya] Kit de prueba: netherita Prot IV, 4 totems, manzanas de Notch y los huevos de los 4 jefes. /function escenas_novilis:kit para repetirlo.","color":"#FFC23A"}',
+])
+
+# Prueba del icono de la habilidad (y su tecla) con cada conjunto puesto: una foto de cada.
+_hab = ['gamemode survival @a', 'clear @a', 'effect clear @a', 'time set noon', 'weather clear']
+for k, tema in enumerate(('mareas', 'jade', 'vendaval', 'solar')):
+    _hab += [f'schedule function {NS}:habilidad_{tema} {20 + 30 * k}t append']
+    escribir(os.path.join(FN, f'habilidad_{tema}.mcfunction'), [
+        *[f'item replace entity @a armor.{hueco} with atalaya:{tema}_{pieza}'
+          for hueco, pieza in (('head', 'helmet'), ('chest', 'chestplate'), ('legs', 'leggings'), ('feet', 'boots'))],
+        f'schedule function {NS}:habilidad_foto_{tema} 10t append'])
+    escribir(os.path.join(FN, f'habilidad_foto_{tema}.mcfunction'), [f'tellraw @a "FOTO novilis_habilidad_{tema}"'])
+escribir(os.path.join(FN, 'habilidad.mcfunction'), _hab)
+
+# La presentacion de cada jefe al despertar, uno detras de otro, con fotos de la toma
+# (en ticks desde que empieza a despertar). El jugador, a 26 bloques delante de el.
+PRESENTA = [('nerea', 190, 145), ('aeralis', 190, 145), ('rajang', 190, 145), ('novilis', 190, 145)]
+PRESENTA = [p for p in PRESENTA if JEFES is None or p[0] in JEFES]
+_pre = [ANCLA + c for c in ('kill @e[type=atalaya:nerea]', 'kill @e[type=atalaya:aeralis]', 'kill @e[type=atalaya:rajang]',
+                            'kill @e[type=atalaya:novilis]', 'kill @e[type=minecraft:mannequin,tag=escena]',
+                            'time set noon', 'weather clear')] + ['gamemode spectator @a', 'gamerule spawn_mobs false']
+desde = 20
+for jefe, dura, ruge in PRESENTA:
+    escribir(os.path.join(FN, f'presenta_{jefe}.mcfunction'), [
+        ANCLA + f'kill @e[type=atalaya:{j}]' for j in ('nerea', 'aeralis', 'rajang', 'novilis')] + [
+        ANCLA + f'summon atalaya:{jefe} ~ ~ ~ {{Rotation:[180f,0f]}}',
+        ANCLA + 'tp @a ~ ~3 ~-28 facing ~ ~8 ~',
+        f'schedule function {NS}:presenta_{jefe}_despierta 40t replace'])
+    # Tras despertar sigue en escena 5 s (PresasJefe.ESCENA = 100 ticks) con el cartel; luego la
+    # camara vuelve, y en la ultima foto, en supervivencia, se ven los corazones del combate.
+    momentos = {'1_dormido': 20, '2_ojos': 55, '3_se_alza': 95, '4_poder': 135, '5_ruge': ruge + 6, '6_cartel': ruge + 18,
+                '7_cartel2': ruge + 36, '8_escena': dura + 80, '9_vuelta': dura + 116, '10_jugador': dura + 140,
+                '11_corazones': dura + 165}
+    lineas = [ANCLA + f'atalaya {jefe} despertar']
+    for nombre, t in momentos.items():
+        foto = [f'tellraw @a "FOTO presenta_{jefe}_{nombre}"']
+        if nombre == '11_corazones':
+            # A supervivencia con algo de dano (para ver llenos, medios y vacios), la foto
+            # cuando ya se pinta su HUD. Luego los corazones duran la batalla: lejos del
+            # jefe (12_lejos) siguen; muerto mientras, al volver a su sitio (13_vuelve)
+            # ya son los de siempre. Y de vuelta a espectador.
+            pre = f'{NS}:presenta_{jefe}_{nombre}'
+            escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}_foto.mcfunction'),
+                     foto + [f'schedule function {pre}_lejos 5t replace'])
+            escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}_lejos.mcfunction'),
+                     [ANCLA + 'tp @a ~ ~3 ~-260', f'schedule function {pre}_lejos_foto 60t replace'])
+            escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}_lejos_foto.mcfunction'),
+                     [f'tellraw @a "FOTO presenta_{jefe}_12_lejos"',
+                      ANCLA + f'damage @e[type=atalaya:{jefe},limit=1,sort=nearest] 1000000 minecraft:out_of_world',
+                      f'schedule function {pre}_vuelve 120t replace'])
+            escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}_vuelve.mcfunction'),
+                     [ANCLA + 'tp @a ~ ~3 ~-28 facing ~ ~8 ~', f'schedule function {pre}_vuelve_foto 70t replace'])
+            escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}_vuelve_foto.mcfunction'),
+                     [f'tellraw @a "FOTO presenta_{jefe}_13_vuelve"', f'schedule function {pre}_fin 10t replace'])
+            escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}_fin.mcfunction'), ['gamemode spectator @a', 'effect clear @a'])
+            foto = ['gamemode survival @a', 'damage @p 5 minecraft:generic', 'effect give @a minecraft:resistance 20 4 true',
+                    f'schedule function {NS}:presenta_{jefe}_{nombre}_foto 30t replace']
+        escribir(os.path.join(FN, f'presenta_{jefe}_{nombre}.mcfunction'), foto)
+        lineas.append(f'schedule function {NS}:presenta_{jefe}_{nombre} {t}t append')
+    escribir(os.path.join(FN, f'presenta_{jefe}_despierta.mcfunction'), lineas)
+    _pre.append(f'schedule function {NS}:presenta_{jefe} {desde}t append')
+    desde += 40 + dura + 480
+_pre.append(f'schedule function {NS}:presenta_fin {desde}t append')
+escribir(os.path.join(FN, 'presenta_fin.mcfunction'), [ANCLA + f'kill @e[type=atalaya:{j}]' for j in ('nerea', 'aeralis', 'rajang', 'novilis')]
+         + ['gamemode creative @a', 'gamerule spawn_mobs true'])
+escribir(os.path.join(FN, 'presentaciones.mcfunction'), ['function ' + NS + ':ancla'] + _pre)
 
 total = 80 + sum(dura + PAUSA for _, _, dura, _ in ESCENAS.values())
 print('datapack en', DESTINO, '|', len(ESCENAS), 'escenas +', len(TU), 'contigo |', f'recorrido de {total / 20:.0f} s',

@@ -125,16 +125,20 @@ public class NereaEntity extends Monster {
     // sin la manzana, en la fase IV basta uno); los de area 2,5 / 4 / 5,5 / 8;
     // los que duran, 1 / 1,5 / 2 / 3 por segundo. Los tipos de dano no escalan
     // con la dificultad.
-    private static final float[] DANO_ROMPEOLAS = {44, 55, 69, 91};
-    private static final float[] DANO_ESTOCADA = {44, 55, 69, 91};
-    private static final float[] DANO_MOLINO = {36, 48, 58, 72};
-    private static final float[] DANO_GANCHO = {36, 48, 58, 72};
+    // Recortado el 07-10-2026 (Juan): -50 % lo de area y -45 % lo individual. Con
+    // 60 jugadores y 3-4 totems cada uno, lo normal no debe gastar totems: eso
+    // es cosa de los especiales mortales, que no cambian. En la III y la IV,
+    // otro -15 % y -20 % (Juan, tras probarlo: las fases I y II estaban bien).
+    private static final float[] DANO_ROMPEOLAS = {22, 28, 30, 37};
+    private static final float[] DANO_ESTOCADA = {24, 30, 32, 40};
+    private static final float[] DANO_MOLINO = {18, 24, 25, 29};
+    private static final float[] DANO_GANCHO = {20, 26, 27, 32};
     /** La burbuja bomba, en 4 bloques. */
-    public static final float[] DANO_BURBUJA = {36, 48, 58, 72};
+    public static final float[] DANO_BURBUJA = {18, 24, 25, 29};
     /** Lo que quita el Remolino por segundo a quien arrastra (pasa la armadura). */
-    private static final float[] DANO_REMOLINO = {7, 10, 14, 21};
+    private static final float[] DANO_REMOLINO = {3.5F, 5, 6, 8.4F};
     /** El Geiser del Abismo (desde la fase II: la I no lo usa). */
-    private static final float[] DANO_GEISER = {36, 36, 44, 58};
+    private static final float[] DANO_GEISER = {18, 18, 19, 23};
     /**
      * La Mirada mata: pasa la armadura, el escudo, los encantamientos, los
      * efectos y la resistencia. Solo un totem de la inmortalidad te salva (y
@@ -150,9 +154,9 @@ public class NereaEntity extends Monster {
     public static final int GOLPES_OJO = 10;
 
     // --- La Furia de las Mareas (si la Mirada sale) ---
-    private static final float FURIA_RITMO = 1.25F;
-    private static final float FURIA_DANO = 1.35F;
-    private static final float FURIA_ENFRIA = 0.65F;
+    private static final float FURIA_RITMO = 1.15F;
+    private static final float FURIA_DANO = 1.2F;
+    private static final float FURIA_ENFRIA = 0.75F;
     private static final double FURIA_ANDA = 1.1;
 
     // --- La Gran Marea: lo que avanza por tick, lo que recorre, de lado a lado, su alto y el hueco ---
@@ -247,6 +251,8 @@ public class NereaEntity extends Monster {
     private float ritmoEstado = 1.0F;
     private int tickImpacto = -1;
     private int respiro = 10;
+    /** Lo que le queda en escena tras despertar (ticks): quieto, sin atacar e inmune. */
+    private int escena;
     private int enfRompeolas;
     private int enfRemolino = 120;
     private int enfBurbujas = 40;
@@ -407,7 +413,7 @@ public class NereaEntity extends Monster {
     public static float ritmo(int estado, int fase, boolean furia) {
         float k = switch (estado) {
             case ROMPEOLAS, BURBUJAS, MOLINO, ARPON_LANZAR, ARPON_TIRAR, MIRADA, GEISER ->
-                    new float[]{1.0F, 1.0F, 1.12F, 1.25F, 1.4F}[Mth.clamp(fase, 1, 4)];
+                    new float[]{1.0F, 1.0F, 1.12F, 1.18F, 1.28F}[Mth.clamp(fase, 1, 4)];
             default -> 1.0F;
         };
         return furia && k > 1.0F && estado != MIRADA ? k * FURIA_RITMO : k;
@@ -523,7 +529,9 @@ public class NereaEntity extends Monster {
         // El corazon late a la vista; en la fase IV, desbocado.
         int cada = fase() >= 4 ? 14 : 30 - fase() * 3;
         if (e != DORMIDO && tickCount % cada == 0) {
-            Vec3 c = puntoMundo(e == AGOTADO ? NereaGeometria.CORAZON_AGOTADO : NereaGeometria.CORAZON);
+            // (despertando, el pecho va con la animacion: aun esta de rodillas)
+            Vec3 c = puntoMundo(e == AGOTADO ? NereaGeometria.CORAZON_AGOTADO
+                    : e == DESPERTAR ? NereaGeometria.pechoDespertar(tickCount - inicioEstado) : NereaGeometria.CORAZON);
             level().addParticle(AtalayaParticulas.NEREA_CORAZON, c.x, c.y, c.z, 0, 0.02, 0);
         }
         // La maldicion se le escapa del cuerpo: nada en la fase I, a borbotones en la IV.
@@ -546,7 +554,10 @@ public class NereaEntity extends Monster {
                         0, 0.05 + random.nextDouble() * 0.04, 0);
             }
         }
-        if (e == DORMIDO && tickCount % 9 == 0) {
+        // Dormido le salen burbujas de la boca; despertando, mas seguidas hasta que abre los ojos.
+        boolean respira = e == DORMIDO ? tickCount % 9 == 0
+                : e == DESPERTAR && tickCount - inicioEstado < NereaGeometria.DESPERTAR_ABRE && tickCount % 4 == 0;
+        if (respira) {
             Vec3 b = puntoMundo(new Vec3(0, 6.45, 3.0));
             level().addParticle(AtalayaParticulas.NEREA_BURBUJA, b.x + random.nextGaussian() * 0.2, b.y,
                     b.z + random.nextGaussian() * 0.2, 0, 0.05, 0);
@@ -587,6 +598,7 @@ public class NereaEntity extends Monster {
         }
 
         if (respiro > 0) respiro--;
+        if (escena > 0) escena--;
         if (enfRompeolas > 0) enfRompeolas--;
         if (enfRemolino > 0) enfRemolino--;
         if (enfBurbujas > 0) enfBurbujas--;
@@ -636,7 +648,11 @@ public class NereaEntity extends Monster {
         soltarGancho();
         presa = null;
         ponerEstado(LIBRE, 0);
-        respiro = new int[]{0, 18, 14, 10, 6}[fase()];
+        respiro = new int[]{0, 18, 14, 11, 8}[fase()];
+        if (e == DESPERTAR) {
+            respiro = Math.max(respiro, PresasJefe.RESPIRO_PRESENTACION);
+            escena = PresasJefe.ESCENA_QUIETO;
+        }
         if (tieneFuria()) {
             respiro = (int) (respiro * FURIA_ENFRIA);
         }
@@ -651,6 +667,13 @@ public class NereaEntity extends Monster {
     }
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (escena > 0) {
+            // En escena tras despertar (su cartel aun se lee): ni se mueve ni ataca.
+            getNavigation().stop();
+            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+            setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+            return;
+        }
         if (objetivo == null) {
             // Sin nadie a quien pelear vuelve al centro de su santuario.
             Vec3 c = Vec3.atBottomCenterOf(centro);
@@ -724,7 +747,7 @@ public class NereaEntity extends Monster {
     /** Arranca un ataque. "presa" solo la usan el Arpon y la Mirada. */
     private void iniciar(ServerLevel nivel, int ataque, @Nullable LivingEntity presaElegida) {
         // Cada fase todo vuelve antes: en la IV, con un 40 % menos de espera.
-        float k = new float[]{1.0F, 1.0F, 0.85F, 0.72F, 0.6F}[Mth.clamp(fase(), 1, 4)];
+        float k = new float[]{1.0F, 1.0F, 0.85F, 0.78F, 0.68F}[Mth.clamp(fase(), 1, 4)];
         if (tieneFuria()) {
             k *= FURIA_ENFRIA;
         }
@@ -953,17 +976,54 @@ public class NereaEntity extends Monster {
             setTarget(vivo);
         }
         ponerEstado(DESPERTAR, NereaGeometria.DURACION_DESPERTAR);
-        sonido(AtalayaSonidos.NEREA_DESPERTAR, 7.0F);
+        // Dormido aun, respira hondo con el agua en la garganta (y el corazon).
+        sonido(AtalayaSonidos.NEREA_AGOTADO, 5.0F);
     }
 
+    /** Donde cae el rugido dentro de despertar.ogg (ticks desde que empieza). */
+    private static final int RUGIDO_EN_DESPERTAR_OGG = 40;
+
+    /**
+     * El despertar (la presentacion, NereaGeometria.DESPERTAR_*): abre los
+     * ojos, tira de las cadenas hasta soltarse del fondo, se pone en pie, alza
+     * el tridente y ruge. Lo que se oye y se ve va con la animacion.
+     */
     private void tickDespertar(ServerLevel nivel) {
-        if (t == 42) {
-            // El rugido empuja: aparta a quien se acerco a despertarlo.
-            for (Player p : jugadores(nivel, 16, 0)) {
-                Vec3 fuera = horizontalHacia(position(), p.position());
-                p.setDeltaMovement(fuera.x * 1.2, 0.5, fuera.z * 1.2);
-                p.hurtMarked = true;
-            }
+        if (t == NereaGeometria.DESPERTAR_ABRE) {
+            // Se le encienden los ojos (y el corazon da un golpe).
+            sonido(AtalayaSonidos.NEREA_MIRADA_CARGA, 3.0F);
+            sonido(AtalayaSonidos.NEREA_LATIDO, 4.0F);
+            Vec3 cara = puntoMundo(NereaGeometria.cabezaDespertar(t));
+            nivel.sendParticles(AtalayaParticulas.NEREA_OJO, cara.x, cara.y, cara.z, 24, 0.5, 0.3, 0.5, 0.06);
+        }
+        int tira = t - NereaGeometria.DESPERTAR_SE_ALZA;
+        if (tira == 0 || tira == 6 || tira == 11) {
+            // Tira de las cadenas del pecho: crujen y saltan chispas.
+            Vec3 pecho = puntoMundo(NereaGeometria.pechoDespertar(t));
+            nivel.playSound(null, pecho.x, pecho.y, pecho.z, AtalayaSonidos.NEREA_INMUNE, SoundSource.HOSTILE, 3.0F,
+                    0.8F + tira * 0.02F);
+            nivel.sendParticles(AtalayaParticulas.NEREA_CHISPA, pecho.x, pecho.y, pecho.z, 6 + tira, 0.8, 0.6, 0.4, 0.2);
+        }
+        if (t == NereaGeometria.DESPERTAR_ROMPE) {
+            // Se suelta del fondo de un tiron: chasquido de cadena, chispas y el suelo que se agrieta.
+            Vec3 pecho = puntoMundo(NereaGeometria.pechoDespertar(t));
+            nivel.playSound(null, pecho.x, pecho.y, pecho.z, AtalayaSonidos.NEREA_CADENA_ROMPE, SoundSource.HOSTILE, 5.0F, 1.0F);
+            nivel.sendParticles(AtalayaParticulas.NEREA_CHISPA, pecho.x, pecho.y, pecho.z, 30, 1.0, 0.8, 0.6, 0.35);
+            golpeSuelo(nivel, position(), 1.2F, 8.0F, 10, 0);
+        }
+        // Las dos pisadas al ponerse en pie (nerea_juego_anim.py, apoyos_despertar).
+        if (t == NereaGeometria.DESPERTAR_PISA_DER || t == NereaGeometria.DESPERTAR_PISA_IZQ) {
+            sonido(AtalayaSonidos.NEREA_PASO, 4.0F);
+            Vec3 pie = puntoMundo(new Vec3(t == NereaGeometria.DESPERTAR_PISA_DER ? -0.9 : 0.9, 0.1, 0.1));
+            nivel.sendParticles(AtalayaParticulas.NEREA_POLVO, pie.x, pie.y, pie.z, 10, 0.5, 0.05, 0.5, 0.03);
+        }
+        if (t == NereaGeometria.DESPERTAR_RUGE - RUGIDO_EN_DESPERTAR_OGG) {
+            // El fondo retumba, el agua le cae a chorros y las cadenas se tensan;
+            // el rugido de este sonido cae justo en DESPERTAR_RUGE.
+            sonido(AtalayaSonidos.NEREA_DESPERTAR, 7.0F);
+        }
+        if (t == NereaGeometria.DESPERTAR_RUGE) {
+            // El rugido ya no empuja: en la presentacion el jefe no golpea.
             golpeSuelo(nivel, position(), 2.4F, 16.0F, 16, 0);
             anillo(nivel, AtalayaParticulas.NEREA_ESPUMA, 6.0, 44, 0.45);
         }
@@ -1688,7 +1748,7 @@ public class NereaEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (e == DESPERTAR) {
+        if (e == DESPERTAR || escena > 0) {
             avisoInmune(nivel, causante);
             return false;
         }

@@ -22,9 +22,12 @@ schedule function escenas_novilis:ofrenda_tu/t0150 195t append
 schedule function escenas_novilis:ofrenda_tu/t0215 260t append
 schedule function escenas_novilis:ofrenda_tu/t0225 270t append
 schedule function escenas_novilis:ofrenda_tu/t0240 285t append
-schedule function escenas_novilis:ofrenda_tu/t0260 305t append
-schedule function escenas_novilis:ofrenda_tu/t0290 335t append
+schedule function escenas_novilis:ofrenda_tu/t0250 295t append
+schedule function escenas_novilis:ofrenda_tu/t0262 307t append
+schedule function escenas_novilis:ofrenda_tu/t0282 327t append
+schedule function escenas_novilis:ofrenda_tu/t0302 347t append
 schedule function escenas_novilis:ofrenda_tu/t0330 375t append
-schedule function escenas_novilis:ofrenda_tu/t0420 465t append
-schedule function escenas_novilis:ofrenda_tu/t0436 481t append
-schedule function escenas_novilis:ofrenda_tu/fin 525t append
+schedule function escenas_novilis:ofrenda_tu/t0370 415t append
+schedule function escenas_novilis:ofrenda_tu/t0480 525t append
+schedule function escenas_novilis:ofrenda_tu/t0496 541t append
+schedule function escenas_novilis:ofrenda_tu/fin 585t append

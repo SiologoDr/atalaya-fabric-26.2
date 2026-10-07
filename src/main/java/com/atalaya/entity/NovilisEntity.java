@@ -113,12 +113,16 @@ public class NovilisEntity extends Monster {
     public static final float VIDA = 16500.0F;
     private static final float VIDA_VANILLA = 1024.0F;
     // --- Danos por fase (I, II, III, IV): la misma escala que los otros tres ---
-    public static final float[] DANO_HOJA = {36, 47, 60, 80};
-    public static final float[] DANO_TAJO = {26, 34, 44, 58};
-    public static final float[] DANO_RAYO = {34, 44, 56, 74};
-    public static final float[] DANO_ONDA = {24, 32, 40, 54};
-    public static final float[] DANO_SOL = {55, 70, 88, 110};
-    public static final float[] DANO_SUPERNOVA = {80, 80, 96, 120};
+    // Recortado el 07-10-2026 (Juan): -50 % lo de area y -45 % lo individual. Con
+    // 60 jugadores y 3-4 totems cada uno, lo normal no debe gastar totems: eso
+    // es cosa de los especiales mortales, que no cambian. En la III y la IV,
+    // otro -15 % y -20 % (Juan, tras probarlo: las fases I y II estaban bien).
+    public static final float[] DANO_HOJA = {18, 23.5F, 25.5F, 32};
+    public static final float[] DANO_TAJO = {13, 17, 18.7F, 23.2F};
+    public static final float[] DANO_RAYO = {19, 24, 26.4F, 32.8F};
+    public static final float[] DANO_ONDA = {12, 16, 17, 21.6F};
+    public static final float[] DANO_SOL = {27.5F, 35, 37.4F, 44};
+    public static final float[] DANO_SUPERNOVA = {56, 56, 57, 67.2F};
     public static final float[] DANO_DIOS = {174, 174, 174, 174};
     /** Lo que mata salvo totem (todas las bypasses_* menos la de invulnerabilidad). */
     public static final float MORTAL = 10000.0F;
@@ -126,9 +130,9 @@ public class NovilisEntity extends Monster {
     public static final int GOLPES = 10;
 
     // --- La Furia (fuego azul) ---
-    private static final float FURIA_RITMO = 1.25F;
-    private static final float FURIA_DANO = 1.35F;
-    private static final float FURIA_ENFRIA = 0.65F;
+    private static final float FURIA_RITMO = 1.15F;
+    private static final float FURIA_DANO = 1.2F;
+    private static final float FURIA_ENFRIA = 0.75F;
     private static final double FURIA_ANDA = 1.1;
     /**
      * Lo que se pide al control de movimiento al andar y al correr. Vanilla
@@ -166,6 +170,16 @@ public class NovilisEntity extends Monster {
     private static final int[] CARGA_CON = {0, 600, 400, 300};
     /** El tiempo de la Ofrenda: 8 s para las teclas (y un poco mas en el servidor, por el lag). */
     public static final int OFRENDA_TIEMPO = 160;
+    /**
+     * Los 3 s para prepararse antes de las teclas (Juan, 08-10-2026: al agarrarte
+     * no te enterabas, tocabas algo y fallabas). Mientras, las teclas no cuentan.
+     */
+    public static final int OFRENDA_PREPARA = 60;
+    /** Las teclas de la Ofrenda: 10 en la fase III y 12 en la IV (antes 15 y 20). */
+    public static final int TECLAS_III = 10;
+    public static final int TECLAS_IV = 12;
+    /** El pulso de los angeles de las Trompetas: apenas dana, lo que hace es tirar del estrado. */
+    public static final float[] DANO_PULSO = {6, 6, 8, 8};
     private static final int OFRENDA_GRACIA = 10;
     /**
      * Lo que se aleja la camara del atrapado (camera_distance, en tercera
@@ -272,6 +286,8 @@ public class NovilisEntity extends Monster {
     private int duracion;
     private float ritmoEstado = 1.0F;
     private int respiro = 10;
+    /** Lo que le queda en escena tras despertar (ticks): quieto, sin atacar e inmune. */
+    private int escena;
     private int enfBarrido;
     private int enfCastigo = 60;
     private int enfSol = 120;
@@ -283,6 +299,8 @@ public class NovilisEntity extends Monster {
     private final Set<UUID> golpeados = new HashSet<>();
     /** A quienes ya lanzo un sol en este Sol x3 (para repartirlos). */
     private final List<UUID> blancosSol = new ArrayList<>();
+    /** A quien va el sol que se esta formando (para irse girando hacia el). */
+    private @Nullable LivingEntity solBlanco;
     private final List<Vec3> zonasDios = new ArrayList<>();
     // Las Trompetas
     private final EstatuaNovilisEntity[] estatuas = new EstatuaNovilisEntity[NUM_ESTATUAS];
@@ -460,7 +478,7 @@ public class NovilisEntity extends Monster {
     public static float ritmo(int estado, int fase, boolean furia) {
         float k = switch (estado) {
             case BARRIDO, CASTIGO, CASTIGO_ONDA, SOL, DIOS ->
-                    new float[]{1.0F, 1.0F, 1.12F, 1.25F, 1.4F}[Mth.clamp(fase, 1, 4)];
+                    new float[]{1.0F, 1.0F, 1.12F, 1.18F, 1.28F}[Mth.clamp(fase, 1, 4)];
             default -> 1.0F;
         };
         return furia && k > 1.0F ? k * FURIA_RITMO : (furia && (estado == BARRIDO || estado == SOL) ? FURIA_RITMO : k);
@@ -661,6 +679,7 @@ public class NovilisEntity extends Monster {
         }
 
         if (respiro > 0) respiro--;
+        if (escena > 0) escena--;
         if (enfBarrido > 0) enfBarrido--;
         if (enfCastigo > 0) enfCastigo--;
         if (enfSol > 0) enfSol--;
@@ -709,13 +728,24 @@ public class NovilisEntity extends Monster {
         entityData.set(DATA_MARCA, -1);
         presa = null;
         ponerEstado(LIBRE, 0);
-        respiro = new int[]{0, 16, 12, 10, 7}[fase()];
+        respiro = new int[]{0, 16, 12, 11, 9}[fase()];
+        if (e == DESPERTAR) {
+            respiro = Math.max(respiro, PresasJefe.RESPIRO_PRESENTACION);
+            escena = PresasJefe.ESCENA_QUIETO;
+        }
         if (tieneFuria()) {
             respiro = (int) (respiro * FURIA_ENFRIA);
         }
     }
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (escena > 0) {
+            // En escena tras despertar (su cartel aun se lee): ni se mueve ni ataca.
+            getNavigation().stop();
+            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+            setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+            return;
+        }
         if (objetivo == null) {
             Vec3 c = Vec3.atBottomCenterOf(centro);
             if (horizontal(position(), c) > 3.0) {
@@ -724,6 +754,14 @@ public class NovilisEntity extends Monster {
             return;
         }
         getLookControl().setLookAt(objetivo, 20.0F, 20.0F);
+        if (melodia >= 0) {
+            // Mientras tocan los angeles no ataca ni se mueve (Juan, 08-10-2026): se
+            // queda plantado donde esta y los dirige. La amenaza son sus pulsos.
+            getNavigation().stop();
+            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+            setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+            return;
+        }
         if (respiro <= 0 && tickCount >= soloAndarHasta && elegirAtaque(nivel, objetivo)) {
             return;
         }
@@ -752,7 +790,7 @@ public class NovilisEntity extends Monster {
         int fase = fase();
         double d = horizontal(position(), objetivo.position());
         List<int[]> opciones = new ArrayList<>();
-        if (enfBarrido <= 0 && d < 30) opciones.add(new int[]{BARRIDO, 5});
+        if (enfBarrido <= 0 && d < 16) opciones.add(new int[]{BARRIDO, 5});
         if (enfCastigo <= 0 && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{fase >= 2 ? CASTIGO_ONDA : CASTIGO, 4});
         if (fase >= 2 && enfSol <= 0 && !presas(nivel, 44).isEmpty()) opciones.add(new int[]{SOL, 3});
         if (fase >= 2 && enfTrompetas <= 0 && melodia < 0) opciones.add(new int[]{TROMPETAS, 2});
@@ -774,9 +812,11 @@ public class NovilisEntity extends Monster {
             }
         }
         if (elegido == BARRIDO) {
-            List<LivingEntity> cerca = presas(nivel, 30);
+            // Al mas cercano (antes, uno al azar a 30 bloques: tajaba al aire).
+            List<LivingEntity> cerca = presas(nivel, 16);
+            cerca.sort(java.util.Comparator.comparingDouble(this::distanceToSqr));
             if (!cerca.isEmpty()) {
-                setTarget(com.atalaya.habilidad.Provocacion.objetivo(this, cerca.get(random.nextInt(cerca.size())), 30));
+                setTarget(com.atalaya.habilidad.Provocacion.objetivo(this, cerca.get(0), 16));
             }
         }
         return iniciar(nivel, elegido);
@@ -785,7 +825,7 @@ public class NovilisEntity extends Monster {
     /** Arranca un ataque. */
     private boolean iniciar(ServerLevel nivel, int ataque) {
         // Cada fase todo vuelve antes: en la IV, con un 40 % menos de espera.
-        float k = new float[]{1.0F, 1.0F, 0.85F, 0.72F, 0.6F}[Mth.clamp(fase(), 1, 4)];
+        float k = new float[]{1.0F, 1.0F, 0.85F, 0.78F, 0.68F}[Mth.clamp(fase(), 1, 4)];
         if (tieneFuria()) {
             k *= FURIA_ENFRIA;
         }
@@ -803,6 +843,7 @@ public class NovilisEntity extends Monster {
             case SOL -> {
                 enfSol = (int) (300 * k);
                 blancosSol.clear();
+                solBlanco = null;
                 ponerEstado(SOL, NovilisGeometria.DURACION_SOL);
                 sonido(AtalayaSonidos.NOVILIS_SOL_FORMA, 4.0F);
             }
@@ -1004,12 +1045,7 @@ public class NovilisEntity extends Monster {
         }
         if (t == NovilisGeometria.DESPERTAR_RUGE) {
             sonido(AtalayaSonidos.NOVILIS_RUGIDO, 8.0F);
-            // El rugido empuja: aparta a quien se acerco a despertarlo.
-            for (Player p : jugadores(nivel, 18, 0)) {
-                Vec3 fuera = horizontalHacia(position(), p.position());
-                p.setDeltaMovement(fuera.x * 1.3, 0.5, fuera.z * 1.3);
-                p.hurtMarked = true;
-            }
+            // El rugido ya no empuja: en la presentacion el jefe no golpea.
             golpeSuelo(nivel, position(), 2.6F, 18.0F, 18);
             anillo(nivel, AtalayaParticulas.NOVILIS_LLAMA, 7.0, 48, 0.5);
         }
@@ -1021,9 +1057,9 @@ public class NovilisEntity extends Monster {
 
     private void tickBarrido(ServerLevel nivel, @Nullable LivingEntity objetivo) {
         int[] golpes = {NovilisGeometria.TAJO_1, NovilisGeometria.TAJO_2, NovilisGeometria.TAJO_3, NovilisGeometria.TAJO_4};
-        // Se gira hacia el objetivo entre tajo y tajo.
+        // Se encara deprisa mientras carga el primer tajo y luego le sigue entre tajo y tajo.
         if (objetivo != null) {
-            girarHacia(objetivo.position(), 6.0F);
+            girarHacia(objetivo.position(), ta() < NovilisGeometria.TAJO_1 ? 24.0F : 10.0F);
         }
         for (int i = 0; i < 4; i++) {
             if (cruza(golpes[i] - 8)) {
@@ -1101,14 +1137,18 @@ public class NovilisEntity extends Monster {
             if (cruza(lanza[i] - 10)) {
                 sonido(AtalayaSonidos.NOVILIS_SOL_FORMA, 4.0F);
             }
+            if (cruza(lanza[i] - 12) || (i == 0 && solBlanco == null)) {
+                // A quien va este sol: se elige al formarlo, para encararlo antes de lanzar.
+                solBlanco = blancoSol(nivel, objetivo);
+            }
             if (!cruza(lanza[i])) {
                 continue;
             }
-            LivingEntity blanco = blancoSol(nivel, objetivo);
+            LivingEntity blanco = solBlanco != null && solBlanco.isAlive() ? solBlanco : blancoSol(nivel, objetivo);
             if (blanco == null) {
                 continue;
             }
-            girarHacia(blanco.position(), 180.0F);
+            girarHacia(blanco.position(), 45.0F);
             Vec3 desde = puntoMundo(manos[i]);
             SolNovilisEntity.lanzar(nivel, this, desde, sueloBajo(nivel, blanco.position()), 28, SolNovilisEntity.SOL,
                     dano(DANO_SOL), fase());
@@ -1340,7 +1380,8 @@ public class NovilisEntity extends Monster {
             return;
         }
         sujetar(nivel);
-        int dentro = t - inicioCaptura;
+        // Primero los 3 s para prepararse (sin calor); luego las teclas y el calor.
+        int dentro = t - inicioCaptura - OFRENDA_PREPARA;
         if (dentro > 0 && dentro % 20 == 0) {
             captivo.hurtServer(nivel, NovilisDanos.fuente(nivel, NovilisDanos.CALOR, this, this),
                     captivo.getMaxHealth() * OFRENDA_CALOR);
@@ -1356,7 +1397,7 @@ public class NovilisEntity extends Monster {
         entityData.set(DATA_MARCA, -1);
         inicioCaptura = t;
         int semilla = random.nextInt();
-        int n = fase() >= 4 ? 20 : 15;
+        int n = fase() >= 4 ? TECLAS_IV : TECLAS_III;
         secuencia = teclasOfrenda(semilla, n);
         entityData.set(DATA_SEMILLA, semilla);
         entityData.set(DATA_TECLAS, n);
@@ -1438,6 +1479,10 @@ public class NovilisEntity extends Monster {
         if (n.getEstado() != OFRENDA || n.captivo != p) {
             return;
         }
+        if (n.t - n.inicioCaptura < OFRENDA_PREPARA - 4) {
+            // Aun preparandose: el cliente no las manda, pero por si acaso no cuentan.
+            return;
+        }
         if (!bien) {
             n.fallarOfrenda(nivel);
             return;
@@ -1460,6 +1505,13 @@ public class NovilisEntity extends Monster {
     private void tickDios(ServerLevel nivel, @Nullable LivingEntity objetivo) {
         fijarRumbo(yBodyRot);
         int[] lanza = {NovilisGeometria.DIOS_LANZA_1, NovilisGeometria.DIOS_LANZA_2, NovilisGeometria.DIOS_LANZA_3};
+        // Antes de cada lanzamiento se gira hacia su zona (antes los tiraba de espaldas).
+        for (int i = 0; i < 3 && i < zonasDios.size(); i++) {
+            if (ta() > lanza[i] - 14 && ta() <= lanza[i]) {
+                girarHacia(zonasDios.get(i), 18.0F);
+                break;
+            }
+        }
         Vec3[] manos = {NovilisGeometria.DIOS_LANZA_1_P, NovilisGeometria.DIOS_LANZA_2_P, NovilisGeometria.DIOS_LANZA_3_P};
         if (cruza(NovilisGeometria.DIOS_MARCA)) {
             // Tres zonas: sobre los jugadores (al azar) y, si faltan, en cualquier sitio del altar.
@@ -1598,7 +1650,7 @@ public class NovilisEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (e == DESPERTAR || e == OFRENDA || (e == FUENTES && ta() >= NovilisGeometria.FUENTES_CLAVA)) {
+        if (e == DESPERTAR || escena > 0 || e == OFRENDA || (e == FUENTES && ta() >= NovilisGeometria.FUENTES_CLAVA)) {
             // Mientras ofrece a alguien a su sol o carga la Supernova no recibe dano:
             // lo que sirve es la secuencia de teclas o romper las fuentes.
             avisoInmune(nivel, causante);

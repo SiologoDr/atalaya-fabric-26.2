@@ -931,6 +931,62 @@ Cada fase:
 El daño de cada ataque es una tabla con un valor por fase. Al cambiar de fase hay
 un **tambaleo** de unos 3 s que corta lo que estuviera haciendo.
 
+**La presentación.** Al despertar, cada jugador a menos de 96 bloques ve una
+toma de cine (`PresentacionJefe`, todo en el cliente):
+
+- entran **bandas negras** arriba y abajo, con un filo de luz del color del jefe,
+  y se esconde el resto del HUD;
+- el despertar dura **9,5 s** y los cuatro siguen el mismo guion (cada uno con
+  su animación nueva): duerme, abre los ojos, se levanta, muestra su poder y
+  ruge. La cámara (`CamaraPresentacionMixin`) corta a una toma distinta en
+  cada parte, siguiendo su cabeza y su pecho de verdad:
+  1. **dormido**: plano general, alto y de tres cuartos, que se acerca;
+  2. **abre los ojos**: primer plano de la cara;
+  3. **se levanta**: contrapicado a ras de suelo, de lado, que sube con él;
+  4. **su poder**: gira por detrás hasta su costado;
+  5. **el grito**: de frente, mirándole a la cara.
+
+  Cada jefe ajusta las distancias a su forma (`PresentacionJefe.Tomas`: las
+  alas de Aeralis, Rajang largo y bajo);
+- con el rugido sale su **cartel**, en el estilo de los pósters: un destello
+  que cruza, el **NOMBRE** que se abre desde el centro, lo que es («JEFE DEL
+  FUEGO») y su epíteto con el lema, con el acento grande de su música. Los
+  PNG (`presentacion_jefes.py`) vienen en cuatro anchos y se pintan píxel a
+  píxel de pantalla, así salen limpios a cualquier resolución;
+- tras el grito el jefe sigue **en escena** unos 5 s más
+  (`PresasJefe.ESCENA`), quieto y con el cartel, para que se lea;
+- al acabar, la cámara vuelve sola a los ojos del jugador, que ya le mira.
+
+Mientras dura no se anda ni se salta, y **no se puede saltar** (Juan quiere que
+se vea entera). Durante toda la
+presentación el jefe **no golpea**: el grito ya no empuja, no se mueve, no
+ataca y no se le hace daño (hasta que la cámara ha vuelto,
+`PresasJefe.ESCENA_QUIETO`). Después espera aún 1,5 s antes del primer golpe
+(`PresasJefe.RESPIRO_PRESENTACION`).
+
+**Corazones de batalla.** En la batalla, los corazones del jugador son los del
+jefe (`CorazonesJefe`, con un mixin en `Hud$HeartType.getSprite`): una gema
+roja engastada en un aro de sus colores, que se mueve con su elemento.
+
+| Jefe | Aro | Movimiento |
+|---|---|---|
+| Nerea | de cian a morado | una ola que baja |
+| Aeralis | plata y lila | una ráfaga que cruza |
+| Rajang | oro y jade | un pulso lento |
+| Novilis | oro quemado | brasas que parpadean |
+
+- Empiezan cuando hay un jefe despierto a menos de 120 bloques (lo mismo que
+  saca su barra) y duran **toda la batalla**, aunque el jugador se aleje.
+  Acaban cuando el jefe muere; si deja de verse sin morir, se esperan 5
+  minutos, y si el jugador vuelve a su sitio y ya no está, se acaban.
+- Solo cambian el lleno, el medio y el vacío. El **rojo sigue siendo la vida**;
+  los de veneno, congelado, absorción y wither se quedan como en vanilla,
+  porque su color avisa de algo. El parpadeo, el temblor y el salto al
+  regenerar también son los de vanilla.
+- Salen de `corazones_jefes.py` (9 × 9, la silueta de vanilla, animados con
+  `.mcmeta`). Se eligió la opción C de tres; `--ficha=carpeta` vuelve a pintar
+  las tres sobre fotos del HUD.
+
 **Un golpe cooperativo por jefe.** En cada combate hay un momento en que el jefe
 es inmune y lo único que sirve es que el grupo rompa algo a la vez:
 
@@ -1361,14 +1417,14 @@ su número, y la III con calavera.
 
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
-| **Barrido Solar** | cuatro tajos seguidos. Cada uno pega con la hoja a 12 bloques por delante y suelta **tres medias lunas de fuego** en abanico (una sola y grande en el tajo de arriba) que vuelan unos 28 bloques | hoja 36 / 47 / 60 / 80; media luna 26 / 34 / 44 / 58 y Quemadura I | salir del frente; las medias lunas, de lado |
-| **Castigo Divino** | alza la espada y su sol le manda un haz. Marca con un sello a **cada jugador** a 48 bloques y, 1,1 s después, cae un rayo en cada sello | 34 / 44 / 56 / 74 y Quemadura I; no lo para el escudo | salir del sello |
-| **Onda de Fuego** (II) | el Castigo acaba clavando la espada: un anillo de llamas corre por el suelo hasta 26 bloques | 24 / 32 / 40 / 54 y Quemadura I | **saltarla**: solo pega a quien esté en el suelo |
-| **Sol Abrasador** (II) | se le forman tres soles en la mano y los lanza en arco, cada uno a un jugador. El sello del suelo marca dónde caen (1,4 s) | 55 / 70 / 88 / 110 en 4 bloques y **Quemadura II**; deja un charco de lava 5 s que prende | apartarse del sello |
-| **Trompetas del Apocalipsis** (II) | alza la espada y salen del suelo **cuatro ángeles de mármol** a 15 bloques, que tocan una melodía de 24 s. Él sigue peleando mientras suena | si queda alguno en pie al acabar, entra en **Furia** | romper los cuatro (**10 golpes** cada uno) |
-| **Fuentes Solares** (III) | se arrodilla, clava la espada y carga su sol, que crece. Salen **tres fuentes** a 13 bloques que le mandan fuego: con las tres llena la carga en 15 s, con dos en 20 y con una en 30 | si se llena: **Supernova** a 56 bloques, 80 / 80 / 96 / 120, **Quemadura III**, fuego y el **Grito de guerra** | romper las tres (**10 golpes** cada una): se le apaga el sol y cae **aturdido 6 s** con daño doble |
-| **Ofrenda al Sol** (III) | el haz de su sol señala a uno (no se puede esquivar), lo agarra y lo alza al sol. El atrapado tiene que seguir **15 letras en 8 s** (**20** en la fase IV); mientras, se quema un 4 % de su vida por segundo | si falla una o se acaba el tiempo: **la muerte salvo tótem**, y él entra en **Furia** | acertarlas todas: lo suelta y cae **aturdido 5 s** con daño doble |
-| **Dios de la Guerra** (IV) | suelta la espada, se envuelve en llamas carmesí y marca **tres zonas** de 6 bloques (sobre los jugadores, al azar). Les lanza un sol a cada una y estallan en cadena | 174 y Quemadura I. Con **Quemadura III**, o con el **Grito de guerra** puesto, **mata a todos** los que pille (salvo tótem) | salir de las zonas, y no llegar con la Quemadura III |
+| **Barrido Solar** | solo si tiene a alguien a menos de 16 bloques: va a por el más cercano, se encara mientras carga el primer tajo y lo sigue entre tajo y tajo. Cuatro tajos seguidos; cada uno pega con la hoja a 12 bloques por delante y suelta **tres medias lunas de fuego** en abanico (una sola y grande en el tajo de arriba) que vuelan unos 28 bloques | hoja 18 / 23,5 / 25,5 / 32; media luna 13 / 17 / 18,7 / 23,2 y Quemadura I | salir del frente; las medias lunas, de lado |
+| **Castigo Divino** | alza la espada y su sol le manda un haz. Marca con un sello a **cada jugador** a 48 bloques y, 1,1 s después, cae un rayo en cada sello | 19 / 24 / 26,4 / 32,8 y Quemadura I; no lo para el escudo | salir del sello |
+| **Onda de Fuego** (II) | el Castigo acaba clavando la espada: un anillo de llamas corre por el suelo hasta 26 bloques | 12 / 16 / 17 / 21,6 y Quemadura I | **saltarla**: solo pega a quien esté en el suelo |
+| **Sol Abrasador** (II) | se le forman tres soles en la mano y los lanza en arco, cada uno a un jugador (lo elige al formar el sol y se va girando hacia él). El sello del suelo marca dónde caen (1,4 s) | 27,5 / 35 / 37,4 / 44 en 4 bloques y **Quemadura II**; deja un charco de lava 5 s que prende | apartarse del sello |
+| **Trompetas del Apocalipsis** (II) | alza la espada y salen del suelo **cuatro ángeles de mármol** a 15 bloques, cada uno sobre un **estrado** de dos escalones (desde el suelo no se le llega: hay que subirse). Tocan una melodía de 24 s y, mientras suena, **él no ataca ni se mueve**: se queda plantado y los dirige. Cada **5 s** cada ángel da un **pulso de fuego** por su estrado que tira abajo a quien esté encima; un segundo antes lo avisa (la trompeta se enciende y suena) | el pulso: 6 / 6 / 8 / 8 y unos 7 bloques de empujón. Si queda alguno en pie al acabar, entra en **Furia** | romper los cuatro (**10 golpes** cada uno), y **saltar el pulso** para no caerse (corre a ras del estrado) |
+| **Fuentes Solares** (III) | se arrodilla, clava la espada y carga su sol, que crece. Salen **tres fuentes** a 13 bloques que le mandan fuego: con las tres llena la carga en 15 s, con dos en 20 y con una en 30 | si se llena: **Supernova** a 56 bloques, 56 / 56 / 57 / 67,2, **Quemadura III**, fuego y el **Grito de guerra** | romper las tres (**10 golpes** cada una): se le apaga el sol y cae **aturdido 6 s** con daño doble |
+| **Ofrenda al Sol** (III) | el haz de su sol señala a uno (no se puede esquivar), lo agarra y lo alza al sol. Primero tiene **3 s para prepararse** (cuenta atrás 3, 2, 1; las teclas no cuentan) y luego tiene que seguir **10 letras en 8 s** (**12** en la fase IV); mientras, se quema un 4 % de su vida por segundo | si falla una o se acaba el tiempo: **la muerte salvo tótem**, y él entra en **Furia** | acertarlas todas: lo suelta y cae **aturdido 5 s** con daño doble |
+| **Dios de la Guerra** (IV) | suelta la espada, se envuelve en llamas carmesí y marca **tres zonas** de 6 bloques (sobre los jugadores, al azar). Les lanza un sol a cada una y estallan en cadena | 174 y Quemadura I. Con **Quemadura III**, o con el **Grito de guerra** puesto, **mata a todos** los que pille (salvo tótem) | salir de las zonas, y no llegar con la Quemadura III (se gira hacia cada zona antes de lanzarle su sol) |
 
 **Las teclas de la Ofrenda** (`OfrendaCliente`, `OfrendaTecladoMixin`). Son solo
 letras de la A a la Z y salen de una semilla que el servidor manda al cliente.
@@ -1378,8 +1434,8 @@ distribución del teclado (en AZERTY, la A es la A) y solo al pulsar: mantener
 no falla. Mientras dura, ninguna otra tecla llega al juego, salvo Escape y las
 F. El atrapado lo ve en tercera persona, de cara a Novilis.
 
-**La Furia del Sol** es **azul**: un 25 % más rápido, un 35 % más de daño y un
-35 % menos de espera. Se le ve la armadura con las grietas en azul, la hoja y su
+**La Furia del Sol** es **azul**: un 15 % más rápido, un 20 % más de daño y un
+25 % menos de espera. Se le ve la armadura con las grietas en azul, la hoja y su
 sol azules, y le salen **lenguas de fuego azul** del yelmo, las hombreras, el
 puño, la espalda y la hoja (`NovilisLlamasLayer`: cada lengua va pegada a su
 hueso y sube hacia arriba del mundo aunque él se doble). En el Dios de la Guerra
@@ -1510,6 +1566,24 @@ sin luz (en 8 cuadros que se funden: la luz corre por las costuras) y el destell
 de los encantamientos. Las mallas, las animaciones y las texturas salen de
 `armaduras_jefes.py` (genera `ArmaduraJefeMalla.java`); los iconos y las armas,
 de `armaduras_iconos.py`.
+
+**La barra de armadura con el conjunto entero.** Con las cuatro piezas del mismo
+conjunto puestas, los iconos de armadura del HUD pasan a ser la pechera de ese
+conjunto, con sus colores, y un brillo los cruza cada 2,4 s. Vale para las
+cuatro armaduras de los jefes y para el traje Hazmat:
+
+| Conjunto | Icono |
+|---|---|
+| Mareas | hombreras de perla, peto verde azulado, cinto cian |
+| Jade | hombreras de oro, peto de jade, gema verde con marco de oro |
+| Vendaval | hombreras lila, peto añil, gema celeste |
+| Solar | hombreras de oro, peto de hierro quemado, el sol en el pecho |
+| Hazmat | amarillo de aviso con las correas negras |
+
+Con piezas sueltas o mezcladas se ven los de vanilla. Cuántos iconos salen y
+dónde lo sigue decidiendo vanilla; solo cambia el dibujo (`IconosArmadura`, con
+un mixin en `Hud.extractArmor`). Salen de `iconos_armadura_hud.py`, con la
+silueta de vanilla (9 × 9) y los colores sacados de la pechera de cada uno.
 
 Las tres espadas de antes (de las Mareas, de Jade y del Vendaval, 16 de daño)
 siguen existiendo para no romper mundos, pero ya no salen en creativo: las

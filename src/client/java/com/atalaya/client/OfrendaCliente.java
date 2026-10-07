@@ -24,6 +24,10 @@ import org.jspecify.annotations.Nullable;
  *
  * Mientras dura, la camara se aleja (como con F5) para que se vea que te tiene;
  * al acabar vuelve a la que habia. OfrendaHud lo pinta.
+ *
+ * Al agarrarte hay 3 s para prepararse (NovilisEntity.OFRENDA_PREPARA): la
+ * cuenta atras 3, 2, 1 con su tic; mientras, las teclas se tragan sin contar
+ * (antes la gente tocaba algo sin enterarse y fallaba). Luego empieza el tiempo.
  */
 public final class OfrendaCliente {
 
@@ -37,6 +41,8 @@ public final class OfrendaCliente {
     private static boolean exito;
     private static long fin = -1000;
     private static @Nullable CameraType camaraAntes;
+    /** El ultimo segundo de la cuenta atras que sono (para el tic de cada uno). */
+    private static int cuentaSonada = -1;
 
     private OfrendaCliente() {
     }
@@ -61,14 +67,24 @@ public final class OfrendaCliente {
         return exito;
     }
 
-    /** Lo que queda de tiempo, de 1 a 0. */
+    /** Lo que queda de tiempo, de 1 a 0 (lleno mientras se prepara). */
     public static float tiempoRestante(float parcial) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
             return 0.0F;
         }
+        float pasado = mc.level.getGameTime() - inicio - NovilisEntity.OFRENDA_PREPARA + parcial;
+        return Mth.clamp(1.0F - pasado / NovilisEntity.OFRENDA_TIEMPO, 0.0F, 1.0F);
+    }
+
+    /** Los segundos que quedan para prepararse (0: ya cuentan las teclas). */
+    public static float preparacion(float parcial) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!activo || mc.level == null) {
+            return 0.0F;
+        }
         float pasado = mc.level.getGameTime() - inicio + parcial;
-        return Math.max(0.0F, 1.0F - pasado / NovilisEntity.OFRENDA_TIEMPO);
+        return Math.max(0.0F, (NovilisEntity.OFRENDA_PREPARA - pasado) / 20.0F);
     }
 
     /** Ticks desde que acabo (bien o mal). */
@@ -98,7 +114,15 @@ public final class OfrendaCliente {
         } else if (dueno == null && activo) {
             terminar(mc, indice >= teclas.length && teclas.length > 0);
         }
-        if (activo && tiempoRestante(0.0F) <= 0.0F && !fallo) {
+        if (activo && !fallo) {
+            // La cuenta atras: un tic por segundo y uno mas agudo al empezar.
+            int seg = (int) Math.ceil(preparacion(0.0F));
+            if (seg != cuentaSonada) {
+                cuentaSonada = seg;
+                mc.getSoundManager().play(SimpleSoundInstance.forUI(AtalayaSonidos.NOVILIS_OFRENDA_TECLA, seg > 0 ? 0.6F : 1.4F));
+            }
+        }
+        if (activo && preparacion(0.0F) <= 0.0F && tiempoRestante(0.0F) <= 0.0F && !fallo) {
             // Se acabo el tiempo: el servidor tambien lo vera (con su margen).
             fallar(mc);
         }
@@ -114,6 +138,7 @@ public final class OfrendaCliente {
         fallo = false;
         exito = false;
         fin = -1000;
+        cuentaSonada = -1;
         if (camaraAntes == null) {
             camaraAntes = mc.options.getCameraType();
             mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
@@ -165,7 +190,8 @@ public final class OfrendaCliente {
             return false;
         }
         Minecraft mc = Minecraft.getInstance();
-        if (fallo || indice >= teclas.length) {
+        if (fallo || indice >= teclas.length || preparacion(0.0F) > 0.0F) {
+            // Acabada, o aun preparandose: la tecla se traga sin contar.
             return true;
         }
         boolean bien = teclas[indice] == letra;

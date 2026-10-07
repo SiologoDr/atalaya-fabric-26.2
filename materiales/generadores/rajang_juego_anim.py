@@ -244,16 +244,361 @@ anim('DORMIDO', 6.0, muestreada(pose_dormido, 6.0, 12), loop=True)
 
 _ruge = sumar(cabeza(x=-26, boca=34, cuello=-8, orejas=-24), cuerpo(x=-4, avanza=4), mano(1, -6, 0), mano(-1, 4, 0),
               cola(sube=10, fase=0.0, onda=0))
-_cl = [(0, _esfinge, 'c'),
-       (0.6, sumar(_esfinge, cabeza(x=-10, orejas=14)), 'c'),
-       (1.0, sumar(_esfinge, cabeza(x=-14, y=12, orejas=12)), 'c'),
-       (1.5, sumar(cuerpo(x=6, baja=30), mano(1, -30, 30, 8), mano(-1, -40, 34, 10), pata(1, -40, 60, -40, 26),
-                   pata(-1, -40, 60, -40, 26), cabeza(x=4, boca=-10)), 'c'),
-       (2.0, sumar(cuerpo(x=-2, baja=4), mano(1, -10, 6), mano(-1, 6, 0), cabeza(x=-6, boca=6)), 'c'),
-       (2.3, _ruge, 'c')]
-temblor(_ruge, 2.35, 3.1, 0.07, {'cabeza': {'rot': (2.0, 2.0, 0)}, 'mandibula': {'rot': (3, 0, 0)}}, _cl)
-_cl += [(3.6, N, 'c')]
-anim('DESPERTAR', 3.6, _cl)
+
+# ----------------------------------------------------------------------
+#  El despertar de la presentacion (190 ticks): la camara le da vueltas
+#  mientras despierta por partes, y acaba con su gran rugido. Los tiempos son
+#  los mismos en los cuatro jefes (la camara va con ellos):
+#    0        duerme como una esfinge, cada vez respira mas hondo; le tiembla
+#             la punta de la cola y se le mueve una oreja
+#    ABRE     se le encienden los ojos; alza la cabeza con las orejas tiesas
+#             y mira alrededor
+#    SE_ALZA  saca las manos de la tierra y se estira como un gato: las manos
+#             muy por delante, el pecho abajo y la grupa arriba, y bosteza;
+#             luego se echa adelante sobre ellas, recoge las manos, estira las
+#             patas de atras una a una y arquea el lomo
+#    ALZADO   agazapado, la cabeza baja y grune, la cola como un latigo y la
+#             cresta de jade que se eriza de delante atras
+#    RUGE     se alza sobre las patas de atras y ruge con todo el cuerpo; lo
+#             sostiene temblando, vuelve a apoyar las manos (APOYA) y se queda
+#             como en el reposo, de donde sale el resto del juego
+#  Las zarpas que apoyan no resbalan: las piernas salen de una IK sobre la
+#  pose (los angulos escritos solo eligen hacia donde se doblan).
+# ----------------------------------------------------------------------
+T_DESPERTAR = 9.5
+T_DESP_ABRE = 2.0
+T_DESP_SE_ALZA = 3.5
+T_DESP_ALZADO = 6.0
+T_DESP_RUGE = 7.25
+T_DESP_APOYA = 8.7
+
+
+def pista(*claves):
+    """Una curva suave que pasa por las claves (t, valor): Hermite monotona
+    (no se pasa de las claves y se para en los extremos)."""
+    ts = np.array([c[0] for c in claves], float)
+    vs = np.array([c[1] for c in claves], float)
+    h = np.diff(ts)
+    d = np.diff(vs) / h
+    m = np.zeros(len(ts))
+    for i in range(1, len(ts) - 1):
+        if d[i - 1] * d[i] > 0:
+            w1, w2 = 2 * h[i] + h[i - 1], h[i] + 2 * h[i - 1]
+            m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i])
+
+    def f(s):
+        if s <= ts[0]:
+            return float(vs[0])
+        if s >= ts[-1]:
+            return float(vs[-1])
+        i = int(np.searchsorted(ts, s)) - 1
+        u = (s - ts[i]) / h[i]
+        return float((2 * u ** 3 - 3 * u ** 2 + 1) * vs[i] + (u ** 3 - 2 * u ** 2 + u) * h[i] * m[i]
+                     + (-2 * u ** 3 + 3 * u ** 2) * vs[i + 1] + (u ** 3 - u ** 2) * h[i] * m[i + 1])
+    return f
+
+
+def _suave(u):
+    u = min(1.0, max(0.0, u))
+    return u * u * (3 - 2 * u)
+
+
+def _ventana(s, t0, t1, sube=0.15, baja=0.15):
+    """1 entre t0 y t1, con rampas suaves de sube y baja segundos."""
+    return _suave((s - t0) / sube) * (1 - _suave((s - t1 + baja) / baja))
+
+
+def _toques(s, toques):
+    """Sacudidas cortas (t0, dura, amplitud): van y vuelven una vez."""
+    v = 0.0
+    for t0, d, a in toques:
+        if t0 <= s <= t0 + d:
+            v += a * math.sin(2 * math.pi * (s - t0) / d) * math.sin(math.pi * (s - t0) / d)
+    return v
+
+
+# --- La IK de las piernas -----------------------------------------------
+_CADENAS = {'mano_izq': ('brazo_izq', 'antebrazo_izq', 'mano_izq'), 'mano_der': ('brazo_der', 'antebrazo_der', 'mano_der'),
+            'pie_izq': ('muslo_izq', 'tibia_izq', 'tarso_izq', 'pie_izq'), 'pie_der': ('muslo_der', 'tibia_der', 'tarso_der', 'pie_der')}
+_APOYO = (0, 8, -8)
+
+
+def _local(nombre, pose):
+    p = rj.PARTES[nombre]
+    ex = pose.get(nombre, {})
+    a = [p.rot[i] + ex.get('rot', (0, 0, 0))[i] for i in range(3)]
+    q = [p.pivote[i] + ex.get('pos', (0, 0, 0))[i] for i in range(3)]
+    e = ex.get('esc', (1, 1, 1))
+    return vr.T(*q) @ vr.Rz(a[2] * rj.D2R) @ vr.Ry(a[1] * rj.D2R) @ vr.Rx(a[0] * rj.D2R) @ np.diag([e[0], e[1], e[2], 1.0])
+
+
+def _fk_pierna(Mc, cadena, ang, giro):
+    """Donde apoya la zarpa (pixeles del modelo) y su cabeceo (grados; positivo,
+    los dedos hacia abajo) con los angulos x de la cadena y el giro de lado de la
+    primera pieza."""
+    M = Mc
+    for i, n in enumerate(cadena):
+        p = rj.PARTES[n]
+        M = M @ vr.T(*p.pivote) @ vr.Rz((p.rot[2] + (giro if i == 0 else 0.0)) * rj.D2R) @ vr.Ry(p.rot[1] * rj.D2R) \
+            @ vr.Rx((p.rot[0] + ang[i]) * rj.D2R)
+    c = (M @ np.array([*_APOYO, 1.0]))[:3]
+    v = M[:3, :3] @ np.array([0.0, 0.0, -1.0])
+    return c, math.degrees(math.atan2(v[1], -v[2]))
+
+
+def _ik_pierna(Mc, cadena, ang0, giro0, objetivo, cabeceo, x0=None):
+    """Levenberg-Marquardt: la zarpa al objetivo y con el cabeceo pedido, lo mas
+    cerca posible de los angulos escritos (que deciden hacia donde dobla).
+    Arranca de x0 si se le da."""
+    ref = np.array([*ang0, giro0], float)
+    x = ref.copy() if x0 is None else np.array(x0, float)
+    wr = np.array([0.02] * len(ang0) + [0.25])
+
+    def res(x):
+        c, cab = _fk_pierna(Mc, cadena, x[:-1], x[-1])
+        return np.concatenate([c - objetivo, [0.4 * (cab - cabeceo)], wr * (x - ref)])
+    r0 = res(x)
+    e0 = r0 @ r0
+    lam = 1e-2
+    for _ in range(60):
+        J = np.empty((len(r0), len(x)))
+        for j in range(len(x)):
+            dx = np.zeros(len(x))
+            dx[j] = 1e-3
+            J[:, j] = (res(x + dx) - r0) / 1e-3
+        A, g = J.T @ J, J.T @ r0
+        paso = None
+        while lam < 1e9:
+            paso = np.linalg.solve(A + lam * np.diag(np.diag(A) + 1e-9), -g)
+            r1 = res(x + paso)
+            if r1 @ r1 < e0:
+                x, r0, e0 = x + paso, r1, r1 @ r1
+                lam = max(lam / 3, 1e-8)
+                break
+            lam *= 4
+        if paso is None or lam >= 1e9 or np.abs(paso).max() < 1e-5:
+            break
+    return x
+
+
+# --- Las poses del despertar ----------------------------------------------
+# El cuerpo (cabeceo: positivo baja el hocico; baja y avanza en pixeles).
+_d_cuerpo_x = pista((0, -2), (3.5, -2), (3.9, 2), (4.55, 19), (4.85, 18), (5.3, -3), (5.6, -2), (5.85, 5),
+                    (6.0, 5), (6.3, 7), (6.85, 6), (7.05, 10), (7.27, -30), (7.6, -32), (8.3, -26), (8.55, -4),
+                    (T_DESP_APOYA, 5), (8.95, -1.5), (9.5, 0))
+_d_baja = pista((0, 58), (3.3, 58), (3.5, 59.5), (3.9, 52), (4.55, 31), (4.85, 30), (5.3, 10), (5.6, 8), (5.85, -4),
+                (6.0, -4), (6.3, 19), (6.85, 17), (7.05, 24), (7.27, -14), (7.6, -15), (8.3, -11), (8.55, 2),
+                (T_DESP_APOYA, 6), (8.95, 0.6), (9.2, 1.2), (9.5, 0))
+_d_avanza = pista((0, 0), (3.5, 0), (3.9, -4), (4.55, -10), (4.85, -10), (5.35, 21), (5.65, 22), (6.0, 0),
+                  (6.3, -4), (6.85, -4), (7.05, -6), (7.27, -4), (8.3, -4), (T_DESP_APOYA, 2), (9.5, 0))
+# La cabeza y el cuello (x negativo la levanta), la boca y las orejas.
+_d_cuello = pista((0, -22), (2.0, -22), (2.25, -46), (2.45, -42), (3.3, -41), (3.55, -30), (3.95, -18), (4.4, -26),
+                  (4.6, -30), (4.85, -26), (5.3, -6), (5.6, 2), (5.85, 22), (6.0, 22), (6.3, 12), (6.85, 10),
+                  (7.05, 18), (7.27, -6), (7.6, -8), (8.3, -2), (8.55, 2), (T_DESP_APOYA, 8), (9.0, 2), (9.5, 0))
+_d_cabeza_x = pista((0, -14), (2.0, -14), (2.25, 2), (2.45, 0), (3.5, 0), (3.95, -4),
+                    (4.3, -14), (4.6, -30), (4.85, -24), (5.3, -2), (5.6, 4), (5.85, 16), (6.0, 16), (6.3, 6),
+                    (6.85, 4), (7.05, 12), (7.27, 4), (7.6, 4), (8.3, 12), (8.55, 2), (T_DESP_APOYA, 6),
+                    (9.0, 0), (9.5, 0))
+_d_cabeza_y = pista((0, 0), (1.4, 0), (1.7, 5), (2.0, 3), (2.5, 0), (2.8, 17), (3.1, 16), (3.4, -7), (3.7, -4),
+                    (4.2, 0), (6.0, 0), (6.4, 9), (6.75, -8), (7.0, -2), (7.27, 0), (9.5, 0))
+_d_boca = pista((0, -14), (2.0, -14), (2.15, -8), (2.7, -7), (2.95, 5), (3.25, -5), (3.6, -8), (4.25, -6),
+                (4.6, 24), (4.8, 26), (5.05, -4), (5.6, -6), (6.0, 0), (6.3, 10), (6.85, 9), (7.05, 2),
+                (7.27, 40), (7.5, 43), (8.2, 35), (8.55, 18), (8.85, 4), (9.15, -4), (9.5, 0))
+_d_orejas = pista((0, -10), (2.0, -10), (2.1, 17), (2.3, 12), (3.4, 12), (4.3, 8), (4.6, -14), (4.85, -12),
+                  (5.1, 6), (6.0, 4), (6.3, -22), (6.85, -20), (7.05, -28), (7.27, -26), (8.4, -24), (8.9, 2),
+                  (9.5, 0))
+# La cola: sube la base, se desenrosca de alrededor del cuerpo y se pone a latiguear.
+_d_cola_sube = pista((0, -4), (3.5, -4), (4.55, 26), (4.85, 24), (5.3, 16), (5.6, 4), (5.85, -28), (6.0, -26),
+                     (6.3, 8), (6.85, 10), (7.05, 2), (7.27, 22), (8.3, 22), (T_DESP_APOYA, 4), (9.5, 0))
+_d_cola_lado = pista((0, 34), (3.6, 34), (4.6, 4), (5.6, 0), (9.5, 0))
+_d_enrosca = pista((0, 1), (3.6, 1), (4.6, 0), (9.5, 0))
+_d_onda = pista((0, 0), (3.6, 0), (4.4, 7), (5.6, 5), (6.1, 6), (6.35, 20), (6.95, 20), (7.15, 6), (8.3, 5),
+                (T_DESP_APOYA, 10), (9.5, 0))
+_enrosca = {'cola2': (-3.4, 26), 'cola4': (-2.3, 28), 'cola6': (-0.3, 22)}
+# Los ojos: una rendija mientras duerme; al abrir, de golpe y algo de mas.
+_d_ojo = pista((0, 0.15), (T_DESP_ABRE, 0.15), (2.08, 1.35), (2.25, 0.95), (2.4, 1.0), (4.4, 1.0), (4.6, 0.45),
+               (4.8, 0.45), (5.0, 1.0), (7.15, 1.0), (7.27, 1.2), (8.4, 1.15), (8.8, 1.0), (9.5, 1.0))
+# La cresta de jade se eriza de delante atras (cada pieza un poco despues).
+_CRESTA = ['corona_c', 'cresta_cuello'] + [f'cresta{i}' for i in range(8)]
+_d_cresta = pista((0, 0), (6.15, 0), (6.55, 1.0), (7.15, 1.0), (7.27, 1.25), (7.5, 1.0), (8.4, 1.0), (9.25, 0), (9.5, 0))
+# Los coletazos de la punta de la cola (t0, dura, grados).
+_PUNTA = [(0.55, 0.45, 18), (1.45, 0.4, -16), (2.35, 0.35, 22), (2.95, 0.4, -18), (3.3, 0.35, 14)]
+
+
+def _respiracion(s):
+    """La respiracion del que duerme, cada vez mas honda y deprisa (de un ciclo
+    de 6 s a uno de 2,4 s); se apaga al levantarse."""
+    f0, f1 = 1 / 6.0, 1 / 2.4
+    fase = 2 * math.pi * (f0 * s + (f1 - f0) * min(s, 2.0) ** 2 / 4.0 + (f1 - f0) * max(0.0, s - 2.0))
+    amp = (1.0 + 1.0 * _suave(s / 2.0)) * (1 - _suave((s - 3.4) / 0.4))
+    return amp, fase
+
+
+def _pose_cuerpo(s):
+    """Todo menos las piernas."""
+    amp, fase = _respiracion(s)
+    tiembla = 0.0
+    if 7.3 <= s <= 8.4:
+        # el temblor del rugido: va y viene cada 0,075 s, cada vez menos
+        tiembla = math.cos(math.pi * (s - 7.3) / 0.075) * (1 - 0.6 * (s - 7.3) / 1.1)
+    lado = 2.5 * math.sin(2 * math.pi * (s - 6.2) / 1.1) * _ventana(s, 6.2, 7.0, 0.2, 0.2)
+    sacude = 12 * math.sin(2 * math.pi * (s - 8.85) / 0.42) * _ventana(s, 8.85, 9.45, 0.05, 0.3)
+    p = sumar(cuerpo(x=_d_cuerpo_x(s) + 0.4 * amp * math.sin(fase), z=lado + 0.8 * tiembla,
+                     baja=_d_baja(s) + 1.5 * amp * math.sin(fase), avanza=_d_avanza(s), lado=0.6 * lado),
+              {'peto': {'pos': (0, 0, -0.8 * amp * math.sin(fase))}},
+              cabeza(x=_d_cabeza_x(s) + 1.5 * amp * math.sin(fase + 0.5) + 2.5 * tiembla,
+                     y=_d_cabeza_y(s) + 2.0 * tiembla + sacude, z=6 * _ventana(s, 2.8, 3.15, 0.12, 0.15) + 0.4 * sacude,
+                     boca=_d_boca(s) + 3 * tiembla + 4 * math.sin(2 * math.pi * s / 0.6) * _ventana(s, 6.3, 6.95, 0.1, 0.1),
+                     cuello=_d_cuello(s), cuello_y=0.4 * _d_cabeza_y(s), orejas=_d_orejas(s)),
+              # una oreja que se mueve en suenos y otra al mirar
+              {'oreja_izq': r(_toques(s, [(1.0, 0.35, 22), (3.0, 0.3, -14)])),
+               'oreja_der': r(_toques(s, [(2.6, 0.3, 16)]))})
+    # la cola: se desenrosca, sube y latiguea; la punta tiembla mientras duerme
+    w = 2 * math.pi * (s - 6.2) / 0.95
+    p = sumar(p, cola(sube=_d_cola_sube(s), lado=_d_cola_lado(s) + 26 * math.sin(w) * _ventana(s, 6.2, 7.05, 0.2, 0.15),
+                      fase=2 * math.pi * s / 1.3 + 1.5 * w * _suave((s - 6.0) / 0.3), onda=_d_onda(s), retraso=0.6))
+    k = _d_enrosca(s)
+    for n, (x, y) in _enrosca.items():
+        p = sumar(p, {n: r(x * k, y * k)})
+    p = sumar(p, {'cola5': r(0, 0.5 * _toques(s, _PUNTA)), 'cola6': r(0, _toques(s, _PUNTA))})
+    o = _d_ojo(s)
+    p = sumar(p, {'ojo_izq': {'esc': (1 + 0.3 * (o - 1) * (o > 1), o, 1)}, 'ojo_der': {'esc': (1 + 0.3 * (o - 1) * (o > 1), o, 1)}})
+    for i, n in enumerate(_CRESTA):
+        e = _d_cresta(s - 0.05 * i if s < 7.0 else s)
+        p = sumar(p, {n: {'esc': (1 + 0.12 * e, 1 + 0.3 * e, 1 + 0.12 * e)}})
+    return p
+
+
+# Los angulos escritos de cada pierna (x de cada pieza y el giro de lado):
+# dormido, estirado, de pie, agazapado y alzado. Con la IK solo eligen como dobla.
+_ESF = {'mano_izq': (-68, 52, 16, 0), 'mano_der': (-64, 50, 14, 0),
+        'pie_izq': (-58, 88, -66, 40, 8), 'pie_der': (-58, 88, -66, 40, 8)}
+
+
+def _escritos(pieza, s):
+    lado = 1 if pieza.endswith('izq') else -1
+    e = _ESF[pieza]
+    if pieza.startswith('mano'):
+        claves = [(0, e), (3.5, e), (4.0, (-44, -80, 107, 0)), (4.85, (-44, -80, 107, 0)), (5.4, (0, 0, 0, 0)),
+                  (6.0, (0, 0, 0, 0)), (6.3, (37, -78, 33, 6)), (6.95, (37, -78, 33, 6)),
+                  (7.3, (-40, -30, 40, -12)), (8.3, (-36, -34, 36, -12)), (8.6, (-20, -20, 20, 0)), (9.5, (0, 0, 0, 0))]
+    else:
+        claves = [(0, e), (3.85, e), (4.3, (-24, 30, -16, 10, 6)), (4.85, (-24, 30, -16, 10, 6)), (5.4, (0, 0, 0, 0, 0)),
+                  (6.0, (0, 0, 0, 0, 0)), (6.3, (-30, 50, -36, 24, 0)), (6.95, (-30, 50, -36, 24, 0)),
+                  (7.05, (-36, 58, -42, 28, 0)), (7.3, (24, 18, -14, 8, 0)), (8.3, (24, 18, -14, 8, 0)),
+                  (8.7, (-8, 14, -8, 4, 0)), (9.5, (0, 0, 0, 0, 0))]
+    out = []
+    for j in range(len(claves[0][1])):
+        out.append(pista(*[(t, v[j]) for t, v in claves])(s))
+    out[-1] *= lado
+    return out
+
+
+def _poner_pierna(p, pieza, ang):
+    lado = 1 if pieza.endswith('izq') else -1
+    if pieza.startswith('mano'):
+        return sumar(p, mano(lado, ang[0], ang[1], ang[2], ang[3] * lado))
+    return sumar(p, pata(lado, ang[0], ang[1], ang[2], ang[3], ang[4] * lado))
+
+
+def _apoyo_de(pose, pieza):
+    """Donde apoya la zarpa en la pose (bloques, espacio del cuerpo)."""
+    Mc = _local('raiz', pose) @ _local('cuerpo', pose)
+    ex = [pose[n]['rot'][0] for n in _CADENAS[pieza]]
+    return np.array(rj.a_bloques(_fk_pierna(Mc, _CADENAS[pieza], ex, pose[_CADENAS[pieza][0]]['rot'][2])[0]))
+
+
+# Las marcas de las zarpas (bloques, espacio del cuerpo): las de pie salen de la pose de reposo.
+_DE_PIE = {n: _apoyo_de(_poner_pierna({}, n, (0, 0, 0, 0) if n.startswith('mano') else (0, 0, 0, 0, 0)), n)
+           for n in _CADENAS}
+_ESTIRADO = {n: _DE_PIE[n] + np.array([0, 0, 2.6]) for n in ('mano_izq', 'mano_der')}
+_ESTIRADO.update({n: np.array([1.15 * (1 if n.endswith('izq') else -1), _DE_PIE[n][1], -4.21]) for n in ('pie_izq', 'pie_der')})
+
+# Cada zarpa: (t0, t1, de, a, lo que sube en el paso, cabeceo en medio, por donde
+# pasa). 'libre' es la pose escrita: al soltarse o apoyar desde ella, la pierna
+# pasa de unos angulos a otros (sin camino). Las manos salen de la tierra y se
+# estiran, se recogen bajo los hombros, se sueltan al alzarse y apoyan al bajar;
+# las patas salen y se estiran hacia atras una a una (el paso por arriba y atras).
+_ATRAS = (np.array([0, 1.3, -7.3]), np.array([0, 1.1, -7.4]))
+_PLAN = {
+    'mano_izq': [(3.5, 3.92, 'libre', 'estirado', 0, 0, None), (4.85, 5.15, 'estirado', 'de_pie', 0.9, 25, None),
+                 (7.05, 7.25, 'de_pie', 'libre', 0, 0, None), (8.4, T_DESP_APOYA, 'libre', 'de_pie', 0, 0, None)],
+    'mano_der': [(3.6, 4.0, 'libre', 'estirado', 0, 0, None), (5.0, 5.3, 'estirado', 'de_pie', 0.9, 25, None),
+                 (7.08, 7.28, 'de_pie', 'libre', 0, 0, None), (8.45, T_DESP_APOYA + 0.03, 'libre', 'de_pie', 0, 0, None)],
+    'pie_izq': [(3.85, 4.2, 'libre', 'estirado', 0, 0, None), (5.2, 5.6, 'estirado', 'de_pie', 0, -50, _ATRAS)],
+    'pie_der': [(3.9, 4.25, 'libre', 'estirado', 0, 0, None), (5.45, 5.85, 'estirado', 'de_pie', 0, -50, _ATRAS)],
+}
+
+
+def _marca(pieza, nombre):
+    return {'estirado': _ESTIRADO, 'de_pie': _DE_PIE}[nombre][pieza]
+
+
+def _objetivo(pieza, s):
+    """Lo que hace la zarpa en s: None si va suelta (la pose escrita);
+    ('ik', donde, cabeceo) si apoya o da un paso (bloques); o ('mezcla', donde,
+    cabeceo, k, t) al soltarse o al apoyar desde suelta: los angulos pasan de los
+    escritos a los que la dejan apoyada (con k de 0 a 1; t, de donde se toman los
+    escritos que eligen como dobla la pierna apoyada)."""
+    plan = _PLAN[pieza]
+    if s < plan[0][0]:
+        return None
+    for i, (t0, t1, de, a, alto, cab, por) in enumerate(plan):
+        sig = plan[i + 1][0] if i + 1 < len(plan) else 1e9
+        if t1 < s < sig:
+            return None if a == 'libre' else ('ik', _marca(pieza, a), 0.0)
+        if t0 <= s <= t1:
+            u = (s - t0) / (t1 - t0)
+            if de == 'libre':
+                return 'mezcla', _marca(pieza, a), 0.0, _suave(u), t1
+            if a == 'libre':
+                return 'mezcla', _marca(pieza, de), 0.0, 1 - _suave(u), t0
+            pa, pb = _marca(pieza, de), _marca(pieza, a)
+            if por is not None:
+                pts = [(0, pa), (0.45, np.array([pa[0], *por[0][1:]])), (0.65, np.array([pa[0], *por[1][1:]])), (1, pb)]
+                pos = np.array([pista(*[(t, q[j]) for t, q in pts])(u) for j in range(3)])
+                pos[0] = pa[0] + (pb[0] - pa[0]) * _suave(u)
+            else:
+                pos = pa + (pb - pa) * _suave(u)
+                pos[1] += alto * math.sin(math.pi * u)
+            return 'ik', pos, cab * math.sin(math.pi * u)
+    return None
+
+
+_IK_ANTES = {}
+
+
+def pose_despertar(s):
+    p = _pose_cuerpo(s)
+    Mc = _local('raiz', p) @ _local('cuerpo', p)
+    for pieza, cadena in _CADENAS.items():
+        ang = _escritos(pieza, s)
+        obj = _objetivo(pieza, s)
+        if obj is not None:
+            ref = ang if obj[0] == 'ik' else _escritos(pieza, obj[4])
+            b = np.array(obj[1])
+            dest = np.array([b[0] * 16, 24.016 - b[1] * 16, -b[2] * 16])
+            # se arranca de la solucion del tick anterior: asi la pierna no cambia de
+            # golpe hacia donde dobla
+            antes = _IK_ANTES.get(pieza)
+            x0 = antes[1] if antes is not None and 0 < s - antes[0] <= 0.06 else None
+            x = _ik_pierna(Mc, cadena, ref[:-1], ref[-1], dest, obj[2], x0)
+            _IK_ANTES[pieza] = (s, x)
+            ang = list(x) if obj[0] == 'ik' else [e + (v - e) * obj[3] for e, v in zip(ang, x)]
+        p = _poner_pierna(p, pieza, ang)
+    return p
+
+
+def _tiempos_despertar():
+    """Las claves: una por tick (cada media en el temblor del rugido); al
+    exportar, cada pieza se queda solo con las que necesita (simplificar)."""
+    ts = {round(k * 0.05, 3) for k in range(int(round(T_DESPERTAR / 0.05)) + 1)}
+    ts.update(round(7.3 + k * 0.025, 3) for k in range(45))
+    return sorted(ts)
+
+
+anim('DESPERTAR', T_DESPERTAR, [(t, pose_despertar(t), 'c') for t in _tiempos_despertar()])
+ANIMS['DESPERTAR']['simplifica'] = True
 
 # ----------------------------------------------------------------------
 #  Garra Terrestre: se echa atras con la garra derecha en alto y la clava
@@ -510,7 +855,66 @@ anim('TUMBA', T_TUMBA_ESTALLA + 1.1, _cl)
 NULO = {'rot': (0, 0, 0), 'pos': (0, 0, 0), 'esc': (1, 1, 1)}
 
 
+def _catmull_vec(K, V, T):
+    """Lo que da un canal (claves en K, valores V) en los tiempos T, como en el
+    juego: Catmull-Rom con la clave anterior y la siguiente de cada tramo."""
+    n = len(K)
+    idx = np.searchsorted(K, T, side='left')
+    prev = np.maximum(0, idx - 1)
+    nxt = np.minimum(n - 1, prev + 1)
+    den = np.where(nxt != prev, K[nxt] - K[prev], 1.0)
+    al = np.clip((T - K[prev]) / den, 0.0, 1.0)[:, None]
+    al = np.where((nxt != prev)[:, None], al, 0.0)
+    p0, p1, p2, p3 = V[np.maximum(0, prev - 1)], V[prev], V[nxt], V[np.minimum(n - 1, nxt + 1)]
+    return catmull(al, p0, p1, p2, p3)
+
+
+def simplificar(ks, tol, paso=0.0125):
+    """Quita las claves que sobran en un canal (todas suaves) mientras la curva
+    no se aparte mas de tol de la que dan todas: en las animaciones largas
+    muestreadas cada pieza solo guarda las claves donde se mueve."""
+    K = np.array([k[0] for k in ks], float)
+    V = np.array([k[1] for k in ks], float)
+    T = np.arange(0.0, K[-1] + 1e-9, paso)
+    ref = _catmull_vec(K, V, T)
+    vivas = list(range(len(ks)))
+    cambia = True
+    while cambia:
+        cambia = False
+        j = 1
+        while j < len(vivas) - 1:
+            prueba = vivas[:j] + vivas[j + 1:]
+            lo, hi = K[vivas[max(0, j - 2)]], K[vivas[min(len(vivas) - 1, j + 2)]]
+            m = (T >= lo) & (T <= hi)
+            err = np.abs(_catmull_vec(K[prueba], V[prueba], T[m]) - ref[m]).max()
+            if err < tol:
+                vivas = prueba
+                cambia = True
+            else:
+                j += 1
+    return [ks[i] for i in vivas]
+
+
+# Lo que se puede apartar cada canal al simplificar: las piernas y el cuerpo,
+# poco (las zarpas que apoyan no deben resbalar); lo demas, algo mas.
+def _tolerancia(pieza, tipo):
+    if tipo == 'esc':
+        return 0.006
+    if tipo == 'pos':
+        return 0.08
+    piernas = ('brazo', 'antebrazo', 'mano', 'muslo', 'tibia', 'tarso', 'pie', 'cuerpo')
+    return 0.15 if pieza.split('_')[0] in piernas else 0.4
+
+
 def canales(a):
+    if a.get('simplifica'):
+        if '_canales' not in a:
+            a['_canales'] = [(pz, tp, simplificar(ks, _tolerancia(pz, tp))) for pz, tp, ks in _canales(a)]
+        return a['_canales']
+    return _canales(a)
+
+
+def _canales(a):
     usados = {}
     for _, p, _ in a['claves']:
         for pieza, d in p.items():
@@ -662,12 +1066,17 @@ def java_geometria():
         'PATA_IZQ': p_bloques(None, 0, 'pie_izq', (0, 8, -8)),
         'PATA_DER': p_bloques(None, 0, 'pie_der', (0, 8, -8)),
         'PUNTA_COLA': p_bloques(None, 0, 'punta_cola', (0, 0, 6)),
+        # por donde saca las manos de la tierra al despertar (entre las dos)
+        'MANOS_DESPERTAR': tuple(np.mean([p_bloques('DESPERTAR', T_DESP_SE_ALZA + 0.5, n, _APOYO)
+                                          for n in ('mano_izq', 'mano_der')], axis=0)),
     }
 
     def tick(s):
         return int(round(s * 20))
     tiempos = {
-        'DURACION_DESPERTAR': tick(ANIMS['DESPERTAR']['dur']), 'DESPERTAR_SE_ALZA': tick(1.5), 'DESPERTAR_RUGE': tick(2.3),
+        'DURACION_DESPERTAR': tick(ANIMS['DESPERTAR']['dur']), 'DESPERTAR_ABRE': tick(T_DESP_ABRE),
+        'DESPERTAR_SE_ALZA': tick(T_DESP_SE_ALZA), 'DESPERTAR_ALZADO': tick(T_DESP_ALZADO), 'DESPERTAR_RUGE': tick(T_DESP_RUGE),
+        'DESPERTAR_APOYA': tick(T_DESP_APOYA),
         'DURACION_GARRA': tick(ANIMS['GARRA']['dur']), 'GARRA_ALZA': tick(0.12), 'GARRA_GOLPE': tick(T_GARRA),
         'DURACION_TERREMOTO': tick(ANIMS['TERREMOTO']['dur']), 'TERREMOTO_GOLPE': tick(T_TERREMOTO),
         'DURACION_RUGIDO': tick(ANIMS['RUGIDO']['dur']), 'RUGIDO_RUGE': tick(T_RUGIDO),
@@ -708,6 +1117,31 @@ def java_geometria():
     L.append('')
     for k, v in zancadas.items():
         L.append(f'    public static final float {k} = {fj(v)};')
+    L.append('')
+    # La cabeza (el centro de la cara) y el pecho en el despertar, cada 5 ticks:
+    # la camara de la presentacion los sigue.
+    for nombre, pieza, local in (('CABEZA', 'cabeza', (0, -8, -30)), ('PECHO', 'sol', (0, 3, -118.5))):
+        filas = []
+        for k in range(0, tick(ANIMS['DESPERTAR']['dur']) + 1, 5):
+            x, y, z = (round(v, 2) + 0.0 for v in p_bloques('DESPERTAR', k / 20.0, pieza, local))
+            filas.append(f'{{{x:.2f}F, {y:.2f}F, {z:.2f}F}}')
+        L.append(f'    /** {nombre.capitalize()} en el despertar, cada 5 ticks (bloques; la camara de la presentacion la sigue). */')
+        L.append(f'    public static final float[][] {nombre}_DESPERTAR = {{' + ', '.join(filas) + '};')
+    L.append('')
+    for nombre in ('cabeza', 'pecho'):
+        L.append(f'    /** Donde esta {"la cabeza" if nombre == "cabeza" else "el pecho"} a los tantos ticks del despertar (entre filas, en linea recta). */')
+        L.append(f'    public static Vec3 {nombre}Despertar(float ticks) {{')
+        L.append(f'        return tabla({nombre.upper()}_DESPERTAR, ticks / 5.0F);')
+        L.append('    }')
+        L.append('')
+    L.append('    private static Vec3 tabla(float[][] t, float f) {')
+    L.append('        int n = t.length - 1;')
+    L.append('        f = Math.max(0.0F, Math.min(n, f));')
+    L.append('        int i = Math.min((int) f, n - 1);')
+    L.append('        float k = f - i;')
+    L.append('        return new Vec3(t[i][0] + (t[i + 1][0] - t[i][0]) * k, t[i][1] + (t[i + 1][1] - t[i][1]) * k,')
+    L.append('                t[i][2] + (t[i + 1][2] - t[i][2]) * k);')
+    L.append('    }')
     L.append('}')
     return '\n'.join(L) + '\n', puntos, tiempos
 

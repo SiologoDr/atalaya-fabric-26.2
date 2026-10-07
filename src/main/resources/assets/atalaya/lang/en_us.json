@@ -201,6 +201,7 @@
   "death.attack.atalaya.novilis_supernova": "%1$s was consumed by %2$s's Supernova",
   "death.attack.atalaya.novilis_dios": "%1$s fell before %2$s, God of War",
   "death.attack.atalaya.novilis_calor": "%1$s burned in the hands of %2$s",
+  "hud.atalaya.novilis.preparate": "Get ready! Press the letters in order",
   "hud.atalaya.novilis.rotas": "Broken %s/%s",
   "death.attack.atalaya.novilis_mortal": "%1$s was offered to the sun by %2$s",
   "subtitles.atalaya.rajang.ambiente": "Rajang breathes deeply",

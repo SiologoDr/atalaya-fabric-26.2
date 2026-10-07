@@ -111,9 +111,13 @@ public class RajangEntity extends Monster {
     // con la dificultad. Tras la prueba de octubre de 2026, la II, la III y la IV
     // pegan un 8, un 12 y un 15 % mas.
     /** El zarpazo y el pincho grande de la Garra (los pequenos, algo menos). */
-    public static final float[] DANO_GARRA = {34, 45, 59, 80};
-    public static final float[] DANO_TERREMOTO = {27, 40, 49, 63};
-    public static final float[] DANO_SALTO = {34, 45, 59, 80};
+    // Recortado el 07-10-2026 (Juan): -50 % lo de area y -45 % lo individual. Con
+    // 60 jugadores y 3-4 totems cada uno, lo normal no debe gastar totems: eso
+    // es cosa de los especiales mortales, que no cambian. En la III y la IV,
+    // otro -15 % y -20 % (Juan, tras probarlo: las fases I y II estaban bien).
+    public static final float[] DANO_GARRA = {17, 22.5F, 25, 32};
+    public static final float[] DANO_TERREMOTO = {13.5F, 20, 21, 25.2F};
+    public static final float[] DANO_SALTO = {19, 25, 27.5F, 35.2F};
     /**
      * El Rugido de Jade (el Sello sin romper a tiempo), en cualquier fase: mata a
      * todos los que pelean con el en su rango. Pasa la armadura, el escudo, los
@@ -176,9 +180,9 @@ public class RajangEntity extends Monster {
     private static final int TUMBA_TRAS_TERREMOTO = 160;
 
     /** La Furia de Jade (el Sello fallido): mas rapido, mas dano, menos espera. */
-    private static final float FURIA_RITMO = 1.25F;
-    private static final float FURIA_DANO = 1.35F;
-    private static final float FURIA_ENFRIA = 0.65F;
+    private static final float FURIA_RITMO = 1.15F;
+    private static final float FURIA_DANO = 1.2F;
+    private static final float FURIA_ENFRIA = 0.75F;
     private static final double FURIA_CORRE = 1.1;
 
     /** El pulso de cada totem roto: 7 bloques alrededor, y te echa en horizontal. */
@@ -280,6 +284,8 @@ public class RajangEntity extends Monster {
     private int duracion;
     private float ritmoEstado = 1.0F;
     private int respiro = 30;
+    /** Lo que le queda en escena tras despertar (ticks): quieto, sin atacar e inmune. */
+    private int escena;
     private int enfGarra = 30;
     private int enfTerremoto = 140;
     private int enfSello = 120;
@@ -440,7 +446,7 @@ public class RajangEntity extends Monster {
     public static float ritmo(int estado, int fase, boolean furia) {
         return switch (estado) {
             case GARRA, TERREMOTO, SALTO, CATACLISMO, CATACLISMO_BAJA, RUGIDO, EMBESTIDA_AVISO ->
-                    new float[]{1.0F, 1.05F, 1.22F, 1.4F, 1.56F}[Mth.clamp(fase, 1, 4)] * (furia ? FURIA_RITMO : 1.0F);
+                    new float[]{1.0F, 1.05F, 1.22F, 1.3F, 1.42F}[Mth.clamp(fase, 1, 4)] * (furia ? FURIA_RITMO : 1.0F);
             default -> 1.0F;
         };
     }
@@ -780,6 +786,7 @@ public class RajangEntity extends Monster {
             }
         }
         if (respiro > 0) respiro--;
+        if (escena > 0) escena--;
         if (enfGarra > 0) enfGarra--;
         if (enfTerremoto > 0) enfTerremoto--;
         if (enfSello > 0) enfSello--;
@@ -885,10 +892,15 @@ public class RajangEntity extends Monster {
     }
 
     private void terminar() {
+        boolean despertaba = getEstado() == DESPERTAR;
         ponerEstado(LIBRE, 0);
         presa = null;
         entityData.set(DATA_OBJETIVO, -1);
-        respiro = new int[]{0, 18, 13, 9, 6}[fase()];
+        respiro = new int[]{0, 18, 13, 10, 8}[fase()];
+        if (despertaba) {
+            respiro = Math.max(respiro, PresasJefe.RESPIRO_PRESENTACION);
+            escena = PresasJefe.ESCENA_QUIETO;
+        }
         if (tieneFuria()) {
             respiro /= 2;
         }
@@ -896,7 +908,7 @@ public class RajangEntity extends Monster {
 
     /** Cada fase todo vuelve antes: en la IV, con un 40 % menos de espera; con la Furia, un 35 % menos encima. */
     private float enfriamiento() {
-        float k = new float[]{1.0F, 1.0F, 0.84F, 0.72F, 0.6F}[Mth.clamp(fase(), 1, 4)];
+        float k = new float[]{1.0F, 1.0F, 0.84F, 0.78F, 0.68F}[Mth.clamp(fase(), 1, 4)];
         return tieneFuria() ? k * FURIA_ENFRIA : k;
     }
 
@@ -905,6 +917,13 @@ public class RajangEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (escena > 0) {
+            // En escena tras despertar (su cartel aun se lee): ni se mueve ni ataca.
+            getNavigation().stop();
+            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+            setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+            return;
+        }
         Vec3 c = Vec3.atBottomCenterOf(centro);
         if (objetivo == null) {
             if (horizontal(position(), c) > 4.0) {
@@ -1180,9 +1199,21 @@ public class RajangEntity extends Monster {
             setTarget(vivo);
         }
         ponerEstado(DESPERTAR, RajangGeometria.DURACION_DESPERTAR);
-        sonido(AtalayaSonidos.RAJANG_DESPERTAR, 8.0F);
+        // Respira hondo, aun dormido (el resto suena con cada paso del despertar).
+        sonido(AtalayaSonidos.RAJANG_AMBIENTE, 5.0F);
     }
 
+    /**
+     * Cuando suena despertar.ogg: la piedra que muele, la costra que se raja, los
+     * glifos y, a los 2,75 s (55 ticks), el rugido, que asi cae en DESPERTAR_RUGE.
+     */
+    private static final int DESPERTAR_SUENA = RajangGeometria.DESPERTAR_RUGE - 55;
+
+    /**
+     * El despertar de la presentacion (los tiempos, en RajangGeometria): respira
+     * cada vez mas hondo; abre los ojos y grune; saca las manos de la tierra y se
+     * estira; se agazapa con la cresta erizada; y se alza y ruge.
+     */
     private void tickDespertar(ServerLevel nivel) {
         if (t == 1) {
             jugadoresGrupo = Math.max(1, jugadores(nivel, 80, 0).size());
@@ -1190,22 +1221,45 @@ public class RajangEntity extends Monster {
             setHealth(getMaxHealth());
             entityData.set(DATA_FASE, 1);
         }
+        if (t == RajangGeometria.DESPERTAR_ABRE) {
+            // Se le encienden los ojos y grune por lo bajo.
+            sonido(AtalayaSonidos.RAJANG_GRUNIDO, 5.0F);
+            Vec3 c = puntoMundo(RajangGeometria.cabezaDespertar(t));
+            nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, c.x, c.y, c.z, 12, 0.8, 0.4, 0.8, 0.02);
+        }
         if (t == RajangGeometria.DESPERTAR_SE_ALZA) {
             // Se pone en pie: la piedra cruje y se le cae el polvo de siglos.
+            sonido(AtalayaSonidos.RAJANG_ESCALON_TIEMBLA, 6.0F);
             Vec3 c = puntoMundo(RajangGeometria.LOMO);
-            nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y, c.z, 60, 4.0, 2.0, 6.0, 0.04);
-            nivel.sendParticles(AtalayaParticulas.RAJANG_HOJA, true, true, c.x, c.y + 2, c.z, 30, 4.0, 1.0, 6.0, 0.02);
-            golpeSuelo(nivel, position(), 1.2F, 10.0F, 20);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y - 3.0, c.z, 60, 4.0, 1.5, 6.0, 0.04);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_HOJA, true, true, c.x, c.y - 1.0, c.z, 30, 4.0, 1.0, 6.0, 0.02);
+        }
+        if (t == RajangGeometria.DESPERTAR_SE_ALZA + 6) {
+            // Las manos salen de la tierra, delante de el.
+            golpeSuelo(nivel, puntoMundo(RajangGeometria.MANOS_DESPERTAR), 1.2F, 10.0F, 20);
+        }
+        if (t == DESPERTAR_SUENA) {
+            sonido(AtalayaSonidos.RAJANG_DESPERTAR, 8.0F);
+        }
+        if (t == RajangGeometria.DESPERTAR_ALZADO) {
+            // Agazapado, grune con la cabeza baja.
+            sonido(AtalayaSonidos.RAJANG_GRUNIDO, 6.0F);
+        }
+        if (t == RajangGeometria.DESPERTAR_ALZADO + 8) {
+            // La cresta se eriza: le salta el jade del lomo.
+            Vec3 c = puntoMundo(RajangGeometria.LOMO);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, c.x, c.y, c.z, 30, 1.0, 0.6, 4.5, 0.05);
         }
         if (t == RajangGeometria.DESPERTAR_RUGE) {
-            for (Player p : jugadores(nivel, 16, 0)) {
-                Vec3 fuera = horizontalHacia(position(), p.position());
-                p.setDeltaMovement(fuera.x * 1.3, 0.5, fuera.z * 1.3);
-                p.hurtMarked = true;
-            }
-            Vec3 b = puntoMundo(RajangGeometria.BOCA_RUGIDO);
+            // El rugido ya no empuja: en la presentacion el jefe no golpea.
+            Vec3 b = puntoMundo(RajangGeometria.cabezaDespertar(t));
             nivel.sendParticles(AtalayaParticulas.RAJANG_ONDA, true, true, b.x, getY() + 0.1, b.z, 0, 2.6, 18.0, 0.0, 1.0);
             nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, b.x, b.y, b.z, 30, 1.0, 1.0, 1.0, 0.15);
+        }
+        if (t == RajangGeometria.DESPERTAR_APOYA) {
+            // Vuelve a apoyar las manos.
+            sonido(AtalayaSonidos.RAJANG_PASO, 6.0F);
+            golpeSuelo(nivel, puntoMundo(new Vec3(0.0, 0.0, RajangGeometria.ZARPA_IZQ.z)), 0.7F, 8.0F, 12);
         }
     }
 
@@ -2137,6 +2191,10 @@ public class RajangEntity extends Monster {
             Vec3 local;
             if (p.getNombre().equals("cabeza")) {
                 local = (e == CATACLISMO_SOSTIENE || e == CATACLISMO) ? RajangGeometria.BOCA_CATACLISMO : RajangGeometria.CABEZA;
+                if (e == DESPERTAR) {
+                    // la cabeza va con la animacion del despertar (de tumbado a alzado)
+                    local = RajangGeometria.cabezaDespertar(t);
+                }
                 if (tumbado) {
                     local = new Vec3(local.x, 2.6, local.z);
                 }
@@ -2204,7 +2262,7 @@ public class RajangEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (e == DESPERTAR) {
+        if (e == DESPERTAR || escena > 0) {
             avisoInmune(nivel, causante);
             return false;
         }

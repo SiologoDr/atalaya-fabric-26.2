@@ -49,4 +49,6 @@ public class RajangRenderState extends LivingEntityRenderState {
     public float cargaLlena;
     /** La Tumba de Raices: ticks desde que clavo las garras (negativo: no hay circulo). */
     public float circuloTumba = -1.0F;
+    /** El despertar: ticks desde que empezo (negativo: no esta despertando). Le enciende los ojos y la cresta. */
+    public float tiempoDespertar = -1.0F;
 }

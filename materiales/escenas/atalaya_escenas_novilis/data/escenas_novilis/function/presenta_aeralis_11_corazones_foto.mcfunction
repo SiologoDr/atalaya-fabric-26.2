@@ -1,0 +1,2 @@
+tellraw @a "FOTO presenta_aeralis_11_corazones"
+schedule function escenas_novilis:presenta_aeralis_11_corazones_lejos 5t replace

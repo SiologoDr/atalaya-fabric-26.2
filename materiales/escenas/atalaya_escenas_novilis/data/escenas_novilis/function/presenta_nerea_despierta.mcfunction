@@ -1,0 +1,12 @@
+execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run atalaya nerea despertar
+schedule function escenas_novilis:presenta_nerea_1_dormido 20t append
+schedule function escenas_novilis:presenta_nerea_2_ojos 55t append
+schedule function escenas_novilis:presenta_nerea_3_se_alza 95t append
+schedule function escenas_novilis:presenta_nerea_4_poder 135t append
+schedule function escenas_novilis:presenta_nerea_5_ruge 151t append
+schedule function escenas_novilis:presenta_nerea_6_cartel 163t append
+schedule function escenas_novilis:presenta_nerea_7_cartel2 181t append
+schedule function escenas_novilis:presenta_nerea_8_escena 270t append
+schedule function escenas_novilis:presenta_nerea_9_vuelta 306t append
+schedule function escenas_novilis:presenta_nerea_10_jugador 330t append
+schedule function escenas_novilis:presenta_nerea_11_corazones 355t append

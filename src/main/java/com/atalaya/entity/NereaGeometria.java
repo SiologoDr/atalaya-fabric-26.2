@@ -34,7 +34,14 @@ public final class NereaGeometria {
     public static final Vec3 PUNTA_GEISER = new Vec3(-2.575, -0.968, 4.391);
     public static final Vec3 PUNTA_MAREA = new Vec3(-0.810, -2.222, 18.237);
 
-    public static final int DURACION_DESPERTAR = 64;
+    public static final int DURACION_DESPERTAR = 190;
+    public static final int DESPERTAR_ABRE = 40;
+    public static final int DESPERTAR_SE_ALZA = 70;
+    public static final int DESPERTAR_ROMPE = 86;
+    public static final int DESPERTAR_ALZADO = 120;
+    public static final int DESPERTAR_RUGE = 145;
+    public static final int DESPERTAR_PISA_DER = 109;
+    public static final int DESPERTAR_PISA_IZQ = 119;
     public static final int DURACION_ROMPEOLAS = 21;
     public static final int IMPACTO_ROMPEOLAS = 10;
     public static final int DURACION_REMOLINO = 88;
@@ -97,5 +104,30 @@ public final class NereaGeometria {
             }
         }
         return a[a.length - 1];
+    }
+
+    /** La cara (entre los ojos) en el despertar, cada 5 ticks (bloques; la camara de la presentacion lo sigue). */
+    public static final float[][] CABEZA_DESPERTAR = {{0.00F, 7.26F, 4.38F}, {0.00F, 7.59F, 4.21F}, {0.00F, 7.89F, 4.05F}, {-0.01F, 7.51F, 4.28F}, {-0.02F, 6.81F, 4.57F}, {0.30F, 7.39F, 4.34F}, {0.02F, 7.28F, 4.40F}, {-0.01F, 8.11F, 3.97F}, {-0.01F, 8.47F, 3.91F}, {0.08F, 8.84F, 3.71F}, {0.16F, 9.10F, 3.48F}, {0.05F, 9.26F, 3.30F}, {-0.12F, 9.25F, 3.32F}, {-0.13F, 8.73F, 3.89F}, {-0.01F, 7.99F, 4.37F}, {-0.22F, 8.45F, 4.03F}, {-0.20F, 8.88F, 3.71F}, {-0.16F, 9.63F, 2.80F}, {0.01F, 10.51F, 0.28F}, {0.00F, 10.04F, 2.90F}, {0.00F, 8.08F, 5.83F}, {-0.00F, 9.12F, 5.26F}, {0.00F, 10.25F, 4.30F}, {-0.01F, 11.15F, 3.21F}, {0.13F, 11.87F, 2.00F}, {-0.26F, 12.12F, 1.33F}, {-0.29F, 12.26F, 0.77F}, {-0.20F, 12.30F, 0.55F}, {0.17F, 10.17F, 3.80F}, {0.00F, 12.02F, 0.63F}, {-0.16F, 12.12F, 0.39F}, {0.09F, 12.12F, 0.23F}, {0.24F, 12.12F, 0.15F}, {0.15F, 12.12F, 0.24F}, {-0.20F, 12.09F, 0.66F}, {-0.06F, 11.58F, 2.25F}, {0.01F, 10.99F, 3.18F}, {0.01F, 11.35F, 2.87F}, {0.00F, 11.69F, 2.44F}};
+
+    /** El pecho en el despertar, cada 5 ticks (bloques; la camara de la presentacion lo sigue). */
+    public static final float[][] PECHO_DESPERTAR = {{0.00F, 5.11F, 2.55F}, {0.00F, 5.30F, 2.48F}, {0.00F, 5.45F, 2.42F}, {-0.00F, 5.23F, 2.50F}, {-0.00F, 4.87F, 2.63F}, {0.06F, 5.13F, 2.53F}, {-0.00F, 5.12F, 2.55F}, {-0.00F, 5.57F, 2.38F}, {0.00F, 5.52F, 2.39F}, {0.00F, 5.53F, 2.38F}, {0.00F, 5.56F, 2.36F}, {0.00F, 5.61F, 2.33F}, {0.00F, 5.60F, 2.33F}, {-0.01F, 5.43F, 2.44F}, {0.00F, 5.26F, 2.55F}, {-0.12F, 5.53F, 2.43F}, {-0.11F, 5.75F, 2.34F}, {-0.09F, 6.16F, 2.02F}, {0.01F, 6.62F, 1.34F}, {0.00F, 6.12F, 2.40F}, {0.00F, 5.29F, 3.44F}, {0.00F, 6.04F, 3.27F}, {0.00F, 6.86F, 2.89F}, {-0.01F, 7.53F, 2.39F}, {0.19F, 8.13F, 1.84F}, {-0.19F, 8.29F, 1.62F}, {-0.35F, 8.39F, 1.46F}, {-0.16F, 8.43F, 1.44F}, {0.14F, 7.07F, 2.22F}, {0.00F, 8.46F, 1.32F}, {-0.07F, 8.44F, 1.35F}, {0.07F, 8.47F, 1.29F}, {0.14F, 8.49F, 1.25F}, {0.07F, 8.47F, 1.29F}, {-0.14F, 8.39F, 1.45F}, {-0.06F, 7.98F, 1.91F}, {0.00F, 7.69F, 2.15F}, {0.01F, 7.90F, 2.06F}, {0.00F, 8.15F, 1.93F}};
+
+    /** Donde esta la cara a los tantos ticks del despertar. */
+    public static Vec3 cabezaDespertar(float ticks) {
+        return tabla(CABEZA_DESPERTAR, ticks / 5.0F);
+    }
+
+    /** Donde esta el pecho a los tantos ticks del despertar. */
+    public static Vec3 pechoDespertar(float ticks) {
+        return tabla(PECHO_DESPERTAR, ticks / 5.0F);
+    }
+
+    private static Vec3 tabla(float[][] t, float f) {
+        int n = t.length - 1;
+        f = Math.max(0.0F, Math.min(n, f));
+        int i = Math.min((int) f, n - 1);
+        float k = f - i;
+        return new Vec3(t[i][0] + (t[i + 1][0] - t[i][0]) * k, t[i][1] + (t[i + 1][1] - t[i][1]) * k,
+                t[i][2] + (t[i + 1][2] - t[i][2]) * k);
     }
 }

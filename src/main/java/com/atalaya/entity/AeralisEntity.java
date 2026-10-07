@@ -118,12 +118,16 @@ public class AeralisEntity extends Monster {
     // sin la manzana, en la fase IV basta uno); los de area 2,5 / 4 / 5,5 / 8;
     // los que duran, 1 / 1,5 / 2 / 3 por segundo. Los tipos de dano no escalan
     // con la dificultad.
-    public static final float[] DANO_CUCHILLA = {31, 39, 49, 61};
+    // Recortado el 07-10-2026 (Juan): -50 % lo de area y -45 % lo individual. Con
+    // 60 jugadores y 3-4 totems cada uno, lo normal no debe gastar totems: eso
+    // es cosa de los especiales mortales, que no cambian. En la III y la IV,
+    // otro -15 % y -20 % (Juan, tras probarlo: las fases I y II estaban bien).
+    public static final float[] DANO_CUCHILLA = {15.5F, 19.5F, 21, 24.4F};
     /** Por segundo mientras un tornado te tiene atrapado (pasa la armadura). */
-    public static final float[] DANO_TORNADO = {7, 10, 14, 21};
+    public static final float[] DANO_TORNADO = {3.5F, 5, 6, 8.4F};
     /** Cuando el tornado revienta y te lanza. */
-    public static final float[] DANO_ESTALLIDO = {27, 37, 44, 55};
-    public static final float[] DANO_RAFAGA = {34, 42, 53, 70};
+    public static final float[] DANO_ESTALLIDO = {13.5F, 18.5F, 19, 22};
+    public static final float[] DANO_RAFAGA = {19, 23, 25, 31};
     /**
      * El Picado (desde la fase II): al que pilla lo mata (salvo totem, que lo
      * gasta) pase lo que pase (armadura, escudo, encantamientos, efectos) y lo
@@ -131,7 +135,7 @@ public class AeralisEntity extends Monster {
      */
     public static final float MORTAL = 10000.0F;
     /** La descarga de una mancha de escamas (desde la fase III), y Paralisis 2 s. */
-    public static final float[] DANO_ESCAMAS = {20, 20, 20, 28};
+    public static final float[] DANO_ESCAMAS = {10, 10, 8.5F, 11.2F};
     /**
      * El viento corta y se mete por las juntas: contra armadura sus golpes
      * pegan hasta un 30 % mas (con una de diamante o netherita entera).
@@ -140,16 +144,16 @@ public class AeralisEntity extends Monster {
     /**
      * El golpe del Juicio al marcado (pasa la armadura): con los cuatro nucleos
      * en pie mata aunque lleve la manzana de Notch; cada nucleo roto le quita
-     * un cuarto. A los de alrededor, la mitad.
+     * un cuarto. A los de alrededor, un cuarto (desde el recorte del 07-10-2026).
      */
     public static final float[] DANO_JUICIO = {139, 139, 139, 174};
     public static final float JUICIO_POR_NUCLEO = 0.25F;
     /** Los golpes que aguanta cada nucleo del Juicio, sean cuantos sean. */
     private static final int GOLPES_NUCLEO = 10;
     /** La Furia del Vendaval (el Juicio fallido): mas rapido, mas dano, menos espera. */
-    private static final float FURIA_RITMO = 1.25F;
-    private static final float FURIA_DANO = 1.35F;
-    private static final float FURIA_ENFRIA = 0.65F;
+    private static final float FURIA_RITMO = 1.15F;
+    private static final float FURIA_DANO = 1.2F;
+    private static final float FURIA_ENFRIA = 0.75F;
     private static final double FURIA_VUELA = 1.1;
 
     /**
@@ -298,6 +302,8 @@ public class AeralisEntity extends Monster {
     private int duracion;
     private float ritmoEstado = 1.0F;
     private int respiro = 20;
+    /** Lo que le queda en escena tras despertar (ticks): quieto, sin atacar e inmune. */
+    private int escena;
     private int enfAleteo = 20;
     private int enfTornados = 90;
     private int enfCaza = 120;
@@ -462,7 +468,7 @@ public class AeralisEntity extends Monster {
     public static float ritmo(int estado, int fase, boolean acelerada, boolean furia) {
         float k = switch (estado) {
             case ALETEO, TORNADOS, MARCA, RAFAGA, DOBLE_RAFAGA, JUICIO_GOLPE, PICADO_AVISO, ESCAMAS ->
-                    new float[]{1.0F, 1.05F, 1.15F, 1.3F, 1.45F}[Mth.clamp(fase, 1, 4)];
+                    new float[]{1.0F, 1.05F, 1.15F, 1.22F, 1.32F}[Mth.clamp(fase, 1, 4)];
             default -> 1.0F;
         };
         if (acelerada && (estado == RAFAGA || estado == DOBLE_RAFAGA)) {
@@ -627,15 +633,17 @@ public class AeralisEntity extends Monster {
                 level().addParticle(AtalayaParticulas.AERALIS_RAYO, p.x, p.y, p.z, 0, 0, 0);
             }
         }
+        // Al despertar sigue dormida hasta que abre los ojos.
+        boolean durmiendo = e == DORMIDA || (e == DESPERTAR && tickCount - inicioEstado < AeralisGeometria.DESPERTAR_ABRE);
         // El ojo de la tormenta gira y suelta motas: mas cuanto mas avanzada la fase.
-        if (e != DORMIDA && tickCount % Math.max(2, 7 - f) == 0) {
+        if (!durmiendo && tickCount % Math.max(2, 7 - f) == 0) {
             Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
             double a = random.nextDouble() * Math.PI * 2;
             level().addParticle(AtalayaParticulas.AERALIS_LUZ, c.x + Math.cos(a) * 0.9, c.y + Math.sin(a) * 0.9, c.z,
                     -Math.sin(a) * 0.06, Math.cos(a) * 0.06, 0.02);
         }
         // Escamas que se le caen de las alas.
-        if (e != DORMIDA && random.nextInt(8) == 0) {
+        if (!durmiendo && random.nextInt(8) == 0) {
             Vec3 punta = random.nextBoolean() ? AeralisGeometria.PUNTA_ALA_IZQ : AeralisGeometria.PUNTA_ALA_DER;
             Vec3 p = puntoMundo(punta.scale(0.3 + random.nextDouble() * 0.6));
             level().addParticle(AtalayaParticulas.AERALIS_ESCAMA, p.x, p.y, p.z, 0, -0.02, 0);
@@ -646,7 +654,7 @@ public class AeralisEntity extends Monster {
             Vec3 p = puntoMundo(punta.scale(0.25 + random.nextDouble() * 0.65));
             level().addParticle(AtalayaParticulas.AERALIS_RAYO, p.x, p.y, p.z, 0, 0, 0);
         }
-        if (e == DORMIDA && tickCount % 12 == 0) {
+        if (durmiendo && tickCount % 12 == 0) {
             Vec3 c = puntoMundo(new Vec3(0, 4.5, 1.0));
             level().addParticle(AtalayaParticulas.AERALIS_LUZ, c.x + random.nextGaussian() * 0.3, c.y,
                     c.z + random.nextGaussian() * 0.3, 0, 0.02, 0);
@@ -769,6 +777,30 @@ public class AeralisEntity extends Monster {
                             -d.x * 0.12, -d.y * 0.12, -d.z * 0.12);
                 }
             }
+            case DESPERTAR -> {
+                // Cada batida empuja aire hacia abajo desde las alas.
+                for (int b : AeralisGeometria.DESPERTAR_BATIDAS) {
+                    if ((int) ta != b) {
+                        continue;
+                    }
+                    for (Vec3 punta : new Vec3[]{AeralisGeometria.PUNTA_ALA_IZQ, AeralisGeometria.PUNTA_ALA_DER}) {
+                        Vec3 p = puntoMundo(punta.scale(0.6));
+                        for (int i = 0; i < 6; i++) {
+                            level().addParticle(AtalayaParticulas.AERALIS_VIENTO, p.x + random.nextGaussian(), p.y - 2.0,
+                                    p.z + random.nextGaussian(), random.nextGaussian() * 0.05, -0.6, random.nextGaussian() * 0.05);
+                        }
+                    }
+                }
+                // El chillido: le saltan rayos por las alas y el ojo del pecho suelta luz.
+                if (ta >= AeralisGeometria.DESPERTAR_RUGE && ta < AeralisGeometria.DESPERTAR_RUGE + 26) {
+                    Vec3 punta = random.nextBoolean() ? AeralisGeometria.PUNTA_ALA_IZQ : AeralisGeometria.PUNTA_ALA_DER;
+                    Vec3 p = puntoMundo(punta.scale(0.25 + random.nextDouble() * 0.65));
+                    level().addParticle(AtalayaParticulas.AERALIS_RAYO, p.x, p.y, p.z, 0, 0, 0);
+                    Vec3 c = puntoMundo(AeralisGeometria.pechoDespertar(ta));
+                    Vec3 d = new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).normalize();
+                    level().addParticle(AtalayaParticulas.AERALIS_LUZ, c.x, c.y, c.z, d.x * 0.25, d.y * 0.25, d.z * 0.25);
+                }
+            }
             case JUICIO_SOSTIENE -> {
                 if (random.nextInt(3) == 0) {
                     Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
@@ -815,6 +847,7 @@ public class AeralisEntity extends Monster {
             }
         }
         if (respiro > 0) respiro--;
+        if (escena > 0) escena--;
         if (enfAleteo > 0) enfAleteo--;
         if (enfTornados > 0) enfTornados--;
         if (enfCaza > 0 && caza <= 0) enfCaza--;
@@ -889,8 +922,13 @@ public class AeralisEntity extends Monster {
     }
 
     private void terminar() {
+        boolean despertaba = getEstado() == DESPERTAR;
         ponerEstado(LIBRE, 0);
-        respiro = caza > 0 ? new int[]{0, 14, 12, 10, 8}[fase()] : new int[]{0, 16, 12, 9, 6}[fase()];
+        respiro = caza > 0 ? new int[]{0, 14, 12, 11, 9}[fase()] : new int[]{0, 16, 12, 10, 8}[fase()];
+        if (despertaba) {
+            respiro = Math.max(respiro, PresasJefe.RESPIRO_PRESENTACION);
+            escena = PresasJefe.ESCENA_QUIETO;
+        }
         if (tieneFuria()) {
             respiro /= 2;
         }
@@ -898,11 +936,15 @@ public class AeralisEntity extends Monster {
 
     /** Cada fase todo vuelve antes: en la IV, con un 36 % menos de espera; con la Furia, un 35 % menos encima. */
     private float enfriamiento() {
-        float k = new float[]{1.0F, 1.0F, 0.88F, 0.76F, 0.64F}[Mth.clamp(fase(), 1, 4)];
+        float k = new float[]{1.0F, 1.0F, 0.88F, 0.8F, 0.7F}[Mth.clamp(fase(), 1, 4)];
         return tieneFuria() ? k * FURIA_ENFRIA : k;
     }
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (escena > 0) {
+            // En escena tras despertar (su cartel aun se lee): ni se mueve ni ataca.
+            return;
+        }
         LivingEntity mira = caza > 0 && presa != null ? presa : objetivo;
         if (mira == null) {
             return;
@@ -1182,7 +1224,10 @@ public class AeralisEntity extends Monster {
             // Sube para golpear el aire y baja con el golpe.
             case TORNADOS -> ta() < AeralisGeometria.TORNADOS_GOLPE ? vuelo + 3.0 : Math.max(1.0, vuelo - 0.8);
             case DORMIDA, ATURDIDA -> 0.0;
-            case DESPERTAR -> t < AeralisGeometria.DESPERTAR_ALZA ? 0.0 : vuelo;
+            // Despega con la primera batida y sube algo mas que su vuelo para las
+            // batidas grandes y el chillido; al soltarlo baja a su altura.
+            case DESPERTAR -> t < AeralisGeometria.DESPERTAR_ALZA ? 0.0
+                    : t < AeralisGeometria.DESPERTAR_RUGE + 25 ? vuelo + DESPERTAR_SOBRE : vuelo;
             case AGOTADA -> ta() >= AeralisGeometria.AGOTADA_ALZA ? vuelo : 0.0;
             case JUICIO_SUBE, JUICIO_SOSTIENE, JUICIO_GOLPE -> ALTURA_JUICIO;
             // El Picado sube antes de lanzarse; posada, en el suelo hasta que se arranca.
@@ -1195,7 +1240,10 @@ public class AeralisEntity extends Monster {
         double x = getX();
         double z = getZ();
         double vmax = 0.32;
-        if (e == LIBRE) {
+        if (e == LIBRE && escena > 0) {
+            // En escena: se queda donde esta, meciendose.
+            vmax = 0.0;
+        } else if (e == LIBRE) {
             LivingEntity mira = caza > 0 && presa != null ? presa : objetivo;
             // Entre ataque y ataque, de vez en cuando, una pasada rasante: cruza
             // por encima del grupo al otro lado, baja y deja el viento detras.
@@ -1317,6 +1365,15 @@ public class AeralisEntity extends Monster {
     //  Dormida y despertar
     // ------------------------------------------------------------------
 
+    /** Lo que sube por encima de su vuelo mientras despierta (bloques): las batidas grandes y el chillido. */
+    private static final double DESPERTAR_SOBRE = 2.5;
+    /**
+     * despertar.ogg trae dos batidas (a 1,25 y 1,75 s) y el chillido (a 2,1 s): se
+     * lanza para que el chillido caiga en DESPERTAR_RUGE y sus batidas, con las dos
+     * ultimas de la animacion.
+     */
+    private static final int DESPERTAR_SONIDO = AeralisGeometria.DESPERTAR_RUGE - 42;
+
     private void tickDormida(ServerLevel nivel) {
         if (t % 5 != 0) {
             return;
@@ -1337,8 +1394,8 @@ public class AeralisEntity extends Monster {
         if (quien instanceof LivingEntity vivo) {
             setTarget(vivo);
         }
+        // La presentacion: 9,5 s. Los sonidos van con cada momento (tickDespertar).
         ponerEstado(DESPERTAR, AeralisGeometria.DURACION_DESPERTAR);
-        sonido(AtalayaSonidos.AERALIS_DESPERTAR, 7.0F);
     }
 
     private void tickDespertar(ServerLevel nivel) {
@@ -1348,18 +1405,38 @@ public class AeralisEntity extends Monster {
             setHealth(getMaxHealth());
             entityData.set(DATA_FASE, 1);
         }
-        if (t == AeralisGeometria.DESPERTAR_ALZA) {
-            // La primera batida la despega del suelo: polvo y una onda.
-            golpeAire(nivel, position(), 1.6F, 12.0F, 30);
+        if (t == AeralisGeometria.DESPERTAR_ABRE) {
+            // Abre los ojos: se levanta el viento.
+            sonido(AtalayaSonidos.AERALIS_AMBIENTE, 5.0F);
+        }
+        if (t == AeralisGeometria.DESPERTAR_SE_ALZA) {
+            // Empieza a abrir las alas: un soplo hondo y lento.
+            playSound(AtalayaSonidos.AERALIS_ALETEO, 3.0F, 0.7F);
+        }
+        if (t == DESPERTAR_SONIDO) {
+            sonido(AtalayaSonidos.AERALIS_DESPERTAR, 7.0F);
+        }
+        int[] batidas = AeralisGeometria.DESPERTAR_BATIDAS;
+        for (int i = 0; i < batidas.length; i++) {
+            if (t != batidas[i]) {
+                continue;
+            }
+            // Cada batida levanta polvo del suelo; la primera la despega: polvo y una onda.
+            Vec3 suelo = new Vec3(getX(), sueloBajo(nivel, getX(), getY(), getZ()), getZ());
+            if (i == 0) {
+                golpeAire(nivel, suelo, 1.6F, 12.0F, 30);
+            } else {
+                golpeAire(nivel, suelo, 0.7F, 8.0F, 14);
+            }
+            // Las que van antes de ALZADO suenan aqui; las otras dos estan en despertar.ogg.
+            if (batidas[i] < AeralisGeometria.DESPERTAR_ALZADO) {
+                sonido(AtalayaSonidos.AERALIS_ALETEO, 5.0F);
+            }
         }
         if (t == AeralisGeometria.DESPERTAR_CHILLA) {
-            // El chillido empuja: aparta a quien se acerco a despertarla.
-            for (Player p : jugadores(nivel, 16, 0)) {
-                Vec3 fuera = horizontalHacia(position(), p.position());
-                p.setDeltaMovement(fuera.x * 1.4, 0.55, fuera.z * 1.4);
-                p.hurtMarked = true;
-            }
-            Vec3 b = puntoMundo(AeralisGeometria.BOCA);
+            // El chillido ya no empuja: en la presentacion el jefe no golpea.
+            // La onda sale de la cabeza, alli donde la tiene en la animacion (no en reposo).
+            Vec3 b = puntoMundo(AeralisGeometria.cabezaDespertar(t));
             nivel.sendParticles(AtalayaParticulas.AERALIS_ONDA, true, true, b.x, b.y, b.z, 0, 2.6, 16.0, 0.0, 1.0);
         }
     }
@@ -1717,7 +1794,7 @@ public class AeralisEntity extends Monster {
         Vec3 p = presa != null && presa.isAlive() ? presa.position().add(0, 1, 0)
                 : (ciclon != null ? ciclon.position().add(0, 6, 0) : puntoMundo(AeralisGeometria.NUCLEO_JUICIO));
         // No han roto los cuatro nucleos: a cada juzgado, la muerte (salvo totem); a
-        // los de alrededor, la mitad del golpe (menos por cada nucleo roto).
+        // los de alrededor, un cuarto del golpe (menos por cada nucleo roto).
         float dano = dano(DANO_JUICIO) * Math.max(0.0F, 1.0F - JUICIO_POR_NUCLEO * nucleosRotos);
         DamageSource fuente = AeralisDanos.fuente(nivel, AeralisDanos.JUICIO, this, this);
         for (LivingEntity v : juzgados) {
@@ -1729,7 +1806,7 @@ public class AeralisEntity extends Monster {
         }
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(p, p).inflate(8), this::esPresa)) {
             if (!juzgados.contains(v) && v.distanceToSqr(p) < 64 && dano > 0) {
-                v.hurtServer(nivel, fuente, dano * 0.5F);
+                v.hurtServer(nivel, fuente, dano * 0.25F);
                 Vec3 fuera = horizontalHacia(p, v.position());
                 v.setDeltaMovement(fuera.x * 1.3, 0.5, fuera.z * 1.3);
                 v.hurtMarked = true;
@@ -2198,7 +2275,7 @@ public class AeralisEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (e == DESPERTAR) {
+        if (e == DESPERTAR || escena > 0) {
             avisoInmune(nivel, causante);
             return false;
         }

@@ -20,6 +20,7 @@ De aqui salen tambien NereaGeometria.java (duraciones, ticks clave y puntos del
 cuerpo para el servidor), NereaMalla.java y las texturas.
 
 Uso: python nerea_juego_anim.py <raiz del proyecto> [carpeta de renders] [ANIM,ANIM]
+     (con NEREA_SIN_TEXTURAS=1 no reescribe las texturas: solo el codigo)
 """
 import math, os, sys, copy
 import numpy as np
@@ -161,18 +162,178 @@ _dorm = mezcla(ARRODILLADO, {'torso': r(20), 'cuello': r(10), 'cabeza': r(28), '
 anim('DORMIDO', 6.0, [(0, _dorm, 'c'), (3.0, con(_dorm, torso=r(23), cabeza=r(31), mandibula=r(8)), 'c'),
                       (6.0, _dorm, 'c')], loop=True)
 
-# --- Despertar: alza la cabeza, se empuja sobre la rodilla, se pone en pie y ruge ---
-_rugido = mezcla({'pelvis': P(0, -1, 0), 'torso': r(-14), 'cuello': r(-10), 'cabeza': r(-28), 'mandibula': r(38)},
-                 brazo('izq', -40, -70, -20), brazo('der', -50, 60, -30))
-anim('DESPERTAR', 3.2, [
-    (0, _dorm, 'c'),
-    (0.4, con(_dorm, cabeza=r(-6), cuello=r(0)), 'c'),
-    (0.85, mezcla(_dorm, {'pelvis': P(0, 10, -2), 'torso': r(28), 'cabeza': r(-10)}, brazo('izq', -52, -8, -52)), 'c'),
-    (1.15, mezcla({'pelvis': P(0, 5, -1), 'torso': r(16)}, apoyo('izq', 6.5, SUELO, -9), en_el_aire('der', -6, 5),
-                  brazo('izq', -30, -8, -30)), 'c'),
-    (1.45, mezcla({'pelvis': P(0, 1, 0), 'torso': r(-2)}, apoyo('izq', 6, SUELO, -4)), 'c'),
-    (1.75, mezcla({'pelvis': P(0, 3.5, 1), 'torso': r(12), 'cabeza': r(10)}, brazo('izq', -10, -10, -40), brazo('der', -20, 10, -70)), 'c'),
-    (2.0, _rugido, 'l'), (2.6, con(_rugido, cabeza=r(-31, 3)), 'c'), (3.2, N, 'c')])
+# --- Despertar (la presentacion, 9,5 s). La camara del cliente cuenta con
+#     estos tiempos (NereaGeometria.DESPERTAR_*), los mismos en los cuatro jefes:
+#       0-2     dormido: respira cada vez mas hondo, da un respingo y se agita
+#       2       ABRE: se le encienden los ojos y alza la cabeza
+#       3,5     SE_ALZA: tira de las cadenas del pecho temblando hasta que se
+#               suelta del fondo (4,3), se apoya en la rodilla y en el tridente,
+#               se pone en pie y recoge el pie de delante
+#       6       ALZADO: alza el tridente al cielo, la corona y la venera se
+#               abren y la capa de algas ondea con el giro
+#       7,25    RUGE: se encoge un instante y ruge con todo el cuerpo, los
+#               brazos abiertos y la cabeza atras; aguanta temblando
+#       8,9-9,5 vuelve al reposo (de ahi sale la de andar) ---
+T_DESPERTAR_ABRE = 2.0
+T_DESPERTAR_SE_ALZA = 3.5
+T_DESPERTAR_ROMPE = 4.3
+T_DESPERTAR_ALZADO = 6.0
+T_DESPERTAR_RUGE = 7.25
+T_DESPERTAR_PISA_DER = 5.45      # el pie derecho sale de la rodilla y pisa
+T_DESPERTAR_PISA_IZQ = 5.95      # el izquierdo, que estaba delante, pisa a su lado
+
+
+def brazo_dir(lado, fuera, arriba, delante, ax=None):
+    """Brazo que apunta hacia (fuera, arriba, delante) en el espacio del torso,
+    pasado a los angulos absolutos de brazo() (Rz*Rx sobre el brazo colgando)."""
+    s = 1 if lado == 'izq' else -1
+    d = np.array([s * fuera, -arriba, -delante], float)
+    d /= np.linalg.norm(d)
+    return brazo(lado, math.degrees(math.asin(d[2])), math.degrees(math.atan2(-d[0], d[1])), ax)
+
+
+def tridente_a_plomo(nombre, paso=0.05):
+    """El tridente a plomo en el puno a lo largo de toda la animacion, no solo
+    en las claves: entre dos claves con la muneca muy girada, interpolar los
+    angulos lo tumbaria. Se muestrea cada "paso" y se quitan las muestras que
+    la interpolacion ya da."""
+    a = ANIMS[nombre]
+    a['claves'] = [(t, {k: v for k, v in p.items() if k != 'tridente'}, i) for t, p, i in a['claves']]
+    muestras = []
+    ant = None
+    for j in range(int(round(a['dur'] / paso)) + 1):
+        s = min(j * paso, a['dur'])
+        x, y, z = tridente_vertical(pose_autor(nombre, s))
+        if ant is not None:
+            x = ant[0] + (x - ant[0] + 180) % 360 - 180
+            z = ant[2] + (z - ant[2] + 180) % 360 - 180
+        ant = (x, y, z)
+        muestras.append((round(s, 3), (round(x, 2), 0.0, round(z, 2))))
+    a['extra'].append(('tridente', 'rot', [(t, v, 'c') for t, v in nf.simplificar(muestras, 0.5)]))
+
+
+def corona_abierta(k):
+    """La corona se abre: las puas y los corales se separan k veces mas de su reposo."""
+    out = {}
+    for n in [f'puas_{i}' for i in range(6)] + ['corona_c1', 'corona_c2', 'corona_c3', 'corona_c4']:
+        rx, _, rz = nj.PARTES[n].rot
+        out[n] = r(rx * k, 0, rz * k)
+    return out
+
+
+def capa_al_viento(k):
+    """La capa de algas se hincha hacia atras y se abre (k veces)."""
+    return {f'capa_{i}': r(20 * k, 0, (i - 2) * -4 * k) for i in range(5)}
+
+
+def apoyos_despertar(s):
+    """Arrodillado hasta que se levanta: el pie derecho sale de la rodilla y se
+    planta en su sitio de reposo; luego el izquierdo, que estaba delante, da un
+    paso atras hasta el suyo. Nada patina."""
+    def paso(a, b, t0, t1, alto, pie_a, pie_b):
+        u = (s - t0) / (t1 - t0)
+        if u <= 0.0:
+            return (tuple(a), pie_a, 0.0)
+        if u >= 1.0:
+            return (tuple(b), pie_b, 0.0)
+        k = u * u * (3 - 2 * u)
+        p = np.array(a, float) + (np.array(b, float) - np.array(a, float)) * k
+        p[1] -= alto * math.sin(math.pi * u)
+        return (tuple(p), pie_a + (pie_b - pie_a) * k + 10 * math.sin(math.pi * u), 0.0)
+    rep_i, rep_d = nf.tobillo_reposo('izq'), nf.tobillo_reposo('der')
+    return {'izq': paso((6.5, SUELO, -15), rep_i, T_DESPERTAR_PISA_IZQ - 0.4, T_DESPERTAR_PISA_IZQ, 5.0, 0.0, 0.0),
+            'der': paso((-6.5, SUELO, 15), rep_d, T_DESPERTAR_PISA_DER - 0.45, T_DESPERTAR_PISA_DER, 4.0, 70.0, 0.0)}
+
+
+# dormido: respira hondo, suelta el aire, un respingo y otra vez mas hondo
+_de_inspira = mezcla(_dorm, {'pelvis': P(0, 14.2, 0), 'torso': r(15), 'cuello': r(8), 'cabeza': r(25), 'mandibula': r(9),
+                             'hombro_izq': r(0, 0, -6), 'hombro_der': r(0, 0, 6)})
+_de_espira = mezcla(_dorm, {'pelvis': P(0, 15.6, 0), 'torso': r(24), 'cuello': r(11), 'cabeza': r(31), 'mandibula': r(12)})
+_de_respingo = mezcla(_dorm, {'torso': r(18, 0, 3), 'cuello': r(8), 'cabeza': r(22, -12, -6), 'mandibula': r(3)},
+                      brazo('izq', -48, -16, -66))
+_de_hondo = mezcla(_dorm, {'pelvis': P(0, 13.6, 0), 'torso': r(13), 'cuello': r(6), 'cabeza': r(20), 'mandibula': r(10),
+                           'hombro_izq': r(0, 0, -8), 'hombro_der': r(0, 0, 8)})
+# abre los ojos y alza la cabeza: mira al frente, a un lado y al otro
+_de_abre = mezcla(_dorm, {'pelvis': P(0, 14, 0), 'torso': r(14), 'cuello': r(2), 'cabeza': r(8), 'mandibula': r(3)})
+_de_mira = mezcla(_dorm, {'pelvis': P(0, 14, 0), 'torso': r(13), 'cuello': r(-4), 'cabeza': r(-6, -9), 'mandibula': r(12)})
+_de_mira2 = mezcla(_dorm, {'pelvis': P(0, 14, 0), 'torso': r(12), 'cuello': r(-4), 'cabeza': r(-8, 8), 'mandibula': r(7)})
+
+
+def _de_tira(k, lado):
+    """Tira de las cadenas del pecho como quien revienta una cuerda: los codos
+    fuera y los punos delante del pecho, que se hincha; los hombros arriba y la
+    cabeza gacha. k es la fuerza (0-1) y lado el temblor (+1/-1)."""
+    return mezcla(_dorm, {'pelvis': P(0.5 * lado, 14 - 1.5 * k, 0), 'torso': r(20 - 10 * k + lado, 0, 2 * lado),
+                          'cuello': r(4 - 4 * k), 'cabeza': r(14 - 10 * k, 0, -2 * lado), 'mandibula': r(1 + 3 * k),
+                          'hombro_izq': r(0, 0, -6 - 4 * k), 'hombro_der': r(0, 0, 6 + 4 * k)},
+                  brazo_dir('izq', 0.7 + 0.5 * k, -0.25 + 0.25 * k, 0.8 - 0.4 * k, -100 + 10 * k),
+                  brazo_dir('der', 0.55 + 0.4 * k, -0.3 + 0.2 * k, 0.8 - 0.3 * k, -90 + 10 * k))
+
+
+# se suelta: el pecho arriba, el brazo fuera de un tiron y la boca abierta
+_de_rompe = mezcla(_dorm, {'pelvis': P(0, 12, 1), 'torso': r(-4), 'cuello': r(-8), 'cabeza': r(-20), 'mandibula': r(30)},
+                   brazo_dir('izq', 1.0, 0.45, 0.35, -24), brazo_dir('der', 1.0, 0.0, 0.55, -40))
+# se levanta: el peso sobre el pie de delante, la mano en la rodilla y el tridente de baston
+_de_empuja = {'pelvis': P(0, 10, -4), 'torso': r(32), 'cuello': r(2), 'cabeza': r(-8), 'mandibula': r(8),
+              **brazo('izq', -46, -6, -40), **brazo('der', -30, 22, -50)}
+_de_sube1 = {'pelvis': P(0, 7, -4), 'torso': r(26), 'cuello': r(0), 'cabeza': r(-6), 'mandibula': r(6),
+             **brazo('izq', -32, -10, -40), **brazo('der', -26, 20, -42)}
+_de_sube2 = {'pelvis': P(0, 4.5, -3), 'torso': r(16), 'cabeza': r(-6), 'mandibula': r(6),
+             **brazo('izq', -14, -14, -30), **brazo('der', -26, 16, -52)}
+_de_sube3 = {'pelvis': P(0, 2, -1), 'torso': r(6), 'cuello': r(-2), 'cabeza': r(-8), 'mandibula': r(6),
+             **brazo('izq', -8, -12, -24), **brazo('der', -30, 14, -60)}
+# en pie: alza el tridente al cielo, abre la corona y la venera, gira el torso
+_de_alzado0 = mezcla({'pelvis': P(0, 0.6, 0), 'torso': r(-2, -6), 'cuello': r(-2), 'cabeza': r(-10, 6), 'mandibula': r(8)},
+                     brazo_dir('der', 0.65, 0.45, 0.8, -40), brazo_dir('izq', 0.7, -0.6, 0.4, -24), corona_abierta(0.3))
+_de_alzado = mezcla({'pelvis': P(0, 0.3, 0.5), 'torso': r(-8, 10, -2), 'cuello': r(-6), 'cabeza': r(-18, -6), 'mandibula': r(16),
+                     'concha': {'esc': (1.15, 1.15, 1.15)}},
+                    brazo_dir('der', 0.2, 1.0, 0.12, -8), brazo_dir('izq', 1.0, -0.25, 0.35, -16), corona_abierta(1.0),
+                    capa_al_viento(1.0))
+_de_alzado2 = mezcla(con(_de_alzado, torso=r(-9, 3, -1), cabeza=r(-20, 5), mandibula=r(20)), capa_al_viento(0.3))
+# se encoge (la anticipacion) y RUGE con todo el cuerpo
+_de_carga = mezcla({'pelvis': P(0, 3.4, 1.5), 'torso': r(18, -4), 'cuello': r(8), 'cabeza': r(16), 'mandibula': r(4),
+                    'concha': {'esc': (0.95, 0.95, 0.95)}},
+                   brazo('der', -64, 22, -60), brazo('izq', -30, -16, -90), corona_abierta(0.2))
+_de_ruge = mezcla({'pelvis': P(0, 1.2, -1), 'torso': r(-18), 'cuello': r(-5), 'cabeza': r(-9), 'mandibula': r(44),
+                   'concha': {'esc': (1.22, 1.22, 1.22)}},
+                  brazo_dir('izq', 1.0, 0.4, 0.3, -20), brazo_dir('der', 0.85, 0.8, 0.3, -20), corona_abierta(1.3),
+                  capa_al_viento(0.8))
+_de_suelta = mezcla({'pelvis': P(0, 1.6, 0), 'torso': r(6), 'cuello': r(2), 'cabeza': r(5), 'mandibula': r(8)},
+                    brazo('izq', -10, -14, -24), brazo('der', -30, 12, -66))
+
+_claves = [(0, _dorm, 'c'), (0.55, _de_inspira, 'c'), (1.05, _de_espira, 'c'), (1.3, _de_respingo, 'l'),
+           (1.45, con(_dorm, torso=r(21)), 'c'), (1.8, _de_hondo, 'c'),
+           (T_DESPERTAR_ABRE, _de_abre, 'c'), (2.5, _de_mira, 'c'), (3.0, _de_mira2, 'c'),
+           (T_DESPERTAR_SE_ALZA, _de_tira(0.0, 0), 'c')]
+for i in range(1, 7):
+    _claves.append((T_DESPERTAR_SE_ALZA + 0.12 * i, _de_tira(i / 6.0, 1 if i % 2 else -1), 'c'))
+_claves += [(T_DESPERTAR_ROMPE, _de_rompe, 'l'),
+            (4.6, con(_de_rompe, torso=r(-7), cuello=r(-9), cabeza=r(-25), mandibula=r(26)), 'c'),
+            (4.95, _de_empuja, 'c'), (5.25, _de_sube1, 'c'), (5.5, _de_sube2, 'c'), (5.8, _de_sube3, 'c'),
+            (T_DESPERTAR_ALZADO, _de_alzado0, 'c'), (6.4, _de_alzado, 'c'), (6.8, _de_alzado2, 'c'),
+            (7.05, _de_carga, 'c'), (T_DESPERTAR_RUGE, _de_ruge, 'l')]
+for i in range(1, 9):
+    lado = 1 if i % 2 else -1
+    _claves.append((T_DESPERTAR_RUGE + 0.15 * i, con(_de_ruge, torso=r(-18 - 1.5 * lado, 0, 1.5 * lado),
+                                                     cabeza=r(-9 - lado, 4 * lado), mandibula=r(44 - 2 * lado),
+                                                     pelvis=P(0.5 * lado, 1.2, -1)), 'c'))
+_claves += [(8.95, _de_suelta, 'c'), (9.5, N, 'c')]
+
+
+def _pulso(piezas, *picos):
+    """Canales de escala que estan a 1 salvo en los picos (t, escala, sube, baja):
+    sube de golpe y baja suave; entre pico y pico, recto (sin ondular)."""
+    ks = [(0, (1, 1, 1), 'l')]
+    for t, e, sube, baja in picos:
+        ks += [(t - sube, (1, 1, 1), 'l'), (t, (e,) * 3, 'l'), (t + baja, (1, 1, 1), 'c')]
+    ks.append((9.5, (1, 1, 1), 'l'))
+    return [(p, 'esc', ks) for p in piezas]
+
+
+anim('DESPERTAR', 9.5, _claves, apoyos=apoyos_despertar,
+     extra=_pulso(('ojo_izq', 'ojo_der'), (T_DESPERTAR_ABRE + 0.05, 1.7, 0.1, 0.6), (T_DESPERTAR_RUGE + 0.05, 1.45, 0.15, 1.5)) +
+     _pulso(('corazon',), (T_DESPERTAR_ABRE + 0.05, 1.35, 0.1, 0.4), (T_DESPERTAR_ROMPE, 1.3, 0.1, 0.4)))
+ANIMS['DESPERTAR']['aterriza'] = 9.0
 
 # --- Rompeolas: paso al frente, el tridente gira en la muneca y cae a plomo ---
 _ro_carga = mezcla({'pelvis': P(0, 1, 2), 'torso': r(-6, 14), 'tridente': r(*[c * 0.5 for c in T_EMP])},
@@ -483,16 +644,40 @@ def preparar_molino():
 
 
 preparar_molino()
+tridente_a_plomo('DESPERTAR')
 
 
 # ----------------------------------------------------------------------
 #  El pase de fisica
 # ----------------------------------------------------------------------
+def aterrizar(ks, desde, dur, paso=0.05):
+    """Lleva un canal horneado a 0 entre "desde" y el final, suave: lo que
+    aun se mueve por inercia (la cadena con el ancla, las algas) acaba quieto
+    en su reposo y la animacion empalma sin salto con la siguiente."""
+    antes = [k for k in ks if k[0] < desde - 1e-6]
+    n = int(round((dur - desde) / paso))
+    fin = []
+    for j in range(n + 1):
+        s = desde + (dur - desde) * j / n
+        v = muestrear(ks, s, 'rot')
+        u = j / n
+        w = 1.0 - u * u * (3 - 2 * u)
+        fin.append((round(s, 3), tuple(round(float(c) * w, 2) for c in v), 'c'))
+    return antes + fin
+
+
+def hornear_una(nombre):
+    a = ANIMS[nombre]
+    nuevos, sustituye = nf.hornear(nombre, a, pose_autor, muestrear, a['apoyos'], a['sin_fisica'])
+    if a.get('aterriza'):
+        nuevos = [(p, t, aterrizar(ks, a['aterriza'], a['dur'])) for p, t, ks in nuevos]
+    quedan = [c for c in canales_autor(a) if not (c[0] in sustituye and c[1] == 'rot')]
+    a['horneado'] = quedan + nuevos
+
+
 def hornear_todo():
-    for nombre, a in ANIMS.items():
-        nuevos, sustituye = nf.hornear(nombre, a, pose_autor, muestrear, a['apoyos'], a['sin_fisica'])
-        quedan = [c for c in canales_autor(a) if not (c[0] in sustituye and c[1] == 'rot')]
-        a['horneado'] = quedan + nuevos
+    for nombre in ANIMS:
+        hornear_una(nombre)
 
 
 if not os.environ.get('NEREA_SIN_FISICA'):
@@ -508,6 +693,10 @@ def fj(x):
     if s in ('-0', ''):
         s = '0'
     return s + 'F'
+
+
+# Lo que cabe en un metodo de Java (64 KB de bytecode: unos 20 bytes por keyframe)
+MAX_CLAVES_METODO = 1400
 
 
 def java_anims():
@@ -551,8 +740,7 @@ def java_anims():
           '    private static AnimationChannel escala(Keyframe... k) {',
           '        return new AnimationChannel(AnimationChannel.Targets.SCALE, k);', '    }', '']
     for nombre, a in ANIMS.items():
-        L.append(f'    private static AnimationDefinition {nombre.lower()}() {{')
-        L.append(f'        return AnimationDefinition.Builder.withLength({fj(a["dur"])})' + ('.looping()' if a['loop'] else ''))
+        lineas = []
         for pieza, tipo, ks in canales(a):
             fn = {'rot': ('rot', 'seco', 'giro'), 'pos': ('pos', 'posSeco', 'mover'), 'esc': ('esc', 'escSeco', 'escala')}[tipo]
             partes = []
@@ -561,10 +749,35 @@ def java_anims():
                 if tipo == 'pos':
                     y = -y   # posVec invierte la Y: aqui se escribe hacia abajo
                 partes.append(f'{fn[0] if i == "c" else fn[1]}({fj(t)}, {fj(x)}, {fj(y)}, {fj(z)})')
-            L.append(f'                .addAnimation("{pieza}", {fn[2]}(' + ',\n                        '.join(partes) + '))')
-        L.append('                .build();')
+            lineas.append((len(ks), f'                .addAnimation("{pieza}", {fn[2]}(' + ',\n                        '.join(partes) + '))'))
+        if sum(n for n, _ in lineas) <= MAX_CLAVES_METODO:
+            L.append(f'    private static AnimationDefinition {nombre.lower()}() {{')
+            L.append(f'        return AnimationDefinition.Builder.withLength({fj(a["dur"])})' + ('.looping()' if a['loop'] else ''))
+            L += [x for _, x in lineas]
+            L.append('                .build();')
+            L.append('    }')
+            L.append('')
+            continue
+        # Demasiados keyframes para un metodo (64 KB de bytecode): los canales
+        # se reparten en varios que van llenando el mismo Builder.
+        tandas = [[]]
+        for n, x in lineas:
+            if tandas[-1] and sum(m for m, _ in tandas[-1]) + n > MAX_CLAVES_METODO:
+                tandas.append([])
+            tandas[-1].append((n, x))
+        L.append(f'    private static AnimationDefinition {nombre.lower()}() {{')
+        L.append(f'        AnimationDefinition.Builder b = AnimationDefinition.Builder.withLength({fj(a["dur"])})'
+                 + ('.looping()' if a['loop'] else '') + ';')
+        for k in range(len(tandas)):
+            L.append(f'        {nombre.lower()}{k + 1}(b);')
+        L.append('        return b.build();')
         L.append('    }')
         L.append('')
+        for k, tanda in enumerate(tandas):
+            L.append(f'    private static void {nombre.lower()}{k + 1}(AnimationDefinition.Builder b) {{')
+            L.append('        b' + '\n'.join(x for _, x in tanda).lstrip() + ';')
+            L.append('    }')
+            L.append('')
     L.append('}')
     return '\n'.join(L) + '\n'
 
@@ -611,6 +824,10 @@ def java_geometria():
         return int(round(s * 20))
     tiempos = {
         'DURACION_DESPERTAR': tick(ANIMS['DESPERTAR']['dur']),
+        'DESPERTAR_ABRE': tick(T_DESPERTAR_ABRE), 'DESPERTAR_SE_ALZA': tick(T_DESPERTAR_SE_ALZA),
+        'DESPERTAR_ROMPE': tick(T_DESPERTAR_ROMPE), 'DESPERTAR_ALZADO': tick(T_DESPERTAR_ALZADO),
+        'DESPERTAR_RUGE': tick(T_DESPERTAR_RUGE), 'DESPERTAR_PISA_DER': tick(T_DESPERTAR_PISA_DER),
+        'DESPERTAR_PISA_IZQ': tick(T_DESPERTAR_PISA_IZQ),
         'DURACION_ROMPEOLAS': tick(ANIMS['ROMPEOLAS']['dur']), 'IMPACTO_ROMPEOLAS': tick(T_IMPACTO),
         'DURACION_REMOLINO': tick(ANIMS['REMOLINO']['dur']), 'REMOLINO_TIRA': tick(1.0), 'REMOLINO_SUELTA': tick(4.0),
         'DURACION_BURBUJAS': tick(ANIMS['BURBUJAS']['dur']), 'BURBUJAS_SUELTA': tick(0.38),
@@ -684,6 +901,32 @@ def java_geometria():
     L.append('        }')
     L.append('        return a[a.length - 1];')
     L.append('    }')
+    # La cara (entre los ojos) y el pecho en el despertar, cada 5 ticks: la
+    # camara de la presentacion los sigue mientras se levanta.
+    for nombre, pieza, local, que in (('CABEZA', 'cabeza', (0, -6, -7.6), 'La cara (entre los ojos)'),
+                                      ('PECHO', 'torso', (0, -17, -9), 'El pecho')):
+        filas = []
+        for k in range(0, tick(ANIMS['DESPERTAR']['dur']) + 1, 5):
+            x, y, z = p_bloques('DESPERTAR', k / 20.0, pieza, local)
+            filas.append(f'{{{x:.2f}F, {y:.2f}F, {z:.2f}F}}')
+        L.append('')
+        L.append(f'    /** {que} en el despertar, cada 5 ticks (bloques; la camara de la presentacion lo sigue). */')
+        L.append(f'    public static final float[][] {nombre}_DESPERTAR = {{' + ', '.join(filas) + '};')
+    for nombre, que in (('cabeza', 'la cara'), ('pecho', 'el pecho')):
+        L.append('')
+        L.append(f'    /** Donde esta {que} a los tantos ticks del despertar. */')
+        L.append(f'    public static Vec3 {nombre}Despertar(float ticks) {{')
+        L.append(f'        return tabla({nombre.upper()}_DESPERTAR, ticks / 5.0F);')
+        L.append('    }')
+    L.append('')
+    L.append('    private static Vec3 tabla(float[][] t, float f) {')
+    L.append('        int n = t.length - 1;')
+    L.append('        f = Math.max(0.0F, Math.min(n, f));')
+    L.append('        int i = Math.min((int) f, n - 1);')
+    L.append('        float k = f - i;')
+    L.append('        return new Vec3(t[i][0] + (t[i + 1][0] - t[i][0]) * k, t[i][1] + (t[i + 1][1] - t[i][1]) * k,')
+    L.append('                t[i][2] + (t[i + 1][2] - t[i][2]) * k);')
+    L.append('    }')
     L.append('}')
     return '\n'.join(L) + '\n', puntos, tiempos
 
@@ -755,16 +998,21 @@ def hoja(nombre, tiempos, tex, emis, uv, alto, out, **kw):
 if __name__ == '__main__':
     uv, alto = nj.empaquetar()
     TEX = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/entity/nerea')
-    os.makedirs(TEX, exist_ok=True)
+    # NEREA_SIN_TEXTURAS=1: solo el codigo; las texturas no se tocan (la piel de
+    # la fase I se pinta igual, para las hojas).
+    SIN_TEXTURAS = bool(os.environ.get('NEREA_SIN_TEXTURAS'))
     # Una piel y una capa de brillo por fase: la maldicion se extiende.
-    for fase in (4, 3, 2, 1):
+    for fase in ((1,) if SIN_TEXTURAS else (4, 3, 2, 1)):
         base, brillo, libre = nj.pintar_atlas(uv, alto, fase)
-        Image.fromarray(base).save(os.path.join(TEX, f'nerea_f{fase}.png'))
-        Image.fromarray(brillo).save(os.path.join(TEX, f'nerea_brillo_f{fase}.png'))
-    Image.fromarray(libre).save(os.path.join(TEX, 'nerea_brillo_libre.png'))
-    for viejo in ('nerea.png', 'nerea_brillo.png'):
-        if os.path.exists(os.path.join(TEX, viejo)):
-            os.remove(os.path.join(TEX, viejo))
+        if not SIN_TEXTURAS:
+            os.makedirs(TEX, exist_ok=True)
+            Image.fromarray(base).save(os.path.join(TEX, f'nerea_f{fase}.png'))
+            Image.fromarray(brillo).save(os.path.join(TEX, f'nerea_brillo_f{fase}.png'))
+    if not SIN_TEXTURAS:
+        Image.fromarray(libre).save(os.path.join(TEX, 'nerea_brillo_libre.png'))
+        for viejo in ('nerea.png', 'nerea_brillo.png'):
+            if os.path.exists(os.path.join(TEX, viejo)):
+                os.remove(os.path.join(TEX, viejo))
 
     CLI = os.path.join(RAIZ, 'src/client/java/com/atalaya/client')
     with open(os.path.join(CLI, 'NereaMalla.java'), 'w', encoding='utf-8', newline='\n') as fh:

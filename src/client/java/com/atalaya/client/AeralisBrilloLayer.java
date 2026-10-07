@@ -2,6 +2,7 @@ package com.atalaya.client;
 
 import com.atalaya.Atalaya;
 import com.atalaya.entity.AeralisEntity;
+import com.atalaya.entity.AeralisGeometria;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -18,8 +19,8 @@ import net.minecraft.util.Mth;
  * ojo de la tormenta y las vetas de las alas. Cambia con la fase (del cian al
  * anil, al violeta con rayos y al magenta de la tormenta) y, liberada, en oro.
  *
- * Dormida, respira despacio; aturdida, parpadea; en el silencio del Juicio se
- * apaga casi del todo.
+ * Dormida, respira despacio (y al despertar, hasta que abre los ojos);
+ * aturdida, parpadea; en el silencio del Juicio se apaga casi del todo.
  */
 public class AeralisBrilloLayer extends RenderLayer<AeralisRenderState, AeralisModel> {
 
@@ -46,6 +47,12 @@ public class AeralisBrilloLayer extends RenderLayer<AeralisRenderState, AeralisM
         }
         if (s.estado == AeralisEntity.DORMIDA) {
             k *= 0.5F + 0.25F * Mth.sin(s.ageInTicks * 0.07F);
+        }
+        if (s.estado == AeralisEntity.DESPERTAR) {
+            // Sigue respirando dormida hasta que abre los ojos; entonces se enciende de golpe.
+            float ticks = s.despertar.getTimeInMillis(s.ageInTicks) / 50.0F;
+            float abre = Mth.clamp((ticks - AeralisGeometria.DESPERTAR_ABRE) / 4.0F, 0.0F, 1.0F);
+            k *= Mth.lerp(abre, 0.5F + 0.25F * Mth.sin(s.ageInTicks * 0.07F), 1.0F);
         }
         if (s.estado == AeralisEntity.JUICIO_SUBE) {
             k *= 0.25F;

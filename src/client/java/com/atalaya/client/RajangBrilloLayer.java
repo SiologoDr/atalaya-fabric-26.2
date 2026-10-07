@@ -2,6 +2,7 @@ package com.atalaya.client;
 
 import com.atalaya.Atalaya;
 import com.atalaya.entity.RajangEntity;
+import com.atalaya.entity.RajangGeometria;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -20,7 +21,9 @@ import net.minecraft.util.Mth;
  *
  * Despierto, el brillo late con la fase: despacio y suave en la I, cada vez
  * mas deprisa y mas fuerte, y en la III y la IV con una segunda pasada que lo
- * enciende del todo. Dormido, respira despacio; mientras sostiene el Sello o
+ * enciende del todo. Dormido, respira despacio; al despertar sigue asi hasta
+ * que abre los ojos, y la cresta erizada y el rugido lo encienden de mas
+ * (brilloDespertar); mientras sostiene el Sello o
  * ruge al cielo, late fuerte; aturdido o paralizado, parpadea como una brasa
  * que se apaga. Con la Furia de Jade, todo encendido.
  */
@@ -48,6 +51,11 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
         float k = 1.0F - s.disolver;
         switch (s.estado) {
             case RajangEntity.DORMIDO -> k *= 0.45F + 0.25F * Mth.sin(s.ageInTicks * 0.06F);
+            case RajangEntity.DESPERTAR -> {
+                // Aun dormido hasta que abre los ojos; entonces se enciende de golpe.
+                float abre = Mth.clamp((s.tiempoDespertar - RajangGeometria.DESPERTAR_ABRE) / 3.0F, 0.0F, 1.0F);
+                k *= Mth.lerp(abre, 0.45F + 0.25F * Mth.sin(s.ageInTicks * 0.06F), 1.0F);
+            }
             case RajangEntity.SELLO, RajangEntity.RUGIDO, RajangEntity.CATACLISMO, RajangEntity.CATACLISMO_SOSTIENE,
                  RajangEntity.EMBESTIDA_AVISO, RajangEntity.EMBESTIDA, RajangEntity.TUMBA ->
                     k *= 0.85F + 0.15F * Mth.sin(s.ageInTicks * 0.5F);
@@ -75,11 +83,29 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
         if (s.furia && !s.libre && s.deathTime <= 0) {
             extra = Math.min(1.0F, extra + 0.5F);
         }
+        if (s.estado == RajangEntity.DESPERTAR && s.deathTime <= 0) {
+            extra = Math.max(extra, brilloDespertar(s.tiempoDespertar));
+        }
         if (extra > 0.0F) {
             float e = k * extra;
             colector.order(2).submitModel(getParentModel(), s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,
                     ARGB.colorFromFloat(e, e, e, e), null, s.outlineColor, null);
         }
+    }
+
+    /**
+     * Lo que se enciende de mas al despertar: un destello al abrir los ojos, la
+     * cresta que se eriza mientras esta agazapado y el rugido; se apaga del todo
+     * al acabar, cuando ya esta en reposo.
+     */
+    private static float brilloDespertar(float t) {
+        float abre = t - RajangGeometria.DESPERTAR_ABRE;
+        float destello = abre >= 0.0F ? 0.8F * Math.max(0.0F, 1.0F - abre / 14.0F) : 0.0F;
+        float cresta = 0.45F * Mth.clamp((t - RajangGeometria.DESPERTAR_ALZADO - 3.0F) / 8.0F, 0.0F, 1.0F);
+        float ruge = t >= RajangGeometria.DESPERTAR_RUGE ? 0.9F : 0.0F;
+        float desde = RajangGeometria.DESPERTAR_RUGE + 20.0F;
+        float apaga = 1.0F - Mth.clamp((t - desde) / (RajangGeometria.DURACION_DESPERTAR - desde), 0.0F, 1.0F);
+        return Math.max(destello, Math.max(cresta, ruge) * apaga);
     }
 
     /** El latido del brillo en cada fase: lo que baja como mucho y lo deprisa que late. */

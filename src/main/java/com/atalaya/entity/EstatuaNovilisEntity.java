@@ -23,11 +23,25 @@ import org.jspecify.annotations.Nullable;
  * sean cuantos sean los jugadores; rota, su trompeta se calla.
  *
  * Si la melodia acaba con alguna en pie, Novilis entra en Furia.
+ *
+ * Desde el 08-10-2026 (Juan) cada angel sale sobre un estrado de dos escalones
+ * (EstradoNovilisEntity): desde el suelo no se le llega, hay que subirse. Y cada
+ * 5 s da un pulso de fuego por su estrado que tira abajo a quien este encima;
+ * un segundo antes lo avisa (la trompeta se enciende y suena). El pulso corre a
+ * ras del estrado: saltandolo a tiempo, te quedas arriba.
  */
 public class EstatuaNovilisEntity extends Entity {
 
     /** Lo que tarda en salir del suelo (ticks): el cliente la sube en ese tiempo. */
     public static final int SALE = 30;
+    /** El estrado: el escalon de abajo (ancho y de 1 bloque) y el de arriba (de 2), donde esta el angel. */
+    public static final float ESTRADO_ANCHO = 9.0F;
+    public static final float ESTRADO_CIMA = 5.4F;
+    public static final float ESTRADO_ALTO = 2.0F;
+    /** Cada cuanto da su pulso (ticks), lo que lo avisa antes y hasta donde llega (bloques). */
+    public static final int PULSO_CADA = 100;
+    public static final int PULSO_AVISO = 20;
+    private static final float PULSO_RADIO = 6.0F;
 
     private static final EntityDataAccessor<Integer> DATA_GOLPES =
             SynchedEntityData.defineId(EstatuaNovilisEntity.class, EntityDataSerializers.INT);
@@ -35,6 +49,9 @@ public class EstatuaNovilisEntity extends Entity {
             SynchedEntityData.defineId(EstatuaNovilisEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_INDICE =
             SynchedEntityData.defineId(EstatuaNovilisEntity.class, EntityDataSerializers.INT);
+    /** Va a dar su pulso (el ultimo segundo antes): el cliente enciende la trompeta. */
+    private static final EntityDataAccessor<Boolean> DATA_AVISA =
+            SynchedEntityData.defineId(EstatuaNovilisEntity.class, EntityDataSerializers.BOOLEAN);
 
     /** Solo cliente: el tick del ultimo golpe (el temblor) y de cuando se rompio. */
     public int ultimoGolpe = -100;
@@ -55,8 +72,11 @@ public class EstatuaNovilisEntity extends Entity {
         s.dueno = dueno;
         s.entityData.set(DATA_INDICE, indice);
         s.setYRot(rumbo);
-        s.setPos(donde.x, donde.y, donde.z);
+        // El angel, encima del estrado; los dos escalones, desde el suelo.
+        s.setPos(donde.x, donde.y + ESTRADO_ALTO, donde.z);
         nivel.addFreshEntity(s);
+        EstradoNovilisEntity.alzar(nivel, s, donde, ESTRADO_ANCHO, 1.0F);
+        EstradoNovilisEntity.alzar(nivel, s, donde, ESTRADO_CIMA, ESTRADO_ALTO);
         nivel.sendParticles(AtalayaParticulas.NOVILIS_ROCA, true, true, donde.x, donde.y + 0.3, donde.z, 24, 1.2, 0.3, 1.2, 0.2);
         nivel.sendParticles(AtalayaParticulas.NOVILIS_HUMO, true, true, donde.x, donde.y + 0.5, donde.z, 20, 1.4, 0.4, 1.4, 0.03);
         // Su voz de la melodia, desde ella: se oye en toda la arena.
@@ -69,6 +89,11 @@ public class EstatuaNovilisEntity extends Entity {
         datos.define(DATA_GOLPES, 0);
         datos.define(DATA_ROTO, false);
         datos.define(DATA_INDICE, 0);
+        datos.define(DATA_AVISA, false);
+    }
+
+    public boolean avisa() {
+        return entityData.get(DATA_AVISA);
     }
 
     public int getGolpes() {
@@ -106,8 +131,28 @@ public class EstatuaNovilisEntity extends Entity {
             }
             return;
         }
+        ServerLevel nivel = (ServerLevel) level();
         if (dueno == null || dueno.isRemoved() || dueno.isDeadOrDying() || dueno.getMelodia() < 0) {
-            desmontar((ServerLevel) level());
+            desmontar(nivel);
+            return;
+        }
+        // El pulso: cada PULSO_CADA ticks desde que acabo de salir, avisado un segundo antes.
+        if (isRoto() || tickCount <= SALE) {
+            entityData.set(DATA_AVISA, false);
+            return;
+        }
+        int ciclo = (tickCount - SALE) % PULSO_CADA;
+        if (ciclo == PULSO_CADA - PULSO_AVISO) {
+            entityData.set(DATA_AVISA, true);
+            nivel.playSound(null, getX(), getY() + 6.5, getZ(), AtalayaSonidos.NOVILIS_SOL_FORMA, SoundSource.HOSTILE, 3.0F, 1.3F);
+            nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, getX(), getY() + 0.2, getZ(), 24,
+                    ESTRADO_CIMA * 0.35, 0.1, ESTRADO_CIMA * 0.35, 0.02);
+        }
+        if (ciclo == 0) {
+            entityData.set(DATA_AVISA, false);
+            OndaFuegoEntity.lanzarPulso(nivel, dueno, position(), PULSO_RADIO, dueno.dano(NovilisEntity.DANO_PULSO), dueno.fase());
+            nivel.playSound(null, getX(), getY() + 6.5, getZ(), AtalayaSonidos.NOVILIS_ONDA, SoundSource.HOSTILE, 3.0F, 1.2F);
+            nivel.playSound(null, getX(), getY() + 6.5, getZ(), AtalayaSonidos.NOVILIS_ESTATUAS, SoundSource.HOSTILE, 2.0F, 1.4F);
         }
     }
 

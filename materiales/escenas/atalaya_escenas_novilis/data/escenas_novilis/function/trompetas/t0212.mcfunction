@@ -1,0 +1,1 @@
+execute at @e[type=minecraft:marker,tag=ancla_novilis,limit=1] run summon minecraft:mannequin ~-10.6 ~2.1 ~8.2 {Tags:["escena"],CustomName:"en el estrado",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}

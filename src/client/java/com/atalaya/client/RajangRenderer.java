@@ -124,6 +124,7 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
                 ? Mth.clamp((r.tickCount - r.inicioEstado + parcial) * r.ritmoCliente / RajangGeometria.DURACION_EMBESTIDA_AVISO, 0.0F, 1.0F)
                 : 1.0F;
         s.circuloTumba = e == RajangEntity.TUMBA && r.deathTime <= 0 ? r.tickCount - r.inicioEstado + parcial : -1.0F;
+        s.tiempoDespertar = e == RajangEntity.DESPERTAR && r.deathTime <= 0 ? r.tickCount - r.inicioEstado + parcial : -1.0F;
     }
 
     @Override

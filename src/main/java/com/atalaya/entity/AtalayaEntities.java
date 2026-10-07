@@ -84,6 +84,7 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_SOL_NOVILIS = clave("sol_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_ESTATUA_NOVILIS = clave("estatua_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_FUENTE_SOLAR = clave("fuente_solar");
+    public static final ResourceKey<EntityType<?>> CLAVE_ESTRADO_NOVILIS = clave("estrado_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_TRIDENTE_MAREAS = clave("tridente_mareas");
     public static final ResourceKey<EntityType<?>> CLAVE_FLECHA_VENDAVAL = clave("flecha_vendaval");
 
@@ -131,6 +132,7 @@ public final class AtalayaEntities {
     public static EntityType<EstatuaNovilisEntity> ESTATUA_NOVILIS;
     /** Las fuentes solares. */
     public static EntityType<FuenteSolarEntity> FUENTE_SOLAR;
+    public static EntityType<EstradoNovilisEntity> ESTRADO_NOVILIS;
 
     private AtalayaEntities() {
     }
@@ -245,6 +247,11 @@ public final class AtalayaEntities {
                 EntityType.Builder.<EstatuaNovilisEntity>of(EstatuaNovilisEntity::new, MobCategory.MISC)
                         .sized(2.6F, 7.5F).fireImmune().noSummon().clientTrackingRange(16)
                         .build(CLAVE_ESTATUA_NOVILIS));
+        // El estrado de cada angel: se pisa (su caja crece al subir).
+        ESTRADO_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_ESTRADO_NOVILIS,
+                EntityType.Builder.<EstradoNovilisEntity>of(EstradoNovilisEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16)
+                        .build(CLAVE_ESTRADO_NOVILIS));
         FUENTE_SOLAR = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_FUENTE_SOLAR,
                 EntityType.Builder.<FuenteSolarEntity>of(FuenteSolarEntity::new, MobCategory.MISC)
                         .sized(2.2F, 5.6F).fireImmune().noSummon().clientTrackingRange(16)
