@@ -12,6 +12,9 @@ public class NovilisRenderState extends LivingEntityRenderState {
     public float pesoLibre;
     /** El reloj de la animacion de andar (ms) y lo que pesa andar frente a estar quieto (0 a 1). */
     public float relojAndar;
+    /** El reloj de correr (ms) y lo que pesa correr frente a andar (0 a 1). */
+    public float relojCorrer;
+    public float corre;
     /** La estela de la hoja: muestras (de ahora hacia atras), cada ESTELA_PASO segundos de animacion. */
     public static final int ESTELA = 9;
     public static final float ESTELA_PASO = 1.0F / 60.0F;

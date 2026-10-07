@@ -64,7 +64,7 @@ import java.util.List;
  *                        salvo totem y lanza al cielo; se posa 3 s, con dano
  *                        doble: la ventana de la espada); el viento de los
  *                        tornados rotos vuelve a ella y, al juntar 10 (20 en la
- *                        III, 30 en la IV), cae aturdida 5 s
+ *                        III, 30 en la IV), cae aturdida 10 s
  *   fase III   50-25 %   Tempestad: + Juicio del Ciclon y Escamas de Tormenta (rayos en las alas; inmune
  *                        mientras dura: solo sirve romper los nucleos)
  *   fase IV    25-0 %    Ojo de la tormenta: todo mas seguido y cada 25 s
@@ -197,9 +197,11 @@ public class AeralisEntity extends Monster {
     /**
      * El viento de vuelta (desde la fase II): cada tornado roto le devuelve su
      * viento, un orbe que vuela a su pecho. Con 10 en la fase II, 20 en la III
-     * y 30 en la IV se llena la barra y cae aturdida 5 s.
+     * y 30 en la IV se llena la barra y cae aturdida 10 s.
      */
     private static final int[] VIENTO_NECESARIO = {0, 10, 20, 30};
+    /** Lo que la tumba el viento de vuelta lleno: 10 s (Juan, 06-10-2026: con 5 no daba tiempo). */
+    public static final int ATURDIDA_VIENTO = 200;
     private static final double VEL_VIENTO = 1.1;
     /** Hasta donde llegan las cuchillas del Aleteo. */
     public static final double ALCANCE_CUCHILLA = 48.0;
@@ -234,6 +236,9 @@ public class AeralisEntity extends Monster {
     /** El Picado: lo que le queda de linea por delante (0: no hay linea). */
     private static final EntityDataAccessor<Float> DATA_PICADO =
             SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.FLOAT);
+    /** Lo que dura la aturdida en curso (ticks): el cliente estira la animacion a esto. */
+    private static final EntityDataAccessor<Integer> DATA_ATURDIDA =
+            SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.INT);
     /** Los orbes de viento de vuelta que lleva (la raya fina bajo su barra). */
     private static final EntityDataAccessor<Integer> DATA_VIENTO =
             SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.INT);
@@ -365,6 +370,7 @@ public class AeralisEntity extends Monster {
         datos.define(DATA_OBJETIVO, -1);
         datos.define(DATA_ACELERADA, false);
         datos.define(DATA_PICADO, 0.0F);
+        datos.define(DATA_ATURDIDA, AeralisGeometria.DURACION_ATURDIDA);
         datos.define(DATA_VIENTO, 0);
         datos.define(DATA_FURIA, false);
         datos.define(DATA_NUCLEOS, 0);
@@ -404,6 +410,11 @@ public class AeralisEntity extends Monster {
     /** Los orbes de viento de vuelta que lleva para la siguiente vez que cae aturdida. */
     public int getViento() {
         return entityData.get(DATA_VIENTO);
+    }
+
+    /** Lo que dura la aturdida en curso (ticks). */
+    public int getDuracionAturdida() {
+        return entityData.get(DATA_ATURDIDA);
     }
 
     /** Los nucleos del Juicio que ya han roto, un bit cada uno. */
@@ -841,7 +852,7 @@ public class AeralisEntity extends Monster {
         }
         if (aturdidaPendiente && aturdible(getEstado()) && !isDeadOrDying()) {
             aturdidaPendiente = false;
-            aturdir(nivel);
+            aturdir(nivel, ATURDIDA_VIENTO);
         }
         if (fase() >= 3 && getEstado() != DORMIDA && getEstado() != JUICIO_SUBE && --relojTrueno <= 0) {
             relojTrueno = 140 + random.nextInt(160) - fase() * 20;
@@ -1732,9 +1743,15 @@ public class AeralisEntity extends Monster {
 
     /** Cae aturdida 5 s (dano doble). La han derribado: si tenia la Furia, se le va. */
     private void aturdir(ServerLevel nivel) {
+        aturdir(nivel, AeralisGeometria.DURACION_ATURDIDA);
+    }
+
+    /** Lo mismo, lo que se diga (ticks): el viento de vuelta la tumba 10 s. */
+    private void aturdir(ServerLevel nivel, int ticks) {
         aturdidaPendiente = false;
         entityData.set(DATA_PICADO, 0.0F);
-        ponerEstado(ATURDIDA, AeralisGeometria.DURACION_ATURDIDA);
+        entityData.set(DATA_ATURDIDA, ticks);
+        ponerEstado(ATURDIDA, ticks);
         sonido(AtalayaSonidos.AERALIS_ATURDIDA, 6.0F);
         ponerFuria(nivel, false);
     }

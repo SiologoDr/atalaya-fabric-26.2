@@ -66,6 +66,10 @@ schedule clear escenas_aeralis:viento/t0258
 schedule clear escenas_aeralis:viento/t0282
 schedule clear escenas_aeralis:viento/t0290
 schedule clear escenas_aeralis:viento/t0305
+schedule clear escenas_aeralis:viento/t0360
+schedule clear escenas_aeralis:viento/t0420
+schedule clear escenas_aeralis:viento/t0455
+schedule clear escenas_aeralis:viento/t0480
 schedule clear escenas_aeralis:caceria/t0000
 schedule clear escenas_aeralis:caceria/t0080
 schedule clear escenas_aeralis:caceria/t0130

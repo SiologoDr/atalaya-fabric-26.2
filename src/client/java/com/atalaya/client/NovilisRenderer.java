@@ -74,6 +74,8 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         s.pesoLibre = Mth.lerp(parcial, n.pesoLibreAnt, n.pesoLibre);
         s.relojAndar = Mth.lerp(parcial, n.relojAndarAnt, n.relojAndar);
         s.andar = Mth.lerp(parcial, n.andarAnt, n.andar);
+        s.relojCorrer = Mth.lerp(parcial, n.relojCorrerAnt, n.relojCorrer);
+        s.corre = Mth.lerp(parcial, n.correAnt, n.corre);
         s.desdeFuria = n.tickCount - n.furiaDesde + parcial;
         s.fase = n.fase();
         s.ritmo = n.ritmoCliente;

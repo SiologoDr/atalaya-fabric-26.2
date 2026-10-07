@@ -11,7 +11,7 @@ execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run summon minecr
 execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run summon minecraft:mannequin ~-6 ~ ~10 {Tags:["escena"],CustomName:"presa",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}
 execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run tp @a ~8 ~22 ~-52 facing ~8 ~8 ~0
 execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run title @a times 5 40 10
-execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run title @a subtitle {"text": "Cada tornado roto le devuelve su viento; con 10, 20 o 30 cae aturdida 5 s", "color": "#E4ECF8"}
+execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run title @a subtitle {"text": "Cada tornado roto le devuelve su viento; con 10, 20 o 30 cae aturdida 10 s", "color": "#E4ECF8"}
 execute at @e[type=minecraft:marker,tag=ancla_aeralis,limit=1] run title @a title {"text": "Viento de vuelta", "color": "#9FE8FF"}
 schedule function escenas_aeralis:viento/t0000 45t append
 schedule function escenas_aeralis:viento/t0080 125t append
@@ -24,4 +24,8 @@ schedule function escenas_aeralis:viento/t0258 303t append
 schedule function escenas_aeralis:viento/t0282 327t append
 schedule function escenas_aeralis:viento/t0290 335t append
 schedule function escenas_aeralis:viento/t0305 350t append
-schedule function escenas_aeralis:viento/fin 405t append
+schedule function escenas_aeralis:viento/t0360 405t append
+schedule function escenas_aeralis:viento/t0420 465t append
+schedule function escenas_aeralis:viento/t0455 500t append
+schedule function escenas_aeralis:viento/t0480 525t append
+schedule function escenas_aeralis:viento/fin 565t append

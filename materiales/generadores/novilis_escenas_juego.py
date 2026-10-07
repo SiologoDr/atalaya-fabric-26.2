@@ -103,6 +103,21 @@ ESCENAS['andar'] = (
      (140, [camara(70, 9, -26, 48, 6, 0)]), (160, [foto('frente')]), (170, [foto('frente_2')])],
     220, 'fases')
 
+# La carrera: el cebo empieza a 40 bloques y se aleja a 0,7 bloques por tick
+# (mas deprisa que el): el lo persigue corriendo, visto de lado.
+CEBO_RAPIDO = 'execute as @e[type=minecraft:mannequin,tag=cebo] at @s run tp @s ~0.7 ~ ~'
+ESCENAS['correr'] = (
+    [novilis(), 'summon minecraft:mannequin ~40 ~ ~ {Tags:["escena","cebo"],CustomName:"cebo",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}',
+     camara(30, 8, -40, 30, 6, 0)] +
+    titulo('La carrera', 'Si su presa se aleja, corre: zancada larga con vuelo'),
+    [(0, [orden('despertar')]), (60, [orden('perseguir')])] +
+    [(60 + k, [CEBO_RAPIDO]) for k in range(0, 110)] +
+    [(62 + 40 * k, [orden('perseguir')]) for k in range(3)] +
+    [(80, [camara(40, 8, -40, 40, 6, 0)]), (100, [foto('lado'), camara(55, 8, -40, 55, 6, 0)]),
+     (106, [foto('lado_2')]), (112, [foto('lado_3')]), (118, [foto('lado_4')]),
+     (125, [camara(100, 10, -18, 70, 6, 0)]), (140, [foto('frente')]), (146, [foto('frente_2')])],
+    190, 'fases')
+
 ESCENAS['fases'] = (
     [novilis(), camara(32, 9, 0, 0, 9, 0)] +
     titulo('Las cuatro fases', 'Brasa, Llama, Sol blanco y Sol carmesi'),
@@ -297,7 +312,9 @@ if AUTO:
           f'{sum(TODAS[c][2] + PAUSA + 40 for c in cola[:k])}t replace' for k in range(1, len(cola))],
     ])
     for k in range(1, len(cola)):
-        escribir(os.path.join(FN, f'auto_{k}.mcfunction'), [f'execute as @a[limit=1] at @s run function {NS}:{cola[k]}'])
+        # una escena de otro datapack (ns:escena) solo puede ir la ultima: no se sabe lo que dura
+        fn = cola[k] if ':' in cola[k] else f'{NS}:{cola[k]}'
+        escribir(os.path.join(FN, f'auto_{k}.mcfunction'), [f'execute as @a[limit=1] at @s run function {fn}'])
 escribir(os.path.join(FN, 'parar.mcfunction'), [
     f'scoreboard players set #recorrido {NS} 0',
     *CORTAR,

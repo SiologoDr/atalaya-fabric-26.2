@@ -21,7 +21,10 @@ public final class NovilisGeometria {
     /** Lo que avanza el cuerpo por vuelta de la animacion de andar (bloques): con los pies en el suelo, sin patinar. */
     public static final float ZANCADA = 8.329F;
     /** Lo que dura una vuelta de la animacion de andar (segundos de animacion). */
-    public static final float PERIODO_ANDAR = 1.600F;
+    public static final float PERIODO_ANDAR = 1.400F;
+    /** Lo mismo al correr: lo que avanza por vuelta (bloques) y lo que dura (s). */
+    public static final float ZANCADA_CORRER = 14.247F;
+    public static final float PERIODO_CORRER = 1.100F;
 
     public static final Vec3 PECHO = new Vec3(0.000, 11.344, 1.753);
     public static final Vec3 CABEZA = new Vec3(0.000, 14.632, 0.110);
@@ -48,7 +51,8 @@ public final class NovilisGeometria {
     public static final Vec3 DIOS_LANZA_3_P = new Vec3(0.000, 10.386, 4.547);
 
     public static final int DURACION_REPOSO = 64;
-    public static final int DURACION_ANDAR = 32;
+    public static final int DURACION_ANDAR = 28;
+    public static final int DURACION_CORRER = 22;
     public static final int DURACION_DORMIDO = 120;
     public static final int DURACION_DESPERTAR = 48;
     public static final int DURACION_BARRIDO = 52;

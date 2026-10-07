@@ -192,6 +192,7 @@ public final class AtalayaEntities {
                         .eyeHeight(14.2F)
                         .fireImmune()
                         .clientTrackingRange(24)
+                        .updateInterval(1)
                         .build(CLAVE_NOVILIS));
         FabricDefaultAttributeRegistry.register(NOVILIS, NovilisEntity.crearAtributos());
 

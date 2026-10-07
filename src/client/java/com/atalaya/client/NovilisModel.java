@@ -46,6 +46,7 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
 
     private final KeyframeAnimation reposo;
     private final KeyframeAnimation andar;
+    private final KeyframeAnimation correr;
     private final KeyframeAnimation dormido;
     private final KeyframeAnimation despertar;
     private final KeyframeAnimation barrido;
@@ -83,6 +84,7 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
 
         this.reposo = NovilisAnimaciones.REPOSO.bake(raiz);
         this.andar = NovilisAnimaciones.ANDAR.bake(raiz);
+        this.correr = NovilisAnimaciones.CORRER.bake(raiz);
         this.dormido = NovilisAnimaciones.DORMIDO.bake(raiz);
         this.despertar = NovilisAnimaciones.DESPERTAR.bake(raiz);
         this.barrido = NovilisAnimaciones.BARRIDO.bake(raiz);
@@ -151,8 +153,12 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
         } else {
             float paso = s.andar;
             if (peso > 0.0F) {
-                // El reloj de andar lo lleva la entidad: avanza lo que anda (sin patinar).
-                andar.apply((long) s.relojAndar, paso * peso);
+                // Los relojes de andar y correr los lleva la entidad: avanzan lo que anda
+                // (sin patinar). Entre los dos se funde segun la velocidad.
+                andar.apply((long) s.relojAndar, paso * peso * (1.0F - s.corre));
+                if (s.corre > 0.0F) {
+                    correr.apply((long) s.relojCorrer, paso * peso * s.corre);
+                }
                 reposo.apply((long) (s.ageInTicks * 50.0F), (1.0F - paso) * peso);
             }
             long ms = (long) (seg * 1000.0F);

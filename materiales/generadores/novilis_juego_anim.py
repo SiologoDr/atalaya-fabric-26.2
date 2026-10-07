@@ -333,7 +333,7 @@ anim('REPOSO', T_REPOSO, muestreada(pose_reposo, T_REPOSO, 16), loop=True)
 # delante en arco. La pelvis baja en cada apoyo y sube al pasar, se mece hacia
 # el pie que carga y gira con la pierna que avanza; el torso gira al reves y los
 # brazos van contrarios a las piernas.
-T_ANDAR = 1.6
+T_ANDAR = 1.4
 ZANCADA_PX = 76.0              # lo que avanza el cuerpo por vuelta (px de modelo): lo que dan de si sus piernas
 APOYO = 0.6
 
@@ -379,6 +379,64 @@ def pose_andar(s):
 
 
 anim('ANDAR', T_ANDAR, muestreada(pose_andar, T_ANDAR, 32), loop=True, auto_paso=False)
+
+# --- Correr: zancada larga con vuelo, el cuerpo echado adelante ---
+# Cada pie apoya solo el 35 % de la vuelta: entre pisada y pisada no toca nadie
+# el suelo (el vuelo). La pelvis se hunde al recibir el peso y sube en el aire;
+# el torso va echado adelante y gira contra la pelvis; el brazo libre bombea y
+# el de la espada la lleva baja y hacia atras, para no clavarla al correr.
+T_CORRER = 1.1
+ZANCADA_CORRER_PX = 130.0
+APOYO_CORRER = 0.35
+_c_espada = ik(mezcla({'torso': r(14)}), der=(-30, -46, 14), espada=(-0.15, 0.45, 0.88))
+_c_izq_delante = ik(mezcla({'torso': r(14)}), izq=(24, -64, -34))
+_c_izq_atras = ik(mezcla({'torso': r(14)}), izq=(30, -50, 22))
+
+
+def _pie_correr(fase, lado):
+    s = 1 if lado == 'izq' else -1
+    x = 10.5 * s
+    largo = 40.0                                   # lo que va hacia atras mientras pisa
+    if fase < APOYO_CORRER:
+        u = fase / APOYO_CORRER
+        return x, -largo / 2 + largo * u, 0.0, -6.0 * max(0.0, 1 - u / 0.2) + 30.0 * max(0.0, (u - 0.7) / 0.3)
+    u = (fase - APOYO_CORRER) / (1 - APOYO_CORRER)
+    k = CURVAS['e'](u)
+    z = largo / 2 - largo * k - 14.0 * math.sin(math.pi * u)      # la rodilla tira del pie hacia delante
+    alto = 24.0 * math.sin(math.pi * min(1.0, u * 1.15)) ** 0.7     # el talon sube hacia el gluteo
+    return x, z, alto, 30.0 - 36.0 * k
+
+
+def _mezcla_rot(a, b, k, piezas):
+    out = {}
+    for p in piezas:
+        ra = np.array(a[p]['rot'], float)
+        rb = np.array(b[p]['rot'], float)
+        out[p] = {'rot': tuple(ra + (rb - ra) * k)}
+    return out
+
+
+def pose_correr(s):
+    f = s / T_CORRER
+    a = 2 * math.pi * f
+    pi_ = _pie_correr(f % 1.0, 'izq')
+    pd = _pie_correr((f + 0.5) % 1.0, 'der')
+    baja = 5.0 + 4.0 * math.cos(2 * math.pi * (2 * f - APOYO_CORRER))     # lo mas bajo a mitad de cada pisada
+    giro = 9.0 * math.cos(a)
+    k_brazo = 0.5 + 0.5 * math.cos(a)               # el brazo libre va contra la pierna izquierda
+    brazos = _mezcla_rot(_c_izq_atras, _c_izq_delante, k_brazo, ('brazo_izq', 'antebrazo_izq'))
+    ed = {p: {'rot': _c_espada[p]['rot']} for p in ('brazo_der', 'antebrazo_der', 'agarre')}
+    bd = ed['brazo_der']['rot']
+    ed['brazo_der'] = {'rot': (bd[0] + 6 * math.cos(a), bd[1], bd[2])}
+    return mezcla(G, {
+        'pelvis': {'pos': (1.6 * math.sin(a + 0.4), baja, 0), 'rot': (8.0, giro, -2.5 * math.sin(a))},
+        'torso': r(8.0 + 2.0 * math.cos(2 * a), -giro * 1.5, 2.0 * math.sin(a)),
+        'cabeza': r(-14.0 - 2.0 * math.cos(2 * a), giro * 0.6, -1.5 * math.sin(a)),
+        'capa_1': r(38), 'capa_2': r(14), 'capa_3': r(14), 'tabardo': r(-18),
+    }, brazos, ed, pies(izq=(pi_[0], pi_[1], pi_[3], -4, pi_[2]), der=(pd[0], pd[1], pd[3], 4, pd[2])))
+
+
+anim('CORRER', T_CORRER, muestreada(pose_correr, T_CORRER, 32), loop=True, auto_paso=False)
 
 # --- Dormido: de rodilla, la espada clavada delante, la cabeza gacha; respira ---
 anim('DORMIDO', 6.0, muestreada(lambda s: sumar(DORMIDO, {'torso': r(2.5 * math.sin(2 * math.pi * s / 6.0)),
@@ -890,7 +948,10 @@ def java_geometria():
          f'    /** Lo que avanza el cuerpo por vuelta de la animacion de andar (bloques): con los pies en el suelo, sin patinar. */',
          f'    public static final float ZANCADA = {ZANCADA_PX * nj.ESCALA / 16:.3f}F;',
          f'    /** Lo que dura una vuelta de la animacion de andar (segundos de animacion). */',
-         f'    public static final float PERIODO_ANDAR = {T_ANDAR:.3f}F;', '']
+         f'    public static final float PERIODO_ANDAR = {T_ANDAR:.3f}F;',
+         f'    /** Lo mismo al correr: lo que avanza por vuelta (bloques) y lo que dura (s). */',
+         f'    public static final float ZANCADA_CORRER = {ZANCADA_CORRER_PX * nj.ESCALA / 16:.3f}F;',
+         f'    public static final float PERIODO_CORRER = {T_CORRER:.3f}F;', '']
     for k, (x, y, z) in puntos.items():
         L.append(f'    public static final Vec3 {k} = new Vec3({x:.3f}, {y:.3f}, {z:.3f});')
     L.append('')

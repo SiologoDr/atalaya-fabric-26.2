@@ -85,6 +85,28 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
         this.escamas = AeralisAnimaciones.ESCAMAS.bake(raiz);
     }
 
+    /**
+     * La animacion de la aturdida dura 5 s: cae (0-1,5), se retuerce (1,5-3,5) y
+     * se levanta (3,5-5). Si la aturdida dura mas (el viento de vuelta: 10 s),
+     * el retorcerse se repite, algo mas lento, hasta que toca levantarse: asi no
+     * se queda tiesa ni se levanta antes de tiempo.
+     */
+    private static long tiempoAturdida(float s, float total) {
+        float caida = 3.5F;
+        float levanta = 1.5F;
+        if (total <= 5.0F + 1.0E-3F || s < caida) {
+            return (long) (s * 1000.0F);
+        }
+        if (s >= total - levanta) {
+            return (long) ((caida + (s - (total - levanta))) * 1000.0F);
+        }
+        // Vueltas enteras del retorcerse (1,5-3,5: empieza y acaba en la misma pose).
+        float medio = total - caida - levanta;
+        int vueltas = Math.max(1, Math.round(medio / 2.0F));
+        float k = medio / (vueltas * 2.0F);
+        return (long) ((1.5F + ((s - caida) / k) % 2.0F) * 1000.0F);
+    }
+
     @Override
     public void setupAnim(AeralisRenderState s) {
         super.setupAnim(s);
@@ -107,7 +129,9 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
             juicioSube.apply(s.juicioSube, s.ageInTicks, s.ritmo);
             juicioSostiene.apply(s.juicioSostiene, s.ageInTicks, s.ritmo);
             juicioGolpe.apply(s.juicioGolpe, s.ageInTicks, s.ritmo);
-            aturdida.apply(s.aturdida, s.ageInTicks, s.ritmo);
+            if (s.aturdida.isStarted()) {
+                aturdida.apply(tiempoAturdida(s.aturdida.getTimeInMillis(s.ageInTicks) / 1000.0F, s.duracionAturdida / 20.0F), 1.0F);
+            }
             agotada.apply(s.agotada, s.ageInTicks, s.ritmo);
             tambaleo.apply(s.tambaleo, s.ageInTicks, s.ritmo);
             picadoAviso.apply(s.picadoAviso, s.ageInTicks, s.ritmo);

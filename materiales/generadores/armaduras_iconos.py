@@ -28,12 +28,26 @@ Como se dibuja (ver DISENO.md en la raiz):
     de coral de un pixel se pintaria entero de oscuro).
   - Luz de arriba a la izquierda, como los items de vanilla.
 
-Uso: python armaduras_iconos.py <raiz> [hoja.png]
+Rehechos en octubre de 2026 (segunda ronda, Juan: "los de tierra estan
+chevere"): el vendaval entero (casco alado, pechera con alas en las
+hombreras, faldones de pluma, botas con alas en el tobillo y una hoja ancha
+con el filo dentado como un rayo) y un repaso a las mareas (venera con
+costillas, coral, venera chica del pecho, conchas del cinturon y una hoja
+curva con lomo de espuma y filo definido). El jade no se toca.
+
+Uso: python armaduras_iconos.py <raiz> [hoja.png] [--temas=vendaval,mareas]
+  --temas  escribe solo esos temas (la hoja de control sale con los tres)
 """
 import json, math, os, sys
 from PIL import Image
 
-RAIZ = sys.argv[1]
+_ARGS = [a for a in sys.argv[1:] if not a.startswith('--')]
+SOLO = None
+for _a in sys.argv[1:]:
+    if _a.startswith('--temas='):
+        SOLO = [t for t in _a.split('=', 1)[1].split(',') if t]
+RAIZ = _ARGS[0]
+HOJA = _ARGS[1] if len(_ARGS) > 1 else None
 ITEM = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/item')
 
 
@@ -62,8 +76,10 @@ TEMAS = {
         'A': rampa('0e4e60', '1b8aa6', '3fe0ff', '9ff4ff', 'eaffff'),     # prismarina
         'B': rampa('5c3a54', 'a87a94', 'd6aac0', 'f0d4e2', 'fff4fa'),     # nacar
         'C': rampa('5e1029', '9e1a42', 'd8336a', 'f2618f', 'ffb3c8'),     # coral
-        'D': rampa('0b2a24', '15493c', '226a52', '3a8f6a', '72c08e'),     # alga
-        'H': rampa('0a3346', '0f5f7a', '1b8aa6', '3fe0ff', '9ff4ff', 'eaffff'),  # hoja: agua
+        'D': rampa('123a2a', '1f5c40', '2f8058', '4aa872', '8ad89a'),     # alga (mas clara: el puno se leia negro)
+        # hoja: agua honda (el cuerpo mas oscuro que antes, que se leia como
+        # una mancha cian) y la espuma clara solo en el lomo
+        'H': rampa('082a3a', '0d4f68', '177a96', '2fb8d8', '8ff0ff', 'e8ffff'),
     },
     'jade': {
         'M': rampa('0c140f', '142019', '1c2d22', '273c2e', '35503d', '4b6a53', '6f8f76'),
@@ -73,13 +89,17 @@ TEMAS = {
         'D': rampa('0c3a1e', '1d6b3a', '35a85a', '6fe08a', 'c8ffd0'),
         'H': rampa('0a2e18', '145a30', '238a48', '3fbf68', '7fe89a', 'd0ffd8'),  # hoja: jade tallado
     },
+    # El vendaval era gris lila y plano: ahora el metal es anil de verdad
+    # (mas saturado, con la misma luminancia que el metal del jade), el
+    # violeta de los ribetes sube para recortar como el oro del jade y la
+    # pluma lleva el contorno anil, para que cada pluma se separe.
     'vendaval': {
-        'M': rampa('11111f', '191a2e', '232542', '2f3256', '40446e', '595f8c', '858cb4'),
-        'A': rampa('1b3f6e', '2f6fb0', '5fb6ff', 'a8dcff', 'eaf6ff'),     # cielo y rayo
-        'B': rampa('2a1a58', '6a44b8', '9a7cff', 'c9b4ff', 'f0e8ff'),     # violeta
-        'C': rampa('3c4068', '8a90b0', 'b8bdd8', 'd8dcf0', 'eef0fa'),     # pluma
-        'D': rampa('2a1a58', '6a44b8', '9a7cff', 'c9b4ff', 'f0e8ff'),
-        'H': rampa('1a1c3a', '3a4a86', '6a7cc0', '9fb2e8', 'cfe0ff', 'f2f8ff'),  # hoja: acero de cielo
+        'M': rampa('0b0a20', '141636', '1d214c', '272d62', '343c7c', '46529a', '6c7cc4'),
+        'A': rampa('0f3a6a', '1b6fbf', '35b2ff', '98e4ff', 'e6faff'),     # cielo y rayo
+        'B': rampa('2a1460', '5b2fb4', '8e5cff', 'bf9cff', 'eee2ff'),     # violeta
+        'C': rampa('2c3168', '6a74ac', 'a6b0da', 'd6def4', 'f6f9ff'),     # pluma
+        'D': rampa('241c5c', '40389c', '6c6ad8', 'a4b4ff', 'e4ecff'),     # ala de polilla
+        'H': rampa('10123a', '222c6c', '36479a', '5670c4', '93aee8', 'e0ecff'),  # hoja: acero de tormenta
     },
 }
 
@@ -156,57 +176,62 @@ def comprobar(nombre, filas, ancho):
 PIEZAS = {}
 
 # MAREAS -- 0-6 metal abisal; a-e prismarina; f-j nacar; k-o coral; p-t alga
+# (segunda ronda) La venera del casco con sus costillas en abanico y la perla
+# de prismarina en el gozne; astas de coral a los lados. La pechera, simetrica:
+# aletas en los hombros, la venera chica con su perla en el pecho y una
+# costura de prismarina. Las grebas con las dos conchas del cinturon y aletas
+# en las rodillas. Menos damero en las escamas (metia ruido).
 PIEZAS['mareas_helmet'] = [
+    ".O...j.j|j.i...N.",
+    ".Nmhgjgj|jgigglM.",
+    "ONmjggjj|jiggilMN",
+    "NMmgjgje|digiglLM",
+    ".Mm45666|55433lL.",
+    "..m45666|55443l..",
+    "...45655|54432...",
+    "...bcdde|dccbb...",
+    "...45555|44332...",
+    "...41bcd|dcb12...",
+    "...43111|11122...",
+    "...432..|..222...",
+    "...32...|...22...",
     "........|........",
-    "...i.ij.|.ji.i...",
-    "..hjfjjf|fjjfjh..",
-    ".ijfijhf|fhjifji.",
-    ".hjfhh01|10hhfjh.",
-    "..hg0156|5510gh..",
-    "O..45665|55443..O",
-    "M.45655j|i44332.M",
-    ".L45544i|h43332L.",
-    "..454443|433322..",
-    "..41bcd3|3dcb12..",
-    "..432111|111222..",
-    "..432...|...222..",
-    "..32....|....22..",
     "........|........",
     "........|........",
 ]
 PIEZAS['mareas_chestplate'] = [
-    "........|..O.O...",
-    "........|.NM.MN..",
-    ".fjjih..|..LML0..",
-    "fjgggi..|.0lmml0.",
-    "fjgjjh4.|.4lml543",
-    "figggh54|44554432",
-    ".hiihg45|44444332",
-    ".4554454|4443322.",
-    "...455hj|jh443...",
-    "...344ie|di332...",
-    "...554hd|ch443...",
-    "...3444g|g4332...",
-    "...55544|44433...",
-    "...R3333|3322R...",
-    "...SQ.R.|..R.QS..",
-    "....T..S|...T....",
+    "J.......|.......I",
+    "BJ......|......IB",
+    "BCJ..j..|..i..ICB",
+    "jjjjji5.|.4iiiiih",
+    "j655445j|i443332h",
+    "j554434i|h433322h",
+    "jhhhhhh5|4hhhhhhg",
+    "...54j5j|i4i43...",
+    "...45jgj|ifi33...",
+    "...545je|di433...",
+    "...4545h|g4343...",
+    "...55454|44333...",
+    "...4bcdc|cdcb3...",
+    "...54544|43433...",
+    "...jiiii|hhhhg...",
+    "....4444|3332....",
 ]
 PIEZAS['mareas_leggings'] = [
     "........|........",
     "........|........",
-    "...44444|44444...",
-    "...4cdcd|dcdc4...",
-    "..hh5554|4443hh..",
-    ".hjih554|443hijh.",
-    "hjgjgh5.|.3hgjgjh",
-    "hjgjgj4.|.3jgjgjh",
-    "f1f1f54.|.43f1f1f",
-    "...5434.|.4323...",
-    ".B.5444.|.4333.B.",
-    ".CB4ih4.|.3ih3BC.",
-    ".DCB434.|.432BCD.",
-    "...5444.|.4333...",
+    "..jjjjie|diiiih..",
+    "..55554d|c44333..",
+    "..4jij55|44iig3..",
+    "..5hjh54|43gig3..",
+    "..55g54.|.43g33..",
+    "..55544.|.44333..",
+    ".b55454.|.43433b.",
+    "bc4bccb.|.bccb3cb",
+    ".bc5544.|.4433cb.",
+    "..b5454.|.4343b..",
+    "...5544.|.4433...",
+    "...hihi.|.ihih...",
     "...4444.|.3333...",
     "........|........",
 ]
@@ -214,17 +239,17 @@ PIEZAS['mareas_boots'] = [
     "........|........",
     "........|........",
     "........|........",
-    "B..4554.|.4554..B",
-    "CB.5543.|.3455.BC",
-    ".DB5443.|.3445BD.",
-    "BCD4543.|.3454DCB",
-    ".CB5443.|.3445BC.",
-    "..D4543.|.3454D..",
-    "..j5443.|.3445j..",
-    ".jgi543.|.345igj.",
-    ".hjgh43.|.34hgjh.",
-    ".fffff0.|.0fffff.",
-    "........|........",
+    "B..jjih.|.hiig..B",
+    "CB.5544.|.4433.BC",
+    ".DB5454.|.3434BD.",
+    "BCD5544.|.4433DCB",
+    ".CB4bc4.|.3cb3BC.",
+    "..D5544.|.4433D..",
+    "...4545.|.3434...",
+    "..55444.|.34433..",
+    ".jjihh4.|.3hhijj.",
+    ".jJjih3.|.3hijJj.",
+    ".000000.|.000000.",
     "........|........",
     "........|........",
 ]
@@ -304,80 +329,89 @@ PIEZAS['jade_boots'] = [
 ]
 
 # VENDAVAL -- 0-6 metal anil; a-e cielo; f-j violeta; k-o pluma
+# (rehecho) Las alas son el motivo del juego: plumas en diagonal, cada una con
+# su tono claro, el medio y una raya de contorno (K) que la separa de la
+# siguiente; en mayuscula para que el contorno calculado no se las coma. El
+# ala de la derecha va un tono por debajo (la luz viene de la izquierda).
+#   casco     alas que suben de las sienes, antenas de polilla con la punta
+#             de rayo, ojo de la tormenta en la frente, ojos de cian
+#   pechera   hombreras con ribete violeta y un ala en cada una (la V que la
+#             hace imponente), gola violeta, el ojo de la tormenta y un rayo
+#   grebas    cinturon violeta con la hebilla de cian, plumas en las caderas,
+#             rayo en zigzag por cada pierna y rodilleras violeta
+#   botas     alas en el tobillo, la costura de cian, el pie hacia fuera
 PIEZAS['vendaval_helmet'] = [
-    "........|........",
-    "o..I....|....I..o",
-    "no.GI...|...IG.on",
-    "mno.G...|...G.onm",
-    "omno.G00|00G.onmo",
-    ".omno565|543onmo.",
-    "..omn55h|h43nmo..",
-    "...455he|dh433...",
-    "...4544h|g4332...",
-    "...41bcd|dcb12...",
-    "...43111|11122...",
+    "K.......|.......K",
+    "OK...D..|..D...KN",
+    "NOK...G.|.G...KNM",
+    "LNOK.666|554.KNML",
+    "KLNOK655|554KNMLK",
+    "OKLNO555|d54NMLKN",
+    "NOKLN55d|ed4MLKNM",
+    ".NOKLiii|hhhLKNM.",
+    "..KKjiii|hhhgKK..",
+    "...45555|44433...",
+    "...5D111|111C2...",
+    "...54011|11032...",
     "...43...|...22...",
-    "...32...|...22...",
-    "........|........",
+    "...32...|...21...",
     "........|........",
     "........|........",
 ]
 PIEZAS['vendaval_chestplate'] = [
-    "........|........",
-    "........|........",
-    ".kkkk...|...kkkk.",
-    "koonnk..|..knnook",
-    "nononm5.|.4mnonon",
-    "mnmnmn55|44nmnmnm",
-    "m.m45554|44433m.m",
-    ".gh4544h|h4433hg.",
-    "gDh454he|dh433hDg",
-    "ggh544hd|ch432hgg",
-    "gg.4544h|g4332.gg",
-    "g..45444|44332..g",
-    "....4544|4332....",
-    ".....444|333.....",
-    "........|........",
-    "........|........",
+    "K.......|.......K",
+    "OK......|......KN",
+    "NOK..j..|..h..KNM",
+    "LNOK.ji.|.ih.KNML",
+    "jjjjjj6.|.4iiiiih",
+    "j666655j|i444433h",
+    "jiiiiii5|4hhhhhhg",
+    "k65555ih|hg44433k",
+    "...554id|ch433...",
+    "...545ie|dh433...",
+    "...5444h|g4433...",
+    "...5444c|c4332...",
+    "...4544b|44332...",
+    "...44544|43322...",
+    "...jiiii|hhhhg...",
+    "....4444|3332....",
 ]
 PIEZAS['vendaval_leggings'] = [
     "........|........",
     "........|........",
-    "...hhhhh|hhhhh...",
-    "...gihie|dihig...",
-    ".knk5454|4545knk.",
-    "knonk545|545knonk",
-    "nomon54.|.45nomon",
-    "nomon45.|.54nomon",
-    ".nmn545.|.545nmn.",
-    ".m.m4c4.|.4c4m.m.",
-    "...4c54.|.45c3...",
-    "...5c44.|.44c3...",
+    "..jjiiid|chhhhg..",
+    "..jiiiie|dhhhhg..",
+    ".K555544|4444333K",
+    "KOK55554|4444KNMK",
+    "KNOK555.|.443KNMK",
+    "KLNOK54.|.43KMNLK",
+    ".KLNO54.|.43MLKK.",
+    "..KK5c4.|.4c3KK..",
+    "...54c4.|.4c43...",
+    "...jiii.|.hhhg...",
+    "...5c54.|.45c3...",
     "...45c4.|.4c43...",
     "...4c54.|.45c3...",
-    "...4444.|.4444...",
-    "........|........",
+    "...jiih.|.hhhg...",
 ]
 PIEZAS['vendaval_boots'] = [
     "........|........",
-    "........|........",
-    "........|.......O",
-    "O..4554.|.4554.ON",
-    "NO.5543.|.3455OMN",
-    "MNO4543.|.3454NML",
-    "LMN5443.|.3445ML.",
-    ".LM4543.|.3454L..",
-    "..L5443.|.3445...",
-    "...4543.|.3454...",
-    "..54443.|.34445..",
-    ".5c5c43.|.34c5c5.",
+    "K.......|.......K",
+    "OK.jiih.|.hhhg.KN",
+    "NOKjiih.|.hhhgKNM",
+    "LNOK543.|.344KNML",
+    "KLNO543.|.34NMLK.",
+    ".KKK5c3.|.3c4KK..",
+    "...5543.|.3455...",
+    "...5443.|.3445...",
+    "..55443.|.34455..",
+    ".555443.|.344555.",
+    "jiiiiih.|.hhhhhhg",
     "0000000.|.0000000",
     "........|........",
     "........|........",
     "........|........",
 ]
-
-
 
 
 # ----------------------------------------------------------------------
@@ -575,14 +609,28 @@ MAREAS_ESPUMA = [(0, 0.30), (4, 0.78), (8, 0.52)]
 
 
 def agua(u, s, fase, olas=4.0):
-    """El tono del agua: por bandas de lomo a filo, con la ola que corre."""
-    t = 4 if s > 0.62 else 3 if s > 0.1 else 2 if s > -0.45 else 1
+    """El tono del agua: por bandas de lomo a filo, con la ola que corre.
+    (Segunda ronda) La espuma clara se queda en el lomo y el cuerpo baja a
+    agua honda: antes casi toda la hoja era cian claro y se leia como una
+    mancha."""
+    t = 5 if s > 0.8 else 4 if s > 0.58 else 3 if s > 0.2 else 2 if s > -0.35 else 1
     w = (u * olas - fase - 0.3 * s) % 1.0
     if t in (2, 3) and 0.5 <= w < 0.64:
         t -= 1                      # el seno de la ola
     elif w < 0.12:
         t = min(5, t + 1)           # la cresta
     return t
+
+
+def filo_vivo(celdas, info, m='A', t=3, desde=0.0):
+    """El filo (el lado de abajo de la hoja) que toca el aire se pinta claro y
+    sin contorno: asi la hoja tiene un filo que se ve, no solo un borde.
+    Devuelve sus pixeles."""
+    filo = [p for p in que_toca_aire(celdas)
+            if p in info and info[p][2] < 0 and celdas[p][0] == 'H' and info[p][0] > desde]
+    for p in filo:
+        celdas[p] = (m, t, True)
+    return filo
 
 
 def venera(celdas, H, R=6.0, bulto=0.35):
@@ -611,6 +659,7 @@ def mareas_mano(k):
     info = hoja_de('mareas', MAREAS_CURVA, MAREAS_LOMO, MAREAS_FILO)
     celdas = {p: ('H', agua(u, s, fase), False) for p, (u, s, d) in info.items()}
     venera(celdas, (8, 24), R=5.4)
+    filo_vivo(celdas, info, desde=0.08)
     barra(celdas, (7.4, 25.6), (3.4, 29.0), 1.75,
           lambda t, d, L: ('D', 3 if (t * L / 1.5 + d * 0.6) % 2.0 < 0.9 else 2 if d > 0 else 1))
     bola(celdas, (2.6, 29.4), 2.35,
@@ -701,12 +750,20 @@ def jade_mano(k):
 
 
 # ---------------------------- El Vendaval ------------------------------
-#  Una hoja larga y fina, de acero con tinte de cielo, por la que sube un
-#  rayo en zigzag que parpadea y suelta chispas. Guarda de dos alas de pluma
-#  blanca (con su ojo de polilla), puno violeta y el ojo de la tormenta por
-#  pomo.
+#  (Rehecho) Una hoja ancha de acero de tormenta: el lomo con su brillo, el
+#  cuerpo que se oscurece hacia el filo y el filo dentado como un rayo (cada
+#  diente apunta a la punta), encendido de cian. Por dentro sube un rayo en
+#  zigzag que deja estela; al llegar arriba descarga: el zigzag y el filo se
+#  encienden un momento y saltan chispas de los dientes. Guarda de dos alas
+#  de pluma blanca (plumas separadas, el borde de atras festoneado y su ojo
+#  de polilla), puno violeta y el ojo de la tormenta por pomo.
 VENDAVAL_CURVA = bezier([(11, 21), (31.3, 0.7)])
-VENDAVAL_ANCHO = [(0, 2.1), (0.85, 1.75), (1.0, 0.4)]
+VENDAVAL_LOMO = [(0, 2.2), (0.8, 2.3), (0.93, 1.4), (1.0, 0.4)]
+VENDAVAL_FILO = [(0, 2.2), (0.18, 2.0), (0.28, 4.0), (0.285, 2.0), (0.40, 2.0), (0.50, 3.8),
+                 (0.505, 1.9), (0.62, 1.9), (0.72, 3.4), (0.725, 1.8), (0.86, 1.8), (0.95, 1.1),
+                 (1.0, 0.3)]
+VENDAVAL_DIENTES = (0.28, 0.50, 0.72)
+VENDAVAL_DESCARGA = 8      # el cuadro en que el rayo llega a la punta y descarga
 
 
 def zigzag(u, dientes=9.0, amplitud=0.62):
@@ -715,68 +772,93 @@ def zigzag(u, dientes=9.0, amplitud=0.62):
     return amplitud * (4 * abs(f - 0.5) - 1)
 
 
-def ala(celdas, raiz, direccion, largo=8.4, vuelo=3.0):
+def tormenta(u, s):
+    """El acero de la hoja: claro en el lomo, hondo hacia el filo."""
+    return 5 if s > 0.8 else 4 if s > 0.45 else 3 if s > 0.0 else 2 if s > -0.5 else 1
+
+
+def rayo(celdas, canal, info, k, filo, m='A'):
+    """El rayo del zigzag en el cuadro k: sube con estela hasta la descarga;
+    en la descarga el canal entero y el filo se encienden y luego se apagan.
+    Devuelve por donde va la cabeza (None si ya descargo)."""
+    D = VENDAVAL_DESCARGA
+    if k < D:
+        cabeza = -0.05 + 1.15 * (k + 1) / D
+        for p in canal:
+            atras = cabeza - info[p][0]
+            if 0 <= atras < 0.45:
+                t = 4 if atras < 0.1 else 3 if atras < 0.25 else 2
+                celdas[p] = (m, t, celdas[p][2])
+        return cabeza
+    e = k - D
+    for p in canal:
+        if e < 3:
+            celdas[p] = (m, 3 - e, celdas[p][2])
+    for p in filo:
+        if e < 2:
+            celdas[p] = (m, 4, True)
+    return None
+
+
+def ala(celdas, raiz, direccion, largo=9.6, vuelo=3.4, sombra=0):
     """Un ala de pluma desde la guarda: su eje sale en 'direccion' y se curva
-    hacia la punta de la espada ('vuelo'). Barbas por bandas y un ojo."""
+    hacia la punta de la espada ('vuelo'). El borde que mira a la punta es
+    liso; el de atras, festoneado (una punta por pluma). Cinco plumas
+    separadas por una raya, y el ojo de polilla en medio."""
     dx, dy = direccion
     n = math.hypot(dx, dy)
     dx, dy = dx / n, dy / n
     fx, fy = 1 / math.sqrt(2), -1 / math.sqrt(2)          # hacia la punta
     eje = [(raiz[0] + dx * largo * t + fx * vuelo * t * t,
             raiz[1] + dy * largo * t + fy * vuelo * t * t) for t in [i / 40 for i in range(41)]]
-    lomo = [(0, 1.2), (0.35, 2.4), (0.75, 2.0), (1.0, 0.4)]
-    filo = [(0, 1.2), (0.35, 2.0), (0.75, 1.6), (1.0, 0.4)]
+    liso = [(0, 1.3), (0.35, 2.7), (0.75, 2.3), (1.0, 0.5)]
+    festoneado = [(0, 1.3), (0.2, 2.3), (0.21, 1.5), (0.4, 2.5), (0.41, 1.7), (0.6, 2.4),
+                  (0.61, 1.6), (0.8, 2.0), (0.81, 1.2), (1.0, 0.4)]
+    # Que lado mira a la punta: el de la normal (d > 0) o el contrario.
+    hacia_punta = (dy * fx - dx * fy) > 0
+    lomo, filo = (liso, festoneado) if hacia_punta else (festoneado, liso)
     for p, (u, s, d) in hoja(eje, lomo, filo).items():
         if p in celdas and celdas[p][0] != 'H':
             continue
-        lado_punta = (p[0] + 0.5 - raiz[0]) * fx + (p[1] + 0.5 - raiz[1]) * fy
-        t = 4 if lado_punta > 1.2 else 3 if s > -0.2 else 2
-        if (u * 5.0 + 0.4 * s) % 1.0 < 0.2 and u > 0.25:
-            t = 2                                # la separacion de las plumas
-        if abs(u - 0.58) < 0.09 and abs(s) < 0.35:
-            celdas[p] = ('A', 3, False) if abs(u - 0.58) < 0.04 else ('B', 1, False)
+        sp = s if hacia_punta else -s                    # +1 en el borde de la punta
+        t = 4 if sp > 0.45 else 3 if sp > -0.25 else 2
+        if (u * 5.0 - 0.45 * sp) % 1.0 < 0.17 and 0.15 < u < 0.95:
+            t = 1                                        # la raya entre dos plumas
+        if abs(u - 0.5) < 0.1 and abs(s) < 0.38:
+            celdas[p] = ('A', 3, False) if abs(u - 0.5) < 0.045 else ('B', 2, False)
             continue
-        celdas[p] = ('C', t, False)
+        celdas[p] = ('C', max(1, t - sombra), False)
 
 
 def vendaval_mano(k):
-    info = hoja_de('vendaval', VENDAVAL_CURVA, VENDAVAL_ANCHO, VENDAVAL_ANCHO)
-    celdas = {}
-    for p, (u, s, d) in info.items():
-        celdas[p] = ('H', 4 if s > 0.35 else 3 if s > -0.3 else 2, False)
+    info = hoja_de('vendaval', VENDAVAL_CURVA, VENDAVAL_LOMO, VENDAVAL_FILO)
+    celdas = {p: ('H', tormenta(u, s), False) for p, (u, s, d) in info.items()}
     raiz = (10.6, 21.4)
     ala(celdas, raiz, (-1, -1))
-    ala(celdas, raiz, (1, 1))
-    calcar(celdas, ["gh", "hg"], 10, 21)
+    ala(celdas, raiz, (1, 1), sombra=1)
+    calcar(celdas, ["hi", "gh"], 10, 21)
     barra(celdas, (9.2, 22.8), (5.0, 27.0), 1.45,
           lambda t, d, L: ('B', 3 if (t * L + d * 0.7) % 2.0 < 0.9 else 2 if d > 0 else 1))
     bola(celdas, (3.3, 28.7), 2.45,
          lambda dx, dy, r: ('A', 4) if r < 0.9 else ('A', 2) if r < 1.5 else ('B', 3 if dx + dy < 0 else 2))
+    filo = filo_vivo(celdas, info, desde=0.06)
     borde = contornear(celdas)
     interior = {p for p in info if p not in borde and celdas[p][0] == 'H'}
-    # El rayo: la cabeza sube de la guarda a la punta en los doce cuadros y
-    # deja una estela que se apaga; cada pocos cuadros parpadea.
-    cabeza = -0.15 + 1.35 * (k + 1) / CUADROS
-    parpadeo = k in (3, 7, 10)
-    for p in interior:
-        u, s, d = info[p]
-        if abs(s - zigzag(u)) > 0.42:
-            continue
-        atras = cabeza - u
-        if 0 <= atras < 0.42:
-            t = 4 if atras < 0.08 else 3 if atras < 0.22 else 2
-            if parpadeo:
-                t -= 1
-            celdas[p] = ('A', t, False)
-    # Chispas que saltan junto a la cabeza del rayo.
-    if 0.05 < cabeza < 1.0 and not parpadeo:
-        for lado in (1, -1):
-            u = min(0.97, cabeza - (0.03 if lado > 0 else 0.1))
-            c = min(info, key=lambda q: (info[q][0] - u) ** 2)
-            x, y = c
-            q = (x - 2, y - 2) if lado > 0 else (x + 2, y + 2)
-            if q not in celdas and 0 <= q[0] < 32 and 0 <= q[1] < 32:
-                celdas[q] = ('A', 3 if (k + lado) % 2 else 4, True)
+    canal = {p for p in interior if abs(info[p][1] - zigzag(info[p][0], 7.0, 0.5)) < 0.3}
+    cabeza = rayo(celdas, canal, info, k, filo)
+    # Chispas: junto a la cabeza mientras sube; de los dientes al descargar.
+    if cabeza is not None and 0.08 < cabeza < 1.0 and k % 2 == 0:
+        c = min(filo, key=lambda q: (info[q][0] - cabeza) ** 2)
+        q = (c[0] + 2, c[1] + 2)
+        if q not in celdas and 0 <= q[0] < 32 and 0 <= q[1] < 32:
+            celdas[q] = ('A', 3, True)
+    elif k == VENDAVAL_DESCARGA:
+        for u in VENDAVAL_DIENTES:
+            c = min(filo, key=lambda q: (info[q][0] - u) ** 2)
+            for i in (2, 3):
+                q = (c[0] + i, c[1] + i - 1)
+                if q not in celdas and 0 <= q[0] < 32 and 0 <= q[1] < 32:
+                    celdas[q] = ('A', 4 if i == 2 else 3, True)
     return a_imagen(celdas, 'vendaval', 32, 32)
 
 
@@ -790,24 +872,28 @@ MANO = {'mareas': mareas_mano, 'jade': jade_mano, 'vendaval': vendaval_mano}
 #  Leyenda: u-z la hoja (de contorno a nucleo); en mayuscula, sin contorno.
 # ----------------------------------------------------------------------
 ICONOS_ESPADA = {
-    # La ola de prismarina, la venera de nacar, el alga y la perla.
+    # (Segunda ronda; antes era una mancha azul.) Una hoja curva y estrecha
+    # como una ola que rompe: contorno hondo por el lomo con la espuma justo
+    # debajo, el cuerpo de agua honda y el filo claro (D, sin contorno). La
+    # guarda, una media luna de nacar con las puntas vueltas hacia la hoja y
+    # la perla en medio; el puno de alga y una perla por pomo.
     'mareas': [
-        "........|...uuuu.",
-        "........|.uuyzzyu",
-        "........|uyyxwvuu",
-        ".......u|yxxwvu..",
-        "......uy|yxwvu...",
-        "......uy|xwvu....",
-        ".....uyx|wvu.....",
-        "..f.f.yx|wu......",
-        ".gjgjgyx|vu......",
-        ".hjijhxw|u.......",
-        "..gjijhv|u.......",
-        "...fhjih|........",
-        "..qrfhf.|........",
-        ".jqrf...|........",
-        "jjif....|........",
-        ".if.....|........",
+        "........|....uuu.",
+        "........|..uuzzyu",
+        "........|.uzyvwwD",
+        "........|uzyvwD..",
+        ".......u|zyvwD...",
+        ".......u|zyvD....",
+        "......uz|yvD.....",
+        "......uz|wD......",
+        "...h..uz|vD..g...",
+        "...hJIIJ|JHHHg...",
+        ".....qS.|........",
+        "....qT..|........",
+        "...qS...|........",
+        ".IJ.....|........",
+        ".HG.....|........",
+        "........|........",
     ],
     # El jade tallado (arista clara en medio), la guarda de oro con las
     # puntas vueltas, el puno oscuro y la cabeza de jaguar.
@@ -829,33 +915,39 @@ ICONOS_ESPADA = {
         ".fhf....|fff.....",
         ".fDf....|........",
     ],
-    # La hoja fina con el filo claro (sin contorno por arriba), las dos alas
-    # de pluma, el puno violeta y el ojo de la tormenta.
+    # (Rehecha; antes era fina y generica.) Hoja ancha de acero de tormenta:
+    # contorno y brillo por el lomo, el cuerpo que se oscurece y el filo de
+    # cian (D, sin contorno) con dos dientes de rayo; la hoja manda en la
+    # diagonal. La guarda, corta y perpendicular a la hoja (dos pixeles por
+    # lado: con alas largas en cruz se leia como dos espadas cruzadas), violeta
+    # claro sin contorno (en contorno salia negra), con la gema de cian y una
+    # punta de pluma en cada extremo; el puno violeta a dos tonos y el ojo de
+    # la tormenta por pomo.
     'vendaval': [
-        "........|.......Z",
-        "........|......Yu",
-        "........|.....Yxu",
-        "........|....Yxu.",
-        "........|...Yxu..",
-        "........|..Yxu...",
-        "...O....|.Yxu....",
-        "...NO...|Yxu.....",
-        "...LMN.Y|xu......",
-        "....LMYx|u.......",
-        "......gh|MNO.....",
-        ".....ghg|LMN.....",
-        "....ghg.|.L......",
-        "...ghg..|........",
-        "..aEa...|........",
-        "..aa....|........",
+        "........|......uE",
+        "........|.....uyD",
+        "........|....uywD",
+        "........|...uywvD",
+        "........|..uywvvD",
+        "........|.uywvD..",
+        "........|uywvD...",
+        ".......u|ywvvD...",
+        "...O..uy|wvD.....",
+        "...NIuyw|vD......",
+        "....Idwv|D.......",
+        "....gHiD|........",
+        "...hH.HG|........",
+        "..gG...N|M.......",
+        ".EH.....|........",
+        ".a......|........",
     ],
 }
 ICONO_CURVA = {
-    'mareas': bezier([(5, 11), (6.5, 6), (10.5, 1.5), (15.25, 0.75)]),
+    'mareas': bezier([(7.5, 9.0), (7.9, 4.5), (11.0, 1.4), (15.6, 1.2)]),
     'jade': bezier([(5, 11), (15.3, 0.7)]),
-    'vendaval': bezier([(5.5, 10.5), (15.6, 0.4)]),
+    'vendaval': bezier([(6.3, 10.7), (15.8, 1.2)]),
 }
-ICONO_SEMI = {'mareas': 2.2, 'jade': 2.4, 'vendaval': 1.3}
+ICONO_SEMI = {'mareas': 1.5, 'jade': 2.4, 'vendaval': 1.8}
 
 
 def icono_espada(tema, k):
@@ -894,23 +986,21 @@ def icono_espada(tema, k):
         p = min(info, key=lambda q: (info[q][0] - u) ** 2 * 400 + (info[q][1] - s) ** 2)
         destello(celdas, p, k % 3, dentro, libres=True)
     else:
-        # El rayo: un tramo claro que sube por la hoja y parpadea.
-        cabeza = -0.15 + 1.35 * (k + 1) / CUADROS
-        parpadeo = k in (3, 7, 10)
-        for p, (u, s, d) in info.items():
-            atras = cabeza - u
-            if 0 <= atras < 0.4:
-                t = 4 if atras < 0.1 else 3 if atras < 0.25 else 2
-                if (p[0] + p[1] + k) % 2 and t > 2:
-                    t -= 1                       # el chisporroteo
-                if parpadeo:
-                    t -= 1
-                celdas[p] = ('A', t, celdas[p][2])
-        if 0.05 < cabeza < 1.0 and not parpadeo:
+        # El rayo, como en la mano: sube en zigzag por dentro de la hoja con
+        # su estela y al llegar arriba descarga (el zigzag y el filo se
+        # encienden, salta una chispa de cada diente) y se apaga.
+        filo = [p for p, v in celdas.items() if v[0] == 'A' and v[2] and p[1] < 12]
+        canal = {p for p, (u, s, d) in info.items() if abs(s - zigzag(u, 3.0, 0.55)) < 0.5}
+        cabeza = rayo(celdas, canal, info, k, filo)
+        if cabeza is not None and 0.1 < cabeza < 1.0 and k % 2 == 1:
             c = min(info, key=lambda q: (info[q][0] - cabeza) ** 2)
-            q = (c[0] - 1, c[1] - 1) if k % 2 else (c[0] + 1, c[1] + 1)
+            q = (c[0] + 2, c[1] + 1)
             if q not in celdas and 0 <= q[0] < 16 and 0 <= q[1] < 16:
-                celdas[q] = ('A', 4, True)
+                celdas[q] = ('A', 3, True)
+        elif k == VENDAVAL_DESCARGA:
+            for q in ((15, 5), (13, 8)):                 # junto a los dientes
+                if q not in celdas:
+                    celdas[q] = ('A', 4, True)
     return a_imagen(celdas, tema, 16, 16)
 
 
@@ -929,21 +1019,26 @@ if malas:
 os.makedirs(ITEM, exist_ok=True)
 MCMETA = json.dumps({'animation': {'frametime': 2}}, indent=2) + '\n'
 SALIDAS = {}
+ESCRITOS = [t for t in TEMAS if SOLO is None or t in SOLO]
 for tema in TEMAS:
+    escribe = tema in ESCRITOS
     for pieza in PIEZAS_ORDEN:
         im = pintar(PIEZAS[f'{tema}_{pieza}'], tema)
-        im.save(os.path.join(ITEM, f'{tema}_{pieza}.png'))
+        if escribe:
+            im.save(os.path.join(ITEM, f'{tema}_{pieza}.png'))
         SALIDAS[f'{tema}_{pieza}'] = im
     icono = [icono_espada(tema, k) for k in range(CUADROS)]
     mano = [MANO[tema](k) for k in range(CUADROS)]
-    tira(icono).save(os.path.join(ITEM, f'{tema}_sword.png'))
-    tira(mano).save(os.path.join(ITEM, f'{tema}_sword_in_hand.png'))
-    for nombre in (f'{tema}_sword.png.mcmeta', f'{tema}_sword_in_hand.png.mcmeta'):
-        with open(os.path.join(ITEM, nombre), 'w', encoding='utf-8', newline='\n') as fh:
-            fh.write(MCMETA)
+    if escribe:
+        tira(icono).save(os.path.join(ITEM, f'{tema}_sword.png'))
+        tira(mano).save(os.path.join(ITEM, f'{tema}_sword_in_hand.png'))
+        for nombre in (f'{tema}_sword.png.mcmeta', f'{tema}_sword_in_hand.png.mcmeta'):
+            with open(os.path.join(ITEM, nombre), 'w', encoding='utf-8', newline='\n') as fh:
+                fh.write(MCMETA)
     SALIDAS[f'{tema}_sword'] = icono
     SALIDAS[f'{tema}_sword_in_hand'] = mano
-print('ok:', len(TEMAS) * 4, 'piezas,', len(TEMAS), 'espadas de', CUADROS, 'cuadros (16x16 y 32x32)')
+print('ok:', ', '.join(ESCRITOS), '-', len(ESCRITOS) * 4, 'piezas,', len(ESCRITOS),
+      'espadas de', CUADROS, 'cuadros (16x16 y 32x32)')
 
 # ----------------------------------------------------------------------
 #  Hoja de control: por tema, las cinco piezas a 8x sobre el gris del
@@ -951,7 +1046,7 @@ print('ok:', len(TEMAS) * 4, 'piezas,', len(TEMAS), 'espadas de', CUADROS, 'cuad
 #  inventario como la del juego; los doce cuadros de la espada del
 #  inventario (x4) y de la espada en la mano (x3).
 # ----------------------------------------------------------------------
-if len(sys.argv) > 2:
+if HOJA:
     from PIL import ImageDraw
     GRIS, OSCURO, FONDO = (139, 139, 139, 255), (30, 32, 40, 255), (48, 50, 58, 255)
     TEXTO = (235, 235, 240, 255)
@@ -1017,6 +1112,6 @@ if len(sys.argv) > 2:
                 x = 12 + k * 104
                 d.rectangle((x, y + fila * 104, x + 99, y + fila * 104 + 99), fill=fondo)
                 hoja.alpha_composite(grande(im, 3), (x + 2, y + fila * 104 + 2))
-    os.makedirs(os.path.dirname(os.path.abspath(sys.argv[2])), exist_ok=True)
-    hoja.save(sys.argv[2])
-    print('hoja', sys.argv[2])
+    os.makedirs(os.path.dirname(os.path.abspath(HOJA)), exist_ok=True)
+    hoja.save(HOJA)
+    print('hoja', HOJA)

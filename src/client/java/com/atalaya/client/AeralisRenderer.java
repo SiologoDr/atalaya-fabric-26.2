@@ -101,6 +101,7 @@ public class AeralisRenderer extends MobRenderer<AeralisEntity, AeralisRenderSta
         s.pesoLibre = Mth.lerp(parcial, a.pesoLibreAnt, a.pesoLibre);
         s.fase = a.fase();
         s.ritmo = a.ritmoCliente;
+        s.duracionAturdida = a.getDuracionAturdida();
         s.libre = a.deathTime >= AeralisGeometria.LIBERACION_OJOS_ORO;
         s.disolver = a.deathTime > DISOLVER_DESDE
                 ? Mth.clamp((a.deathTime + parcial - DISOLVER_DESDE) / (AeralisGeometria.DURACION_LIBERACION - DISOLVER_DESDE), 0.0F, 1.0F)

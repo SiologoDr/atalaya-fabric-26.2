@@ -20,7 +20,8 @@ import java.util.List;
 /**
  * La musica de los jefes (musica_jefes.py): cada uno con la suya mientras pelea
  * cerca (Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra; Novilis, el fuego). Suena en la
- * categoria de musica, asi que la regula su barra de volumen; entra y sale
+ * categoria de AMBIENTE, no en la de musica: muchos juegan con la musica baja
+ * o quitada y se quedaban sin la del jefe (Juan, 06-10-2026). Entra y sale
  * fundiendose, y al cambiar de jefe una se funde con la otra. Mientras suena,
  * la musica de vanilla calla (MusicaJefesMixin) y vuelve sola al acabar.
  *
@@ -163,7 +164,8 @@ public final class MusicaJefes {
         if (p == null) {
             return;
         }
-        mc.getSoundManager().play(SimpleSoundInstance.forMusic(evento));
+        // Sin posicion y en ambiente, como la pista.
+        mc.getSoundManager().play(SimpleSoundInstance.forAmbientAddition(evento));
         p.agachar(baja, ticks);
     }
 
@@ -236,7 +238,7 @@ public final class MusicaJefes {
         private int aguanta;
 
         Pista(Jefe jefe) {
-            super(jefe.pista(), SoundSource.MUSIC, SoundInstance.createUnseededRandom());
+            super(jefe.pista(), SoundSource.AMBIENT, SoundInstance.createUnseededRandom());
             this.jefe = jefe;
             this.looping = true;
             this.delay = 0;

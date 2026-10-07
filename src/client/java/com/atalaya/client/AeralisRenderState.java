@@ -38,6 +38,8 @@ public class AeralisRenderState extends LivingEntityRenderState {
     public int fase;
     /** Velocidad de la animacion de ataque (AeralisEntity.ritmo). */
     public float ritmo = 1.0F;
+    /** Lo que dura la aturdida en curso (ticks). */
+    public int duracionAturdida = 100;
     /** Liberada y con los ojos ya en oro: vuelve al blanco del principio. */
     public boolean libre;
     /** De 0 a 1 mientras se deshace en viento al final. */

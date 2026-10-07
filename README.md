@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.4**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.5**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -1057,7 +1057,8 @@ vanilla.
 bloques): Nerea, el mar; Aeralis, la tormenta; Rajang, la tierra; Novilis, la
 fragua (yunques, taikos, coro y metales en fa menor). La compone
 `musica_jefes.py` (`sounds/musica/`), la pone `MusicaJefes` en el cliente, en la
-categoría de música, y entra y sale fundiéndose. Mientras suena, la de vanilla
+categoría de **ambiente** (no en la de música: con la música baja o quitada se
+quedaban sin ella), y entra y sale fundiéndose. Mientras suena, la de vanilla
 calla (`MusicaJefesMixin`); al liberarlo, se apaga.
 
 Cada jefe tiene un comando para probarlo por partes: `/atalaya <jefe> <orden>`
@@ -1195,7 +1196,7 @@ lo heredó.
 | **Juicio del Ciclón** | sale poco, como el Sello de Rajang: el primero a los 30 s de entrar en la III y luego no vuelve hasta 1,5 min después de acabar (1,3 en la IV). Se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos** | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos** (**10 golpes** cada uno). Así cae aturdida 5 s, con daño doble |
 | **Picado del Vendaval** (nuevo) | sube y marca en el suelo la línea por donde se va a lanzar (36 a 60 bloques, galones que se encienden). Se lanza en picado a 45 bloques/s | a quien pille, **la muerte salvo tótem** (pasa armadura, escudo, encantamientos y efectos) y lo **lanza al cielo** (unos 24 bloques): la caída duele | **salir de la línea**. Al final **se posa 3 s** y recibe **daño doble**: la ventana de la espada |
 | **Escamas de Tormenta** (nuevo) | sacude las alas y suelta escamas en un círculo de 15 bloques. Cada mancha se carga y descarga cada 1,5 s durante 6 s | 20 / 20 / 20 / 28 por descarga y **Parálisis 2 s**: ni andar ni saltar, pero sí pegar, el inventario y usar objetos. No te vuelve a paralizar hasta 1 s después de soltarte, para que puedas salir de la mancha | **no pisar las manchas** mientras brillan |
-| **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya fina bajo su barra lo cuenta: con **10** en la fase II, **20** en la III y **30** en la IV, **cae aturdida 5 s** con daño doble, como tras el Juicio (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
+| **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya fina bajo su barra lo cuenta: con **10** en la fase II, **20** en la III y **30** en la IV, **cae aturdida 10 s** con daño doble (el doble que tras el Juicio; mientras, se retuerce en el suelo) (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
 
 Mientras dura el Juicio es inmune.
 
@@ -1406,10 +1407,19 @@ Después, `novilis_fisica.py` añade lo que el cuerpo no puede dejar de hacer:
 - **inercia**: la capa, el tabardo y las escarcelas se quedan atrás, se pasan y
   se asientan, sin meterse en el cuerpo ni en el suelo.
 
-Todo se hornea en claves de vanilla (unas 7 700, como texto compacto para no
+Todo se hornea en claves de vanilla (unas 8 000, como texto compacto para no
 pasar del límite de Java). El paso no usa el reloj de andar de vanilla, que se
 satura a 0,25 bloques por tick: la entidad lleva el suyo y avanza lo que anda,
-así que los pies no patinan. De pie tiene una postura propia (las rodillas algo
+así que los pies no patinan.
+
+**Anda y corre.** Anda a unos 6 bloques/s y, si su presa se le aleja a más de 20
+bloques, **corre** a unos 13 (15 en la fase IV; la Furia, un 10 % más), hasta
+que la tiene a menos de 15. La carrera tiene su animación: zancada larga con
+vuelo (cada pie pisa solo un tercio de la vuelta), el cuerpo echado adelante,
+el brazo libre bombeando y la espada baja y hacia atrás. El cliente funde andar
+y correr según lo rápido que va, cada uno con su reloj. Vanilla empuja con el
+cuadrado de (atributo × lo que pide la IA), así que con 0,27 de atributo pide
+1,37 para andar y 2,0 para correr. De pie tiene una postura propia (las rodillas algo
 dobladas, un pie delante) que va horneada en la malla.
 
 El generador del cuerpo es `novilis_juego.py` (149 piezas, 390 cajas, atlas de
@@ -1701,7 +1711,7 @@ El esquema es siempre el mismo:
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
-| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (anda 8 s tras el blanco sin atacar, para ver el paso), `fase`, `liberar` |
+| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
 En las órdenes de los jefes:
@@ -1843,7 +1853,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.4.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.1.5.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -1874,7 +1884,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.4
+	- atalaya 1.1.5
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2247,7 +2257,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.4.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.1.5.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

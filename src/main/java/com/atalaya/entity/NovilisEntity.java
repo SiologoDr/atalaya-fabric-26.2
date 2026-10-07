@@ -130,6 +130,19 @@ public class NovilisEntity extends Monster {
     private static final float FURIA_DANO = 1.35F;
     private static final float FURIA_ENFRIA = 0.65F;
     private static final double FURIA_ANDA = 1.1;
+    /**
+     * Lo que se pide al control de movimiento al andar y al correr. Vanilla
+     * empuja con (atributo x esto) al cuadrado, asi que con 0,27 de atributo:
+     * andar 1,37 son unos 6 bloques/s y correr 2,0 unos 13 (15 en la IV).
+     */
+    private static final double ANDA = 1.37;
+    private static final double CORRE = 2.0;
+    private static final double CORRE_IV = 2.16;
+    /** Corre si su blanco esta mas lejos que esto (bloques); vuelve a andar por debajo de ANDA_DESDE. */
+    private static final double CORRE_DESDE = 20.0;
+    private static final double ANDA_DESDE = 15.0;
+    /** A partir de que velocidad (bloques por tick) el cliente pasa de andar a correr. */
+    public static final float VEL_CORRER = 0.44F;
 
     /** Lo que alcanza la hoja de cerca en el Barrido (bloques desde sus pies). */
     public static final double RADIO_HOJA = 12.0;
@@ -233,6 +246,13 @@ public class NovilisEntity extends Monster {
      */
     public float relojAndar;
     public float relojAndarAnt;
+    /** El reloj de correr, igual (una vuelta cada NovilisGeometria.ZANCADA_CORRER bloques). */
+    public float relojCorrer;
+    public float relojCorrerAnt;
+    /** Lo que pesa correr frente a andar (0 a 1), suavizado. */
+    public float corre;
+    public float correAnt;
+    private boolean corriendo;
     /** Lo que pesa andar (0 quieto, 1 andando), suavizado. */
     public float andar;
     public float andarAnt;
@@ -541,12 +561,17 @@ public class NovilisEntity extends Monster {
         }
         pesoLibreAnt = pesoLibre;
         relojAndarAnt = relojAndar;
+        relojCorrerAnt = relojCorrer;
         andarAnt = andar;
+        correAnt = corre;
         double vx = getX() - xo;
         double vz = getZ() - zo;
         float v = getEstado() == LIBRE && !muriendo ? (float) Math.sqrt(vx * vx + vz * vz) : 0.0F;
         velocidadCliente += (v - velocidadCliente) * 0.35F;
         relojAndar += 1000.0F * NovilisGeometria.PERIODO_ANDAR * velocidadCliente / NovilisGeometria.ZANCADA;
+        relojCorrer += 1000.0F * NovilisGeometria.PERIODO_CORRER * velocidadCliente / NovilisGeometria.ZANCADA_CORRER;
+        float objetivoCorre = Mth.clamp((velocidadCliente - (VEL_CORRER - 0.06F)) / 0.12F, 0.0F, 1.0F);
+        corre += (objetivoCorre - corre) * 0.25F;
         float objetivoAndar = Mth.clamp(velocidadCliente / 0.06F, 0.0F, 1.0F);
         andar += (objetivoAndar - andar) * 0.3F;
         if (tieneFuria() != furiaVista) {
@@ -697,7 +722,13 @@ public class NovilisEntity extends Monster {
         if (respiro <= 0 && tickCount >= soloAndarHasta && elegirAtaque(nivel, objetivo)) {
             return;
         }
-        if (horizontal(position(), objetivo.position()) > 11.0) {
+        double lejos = horizontal(position(), objetivo.position());
+        if (lejos > CORRE_DESDE) {
+            corriendo = true;
+        } else if (lejos < ANDA_DESDE) {
+            corriendo = false;
+        }
+        if (lejos > 11.0) {
             Vec3 c = Vec3.atBottomCenterOf(centro);
             Vec3 destino = objetivo.position();
             Vec3 desde = new Vec3(destino.x - c.x, 0, destino.z - c.z);
@@ -706,8 +737,8 @@ public class NovilisEntity extends Monster {
             }
             Vec3 punto = new Vec3(c.x + desde.x, getY(), c.z + desde.z);
             if (horizontal(position(), punto) > 1.0) {
-                getMoveControl().setWantedPosition(punto.x, punto.y, punto.z,
-                        (fase() == 4 ? 1.25 : 1.0) * (tieneFuria() ? FURIA_ANDA : 1.0));
+                double paso = corriendo ? (fase() == 4 ? CORRE_IV : CORRE) : ANDA * (fase() == 4 ? 1.1 : 1.0);
+                getMoveControl().setWantedPosition(punto.x, punto.y, punto.z, paso * (tieneFuria() ? FURIA_ANDA : 1.0));
             }
         }
     }
@@ -1834,10 +1865,11 @@ public class NovilisEntity extends Monster {
         playSound(AtalayaSonidos.NOVILIS_PASO, 2.5F, 0.9F + random.nextFloat() * 0.2F);
     }
 
-    /** Una pisada cada 4,8 bloques: las zancadas de un caballero de 16 bloques. */
+    /** Una pisada por paso: media zancada al andar (unos 4 bloques) y al correr (unos 7). */
     @Override
     protected float nextStep() {
-        return moveDist + 4.8F;
+        boolean rapido = getDeltaMovement().horizontalDistance() > VEL_CORRER;
+        return moveDist + (rapido ? NovilisGeometria.ZANCADA_CORRER : NovilisGeometria.ZANCADA) / 2.0F;
     }
 
     @Override

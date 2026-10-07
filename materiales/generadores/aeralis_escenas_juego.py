@@ -109,15 +109,17 @@ ESCENAS['tornados'] = (
 
 ESCENAS['viento'] = (
     [aeralis(), maniqui(14, 4), maniqui(10, -8), maniqui(-6, 10), camara(8, 22, -52, 8, 8, 0)] +
-    titulo('Viento de vuelta', 'Cada tornado roto le devuelve su viento; con 10, 20 o 30 cae aturdida 5 s'),
+    titulo('Viento de vuelta', 'Cada tornado roto le devuelve su viento; con 10, 20 o 30 cae aturdida 10 s'),
     [(0, [orden('despertar')]),
      (80, [orden('fase')]),
      (130, [orden('tornados')]), (200, [orden('romper')]), (210, [foto('viento_orbes')]),
      (235, [foto('viento_barra')]),
      (245, [camara(24, 14, -30, 4, 13, 0), orden('viento')]), (258, [foto('viento_llega')]),
      (282, [foto('viento_aturdida')]),
-     (290, [camara(30, 6, -22, 0, 4, 0)]), (305, [foto('viento_aturdida_2')])],
-    360, 'caceria')
+     (290, [camara(30, 6, -22, 0, 4, 0)]), (305, [foto('viento_aturdida_2')]),
+     (360, [foto('viento_aturdida_5s')]), (420, [foto('viento_aturdida_8s')]), (455, [foto('viento_aturdida_10s')]),
+     (480, [foto('viento_levantada')])],
+    520, 'caceria')
 
 ESCENAS['caceria'] = (
     [aeralis(), maniqui(22, 6), camara(14, 16, -46, 14, 8, 3)] +
