@@ -53,6 +53,8 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_GANCHO_NEREA = clave("gancho_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_OLA_NEREA = clave("ola_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_GEISER_NEREA = clave("geiser_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_CADENA_NEREA = clave("cadena_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_REFUGIO_NEREA = clave("refugio_nerea");
 
     /** Nerea, Guardian de los Mares: el jefe elemental del agua. */
     public static EntityType<NereaEntity> NEREA;
@@ -64,6 +66,9 @@ public final class AtalayaEntities {
     public static EntityType<OlaNereaEntity> OLA_NEREA;
     /** Los geiseres del Geiser del Abismo (desde el remake). */
     public static EntityType<GeiserNereaEntity> GEISER_NEREA;
+    /** Las cadenas de los Encadenados y las burbujas de refugio de la Marea Alta (octubre de 2026). */
+    public static EntityType<CadenaNereaEntity> CADENA_NEREA;
+    public static EntityType<RefugioNereaEntity> REFUGIO_NEREA;
 
     public static final ResourceKey<EntityType<?>> CLAVE_AERALIS = clave("aeralis");
     public static final ResourceKey<EntityType<?>> CLAVE_CUCHILLA_VIENTO = clave("cuchilla_viento");
@@ -298,6 +303,8 @@ public final class AtalayaEntities {
                         .sized(1.6F, 1.6F)
                         .fireImmune()
                         .clientTrackingRange(12)
+                        // Giran alrededor del ciclon: que el cliente los siga sin saltos.
+                        .updateInterval(2)
                         .build(CLAVE_NUCLEO_VIENTO));
     }
 
@@ -384,7 +391,7 @@ public final class AtalayaEntities {
         // gancho va pegado a quien arrastra.
         BURBUJA_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_BURBUJA_NEREA,
                 EntityType.Builder.<BurbujaNereaEntity>of(BurbujaNereaEntity::new, MobCategory.MISC)
-                        .sized(0.9F, 0.9F)
+                        .sized(1.4F, 1.4F)
                         .clientTrackingRange(10)
                         .updateInterval(1)
                         .build(CLAVE_BURBUJA_NEREA));
@@ -412,6 +419,23 @@ public final class AtalayaEntities {
                         .clientTrackingRange(12)
                         .updateInterval(20)
                         .build(CLAVE_GEISER_NEREA));
+        // La cadena va en el punto medio de los dos que ata y se mueve con ellos.
+        CADENA_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CADENA_NEREA,
+                EntityType.Builder.<CadenaNereaEntity>of(CadenaNereaEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.5F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(12)
+                        .updateInterval(2)
+                        .build(CLAVE_CADENA_NEREA));
+        REFUGIO_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_REFUGIO_NEREA,
+                EntityType.Builder.<RefugioNereaEntity>of(RefugioNereaEntity::new, MobCategory.MISC)
+                        .sized(RefugioNereaEntity.RADIO * 2, RefugioNereaEntity.RADIO)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(12)
+                        .updateInterval(20)
+                        .build(CLAVE_REFUGIO_NEREA));
     }
 
     private static void registrarVigia() {

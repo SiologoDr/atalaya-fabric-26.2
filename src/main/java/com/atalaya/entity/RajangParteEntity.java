@@ -72,6 +72,15 @@ public class RajangParteEntity extends Entity {
         return nombre;
     }
 
+    /** Cambia lo que mide (solo si cambia: se manda al cliente). */
+    public void medidas(float ancho, float alto) {
+        if (entityData.get(DATA_ANCHO) != ancho || entityData.get(DATA_ALTO) != alto) {
+            entityData.set(DATA_ANCHO, ancho);
+            entityData.set(DATA_ALTO, alto);
+            refreshDimensions();
+        }
+    }
+
     /** La pone en su sitio (los pies de la caja en y). */
     public void colocar(double x, double y, double z) {
         setPos(x, y, z);

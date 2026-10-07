@@ -30,6 +30,10 @@ import org.jspecify.annotations.Nullable;
  *   marea     La Gran Marea: la pared de agua que cruza la arena. Mata como
  *             la Mirada: solo salva un totem (todas las bypasses_* menos la de
  *             invulnerabilidad)
+ *   canto     El Canto de Sirena, cada segundo de trance: pasa armadura y
+ *             escudo, sin empujon
+ *   marea_alta  La Marea Alta: a quien no este en una burbuja de refugio.
+ *             Mata como la Gran Marea
  * </pre>
  */
 public final class NereaDanos {
@@ -42,6 +46,8 @@ public final class NereaDanos {
     public static final ResourceKey<DamageType> REMOLINO = clave("nerea_remolino");
     public static final ResourceKey<DamageType> GEISER = clave("nerea_geiser");
     public static final ResourceKey<DamageType> MAREA = clave("nerea_marea");
+    public static final ResourceKey<DamageType> CANTO = clave("nerea_canto");
+    public static final ResourceKey<DamageType> MAREA_ALTA = clave("nerea_marea_alta");
 
     private NereaDanos() {
     }

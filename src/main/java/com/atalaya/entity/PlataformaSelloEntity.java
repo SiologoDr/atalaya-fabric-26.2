@@ -384,7 +384,7 @@ public class PlataformaSelloEntity extends Entity {
             // Quien este en su sitio sale despedido: la tierra revienta hacia arriba.
             double r = getAncho() * 0.5 + 0.6;
             for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(0.6, 3.0, 0.6),
-                    x -> !(x instanceof RajangEntity))) {
+                    PresasJefe::presa)) {
                 if (RajangEntity.horizontal(position(), v.position()) > r * 1.45) {
                     continue;
                 }

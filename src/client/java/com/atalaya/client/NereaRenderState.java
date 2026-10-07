@@ -27,6 +27,9 @@ public class NereaRenderState extends LivingEntityRenderState {
     public final AnimationState agotado = new AnimationState();
     public final AnimationState geiser = new AnimationState();
     public final AnimationState marea = new AnimationState();
+    public final AnimationState canto = new AnimationState();
+    public final AnimationState mareaAlta = new AnimationState();
+    public final AnimationState encadenar = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
 
     public int estado;
@@ -56,6 +59,8 @@ public class NereaRenderState extends LivingEntityRenderState {
     /** Impactos en cada ojo: las grietas. */
     public int golpesIzq;
     public int golpesDer;
+    /** Los impactos que hacen falta en cada ojo en esta Mirada. */
+    public int golpesNecesarios = 10;
 
     // --- Lo que se pinta en el suelo, relativo a los pies ---
     /** Donde cae el hueco de la Gran Marea (bloques a un lado de su rumbo). */

@@ -12,7 +12,8 @@
     "TecladoPresentacionMixin",
     "ClientInputAccesor",
     "CorazonesJefeMixin",
-    "IconosArmaduraMixin"
+    "IconosArmaduraMixin",
+    "GolpeRecibidoMixin"
   ],
   "injectors": {
     "defaultRequire": 1

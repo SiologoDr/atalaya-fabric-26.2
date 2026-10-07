@@ -169,6 +169,14 @@ public class NereaBarraHud implements HudElement {
         }
         if (mirada) {
             calavera(g, n, cx, cy, color);
+            // Cuantos impactos lleva cada ojo de los que hacen falta (testers: no sabian que se paraba asi).
+            if (e == NereaEntity.MIRADA) {
+                int falta = n.getGolpesNecesarios();
+                String txt = Math.min(falta, n.getGolpesOjo(0)) + "/" + falta + "  " + Math.min(falta, n.getGolpesOjo(1)) + "/"
+                        + falta;
+                int w = mc.font.width(txt);
+                g.text(mc.font, txt, cx + NUCLEO / 2 - w / 2, cy + NUCLEO + 2, 0xFFFFFFFF, true);
+            }
             if (e == NereaEntity.MIRADA) {
                 marea(g, n, x0, y0, color, parcial);
             }
@@ -180,6 +188,9 @@ public class NereaBarraHud implements HudElement {
         // Encima del marco: el nombre junto a la ola y la fase a la derecha.
         g.blit(RenderPipelines.GUI_TEXTURED, NOMBRE, x0 + 98, y0 + 9, 0.0F, 0.0F, NOMBRE_ANCHO, LETRAS_ALTO,
                 NOMBRE_ANCHO, LETRAS_ALTO, NOMBRE_ANCHO, LETRAS_ALTO, 0xFFFFFFFF);
+        if (furia) {
+            FuriaHud.cuentaAtras(g, n.getFuriaFin(), hx, hy, HUECO_ANCHO, COLOR_FURIA, parcial);
+        }
         g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, y0 + 8,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
     }
@@ -202,7 +213,7 @@ public class NereaBarraHud implements HudElement {
             g.blit(RenderPipelines.GUI_TEXTURED, OJO, ox, oy, 0.0F, 0.0F, OJO_LADO, OJO_LADO, OJO_LADO, OJO_LADO,
                     OJO_LADO, OJO_LADO, 0xFF000000 | escalar(color & 0xFFFFFF, k));
             if (golpes > 0) {
-                int etapa = Math.min(4, 1 + golpes * 4 / NereaEntity.GOLPES_OJO);
+                int etapa = Math.min(4, 1 + golpes * 4 / Math.max(1, n.getGolpesNecesarios()));
                 g.blit(RenderPipelines.GUI_TEXTURED, GRIETAS[etapa - 1], ox, oy, 0.0F, 0.0F, OJO_LADO, OJO_LADO, OJO_LADO,
                         OJO_LADO, OJO_LADO, OJO_LADO, 0xFFFFFFFF);
             }

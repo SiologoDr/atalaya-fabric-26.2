@@ -255,7 +255,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_NEREA = {"despertar", "rompeolas", "remolino", "burbujas", "molino",
-            "arpon", "lejano", "mirada", "ojo", "geiser", "marea", "furia", "aturdido", "agotado", "fase", "liberar"};
+            "arpon", "lejano", "mirada", "ojo", "geiser", "marea", "furia", "aturdido", "agotado", "fase", "canto", "clic", "cadenas", "marea_alta", "liberar"};
 
     /** Fuerza a la Nerea mas cercana (en 64 bloques) a hacer algo ya. */
     private static int probarNerea(CommandSourceStack fuente, String orden) {
@@ -308,7 +308,7 @@ public final class AtalayaCommand {
         return 1;
     }
 
-    private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "embestida", "tumba",
+    private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "embestida", "tumba", "anillo", "idolo",
             "sello", "romper", "escalon", "cataclismo", "salto", "aturdido", "paralizado", "estampado", "furia", "fase",
             "liberar"};
 
@@ -337,7 +337,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_AERALIS = {"despertar", "aleteo", "tornados", "caceria", "rafaga", "doble",
-            "juicio", "picado", "posada", "escamas", "romper", "viento", "mancha", "nucleo", "furia", "aturdida", "agotada", "fase", "liberar"};
+            "juicio", "picado", "posada", "escamas", "rasante", "romper", "viento", "mancha", "nucleo", "furia", "aturdida", "agotada", "fase", "liberar"};
 
     /** Fuerza a la Aeralis mas cercana (en 80 bloques) a hacer algo ya. */
     private static int probarAeralis(CommandSourceStack fuente, String orden) {

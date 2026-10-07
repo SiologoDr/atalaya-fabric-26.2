@@ -64,6 +64,12 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
     private static final RenderType BORDE = RenderTypes.entityTranslucentEmissive(tex("tumba_borde"));
     private static final RenderType BORDE_AVISO = RenderTypes.entityTranslucentEmissive(tex("tumba_borde_aviso"));
     private static final RenderType RAIZ = RenderTypes.entityTranslucentEmissive(tex("tumba_raiz"));
+    /** La Tumba en anillo: el borde con las flechas hacia dentro y el circulo dorado donde se salva. */
+    private static final RenderType BORDE_ANILLO = RenderTypes.entityTranslucentEmissive(tex("tumba_borde_anillo"));
+    private static final RenderType BORDE_ANILLO_AVISO = RenderTypes.entityTranslucentEmissive(tex("tumba_borde_anillo_aviso"));
+    private static final RenderType SEGURO = RenderTypes.entityTranslucentEmissive(tex("tumba_seguro"));
+    /** El radio (en la textura de lo llenado, de 0 a 0,5) de su frente encendido. */
+    private static final float FRENTE_TEX = 30.0F / 64.0F;
     /** Lo que sigue el borde tras reventar (ticks) y desde cuando antes parpadea. */
     private static final float TUMBA_QUEDA = 6.0F;
     private static final float TUMBA_PARPADEO = 30.0F;
@@ -124,6 +130,7 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
                 ? Mth.clamp((r.tickCount - r.inicioEstado + parcial) * r.ritmoCliente / RajangGeometria.DURACION_EMBESTIDA_AVISO, 0.0F, 1.0F)
                 : 1.0F;
         s.circuloTumba = e == RajangEntity.TUMBA && r.deathTime <= 0 ? r.tickCount - r.inicioEstado + parcial : -1.0F;
+        s.tumbaAnillo = r.isTumbaAnillo();
         s.tiempoDespertar = e == RajangEntity.DESPERTAR && r.deathTime <= 0 ? r.tickCount - r.inicioEstado + parcial : -1.0F;
     }
 
@@ -155,12 +162,78 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
         float sale = Mth.clamp((estalla + TUMBA_QUEDA - t) / TUMBA_QUEDA, 0.0F, 1.0F);
         boolean parpadea = estalla - t < TUMBA_PARPADEO && ((int) t / 3) % 2 == 0;
         int alfaBorde = (int) (255 * entra * sale);
+        if (s.tumbaAnillo) {
+            anilloTumba(s, pose, colector, t, estalla, radio, entra, parpadea, alfaBorde);
+            return;
+        }
         colector.submitCustomGeometry(pose, parpadea ? BORDE_AVISO : BORDE, (p, buf) ->
                 disco(buf, p, radio, t * 0.006F, 0.09F, alfaBorde));
         if (t < estalla) {
             float lleno = Math.max(0.05F, radio * t / estalla);
             int alfaRaiz = (int) (217 * entra);
             colector.submitCustomGeometry(pose, RAIZ, (p, buf) -> disco(buf, p, lleno, -t * 0.003F, 0.07F, alfaRaiz));
+        }
+    }
+
+    /**
+     * La Tumba en anillo: el borde con las flechas hacia dentro, el circulo dorado
+     * a su alrededor (donde se salva) desde el principio, y lo llenado, que avanza
+     * del borde hacia el con su frente encendido.
+     */
+    private static void anilloTumba(RajangRenderState s, PoseStack pose, SubmitNodeCollector colector, float t, float estalla,
+                                    float radio, float entra, boolean parpadea, int alfaBorde) {
+        float seguro = (float) RajangEntity.TUMBA_SEGURO;
+        colector.submitCustomGeometry(pose, parpadea ? BORDE_ANILLO_AVISO : BORDE_ANILLO, (p, buf) ->
+                disco(buf, p, radio, t * 0.006F, 0.09F, alfaBorde));
+        colector.submitCustomGeometry(pose, SEGURO, (p, buf) -> disco(buf, p, seguro, -t * 0.01F, 0.11F, alfaBorde));
+        if (t < estalla) {
+            float dentro = Math.max(seguro, radio - (radio - seguro) * t / estalla);
+            int alfaRaiz = (int) (217 * entra);
+            colector.submitCustomGeometry(pose, RAIZ, (p, buf) -> {
+                anillo(buf, p, dentro, radio, radio, -t * 0.003F, 0.07F, alfaRaiz, 0.0F);
+                anillo(buf, p, dentro, Math.min(radio, dentro + 0.8F), radio, 0.0F, 0.075F, (int) (255 * entra), FRENTE_TEX);
+            });
+        }
+    }
+
+    /**
+     * Una corona tumbada entre rDentro y rFuera. Si rTex es 0, la textura va como
+     * en disco() (un cuadrado de medio lado 'escala'), recortada; si no, cada punto
+     * toma el color de ese radio de la textura (para pintar un frente encendido).
+     */
+    private static void anillo(VertexConsumer buf, PoseStack.Pose p, float rDentro, float rFuera, float escala, float giro, float y,
+                               int alfa, float rTex) {
+        int n = 96;
+        float cg = Mth.cos(giro);
+        float sg = Mth.sin(giro);
+        float[] x = new float[4];
+        float[] z = new float[4];
+        float[] u = new float[4];
+        float[] v = new float[4];
+        for (int i = 0; i < n; i++) {
+            float a0 = Mth.TWO_PI * i / n;
+            float a1 = Mth.TWO_PI * (i + 1) / n;
+            float[] ang = {a0, a0, a1, a1};
+            float[] rr = {rDentro, rFuera, rFuera, rDentro};
+            for (int k = 0; k < 4; k++) {
+                float ca = Mth.cos(ang[k]);
+                float sa = Mth.sin(ang[k]);
+                x[k] = ca * rr[k];
+                z[k] = sa * rr[k];
+                if (rTex > 0.0F) {
+                    u[k] = 0.5F + ca * rTex;
+                    v[k] = 0.5F + sa * rTex;
+                } else {
+                    u[k] = 0.5F + (x[k] * cg + z[k] * sg) / (2.0F * escala);
+                    v[k] = 0.5F + (z[k] * cg - x[k] * sg) / (2.0F * escala);
+                }
+            }
+            for (int k = 0; k < 4; k++) {
+                vertice(buf, p, x[k], y, z[k], u[k], v[k], alfa);
+            }
+            for (int k = 3; k >= 0; k--) {
+                vertice(buf, p, x[k], y, z[k], u[k], v[k], alfa);
+            }
         }
     }
 

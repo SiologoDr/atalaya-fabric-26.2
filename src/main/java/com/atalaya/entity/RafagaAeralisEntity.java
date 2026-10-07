@@ -188,10 +188,7 @@ public class RafagaAeralisEntity extends ThrowableProjectile {
         Entity duena = getOwner();
         DamageSource fuente = AeralisDanos.fuente(nivel, AeralisDanos.RAFAGA, this, duena);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(RADIO))) {
-            if (v instanceof AeralisEntity || v.distanceToSqr(c) > RADIO * RADIO) {
-                continue;
-            }
-            if (v instanceof Player p && (p.isCreative() || p.isSpectator())) {
+            if (!PresasJefe.presa(v) || v.distanceToSqr(c) > RADIO * RADIO) {
                 continue;
             }
             v.hurtServer(nivel, fuente, AeralisEntity.contraArmadura(v, dano));

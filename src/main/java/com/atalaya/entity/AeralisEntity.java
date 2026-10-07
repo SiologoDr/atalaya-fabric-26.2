@@ -16,6 +16,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -164,8 +166,6 @@ public class AeralisEntity extends Monster {
     public static final double ALTURA_VUELO = 7.5;
     /** A donde sube para el Juicio. */
     public static final double ALTURA_JUICIO = 13.0;
-    /** Lo bajo que pasa en la pasada rasante (las colas, a ras de suelo). */
-    private static final double ALTURA_RASANTE = 5.5;
     /**
      * En las fases I y II vuela bajo: la base de la caja a 3 bloques del suelo,
      * donde se le pega con la espada (a 7,5 solo llegaba el arco). Las colas de
@@ -173,7 +173,13 @@ public class AeralisEntity extends Monster {
      * falta el arco.
      */
     public static final double ALTURA_VUELO_BAJA = 3.0;
-    private static final double ALTURA_RASANTE_BAJA = 2.0;
+    /**
+     * Lo bajo que pasa en la pasada rasante, en todas las fases: a tiro de espada
+     * (testers, 07-10-2026: desde la III a 5,5 no se le llegaba).
+     */
+    private static final double ALTURA_RASANTE = 2.0;
+    /** Lo que planea encima de su blanco en la pasada (ticks): la ventana de la espada. */
+    private static final int PLANEO = 20;
     /**
      * El Picado: la linea mide lo que hay hasta la presa mas 14 (de 36 a 60
      * bloques) y lo recorre a 45 bloques/s: baja en el primer tercio y luego
@@ -200,10 +206,11 @@ public class AeralisEntity extends Monster {
     private static final int PARALISIS_RESPIRO = 60;
     /**
      * El viento de vuelta (desde la fase II): cada tornado roto le devuelve su
-     * viento, un orbe que vuela a su pecho. Con 10 en la fase II, 20 en la III
-     * y 30 en la IV se llena la barra y cae aturdida 10 s.
+     * viento, un orbe que vuela a su pecho. Con dos tandas de tornados rotas
+     * (vientoNecesario) se llena la barra y cae aturdida 10 s. Antes pedia 10,
+     * 20 y 30 y en grupos pequenos casi no se veia (testers, 07-10-2026).
      */
-    private static final int[] VIENTO_NECESARIO = {0, 10, 20, 30};
+    private static final int TANDAS_VIENTO = 2;
     /** Lo que la tumba el viento de vuelta lleno: 10 s (Juan, 06-10-2026: con 5 no daba tiempo). */
     public static final int ATURDIDA_VIENTO = 200;
     private static final double VEL_VIENTO = 1.1;
@@ -252,6 +259,9 @@ public class AeralisEntity extends Monster {
     /** La Furia del Vendaval: el aura de rayos. */
     private static final EntityDataAccessor<Boolean> DATA_FURIA =
             SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Cuando se le acaba la Furia (tiempo del mundo; 0: sin Furia): el cliente pinta la cuenta atras. */
+    private static final EntityDataAccessor<Long> DATA_FURIA_FIN =
+            SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.LONG);
 
     // --- Solo cliente ---
     public final AnimationState dormida = new AnimationState();
@@ -346,6 +356,16 @@ public class AeralisEntity extends Monster {
     private int rasante;
     private int relojRasante = 160;
     private @Nullable Vec3 destinoRasante;
+    /** El planeo de la pasada: lo que le queda y si ya lo ha hecho en esta. */
+    private int planeo;
+    private boolean planeado;
+    /** Las pistas de la barra de accion: cada una sale una vez por combate. */
+    private boolean pistaAleteo;
+    private boolean pistaViento;
+    /** El Juicio de entrar en la fase III: sale el primero (testers: casi no se veia). */
+    private boolean juicioPendiente;
+    /** El giro de los nucleos alrededor del ciclon. */
+    private float giroNucleos;
 
     public AeralisEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -379,6 +399,7 @@ public class AeralisEntity extends Monster {
         datos.define(DATA_ATURDIDA, AeralisGeometria.DURACION_ATURDIDA);
         datos.define(DATA_VIENTO, 0);
         datos.define(DATA_FURIA, false);
+        datos.define(DATA_FURIA_FIN, 0L);
         datos.define(DATA_NUCLEOS, 0);
     }
 
@@ -414,8 +435,9 @@ public class AeralisEntity extends Monster {
     }
 
     /** Los orbes de viento de vuelta que lleva para la siguiente vez que cae aturdida. */
+    /** Los orbes de viento que lleva (los 16 bits de abajo; arriba, los que hacen falta). */
     public int getViento() {
-        return entityData.get(DATA_VIENTO);
+        return entityData.get(DATA_VIENTO) & 0xFFFF;
     }
 
     /** Lo que dura la aturdida en curso (ticks). */
@@ -433,9 +455,26 @@ public class AeralisEntity extends Monster {
         return entityData.get(DATA_FURIA);
     }
 
+    /** El tiempo del mundo en que se le acaba la Furia (0 si no la tiene). */
+    public long getFuriaFin() {
+        return entityData.get(DATA_FURIA_FIN);
+    }
+
     /** Cuantos orbes hacen falta en esa fase para aturdirla (en la fase I no cuentan). */
-    public static int vientoNecesario(int fase) {
-        return VIENTO_NECESARIO[Mth.clamp(fase, 1, 4) - 1];
+    /** Los orbes que la derriban, como los ve el cliente (van en DATA_VIENTO). */
+    public int getVientoNecesario() {
+        int n = entityData.get(DATA_VIENTO) >>> 16;
+        return n > 0 ? n : TANDAS_VIENTO * 3;
+    }
+
+    /** Los tornados de cada tanda: 3, uno mas por cada 8 jugadores (hasta 8) y otro en la IV. */
+    private int tornadosPorTanda() {
+        return Math.min(8, 3 + jugadoresGrupo / 8) + (fase() >= 4 ? 1 : 0);
+    }
+
+    /** Guarda los orbes que lleva junto con los que hacen falta ahora (dos tandas). */
+    private void ponerViento(int n) {
+        entityData.set(DATA_VIENTO, n | (TANDAS_VIENTO * tornadosPorTanda()) << 16);
     }
 
     public @Nullable BlockPos getCentro() {
@@ -456,7 +495,12 @@ public class AeralisEntity extends Monster {
         entityData.set(DATA_ESTADO, estado);
         t = 0;
         ritmoEstado = ritmo(estado, fase(), isAcelerada(), tieneFuria());
-        duracion = (int) Math.ceil(dur / ritmoEstado);
+        avisoEstado = aviso(estado);
+        duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
+        // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
+        if (estado == ALETEO || estado == TORNADOS || estado == MARCA || estado == PICADO_AVISO || estado == ESCAMAS || estado == JUICIO_SUBE) {
+            PresasJefe.alerta(this, estado == PICADO_AVISO || estado == JUICIO_SUBE, 1.12F);
+        }
     }
 
     /**
@@ -481,11 +525,27 @@ public class AeralisEntity extends Monster {
     }
 
     private float ta() {
-        return t * ritmoEstado;
+        return Math.max(0, t - avisoEstado) * ritmoEstado;
     }
 
+    /**
+     * La espera de aviso al empezar un ataque (ticks reales, no se acelera con la
+     * fase ni con la Furia): carga quieto mientras sale el aviso y suena la
+     * alerta, y luego el ataque corre como siempre. Asi de aviso a golpe hay al
+     * menos 0,8 s (testers, 07-10-2026).
+     */
+    public static int aviso(int estado) {
+        return switch (estado) {
+            case ALETEO -> 6;
+            default -> 0;
+        };
+    }
+
+    /** La espera de aviso del estado actual (ticks reales). */
+    private int avisoEstado;
+
     private boolean cruza(int k) {
-        return (t - 1) * ritmoEstado < k && t * ritmoEstado >= k;
+        return (t - 1 - avisoEstado) * ritmoEstado < k && (t - avisoEstado) * ritmoEstado >= k;
     }
 
     /**
@@ -544,11 +604,13 @@ public class AeralisEntity extends Monster {
         for (AnimationState a : acciones()) {
             a.stop();
         }
-        inicioEstado = tickCount;
+        // Con espera de aviso, la animacion (y su reloj) empieza al acabarla.
+        inicioEstado = tickCount + aviso(getEstado());
         ritmoCliente = ritmo(getEstado(), fase(), isAcelerada(), tieneFuria());
         AnimationState actual = animacionDe(getEstado());
         if (actual != null) {
-            actual.start(tickCount);
+            // Si empieza en el futuro, hasta entonces se queda en su primer fotograma.
+            actual.start(inicioEstado);
         }
     }
 
@@ -700,7 +762,8 @@ public class AeralisEntity extends Monster {
         Vec3 f = frente();
         switch (e) {
             case ALETEO -> {
-                if (ta >= AeralisGeometria.ALETEO_CARGA && ta < AeralisGeometria.ALETEO_SUELTA) {
+                // Tambien durante la espera de aviso (ta negativo): carga el viento en las puntas.
+                if ((ta < 0 || ta >= AeralisGeometria.ALETEO_CARGA) && ta < AeralisGeometria.ALETEO_SUELTA) {
                     for (Vec3 punta : new Vec3[]{new Vec3(12.0, 13.5, -2.0), new Vec3(-12.0, 13.5, -2.0)}) {
                         Vec3 p = puntoMundo(punta);
                         for (int i = 0; i < 2; i++) {
@@ -821,6 +884,21 @@ public class AeralisEntity extends Monster {
     @Override
     protected void customServerAiStep(ServerLevel nivel) {
         super.customServerAiStep(nivel);
+        // Un jefe de cada tipo por mundo: si ya habia otro, este se va (JefesUnicos).
+        if (!admitido) {
+            JefesUnicos.Registro otro = JefesUnicos.admitir(nivel, this);
+            if (otro != null) {
+                JefesUnicos.avisarRepetido(nivel, this, otro);
+                discard();
+                return;
+            }
+            admitido = true;
+        } else if (tickCount % 200 == 0 && !isDeadOrDying()) {
+            JefesUnicos.apuntar(nivel, this);
+        }
+        if (furiaQueda > 0 && --furiaQueda == 0) {
+            ponerFuria(nivel, false);
+        }
         if (centro == null) {
             centro = blockPosition();
         }
@@ -891,6 +969,13 @@ public class AeralisEntity extends Monster {
         if (aturdidaPendiente && aturdible(getEstado()) && !isDeadOrDying()) {
             aturdidaPendiente = false;
             aturdir(nivel, ATURDIDA_VIENTO);
+            // Que se note (testers: "casi no la note"): un trueno, la onda en el suelo y el aviso.
+            sonido(AtalayaSonidos.AERALIS_TRUENO, 8.0F);
+            Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
+            nivel.sendParticles(AtalayaParticulas.AERALIS_LUZ, true, true, c.x, c.y, c.z, 40, 2.0, 2.0, 2.0, 0.3);
+            nivel.sendParticles(AtalayaParticulas.AERALIS_ONDA, true, true, getX(), sueloBajo(nivel, getX(), getY(), getZ()) + 0.1,
+                    getZ(), 0, 2.4, 22.0, 0.0, 1.0);
+            avisar(nivel, Component.translatable("hud.atalaya.aeralis.derribada").withStyle(ChatFormatting.GOLD));
         }
         if (fase() >= 3 && getEstado() != DORMIDA && getEstado() != JUICIO_SUBE && --relojTrueno <= 0) {
             relojTrueno = 140 + random.nextInt(160) - fase() * 20;
@@ -993,6 +1078,11 @@ public class AeralisEntity extends Monster {
         if (opciones.isEmpty()) {
             return;
         }
+        // Al entrar en la III, el Juicio va el primero.
+        if (juicioPendiente && opciones.stream().anyMatch(o -> o[0] == JUICIO_SUBE)) {
+            juicioPendiente = false;
+            opciones.removeIf(o -> o[0] != JUICIO_SUBE);
+        }
         int total = 0;
         for (int[] o : opciones) total += o[1];
         int r = random.nextInt(total);
@@ -1024,11 +1114,21 @@ public class AeralisEntity extends Monster {
             case ALETEO -> {
                 enfAleteo = (int) (70 * k);
                 ponerEstado(ALETEO, AeralisGeometria.DURACION_ALETEO);
+                if (!pistaAleteo) {
+                    pistaAleteo = true;
+                    avisar(nivel, Component.translatable("hud.atalaya.aeralis.aleteo_aviso").withStyle(ChatFormatting.AQUA));
+                }
             }
             case TORNADOS -> {
                 enfTornados = (int) (300 * k);
                 ponerEstado(TORNADOS, AeralisGeometria.DURACION_TORNADOS);
                 sonido(AtalayaSonidos.AERALIS_CHILLIDO, 4.0F);
+                // La primera vez que cuentan: como se la derriba.
+                if (fase() >= 2 && !pistaViento) {
+                    pistaViento = true;
+                    avisar(nivel, Component.translatable("hud.atalaya.aeralis.viento_aviso", getVientoNecesario())
+                            .withStyle(ChatFormatting.AQUA));
+                }
             }
             case MARCA -> {
                 if (presaElegida == null) {
@@ -1097,6 +1197,14 @@ public class AeralisEntity extends Monster {
                 hurtServer(nivel, nivel.damageSources().genericKill(), Float.MAX_VALUE);
                 return true;
             }
+            case "rasante" -> {
+                // La pasada rasante ya (con su planeo encima del blanco), si esta volando libre.
+                if (blanco != null) {
+                    setTarget(blanco);
+                }
+                relojRasante = 0;
+                return true;
+            }
             case "romper" -> {
                 // Rompe sus tornados como si les hubieran dado los tres golpes: su viento vuelve a ella.
                 for (TornadoAeralisEntity tor : new ArrayList<>(tornadosVivos)) {
@@ -1109,7 +1217,7 @@ public class AeralisEntity extends Monster {
                 if (getEstado() == DORMIDA) {
                     despertarse(blanco);
                 }
-                int faltan = Math.max(1, vientoNecesario(Math.max(2, fase())) - getViento());
+                int faltan = Math.max(1, getVientoNecesario() - getViento());
                 for (int i = 0; i < faltan; i++) {
                     double a = random.nextDouble() * Math.PI * 2;
                     double r = 10.0 + random.nextDouble() * 8.0;
@@ -1123,7 +1231,7 @@ public class AeralisEntity extends Monster {
                 // Rompe uno de los nucleos del Juicio que queden (para ver la barra).
                 if (!nucleos.isEmpty()) {
                     NucleoVientoEntity n = nucleos.get(random.nextInt(nucleos.size()));
-                    for (int i = 0; i < GOLPES_NUCLEO && !n.isRemoved(); i++) {
+                    for (int i = 0, a = n.getAguanta(); i < a && !n.isRemoved(); i++) {
                         n.hurtServer(nivel, nivel.damageSources().generic(), 1.0F);
                     }
                 }
@@ -1253,14 +1361,23 @@ public class AeralisEntity extends Monster {
                         + (random.nextFloat() - 0.5F) * 1.2F;
                 double r = 10.0 + random.nextDouble() * 4.0;
                 destinoRasante = new Vec3(mira.getX() + Math.cos(lado) * r, 0, mira.getZ() + Math.sin(lado) * r);
-                rasante = 60;
+                rasante = 80;
+                planeado = false;
             }
             if (rasante > 0 && destinoRasante != null) {
                 rasante--;
                 x = destinoRasante.x;
                 z = destinoRasante.z;
                 vmax = 0.78;
-                altura = baja ? ALTURA_RASANTE_BAJA : ALTURA_RASANTE;
+                // Encima de su blanco frena y planea un segundo, a tiro de espada.
+                if (planeo > 0) {
+                    planeo--;
+                    vmax = 0.1;
+                } else if (!planeado && mira != null && horizontal(position(), mira.position()) < 3.5) {
+                    planeado = true;
+                    planeo = PLANEO;
+                }
+                altura = ALTURA_RASANTE;
                 if (horizontal(position(), destinoRasante) < 3.0) {
                     rasante = 0;
                 }
@@ -1404,6 +1521,7 @@ public class AeralisEntity extends Monster {
             factorGrupo = VIDA_VANILLA / VIDA;
             setHealth(getMaxHealth());
             entityData.set(DATA_FASE, 1);
+            ponerViento(0);
         }
         if (t == AeralisGeometria.DESPERTAR_ABRE) {
             // Abre los ojos: se levanta el viento.
@@ -1446,6 +1564,16 @@ public class AeralisEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickAleteo(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        // La espera de aviso: el viento se le junta en las alas antes de cortar.
+        if (t <= avisoEstado && t % 2 == 0) {
+            for (int i = 0; i < 10; i++) {
+                double a = random.nextDouble() * Math.PI * 2;
+                double r = 5.0 + random.nextDouble() * 3.0;
+                nivel.sendParticles(AtalayaParticulas.AERALIS_VIENTO, true, true, getX() + Math.cos(a) * r,
+                        getY() + 1.0 + random.nextDouble() * 3.0, getZ() + Math.sin(a) * r, 0, -Math.cos(a) * 0.35, 0.02,
+                        -Math.sin(a) * 0.35, 1.0);
+            }
+        }
         if (ta() < AeralisGeometria.ALETEO_SUELTA - 2 && objetivo != null) {
             girarHacia(objetivo.position(), 14.0F);
         }
@@ -1475,7 +1603,7 @@ public class AeralisEntity extends Monster {
             float base = (float) (Mth.atan2(blanco.z - desde.z, blanco.x - desde.x) * Mth.RAD_TO_DEG) - 90.0F;
             float rumbo = base + (i - (n - 1) / 2.0F) * abre;
             boolean alta = i % 2 == 1;
-            double altura = ySuelo + (alta ? 1.35 : 0.35);
+            double altura = ySuelo + (alta ? CuchillaVientoEntity.ALTURA_ALTA : CuchillaVientoEntity.ALTURA_BAJA);
             double ticks = Math.max(1.0, horizontal(desde, blanco) / vel);
             double bajada = Math.max(0.25, Math.abs(desde.y - altura) / Math.max(2.0, ticks * 0.6));
             CuchillaVientoEntity.lanzar(nivel, this, desde, rumbo, altura, bajada, vel, dano(DANO_CUCHILLA), alta);
@@ -1505,7 +1633,7 @@ public class AeralisEntity extends Monster {
         golpeAire(nivel, bajo, 2.2F, 16.0F, 40);
         // 3, uno mas por cada 8 jugadores (hasta 8) y otro en la IV. Nacen junto
         // a los jugadores, repartidos, y avisan un segundo con el polvo.
-        int n = Math.min(8, 3 + jugadoresGrupo / 8) + (fase() >= 4 ? 1 : 0);
+        int n = tornadosPorTanda();
         List<Player> ps = jugadores(nivel, 52, 0);
         Vec3 c = Vec3.atBottomCenterOf(centro);
         for (int i = 0; i < n; i++) {
@@ -1719,18 +1847,40 @@ public class AeralisEntity extends Monster {
         sonido(AtalayaSonidos.AERALIS_CHILLIDO, 7.0F);
         sonido(AtalayaSonidos.AERALIS_JUICIO_CICLON, 7.0F);
         ciclon = TornadoAeralisEntity.ciclon(nivel, this, juzgados);
-        // Los cuatro nucleos, repartidos por la arena alrededor de su centro.
-        Vec3 c = Vec3.atBottomCenterOf(centro);
-        float giro = random.nextFloat() * Mth.TWO_PI;
+        // Los cuatro nucleos giran alrededor del ciclon, a la altura de los
+        // atrapados: los de dentro los rompen a espadazos al pasar y los de fuera
+        // a flechazos (testers, 07-10-2026: el atrapado solo podia mirar, y jugando
+        // solo nadie los podia romper).
+        giroNucleos = random.nextFloat() * Mth.TWO_PI;
         nucleos.clear();
+        int aguanta = golpesNucleo();
         for (int i = 0; i < 4; i++) {
-            double a = giro + i * Math.PI / 2 + (random.nextDouble() - 0.5) * 0.5;
-            double d = 15.0 + random.nextDouble() * 6.0;
-            double x = c.x + Math.cos(a) * d;
-            double z = c.z + Math.sin(a) * d;
-            double y = sueloBajo(nivel, x, c.y + 6, z) + 2.2;
-            nucleosJuicio[i] = NucleoVientoEntity.crear(nivel, this, new Vec3(x, y, z), GOLPES_NUCLEO);
+            nucleosJuicio[i] = NucleoVientoEntity.crear(nivel, this, sitioNucleo(i), aguanta);
             nucleos.add(nucleosJuicio[i]);
+        }
+        avisar(nivel, Component.translatable("hud.atalaya.aeralis.juicio_aviso").withStyle(ChatFormatting.AQUA));
+    }
+
+    /** Los golpes de cada nucleo: 5 hasta 11 jugadores, uno mas por cada 6, hasta 10. */
+    private int golpesNucleo() {
+        return Mth.clamp(4 + jugadoresGrupo / 6, 5, GOLPES_NUCLEO);
+    }
+
+    /** Donde va el nucleo i: alrededor del ciclon, un poco por fuera de los atrapados y a su altura. */
+    private Vec3 sitioNucleo(int i) {
+        if (ciclon == null) {
+            return position();
+        }
+        double a = giroNucleos + i * Math.PI / 2;
+        double r = ciclon.radioAtrapados() + 2.5;
+        return new Vec3(ciclon.getX() + Math.cos(a) * r, ciclon.getY() + ciclon.alturaAtrapados() + 0.6,
+                ciclon.getZ() + Math.sin(a) * r);
+    }
+
+    /** Un aviso en la barra de accion a todos los que pelean. */
+    private void avisar(ServerLevel nivel, Component texto) {
+        for (Player p : jugadores(nivel, 64, 0)) {
+            p.sendOverlayMessage(texto);
         }
     }
 
@@ -1746,6 +1896,15 @@ public class AeralisEntity extends Monster {
             entityData.set(DATA_OBJETIVO, presa.getId());
         }
         girarHacia(ciclon != null ? ciclon.position() : presa.position(), 4.0F);
+        // Los nucleos giran despacio (una vuelta en unos 12 s) y suben y bajan con los atrapados.
+        giroNucleos += 0.025F;
+        for (int i = 0; i < 4; i++) {
+            NucleoVientoEntity n = nucleosJuicio[i];
+            if (n != null && !n.isRemoved()) {
+                Vec3 p = sitioNucleo(i);
+                n.setPos(p.x, p.y, p.z);
+            }
+        }
         if (t % 110 == 0) {
             sonido(AtalayaSonidos.AERALIS_JUICIO_CICLON, 7.0F);
         }
@@ -1840,11 +1999,18 @@ public class AeralisEntity extends Monster {
     }
 
     /** La Furia del Vendaval: el aura de rayos (con su chillido y un rayo al prenderse) o se le apaga. */
+    /** Lo que le queda de Furia (ticks, servidor). */
+    private int furiaQueda;
+
     private void ponerFuria(ServerLevel nivel, boolean si) {
         if (tieneFuria() == si) {
             return;
         }
         entityData.set(DATA_FURIA, si);
+        // Dura 30 s y mientras es inmune: solo toca esquivar (testers, 07-10-2026).
+        furiaQueda = si ? PresasJefe.FURIA_TICKS : 0;
+        entityData.set(DATA_FURIA_FIN, si ? nivel.getGameTime() + PresasJefe.FURIA_TICKS : 0L);
+        PresasJefe.avisarFuria(nivel, this, si);
         Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
         if (si) {
             sonido(AtalayaSonidos.AERALIS_CHILLIDO, 8.0F);
@@ -2143,11 +2309,11 @@ public class AeralisEntity extends Monster {
             nivel.sendParticles(AtalayaParticulas.AERALIS_LUZ, true, true, pecho.x, pecho.y, pecho.z, 8, 0.5, 0.5, 0.5, 0.08);
             if (fase() >= 2 && !isDeadOrDying()) {
                 int n = getViento() + 1;
-                if (n >= vientoNecesario(fase())) {
+                if (n >= getVientoNecesario()) {
                     n = 0;
                     aturdidaPendiente = true;
                 }
-                entityData.set(DATA_VIENTO, n);
+                ponerViento(n);
             }
         }
     }
@@ -2188,6 +2354,7 @@ public class AeralisEntity extends Monster {
      */
     private void alCambiarFase(ServerLevel nivel, int nueva) {
         entityData.set(DATA_FASE, nueva);
+        ponerViento(getViento());
         Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
         rayoDelCielo(nivel, c);
         nivel.sendParticles(AtalayaParticulas.AERALIS_RAYO, true, true, c.x, c.y, c.z, 14, 3.0, 2.0, 3.0, 0.0);
@@ -2214,16 +2381,24 @@ public class AeralisEntity extends Monster {
             enfCaza = 80;
         }
         if (nueva == 3) {
-            // El primero de la fase III, a los 30 s (como el Sello en la II).
-            enfJuicio = 600;
+            // El primero de la fase III, al acabar el tambaleo (antes a los 30 s:
+            // muchos no llegaban a verlo).
+            enfJuicio = 0;
+            juicioPendiente = true;
         }
         if (nueva == 4) {
             relojAgotado = 300;
         }
     }
 
+    /** Ya se ha apuntado como el de su tipo en el mundo (JefesUnicos). */
+    private boolean admitido;
+
     @Override
     public void remove(RemovalReason motivo) {
+        if (motivo.shouldDestroy() && admitido && level() instanceof ServerLevel nivelFuera) {
+            JefesUnicos.soltar(nivelFuera, this);
+        }
         super.remove(motivo);
         limpiar();
     }
@@ -2265,7 +2440,7 @@ public class AeralisEntity extends Monster {
         }
         Entity causante = fuente.getEntity();
         Entity directo = fuente.getDirectEntity();
-        if (causante instanceof AeralisEntity || directo instanceof RafagaAeralisEntity
+        if (PresasJefe.esJefe(causante) || directo instanceof RafagaAeralisEntity
                 || directo instanceof CuchillaVientoEntity || directo instanceof TornadoAeralisEntity) {
             return false;
         }
@@ -2282,6 +2457,11 @@ public class AeralisEntity extends Monster {
         if (e == JUICIO_SUBE || e == JUICIO_SOSTIENE || e == JUICIO_GOLPE) {
             // El Juicio del Ciclon es cooperativo: dentro del ciclon no se le puede pegar,
             // lo unico que sirve es romper los cuatro nucleos.
+            avisoInmune(nivel, causante);
+            return false;
+        }
+        if (tieneFuria()) {
+            // La Furia: inmune mientras dura (30 s); lo de romper (ojos, nucleos...) va aparte.
             avisoInmune(nivel, causante);
             return false;
         }
@@ -2419,12 +2599,9 @@ public class AeralisEntity extends Monster {
         return d.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : d.normalize();
     }
 
-    /** Lo que sus ataques pueden golpear: todo lo vivo menos ella y los jugadores en creativo o espectador. */
+    /** Lo que sus ataques pueden golpear: solo jugadores (y maniquies de prueba), nunca otro jefe (PresasJefe.presa). */
     public boolean esPresa(LivingEntity v) {
-        if (v == this || v instanceof AeralisEntity || !v.isAlive()) {
-            return false;
-        }
-        return !(v instanceof Player p) || (!p.isCreative() && !p.isSpectator());
+        return v != this && PresasJefe.presa(v);
     }
 
     private List<Player> jugadores(ServerLevel nivel, double max, double min) {
@@ -2556,6 +2733,7 @@ public class AeralisEntity extends Monster {
         salida.putInt("fase", fase());
         salida.putInt("viento", getViento());
         salida.putBoolean("furia", tieneFuria());
+        salida.putInt("furia_queda", furiaQueda);
     }
 
     @Override
@@ -2565,8 +2743,10 @@ public class AeralisEntity extends Monster {
         factorGrupo = entrada.getFloatOr("factor_grupo", VIDA_VANILLA / VIDA);
         jugadoresGrupo = entrada.getIntOr("jugadores_grupo", 1);
         entityData.set(DATA_FASE, entrada.getIntOr("fase", 1));
-        entityData.set(DATA_VIENTO, entrada.getIntOr("viento", 0));
+        ponerViento(entrada.getIntOr("viento", 0));
         entityData.set(DATA_FURIA, entrada.getBooleanOr("furia", false));
+        furiaQueda = tieneFuria() ? entrada.getIntOr("furia_queda", PresasJefe.FURIA_TICKS) : 0;
+        entityData.set(DATA_FURIA_FIN, furiaQueda > 0 ? level().getGameTime() + furiaQueda : 0L);
         ponerEstado(entrada.getBooleanOr("dormida", true) ? DORMIDA : LIBRE, 0);
     }
 }

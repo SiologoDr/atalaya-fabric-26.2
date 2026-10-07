@@ -110,6 +110,8 @@ public class Atalaya implements ModInitializer {
         Aturdimiento.registrar();
         // Las habilidades de las armaduras elementales (pasivas, activas con R).
         com.atalaya.habilidad.Habilidades.registrar();
+        com.atalaya.entity.TranceSirena.registrar();
+        com.atalaya.entity.IdoloOro.registrar();
         AtalayaRed.registrarTipos();
         AtalayaRed.registrarServidor();
 

@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.6**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.7**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -912,6 +912,23 @@ siempre, sin pedir que mate un jugador, y no se apilan.
 No hay clase base. Cada jefe es una clase de unas 1 800 líneas que hereda de
 `Monster` y copia y adapta la del anterior. Lo que se repite en los cuatro:
 
+**Solo contra jugadores.** Sus ataques, sus persecuciones y lo que dejan por ahí
+(burbujas, ráfagas, pilares...) solo van a por **jugadores** en supervivencia o
+aventura, y a por los **maniquíes**, que hacen de jugador en las escenas de prueba
+(`PresasJefe.presa`). Ni animales, ni aldeanos, ni otros bichos. Y entre ellos no
+se hacen nada: lo de un jefe no le quita vida a otro (`PresasJefe.esJefe`).
+
+**Uno de cada jefe por mundo.** Si ya hay una Nerea, no se puede poner otra
+(`JefesUnicos`, guardado con el mundo en `data/atalaya/jefes_unicos.dat`):
+
+- el huevo no la suelta ni se gasta, y dice dónde está la que hay («Solo uno de
+  cada jefe: Nerea, Guardián de los Mares ya está en 3, -31»);
+- si llega por otro lado (`/summon`, un dispensador), se va en su primer tick con
+  el mismo aviso;
+- en cuanto muere (ya durante la liberación) o la quitan, se puede poner otra;
+- si la que hay está lejos, en un trozo sin cargar, cuenta como viva. Si su trozo
+  está cargado y no aparece (la borraron de otra forma), ya no cuenta.
+
 **Nacen dormidos.** Nerea encadenado, Aeralis posada con las alas cerradas,
 Rajang tumbado como una esfinge, Novilis de rodilla sobre su espada. Despiertan al ver a un jugador a 40 bloques, o
 al recibir un golpe, que no hace daño. Al despertar cuentan los jugadores que hay
@@ -987,6 +1004,46 @@ roja engastada en un aro de sus colores, que se mueve con su elemento.
   `.mcmeta`). Se eligió la opción C de tres; `--ficha=carpeta` vuelve a pintar
   las tres sobre fotos del HUD.
 
+**Avisos antes de cada golpe.** Salen de las opiniones de los testers
+(07-10-2026: «el giro te pega sin avisar», «no sabía de dónde venían los
+golpes»):
+
+- **La alerta «¡!».** Al empezar un ataque peligroso suena desde el jefe un
+  sonido común a los cuatro (`jefes/alerta.ogg`, dos campanadas que suben),
+  así se aprende una vez y avisa aunque no se esté mirando. Los ataques que
+  matan llevan otro (`jefes/alerta_mortal.ogg`, un acorde de metal con el
+  «¡!» encima). Salen de `alerta_jefes_sonidos.py`.
+
+  | Jefe | Alerta | Alerta mortal |
+  |---|---|---|
+  | Nerea | Rompeolas, Remolino, Burbujas, Molino, Arpón, Géiser | Mirada, Gran Marea |
+  | Aeralis | Aleteo, Tornados, Marca, Escamas | Picado, Juicio |
+  | Rajang | Garra, Terremoto, Rugido, Salto | Cataclismo, Embestida, Tumba, el rugido tras el Sello |
+  | Novilis | Barrido, Castigo, Sol, Trompetas, Fuentes | Ofrenda, Dios |
+
+- **Una espera de aviso.** Los golpes que llegaban antes de 0,8 s empiezan
+  ahora con el jefe **quieto en el primer fotograma** del ataque mientras sale
+  el aviso. La espera va en ticks reales: no se acorta con la fase ni con la
+  Furia. Así, del aviso al golpe hay siempre al menos 0,8 s, también en la
+  fase IV con Furia.
+
+  | Ataque | Espera | Lo que se ve |
+  |---|---|---|
+  | Rompeolas (Nerea) | 0,45 s | una **calle roja con flechas** por cada ola, del ancho exacto de la pared de agua (`aviso_calle.py`) |
+  | Molino (Nerea) | 0,55 s | el aro sale ya en la espera, **rojo y latiendo**; se pone blanco al empezar a barrer |
+  | Garra (Rajang) | 0,55 s | la grieta en la zarpa y el aro donde sale el último pico |
+  | Barrido (Novilis) | 0,5 s | un **arco de llamas** en el suelo, hasta donde llega la hoja |
+  | Aleteo (Aeralis) | 0,3 s | el viento se le junta alrededor y en la punta de las alas |
+
+  El **Salto** de Rajang, que no avisaba de dónde caía, pinta ahora el aro
+  de 6,5 bloques donde va a aterrizar, desde que se agacha.
+
+- **De dónde vino el golpe.** Cualquier daño que venga de algún sitio (jefe,
+  mob, flecha) pinta un **arco rojo** alrededor de la mira, girado hacia allí,
+  que se apaga en 1,5 s; si te giras, sigue apuntando al sitio
+  (`IndicadorGolpe`, con un mixin en `LivingEntity.handleDamageEvent`). La
+  textura sale de `indicador_golpe.py`. Se esconde en la presentación.
+
 **Un golpe cooperativo por jefe.** En cada combate hay un momento en que el jefe
 es inmune y lo único que sirve es que el grupo rompa algo a la vez:
 
@@ -996,9 +1053,15 @@ es inmune y lo único que sirve es que el grupo rompa algo a la vez:
 - a Novilis, las **tres fuentes solares**.
 
 Si sale bien, cae aturdido con **daño doble**. Si sale mal, el castigo es gordo:
-los atrapados mueren salvo tótem y el jefe entra en **Furia** (más rápido, más
-daño y menos espera) hasta que lo derriben. Lo que hay que romper aguanta
-**10 golpes**, sean cuantos sean los jugadores.
+los atrapados mueren salvo tótem y el jefe entra en **Furia**: más rápido, más
+daño y menos espera, pero solo **30 s** y siendo **inmune**, así que toca esquivar
+(`PresasJefe.FURIA_TICKS`). Si lo derriban antes, se acaba antes. Una franja clara
+por dentro de su barra, arriba, se va acortando (`FuriaHud`), y la barra de
+acción avisa al empezar y al acabar. Antes duraba hasta que lo derribaran, y en
+Rajang podían ser minutos (testers, 07-10-2026). Los tótems de Rajang y las fuentes
+de Novilis aguantan **10 golpes**, sean cuantos sean los jugadores. Los ojos de
+Nerea y los núcleos de Aeralis, desde los testers (07-10-2026), van de **5** (hasta
+11 jugadores) a 12 y 10: uno más por cada 6.
 
 **Daño propio.** Cada ataque tiene su tipo de daño en `data/atalaya/damage_type/`.
 
@@ -1155,8 +1218,8 @@ Ganó la A.
 | Fase | Vida | Ritmo | Qué se añade |
 |---|---|---|---|
 | I | 100-75 % | ×1,0 | Rompeolas (1 ola), Remolino, Burbujas bomba |
-| II | 75-50 % | ×1,12 | Molino de anclas, Arpón, **Géiser del Abismo**; el Rompeolas lanza 3 olas |
-| III | 50-25 % | ×1,25 | Mirada del Abismo, **Gran Marea**; Rompeolas de 5 olas; un ancla más |
+| II | 75-50 % | ×1,12 | Molino de anclas, Arpón, **Géiser del Abismo**, **Canto de Sirena**, **Encadenados**; el Rompeolas lanza 3 olas |
+| III | 50-25 % | ×1,25 | Mirada del Abismo, **Gran Marea**, **Marea Alta**; Rompeolas de 5 olas; un ancla más |
 | IV | 25-0 % | ×1,4 | las costillas se abren; cada 25 s cae **agotado** (daño doble) |
 
 Los ojos van de cian a violeta, a magenta y a rojo.
@@ -1170,22 +1233,46 @@ El daño de cada ataque va en el orden de las fases, I / II / III / IV:
 |---|---|---|---|
 | **Rompeolas** | clava el tridente y lanza **paredes de agua** en abanico, a ras de suelo, hasta 34 bloques | 44 / 55 / 69 / 91 | apartarse de la línea, o el escudo. **Saltar no vale** |
 | **Remolino** | 4,4 s tirando de todo hacia él, con un remolino de 26 bloques en el suelo; deja **Corriente Abismal** (−20 % de velocidad por nivel) | 7 / 10 / 14 / 21 por segundo, atraviesa la armadura | **llevar una antorcha** en la mano: hace inmune (se ve una burbuja de aire dorada) |
-| **Burbujas bomba** | una por jugador, hasta 40; salen del corazón (que se ve dentro), persiguen y explotan en 5,5-7,75 bloques; un aro de espuma marca hasta dónde | 36 / 48 / 58 / 72, cuenta como explosión | **cualquier proyectil** la pincha sin daño. De un espadazo te explota encima |
+| **Burbujas bomba** | una por jugador, hasta 40; salen del corazón (que se ve dentro), persiguen y explotan en 5,5-7,75 bloques; un aro de espuma marca hasta dónde | 36 / 48 / 58 / 72, cuenta como explosión | **cualquier proyectil** la pincha sin daño (su caja mide 1,4; antes 0,9, y costaba acertar). De un espadazo te explota encima |
 | **Molino de anclas** | dos cadenas de 21 bloques con un ancla al final dan dos vueltas; un aro de espuma marca hasta dónde llegan | 48 / 58 / 72, el escudo no la para | **saltarla**, pegarse a sus pies o irse lejos |
 | **Arpón** | un ancla por cada 10 jugadores (hasta 5) a los más lejanos, con estela y un aro bajo el blanco; los arrastra hasta el tridente y remata con la Estocada | 48 / 58 / 72, y la estocada 55 / 69 / 91 | escudo de cara al ancla, o romper la línea de visión |
 | **Géiser del Abismo** | desde la II. Clava el tridente y bajo cada jugador se abre un remolino oscuro; a los 1,5 s revienta una columna de agua de 14 bloques que lanza a unos 12 (y la caída duele) | 36 / 44 / 58 | **salir del remolino** a tiempo |
 | **Gran Marea** | desde la III. Alza el tridente 2 s y una ola de 9 bloques cruza la arena de lado a lado (80 bloques) hacia donde hay más gente. Solo deja **un hueco** de 5 bloques, marcado antes en el suelo | **mata** (10 000) y arrastra: solo salva un tótem | correr al **hueco** o ponerse detrás de ella |
-| **Mirada del Abismo** | carga 4 s un chorro de agua del abismo desde cada ojo hacia **un tercio** de los que pelean (de 30, 10): los de menos vida que tiene a la vista | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos: **10 impactos** cada uno, sean cuantos sean. Así cae aturdida, con daño doble |
+| **Mirada del Abismo** | carga 4 s un chorro de agua del abismo desde cada ojo hacia **la mitad** de los que pelean (de 30, 15): los de menos vida que tiene a la vista | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos: **5 impactos** cada uno hasta 11 jugadores, uno más por cada 6 (de 30, 9), hasta 12. Así cae aturdida, con daño doble |
+
+**Mecánicas cooperativas (octubre de 2026).** Juan: «que cada jefe haga cooperar a
+los jugadores con mecánicas suyas, que los otros no tengan». De la ficha
+(`nerea_mecanicas_escenas.py`) eligió tres; las tres afectan a **un tercio** de los
+que pelean (con dos, a uno o a la pareja; jugando solo, a ti):
+
+| Mecánica | Qué hace | Daño | Cómo se sale |
+|---|---|---|---|
+| **Canto de Sirena** (II) | abre los brazos y canta 8 s (sin rayo: las notas le salen de la boca). Los **más lejanos** caen en **trance**: andan solos hacia ella, no pueden atacar, la pantalla se les tuerce (náusea) y pierden vida cada segundo. Mientras canta, **no se le puede pegar** | 3 / 3 / 4 / 5 por segundo, pasa la armadura | **darle clics** al hechizado: cada clic de un compañero vale 3 de los 12 que hacen falta (no le hace daño). El hechizado también puede hacer clic (al aire vale), pero cada uno vale 1. `TranceSirena`, con un mixin en el clic izquierdo (`TranceClicMixin`) |
+| **Encadenados** (II) | lanza sus cadenas: ata por parejas durante 15 s (el que sobra, o si juegas solo, a un **ancla** clavada en el suelo). Una cadena de eslabones con un hilo de agua que se pone **rojo** al tensarse (`CadenaNereaEntity`) | si se separan más de **10 bloques**, tirón que los junta y 10 / 10 / 12 / 14 a cada uno (como mucho uno por segundo) | moverse **con tu pareja**, esquivando a la vez lo que siga lanzando |
+| **Marea Alta** (III) | alza el tridente 10 s: salen **cúpulas de refugio** celestes (`RefugioNereaEntity`, Juan: «celeste y como una cúpula») repartidas por la arena, las justas: una por cada 2 jugadores (3 con más de 8, 4 con más de 24). Encima de cada una, cuántos caben («1/2»; roja si está llena). Cuenta atrás en la barra de acción | al acabar, a quien no esté en una cúpula con sitio, **la muerte salvo tótem** | **repartirse**: si entra uno de más, ese no está a salvo (cuentan los primeros en entrar) |
+
+Cada una lleva su alerta «¡!» (la Marea Alta, la mortal) y su pista en la barra de
+acción la primera vez. Sonidos de `nerea_cooperativas_sonidos.py` (el canto es una
+vocalización de sirena de 8 s en re menor con una segunda voz y el coro del
+abismo); la textura de la cúpula, de `nerea_cupula.py`; las animaciones (CANTO,
+MAREA_ALTA, ENCADENAR), de `nerea_juego_anim.py`.
 
 Mientras mira es inmune, y romper un solo ojo no salva: el disparo sale del punto
 medio entre los dos. Cada ojo lleva un aro de agua que gira y se va rajando con
-los impactos.
+los impactos. Al empezar, a todos los que pelean les sale en la barra de acción
+cómo pararla («¡Rómpele los dos ojos a flechazos o escóndete tras un bloque!») y
+bajo el emblema de su barra se cuentan los impactos de cada ojo («3/5  0/5»).
+
+**Respiro.** Tras un ataque fuerte (Remolino, Molino, Mirada, Géiser, Gran
+Marea) espera al menos 2 s antes del siguiente, y nunca encadena dos ataques de
+área seguidos (Rompeolas, Remolino, Molino, Géiser, Gran Marea) si tiene otro a
+mano. Antes, tras el Molino podía salir el Rompeolas de 3 olas casi a la vez.
 
 **Furia de las Mareas.** Si la Mirada sale (no le rompen los ojos a tiempo), entra
 en Furia: un aura de luz bajo el agua (cáusticas en verde abismo) y burbujas que
 le suben por el cuerpo. Ataques un 25 % más rápidos (menos la Mirada), un 35 % más
-de daño y un 35 % menos de espera. Se le quita al **derribarla**: romperle los dos
-ojos en otra Mirada.
+de daño y un 35 % menos de espera. Dura **30 s** y mientras es inmune; se le
+quita antes al **derribarla**: romperle los dos ojos en otra Mirada.
 
 ### Aeralis, la Mariposa del Vendaval
 
@@ -1224,8 +1311,11 @@ B y C salen de imágenes de referencia. Ganó la A.
 - Rodea al objetivo a 12 bloques y de vez en cuando hace una pasada rasante.
 - Las alas no tienen caja de golpe, así que se le pega al cuerpo, sobre todo con
   arcos, ballestas y tridentes.
-- Solo baja al alcance de la espada cuando está aturdida, agotada o **posada**
-  después del Picado.
+- Desde la III solo baja al alcance de la espada cuando está aturdida, agotada,
+  **posada** después del Picado o en la **pasada rasante**: en todas las fases
+  pasa a 2 bloques del suelo y, encima de su blanco, **planea 1 s** casi
+  parada. No hace daño: es la ventana de la espada (testers, 07-10-2026).
+  Se fuerza con `/atalaya aeralis rasante`.
 
 | | |
 |---|---|
@@ -1246,15 +1336,22 @@ lo heredó.
 
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
-| **Aleteo Cortante** | de 3 a 10 cuchillas de viento en abanico, a ras de suelo, alternando bajas y altas | 31 / 39 / 49 / 61 | **saltar las bajas y apartarse de las altas**. El escudo la para de frente |
+| **Aleteo Cortante** | de 3 a 10 cuchillas de viento en abanico, alternando **azules** a ras de suelo (hasta media pierna) y **blancas** a la altura de la cabeza; la del centro, blanca, va derecha al blanco | 31 / 39 / 49 / 61 | **saltar las azules y agacharse ante las blancas**: de pie (o saltando) te dan; agachado pasan por encima. El escudo la para de frente |
 | **Tornados** | de 3 a 9 tornados que nacen junto a los jugadores y los persiguen 12 s. Atrapan, suben en espiral y revientan a los 3 s | 7 / 10 / 14 / 21 por segundo, más el estallido: 27 / 37 / 44 / 55 | **3 golpes** de lo que sea lo deshacen y sueltan a la víctima con suavidad, pero **la caída duele** |
 | **Cacería del Vendaval** | marca a una presa 15 s y le tira ráfagas que la persiguen. La marca no se quita: si la leche la borra, vuelve. Si nadie se queda cerca de la presa, acelera | 34 / 42 / 53 / 70, explota en 3,5 bloques | **reventar la ráfaga** en el aire (1 + jugadores/12 golpes) o ponerse delante |
-| **Juicio del Ciclón** | sale poco, como el Sello de Rajang: el primero a los 30 s de entrar en la III y luego no vuelve hasta 1,5 min después de acabar (1,3 en la IV). Se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos** | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos** (**10 golpes** cada uno). Así cae aturdida 5 s, con daño doble |
-| **Picado del Vendaval** (nuevo) | sube y marca en el suelo la línea por donde se va a lanzar (36 a 60 bloques, galones que se encienden). Se lanza en picado a 45 bloques/s | a quien pille, **la muerte salvo tótem** (pasa armadura, escudo, encantamientos y efectos) y lo **lanza al cielo** (unos 24 bloques): la caída duele | **salir de la línea**. Al final **se posa 3 s** y recibe **daño doble**: la ventana de la espada |
+| **Juicio del Ciclón** | sale poco, como el Sello de Rajang: el primero **nada más entrar en la III** (al acabar el tambaleo) y luego no vuelve hasta 1,5 min después de acabar (1,3 en la IV). Se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos que giran alrededor del ciclón**, despacio y a la altura de los atrapados | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos**: los atrapados, a espadazos cuando les pasan al lado; los de fuera, a flechazos. Aguantan **5 golpes** hasta 11 jugadores, uno más por cada 6, hasta 10. Así cae aturdida 5 s, con daño doble |
+| **Picado del Vendaval** (nuevo) | sube y marca en el suelo la línea por donde se va a lanzar (36 a 60 bloques, galones que se encienden). Se lanza en picado a 45 bloques/s | a quien pille, **la muerte salvo tótem** (pasa armadura, escudo, encantamientos y efectos) y lo **lanza al cielo** (unos 24 bloques): la caída duele | **salir de la línea**. Al final **se posa 5 s** y recibe **daño doble**: la ventana de la espada |
 | **Escamas de Tormenta** (nuevo) | sacude las alas y suelta escamas en un círculo de 15 bloques. Cada mancha se carga y descarga cada 1,5 s durante 6 s | 20 / 20 / 20 / 28 por descarga y **Parálisis 2 s**: ni andar ni saltar, pero sí pegar, el inventario y usar objetos. No te vuelve a paralizar hasta 1 s después de soltarte, para que puedas salir de la mancha | **no pisar las manchas** mientras brillan |
-| **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya fina bajo su barra lo cuenta: con **10** en la fase II, **20** en la III y **30** en la IV, **cae aturdida 10 s** con daño doble (el doble que tras el Juicio; mientras, se retuerce en el suelo) (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
+| **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya bajo su barra lo cuenta, con la cifra al lado («Viento 3/6»): con **dos tandas de tornados rotas** (6 en grupos pequeños, 8 en la IV; sube con el grupo) **cae aturdida 10 s** con daño doble (el doble que tras el Juicio; mientras, se retuerce en el suelo), con un trueno y el aviso en la barra de acción (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
 
 Mientras dura el Juicio es inmune.
+
+**Pistas.** La primera vez que hace cada cosa, la barra de acción dice cómo se
+sale: el Aleteo («Cuchillas azules: ¡salta! · Blancas: ¡agáchate!»), los
+tornados desde la II (cuántos rotos la derriban) y el Juicio (dónde están los
+núcleos y cómo se rompen). Salen de las opiniones de los testers (07-10-2026):
+el aturdimiento por tornados casi no se notaba y el Juicio, jugando solo, no
+tenía salida.
 
 **La Furia del Vendaval.** Es la Furia de Jade de Rajang en Aeralis: si el
 Juicio sale mal, a los que queden se la encuentran con un aura de rayos violetas
@@ -1263,8 +1360,8 @@ creeper como Rajang, porque sus alas son láminas recortadas y esa capa pintaba
 rectángulos: va sobre el mismo atlas que su piel, en cuatro cuadros que se
 alternan. Con la Furia ataca un 25 % más rápido, pega un 35 % más, espera un 35 %
 menos entre ataques y vuela un 10 % más deprisa; en la barra, el rótulo dice
-FURIA y la tormenta late. **Se le va cuando la derriban**: los cuatro núcleos de
-otro Juicio o el viento de vuelta lleno.
+FURIA y la tormenta late. Dura **30 s** y mientras es inmune; **se le va antes
+si la derriban**: los cuatro núcleos de otro Juicio o el viento de vuelta lleno.
 
 **En todos sus ataques la caída duele.** Antes, el tornado roto y el Juicio
 dejaban caer a la víctima sin daño; ahora la caída cuenta desde donde te suelta o
@@ -1318,18 +1415,20 @@ aire.
 **Varias cajas de golpe.** Con 17 bloques de largo, una sola caja o deja la
 cabeza fuera o le ocupa media plaza. Por eso la caja principal tapa el pecho y
 las patas delanteras, y la cabeza y la grupa llevan cajas propias
-(`RajangParteEntity`) que le pasan el daño.
+(`RajangParteEntity`) que le pasan el daño. La de la grupa va **del suelo al
+lomo** y tapa también las patas de atrás: antes empezaba a 3,75 bloques y por
+detrás, a la altura de las patas, no se le daba (testers, 07-10-2026).
 
 | | |
 |---|---|
 | Vida | 15 000 · armadura 16, dureza 10 |
-| Caja | 6 × 7,6, más la cabeza y la grupa |
+| Caja | 6 × 7,6, más la cabeza (3,6) y la grupa (5 × 8,6, desde el suelo) |
 | Correa | 40 bloques |
 
 | Fase | Nombre | Qué se añade |
 |---|---|---|
 | I | Selva | Garra Terrestre, Terremoto Ancestral, **Embestida de Jade** |
-| II | Grieta | Sello de la Tierra, **Tumba de Raíces** |
+| II | Grieta | Sello de la Tierra, **Tumba de Raíces**, **Ídolo de Oro** |
 | III | Raíz | Cataclismo de Jade |
 | IV | Corazón | el peto revienta; **Salto**; el Cataclismo vuelve antes |
 
@@ -1341,11 +1440,12 @@ entre un ataque y otro (enfriamientos ×0,84, ×0,72 y ×0,6).
 |---|---|---|---|
 | **Garra Terrestre** | zarpazo en abanico de 125° que te **empuja unos 6 bloques** y una fila de picos de roca que corre hasta la presa. La avisan una grieta y un hexágono. Cada pico te **lanza unos 10 bloques** y te deja el **Peso 3 s** | 34 / 45 / 59 / 80 | salir del frente y del hexágono. El escudo para el zarpazo |
 | **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 8 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores (pegan a 2,5–3,2 bloques de su centro), que **lanzan unos 10 bloques** y dejan el Peso 3 s. Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 40 / 49 / 63 | apartarse del hexágono y no pegarle con la Piel puesta |
-| **Embestida de Jade** | se agazapa y rasca el suelo mientras una **flecha** en el suelo marca por dónde va a cargar (1,15 s en la fase I, 0,75 s en la IV; al llenarse, el rumbo queda fijo). Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
+| **Embestida de Jade** | va a por el jugador **más lejano** que tenga a tiro (de 10 a 36 bloques, con camino libre): los arqueros de lejos salían casi ilesos. Se agazapa y rasca el suelo mientras una **flecha** en el suelo marca por dónde va a cargar (1,15 s en la fase I, 0,75 s en la IV; al llenarse, el rumbo queda fijo). Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
 | **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** (1 s), se cae y vuelve a los 3 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (**10 golpes** cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
-| **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s | salir del círculo: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
+| **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga. **Una de cada dos va en anillo** (la segunda, la cuarta...): ruge más agudo, las flechas del borde apuntan hacia dentro, alrededor de él brilla un **círculo dorado de 10 bloques** y lo llenado avanza **del borde hacia él** | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s. En anillo, a quien esté fuera del círculo dorado | **en anillo, correr hacia él** y meterse en el dorado (desde el borde llegas igual que huyendo de la otra). En círculo, salir: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
 | **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás 1,2 s (es de reflejos) | dentro de su marca (4,8 a 5,7 bloques): **mata**; fuera de la marca, nada | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
-| **Salto** (fase IV) | salta en parábola sobre la presa | 80 en 6,5 bloques | apartarse cuando despega |
+| **Salto** (fase IV) | salta en parábola sobre el jugador **más lejano** a tiro (de 8 a 26 bloques); un aro marca dónde cae | 80 en 6,5 bloques | apartarse cuando despega |
+| **Ídolo de Oro** (II, mecánica cooperativa de octubre de 2026) | ruge, arranca un **ídolo de oro** de su templo y lo lanza a un lado de la arena; al otro sale un **altar dorado** (columna de luz y aro). Quien lo recoge lo lleva (va más lento y brilla) y Rajang **solo persigue al portador**, al galope, sin otros ataques. Si está tirado, va a por él. 25 s | si alcanza al portador: zarpazo de 24 / 30 / 34 / 42, **recupera el ídolo y se cura un 3 %**; si lo recoge del suelo, también se cura | **llevarlo al altar**: revienta, le quita **un 5 % de vida** y cae **aturdido** con daño doble. Se pasa de mano en mano: **Q** para soltarlo o **un clic a un compañero** para dárselo (sin hacerle daño). El ídolo es un objeto de verdad (`IdoloOroItem`, textura de `idolo_oro.py`) que se deshace si ya no lo busca su Rajang |
 
 **Las columnas del Sello son entidades, no bloques.** Son pisables a cualquier
 altura gracias a un truco: el juego solo busca choques con entidades cuyo origen
@@ -1367,8 +1467,15 @@ su velocidad (`RajangFuriaLayer`, sobre la capa de vanilla). Con la Furia:
 - espera un 35 % menos entre ataques, y la mitad entre uno y otro;
 - corre un 15 % más.
 
-Le dura hasta que lo derriben: un Sello superado o un Cataclismo sin muertes.
-En la barra, el rótulo pasa a **FURIA** y la energía late en verde vivo.
+Le dura **30 s** y mientras es **inmune**: solo toca esquivar (antes, hasta que lo
+derribaran). Un Sello superado o un Cataclismo sin muertes se la quitan antes. En
+Furia persigue al jugador **más lejano** y la Garra va a por él: que el arquero
+sienta el miedo. En la barra, el rótulo pasa a **FURIA** y la energía late en verde
+vivo.
+
+**Pistas.** La primera Tumba de cada tipo avisa en la barra de acción: «¡Sal del
+círculo de raíces antes de que se llene!» o «¡Anillo de raíces! Corre hacia él: el
+círculo dorado es seguro».
 
 > Estas mejoras salen de las pruebas del grupo de octubre de 2026 («tosco y
 > lento»). La ficha con los renders y las cifras está en
@@ -1443,7 +1550,8 @@ el mismo fuego es carmesí. Antes era la malla entera hinchada con bandas de fue
 encima: lo tapaba todo y no se le veía. **El Grito de guerra** (de la Supernova)
 le deja llamas carmesí en el yelmo y las hombreras y hace que el Dios de la
 Guerra mate a todos. Los dos se van cuando cae aturdido: una Ofrenda superada o
-las Fuentes rotas a tiempo.
+las Fuentes rotas a tiempo. La Furia, además, dura como mucho **30 s** y mientras
+es inmune; el Grito se queda hasta que lo derriben.
 
 **Los tajos dejan estela**: una cinta de fuego por donde pasó la hoja, que solo
 sale cuando corta deprisa. El generador guarda por dónde pasan la base y la punta
@@ -1823,9 +1931,9 @@ El esquema es siempre el mismo:
 | `/atalaya hidratacion <0-50>` | Operador | Fija tu hidratación. Para probar: llegar al nivel 2 esperando al sol son casi seis minutos |
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
-| `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `fase`, `liberar` |
-| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
-| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba`, `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
+| `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `canto`, `clic` (un clic de compañero al primer hechizado), `cadenas`, `marea_alta`, `fase`, `liberar` |
+| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
+| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano al altar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
@@ -1969,7 +2077,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.6.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.1.7.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -2000,7 +2108,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.6
+	- atalaya 1.1.7
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2373,7 +2481,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.6.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.1.7.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

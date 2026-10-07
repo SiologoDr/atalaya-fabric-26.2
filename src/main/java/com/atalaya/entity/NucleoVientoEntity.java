@@ -21,10 +21,12 @@ import org.jspecify.annotations.Nullable;
  * cielo que gira, flotando sobre el suelo, y alimenta el ciclon del marcado
  * (se ve la corriente de luz que va de uno a otro).
  *
- * Hay cuatro repartidos por la arena. Cada uno aguanta 10 golpes, sean cuantos
- * sean los jugadores; cualquier golpe cuenta (espada, flecha, tridente). Con los
- * cuatro, el ciclon se deshace y Aeralis cae aturdida; si no, el marcado muere
- * (salvo totem) y ella entra en la Furia del Vendaval.
+ * Hay cuatro y giran despacio alrededor del ciclon, a la altura de los
+ * atrapados (los mueve AeralisEntity): los de dentro los rompen a espadazos al
+ * pasar y los de fuera a flechazos. Cada uno aguanta de 5 a 10 golpes segun el
+ * grupo; cualquier golpe cuenta (espada, flecha, tridente). Con los cuatro, el
+ * ciclon se deshace y Aeralis cae aturdida; si no, el marcado muere (salvo
+ * totem) y ella entra en la Furia del Vendaval.
  */
 public class NucleoVientoEntity extends Entity {
 

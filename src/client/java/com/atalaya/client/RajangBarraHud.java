@@ -156,6 +156,9 @@ public class RajangBarraHud implements HudElement {
 
         g.blit(RenderPipelines.GUI_TEXTURED, NOMBRE, x0 + 92, y0 + 9, 0.0F, 0.0F, NOMBRE_ANCHO, LETRAS_ALTO,
                 NOMBRE_ANCHO, LETRAS_ALTO, NOMBRE_ANCHO, LETRAS_ALTO, 0xFFFFFFFF);
+        if (furia) {
+            FuriaHud.cuentaAtras(g, r.getFuriaFin(), hx, hy, HUECO_ANCHO, COLOR_FURIA, parcial);
+        }
         g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, y0 + 8,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
 

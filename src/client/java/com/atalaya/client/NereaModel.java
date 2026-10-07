@@ -72,6 +72,9 @@ public class NereaModel extends EntityModel<NereaRenderState> {
     private final KeyframeAnimation agotado;
     private final KeyframeAnimation geiser;
     private final KeyframeAnimation marea;
+    private final KeyframeAnimation canto;
+    private final KeyframeAnimation mareaAlta;
+    private final KeyframeAnimation encadenar;
     private final KeyframeAnimation liberacion;
 
     public NereaModel(ModelPart raiz) {
@@ -110,6 +113,9 @@ public class NereaModel extends EntityModel<NereaRenderState> {
         this.agotado = NereaAnimaciones.AGOTADO.bake(raiz);
         this.geiser = NereaAnimaciones.GEISER.bake(raiz);
         this.marea = NereaAnimaciones.MAREA.bake(raiz);
+        this.canto = NereaAnimaciones.CANTO.bake(raiz);
+        this.mareaAlta = NereaAnimaciones.MAREA_ALTA.bake(raiz);
+        this.encadenar = NereaAnimaciones.ENCADENAR.bake(raiz);
         this.liberacion = NereaAnimaciones.LIBERACION.bake(raiz);
     }
 
@@ -176,6 +182,9 @@ public class NereaModel extends EntityModel<NereaRenderState> {
             agotado.apply(s.agotado, s.ageInTicks, s.ritmo);
             geiser.apply(s.geiser, s.ageInTicks, s.ritmo);
             marea.apply(s.marea, s.ageInTicks, s.ritmo);
+            canto.apply(s.canto, s.ageInTicks, s.ritmo);
+            mareaAlta.apply(s.mareaAlta, s.ageInTicks, s.ritmo);
+            encadenar.apply(s.encadenar, s.ageInTicks, s.ritmo);
         }
         liberacion.apply(s.liberacion, s.ageInTicks);
 

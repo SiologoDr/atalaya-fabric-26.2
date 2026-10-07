@@ -241,6 +241,9 @@ public class NovilisBarraHud implements HudElement {
         if (lleno >= 3) {
             frente(g, hx + lleno, hy, i, ahora);
         }
+        if (furia) {
+            FuriaHud.cuentaAtras(g, n.getFuriaFin(), hx, hy, HUECO_ANCHO, COLOR_ROTULO[FURIA], parcial);
+        }
         // Las muescas: un rayo de sol de oro que se apaga y se raja al pasar la vida por el.
         for (float corte : new float[]{0.75F, 0.5F, 0.25F}) {
             int ex = hx + Math.round(HUECO_ANCHO * corte) - 3;

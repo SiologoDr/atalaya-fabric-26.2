@@ -22,7 +22,8 @@ import net.minecraft.world.phys.Vec3;
  * hacen de estela. Brilla: hay que verla venir.
  *
  * Desde el remake se tine: las BAJAS van en el color de la fase (se saltan) y
- * las ALTAS en blanco lila (hay que apartarse). Se distinguen de un vistazo.
+ * las ALTAS en blanco lila (hay que agacharse). Se distinguen de un vistazo. Lo
+ * que se ve de pie mide lo mismo que lo que corta (medioAlto).
  */
 public class CuchillaVientoRenderer extends EntityRenderer<CuchillaVientoEntity, CuchillaVientoRenderer.Estado> {
 
@@ -37,6 +38,7 @@ public class CuchillaVientoRenderer extends EntityRenderer<CuchillaVientoEntity,
         public float rumbo;
         public float edad;
         public int color = 0xFFFFFF;
+        public float medioAlto = 0.25F;
     }
 
     public CuchillaVientoRenderer(EntityRendererProvider.Context contexto) {
@@ -54,6 +56,7 @@ public class CuchillaVientoRenderer extends EntityRenderer<CuchillaVientoEntity,
         s.rumbo = c.getYRot(parcial);
         s.edad = c.tickCount + parcial;
         s.color = c.isAlta() ? ALTA : AeralisDibujo.claro(AeralisDibujo.fase(c.getFase()), 0.15F);
+        s.medioAlto = (float) c.medioAlto();
     }
 
     @Override
@@ -66,6 +69,7 @@ public class CuchillaVientoRenderer extends EntityRenderer<CuchillaVientoEntity,
         float nace = Mth.clamp(s.edad / 3.0F, 0.0F, 1.0F);
         float temblor = 1.0F + 0.06F * Mth.sin(s.edad * 2.7F);
         int color = s.color;
+        float alto = s.medioAlto;
         colector.submitCustomGeometry(pose, TIPO, (p, buf) -> {
             // La cuchilla y tres ecos detras: la estela que deja al cortar el aire.
             for (int k = 0; k < 4; k++) {
@@ -73,7 +77,7 @@ public class CuchillaVientoRenderer extends EntityRenderer<CuchillaVientoEntity,
                 float a = nace * new float[]{1.0F, 0.5F, 0.25F, 0.1F}[k];
                 float e = 1.0F - 0.08F * k;
                 tira(buf, p, atras, frente, lado.scale(e), frente.scale(0.65 * temblor), a, color);
-                tira(buf, p, atras, frente, lado.scale(e), arriba.scale(0.65 * temblor), a * 0.85F, color);
+                tira(buf, p, atras, frente, lado.scale(e), arriba.scale(alto * temblor), a * 0.85F, color);
             }
         });
         super.submit(s, pose, colector, camara);
@@ -102,6 +106,6 @@ public class CuchillaVientoRenderer extends EntityRenderer<CuchillaVientoEntity,
     private static Vec3 centro(Vec3 frente, Vec3 lado, float u) {
         float x = (u * 2.0F - 1.0F);
         double curva = 0.9 * (1.0 - x * x);
-        return lado.scale(x * MEDIO_ANCHO).add(frente.scale(curva)).add(0, 0.4, 0);
+        return lado.scale(x * MEDIO_ANCHO).add(frente.scale(curva));
     }
 }

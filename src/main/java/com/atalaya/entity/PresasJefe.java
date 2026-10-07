@@ -41,6 +41,37 @@ public final class PresasJefe {
      */
     public static final int RESPIRO_PRESENTACION = ESCENA_QUIETO + 30;
 
+    /**
+     * La alerta al empezar un ataque peligroso (testers, 07-10-2026: "un sonido
+     * especial para los que no alcancen a ver"): sale del jefe, asi se oye tambien
+     * de donde viene, y es la misma en todos (se aprende una vez). Los que matan
+     * llevan la suya, mas grave. "tono" la hace un poco mas aguda o grave por jefe.
+     */
+    public static void alerta(net.minecraft.world.entity.LivingEntity jefe, boolean mortal, float tono) {
+        jefe.level().playSound(null, jefe.getX(), jefe.getEyeY(), jefe.getZ(),
+                mortal ? com.atalaya.sonido.AtalayaSonidos.JEFE_ALERTA_MORTAL : com.atalaya.sonido.AtalayaSonidos.JEFE_ALERTA,
+                net.minecraft.sounds.SoundSource.HOSTILE, mortal ? 8.0F : 5.0F, tono);
+    }
+
+
+    /**
+     * Lo que dura la Furia de los cuatro jefes: 30 s, y mientras dura es inmune
+     * (solo toca esquivar). Antes duraba hasta que lo derribaran y en Rajang
+     * podian ser minutos (testers, 07-10-2026). Si lo derriban antes, se acaba antes.
+     */
+    public static final int FURIA_TICKS = 600;
+
+    /** Avisa en la barra de accion a los que pelean de que empieza o se acaba la Furia. */
+    public static void avisarFuria(ServerLevel nivel, LivingEntity jefe, boolean empieza) {
+        net.minecraft.network.chat.Component texto = net.minecraft.network.chat.Component
+                .translatable(empieza ? "hud.atalaya.jefe.furia" : "hud.atalaya.jefe.furia_fin")
+                .withStyle(empieza ? net.minecraft.ChatFormatting.RED : net.minecraft.ChatFormatting.GOLD);
+        for (Player p : nivel.getEntitiesOfClass(Player.class, jefe.getBoundingBox().inflate(64))) {
+            if (!p.isCreative() && !p.isSpectator() && p.isAlive()) {
+                p.sendOverlayMessage(texto);
+            }
+        }
+    }
 
     /** Cada cuanto se revisa el objetivo (ticks). */
     public static final int CADA = 10;
@@ -52,10 +83,27 @@ public final class PresasJefe {
 
     /** Si vale como objetivo: vivo, y si es un jugador, ni en creativo ni en espectador. */
     public static boolean vale(LivingEntity v) {
+        return presa(v);
+    }
+
+    /**
+     * Lo que un jefe ataca y persigue: solo jugadores (en supervivencia o
+     * aventura) y los maniquies, que hacen de jugador en las escenas de prueba.
+     * Nunca a otro jefe ni a otros bichos (Juan, 07-10-2026).
+     */
+    public static boolean presa(LivingEntity v) {
         if (!v.isAlive() || v.isRemoved()) {
             return false;
         }
-        return !(v instanceof Player p) || (!p.isCreative() && !p.isSpectator());
+        if (v instanceof Player p) {
+            return !p.isCreative() && !p.isSpectator();
+        }
+        return v instanceof net.minecraft.world.entity.decoration.Mannequin;
+    }
+
+    /** Es uno de los cuatro jefes: lo suyo no le hace nada a otro jefe. */
+    public static boolean esJefe(@Nullable Entity e) {
+        return e instanceof NereaEntity || e instanceof AeralisEntity || e instanceof RajangEntity || e instanceof NovilisEntity;
     }
 
     /**

@@ -502,17 +502,18 @@ anim('PICADO', 0.5, [(0, _pi_plegada, 'c'), (0.125, sumar(_pi_plegada, alas(2, 3
                      (0.25, _pi_plegada, 'c'), (0.375, sumar(_pi_plegada, alas(-2, -2)), 'c'),
                      (0.5, _pi_plegada, 'c')], loop=True)
 # --- Posada: se estrella al final de la linea, se queda en el suelo con las
-#     alas cerradas jadeando (la ventana de la espada) y se arranca ---
-T_POSADA = 3.4
+#     alas cerradas jadeando (la ventana de la espada) y se arranca. 5 s
+#     (testers, 07-10-2026: con 3,4 casi no daba para la espada) ---
+T_POSADA = 5.0
 _po_choque = sumar(alas(-10, 50, (-8, 36), giro=8), colmillos(30), abdomen(70, 16), patas(34, 20, -10),
                    cuerpo(x=18, sube=-56), {'cabeza': r(36), 'torax': r(20)})
 _cl = [(0, _pi_plegada, 'c'), (0.12, _po_choque, 'l'), (0.4, sumar(_suelo, {'cabeza': r(20)}), 'c')]
-for k in range(5):
+for k in range(9):
     tt = 0.8 + k * 0.42
     _cl.append((round(tt, 3), sumar(_suelo, {'torax': r(-5 if k % 2 == 0 else 2), 'cabeza': r(18 if k % 2 == 0 else 24)},
                                     abdomen(4 if k % 2 == 0 else 0)), 'c'))
-_cl += [(2.95, sumar(alas(-30, 30, giro=-10), cuerpo(sube=-24), {'torax': r(10)}), 'c'),
-        (3.2, sumar(alas(40, -14, giro=14), cuerpo(sube=-8)), 'l'),
+_cl += [(T_POSADA - 0.45, sumar(alas(-30, 30, giro=-10), cuerpo(sube=-24), {'torax': r(10)}), 'c'),
+        (T_POSADA - 0.2, sumar(alas(40, -14, giro=14), cuerpo(sube=-8)), 'l'),
         (T_POSADA, N, 'c')]
 anim('POSADA', T_POSADA, _cl)
 # --- Escamas de Tormenta: sube con las alas en alto y las sacude; caen las escamas ---
@@ -744,7 +745,7 @@ def java_geometria():
         'DURACION_LIBERACION': tick(ANIMS['LIBERACION']['dur']), 'LIBERACION_OJOS_ORO': tick(3.5),
         'PERIODO_VUELO': tick(ANIMS['VUELO']['dur']), 'VUELO_GOLPE': 1,
         'DURACION_PICADO_AVISO': tick(T_PICADO_AVISO), 'PERIODO_PICADO': tick(ANIMS['PICADO']['dur']),
-        'DURACION_POSADA': tick(T_POSADA), 'POSADA_CHOQUE': tick(0.12), 'POSADA_ALZA': tick(2.95),
+        'DURACION_POSADA': tick(T_POSADA), 'POSADA_CHOQUE': tick(0.12), 'POSADA_ALZA': tick(T_POSADA - 0.45),
         'DURACION_ESCAMAS': tick(T_ESCAMAS), 'ESCAMAS_SUELTA': tick(T_ESCAMAS_SUELTA), 'ESCAMAS_ACABA': tick(2.2),
     }
     L = ['package com.atalaya.entity;', '',

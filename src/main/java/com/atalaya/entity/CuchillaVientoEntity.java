@@ -29,17 +29,25 @@ import java.util.UUID;
  * de la punta del ala, baja en picado hasta la altura que le toca y sigue
  * recta, a ras de suelo, unos 48 bloques.
  *
- * Las bajas (de los pies a la rodilla) se SALTAN; las altas (del pecho a la
- * cintura) hay que esquivarlas apartandose. El escudo las para de frente.
+ * Las bajas (azules, a ras de suelo, hasta media pierna) se SALTAN; las altas
+ * (blancas, a la altura de la cabeza) se esquivan AGACHANDOSE: de pie (1,8) te
+ * dan, agachado (1,5) pasan por encima, y saltando te dan. Asi lo pidieron los
+ * testers (07-10-2026): antes la blanca iba al pecho y solo valia apartarse, y
+ * la baja llegaba a 0,85 y el salto tenia que ser muy justo. El escudo las para
+ * de frente.
  * Atraviesa a todos los que pilla: 14 de dano (+9 por fase, y hasta un 30 %
  * mas contra armadura), un empujon fuerte y, una de cada cuatro veces, te
  * levanta unos tres bloques.
  */
 public class CuchillaVientoEntity extends Entity {
 
-    /** Media anchura de la cuchilla (de punta a punta mide el doble) y media altura. */
+    /** Media anchura de la cuchilla (de punta a punta mide el doble). */
     private static final double MEDIO_ANCHO = 1.9;
-    private static final double MEDIO_ALTO = 0.5;
+    /** El centro de cada una sobre el suelo del blanco: la baja de -0,05 a 0,45; la alta de 1,55 a 2,45. */
+    public static final double ALTURA_BAJA = 0.2;
+    public static final double ALTURA_ALTA = 2.0;
+    private static final double MEDIO_ALTO_BAJA = 0.25;
+    private static final double MEDIO_ALTO_ALTA = 0.45;
 
     private @Nullable AeralisEntity duena;
     private double alturaObjetivo;
@@ -87,6 +95,11 @@ public class CuchillaVientoEntity extends Entity {
 
     public int getFase() {
         return entityData.get(DATA_FASE);
+    }
+
+    /** Media altura de lo que corta (tambien lo que dibuja el cliente). */
+    public double medioAlto() {
+        return isAlta() ? MEDIO_ALTO_ALTA : MEDIO_ALTO_BAJA;
     }
 
     public boolean isAlta() {
@@ -139,7 +152,8 @@ public class CuchillaVientoEntity extends Entity {
             return;
         }
         Vec3 dir = d.scale(1.0 / largo);
-        AABB caja = new AABB(desde, hasta).inflate(MEDIO_ANCHO + 1.0, MEDIO_ALTO + 2.0, MEDIO_ANCHO + 1.0);
+        double medioAlto = medioAlto();
+        AABB caja = new AABB(desde, hasta).inflate(MEDIO_ANCHO + 1.0, medioAlto + 2.0, MEDIO_ANCHO + 1.0);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, caja, duena::esPresa)) {
             if (golpeados.contains(v.getUUID())) {
                 continue;
@@ -149,7 +163,7 @@ public class CuchillaVientoEntity extends Entity {
             double l = Math.abs(rel.x * -dir.z + rel.z * dir.x);
             boolean dentro = a >= -v.getBbWidth() && a <= largo + v.getBbWidth()
                     && l <= MEDIO_ANCHO + v.getBbWidth() / 2
-                    && v.getY() < getY() + MEDIO_ALTO && v.getY() + v.getBbHeight() > getY() - MEDIO_ALTO;
+                    && v.getY() < getY() + medioAlto && v.getY() + v.getBbHeight() > getY() - medioAlto;
             if (!dentro) {
                 continue;
             }

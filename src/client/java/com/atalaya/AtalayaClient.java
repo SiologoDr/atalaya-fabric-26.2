@@ -130,6 +130,8 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.GANCHO_NEREA, GanchoNereaRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.OLA_NEREA, com.atalaya.client.OlaNereaRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.GEISER_NEREA, com.atalaya.client.GeiserNereaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CADENA_NEREA, com.atalaya.client.CadenaNereaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.REFUGIO_NEREA, com.atalaya.client.RefugioNereaRenderer::new);
 
         // Aeralis: malla y animaciones generadas desde vendaval_juego*.py, y lo
         // suyo: cuchillas, tornados, rafagas y nucleos (dibujados a mano).
@@ -277,6 +279,11 @@ public class AtalayaClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NovilisEfectosCliente::tick);
         // La Ofrenda al Sol: la secuencia de teclas de quien Novilis tiene en las manos.
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.OfrendaCliente::tick);
+        // De donde vino el golpe: un arco rojo alrededor de la mira (IndicadorGolpe).
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.CROSSHAIR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "indicador_golpe"),
+                oculto(new com.atalaya.client.IndicadorGolpe()));
         // La musica de cada jefe mientras pelea cerca (y la de vanilla calla: MusicaJefesMixin).
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MusicaJefes::tick);
         HudElementRegistry.attachElementAfter(

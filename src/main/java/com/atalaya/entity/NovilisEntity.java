@@ -204,6 +204,9 @@ public class NovilisEntity extends Monster {
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DATA_FURIA =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Cuando se le acaba la Furia (tiempo del mundo; 0: sin Furia): el cliente pinta la cuenta atras. */
+    private static final EntityDataAccessor<Long> DATA_FURIA_FIN =
+            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.LONG);
     /** El Grito de guerra (si las Fuentes fallaron): el Dios de la Guerra mata a todos. */
     private static final EntityDataAccessor<Boolean> DATA_GRITO =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.BOOLEAN);
@@ -338,6 +341,7 @@ public class NovilisEntity extends Monster {
         datos.define(DATA_ESTADO, DORMIDO);
         datos.define(DATA_FASE, 1);
         datos.define(DATA_FURIA, false);
+        datos.define(DATA_FURIA_FIN, 0L);
         datos.define(DATA_GRITO, false);
         datos.define(DATA_GOLPES_FUENTES, 0);
         datos.define(DATA_CARGA, 0.0F);
@@ -373,6 +377,11 @@ public class NovilisEntity extends Monster {
 
     public boolean tieneFuria() {
         return entityData.get(DATA_FURIA);
+    }
+
+    /** El tiempo del mundo en que se le acaba la Furia (0 si no la tiene). */
+    public long getFuriaFin() {
+        return entityData.get(DATA_FURIA_FIN);
     }
 
     public boolean tieneGrito() {
@@ -466,7 +475,12 @@ public class NovilisEntity extends Monster {
         entityData.set(DATA_ESTADO, estado);
         t = 0;
         ritmoEstado = ritmo(estado, fase(), tieneFuria());
-        duracion = (int) Math.ceil(dur / ritmoEstado);
+        avisoEstado = aviso(estado);
+        duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
+        // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
+        if (estado == BARRIDO || estado == CASTIGO || estado == CASTIGO_ONDA || estado == SOL || estado == TROMPETAS || estado == FUENTES || estado == OFRENDA || estado == DIOS) {
+            PresasJefe.alerta(this, estado == OFRENDA || estado == DIOS, 1.05F);
+        }
     }
 
     /**
@@ -486,12 +500,28 @@ public class NovilisEntity extends Monster {
 
     /** Ticks de animacion transcurridos en el estado (los reales por el ritmo). */
     private float ta() {
-        return t * ritmoEstado;
+        return Math.max(0, t - avisoEstado) * ritmoEstado;
     }
+
+    /**
+     * La espera de aviso al empezar un ataque (ticks reales, no se acelera con la
+     * fase ni con la Furia): carga quieto mientras sale el aviso y suena la
+     * alerta, y luego el ataque corre como siempre. Asi de aviso a golpe hay al
+     * menos 0,8 s (testers, 07-10-2026).
+     */
+    public static int aviso(int estado) {
+        return switch (estado) {
+            case BARRIDO -> 10;
+            default -> 0;
+        };
+    }
+
+    /** La espera de aviso del estado actual (ticks reales). */
+    private int avisoEstado;
 
     /** Si este tick cruza el tick de animacion k: los golpes caen donde la animacion. */
     private boolean cruza(int k) {
-        return (t - 1) * ritmoEstado < k && t * ritmoEstado >= k;
+        return (t - 1 - avisoEstado) * ritmoEstado < k && (t - avisoEstado) * ritmoEstado >= k;
     }
 
     /** El dano de un ataque en la fase actual; con la Furia, un 35 % mas. */
@@ -558,11 +588,13 @@ public class NovilisEntity extends Monster {
         for (AnimationState a : acciones()) {
             a.stop();
         }
-        inicioEstado = tickCount;
+        // Con espera de aviso, la animacion (y su reloj) empieza al acabarla.
+        inicioEstado = tickCount + aviso(getEstado());
         ritmoCliente = ritmo(getEstado(), fase(), tieneFuria());
         AnimationState actual = animacionDe(getEstado());
         if (actual != null) {
-            actual.start(tickCount);
+            // Si empieza en el futuro, hasta entonces se queda en su primer fotograma.
+            actual.start(inicioEstado);
         }
     }
 
@@ -655,6 +687,21 @@ public class NovilisEntity extends Monster {
     @Override
     protected void customServerAiStep(ServerLevel nivel) {
         super.customServerAiStep(nivel);
+        // Un jefe de cada tipo por mundo: si ya habia otro, este se va (JefesUnicos).
+        if (!admitido) {
+            JefesUnicos.Registro otro = JefesUnicos.admitir(nivel, this);
+            if (otro != null) {
+                JefesUnicos.avisarRepetido(nivel, this, otro);
+                discard();
+                return;
+            }
+            admitido = true;
+        } else if (tickCount % 200 == 0 && !isDeadOrDying()) {
+            JefesUnicos.apuntar(nivel, this);
+        }
+        if (furiaQueda > 0 && --furiaQueda == 0) {
+            ponerFuria(nivel, false);
+        }
         if (centro == null) {
             centro = blockPosition();
         }
@@ -1057,6 +1104,16 @@ public class NovilisEntity extends Monster {
 
     private void tickBarrido(ServerLevel nivel, @Nullable LivingEntity objetivo) {
         int[] golpes = {NovilisGeometria.TAJO_1, NovilisGeometria.TAJO_2, NovilisGeometria.TAJO_3, NovilisGeometria.TAJO_4};
+        // La espera de aviso: por delante de el, en el suelo, el arco de fuego hasta donde llega la hoja.
+        if (t <= avisoEstado && t % 2 == 0) {
+            for (int g = -105; g <= 105; g += 15) {
+                float rumbo = (yBodyRot + g) * Mth.DEG_TO_RAD;
+                for (double r : new double[]{RADIO_HOJA * 0.5, RADIO_HOJA}) {
+                    nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, getX() - Mth.sin(rumbo) * r, getY() + 0.15,
+                            getZ() + Mth.cos(rumbo) * r, 1, 0.1, 0.05, 0.1, 0.01);
+                }
+            }
+        }
         // Se encara deprisa mientras carga el primer tajo y luego le sigue entre tajo y tajo.
         if (objetivo != null) {
             girarHacia(objetivo.position(), ta() < NovilisGeometria.TAJO_1 ? 24.0F : 10.0F);
@@ -1565,11 +1622,18 @@ public class NovilisEntity extends Monster {
     }
 
     /** La Furia: el fuego se le vuelve azul. */
+    /** Lo que le queda de Furia (ticks, servidor). */
+    private int furiaQueda;
+
     private void ponerFuria(ServerLevel nivel, boolean si) {
         if (tieneFuria() == si) {
             return;
         }
         entityData.set(DATA_FURIA, si);
+        // Dura 30 s y mientras es inmune: solo toca esquivar (testers, 07-10-2026).
+        furiaQueda = si ? PresasJefe.FURIA_TICKS : 0;
+        entityData.set(DATA_FURIA_FIN, si ? nivel.getGameTime() + PresasJefe.FURIA_TICKS : 0L);
+        PresasJefe.avisarFuria(nivel, this, si);
         Vec3 c = puntoMundo(NovilisGeometria.PECHO);
         if (si) {
             sonido(AtalayaSonidos.NOVILIS_FURIA, 8.0F);
@@ -1641,7 +1705,7 @@ public class NovilisEntity extends Monster {
             return false;
         }
         Entity causante = fuente.getEntity();
-        if (causante instanceof NovilisEntity) {
+        if (PresasJefe.esJefe(causante)) {
             return false;
         }
         int e = getEstado();
@@ -1653,6 +1717,11 @@ public class NovilisEntity extends Monster {
         if (e == DESPERTAR || escena > 0 || e == OFRENDA || (e == FUENTES && ta() >= NovilisGeometria.FUENTES_CLAVA)) {
             // Mientras ofrece a alguien a su sol o carga la Supernova no recibe dano:
             // lo que sirve es la secuencia de teclas o romper las fuentes.
+            avisoInmune(nivel, causante);
+            return false;
+        }
+        if (tieneFuria()) {
+            // La Furia: inmune mientras dura (30 s); lo de romper (ojos, nucleos...) va aparte.
             avisoInmune(nivel, causante);
             return false;
         }
@@ -1704,8 +1773,14 @@ public class NovilisEntity extends Monster {
         }
     }
 
+    /** Ya se ha apuntado como el de su tipo en el mundo (JefesUnicos). */
+    private boolean admitido;
+
     @Override
     public void remove(RemovalReason motivo) {
+        if (motivo.shouldDestroy() && admitido && level() instanceof ServerLevel nivelFuera) {
+            JefesUnicos.soltar(nivelFuera, this);
+        }
         if (level() instanceof ServerLevel nivel) {
             limpiar(nivel);
         }
@@ -1815,11 +1890,9 @@ public class NovilisEntity extends Monster {
         return y > p.y + 6 ? p : new Vec3(p.x, y, p.z);
     }
 
+    /** Lo que sus ataques pueden golpear: solo jugadores (y maniquies de prueba), nunca otro jefe (PresasJefe.presa). */
     boolean esPresa(LivingEntity v) {
-        if (v == this || v instanceof NovilisEntity || !v.isAlive()) {
-            return false;
-        }
-        return !(v instanceof Player p) || (!p.isCreative() && !p.isSpectator());
+        return v != this && PresasJefe.presa(v);
     }
 
     /** Jugadores (que no sean creativo ni espectador) entre min y max bloques de el. */
@@ -1968,6 +2041,7 @@ public class NovilisEntity extends Monster {
         salida.putInt("jugadores_grupo", jugadoresGrupo);
         salida.putInt("fase", fase());
         salida.putBoolean("furia", tieneFuria());
+        salida.putInt("furia_queda", furiaQueda);
         salida.putBoolean("grito", tieneGrito());
     }
 
@@ -1979,6 +2053,8 @@ public class NovilisEntity extends Monster {
         jugadoresGrupo = entrada.getIntOr("jugadores_grupo", 1);
         entityData.set(DATA_FASE, entrada.getIntOr("fase", 1));
         entityData.set(DATA_FURIA, entrada.getBooleanOr("furia", false));
+        furiaQueda = tieneFuria() ? entrada.getIntOr("furia_queda", PresasJefe.FURIA_TICKS) : 0;
+        entityData.set(DATA_FURIA_FIN, furiaQueda > 0 ? level().getGameTime() + furiaQueda : 0L);
         entityData.set(DATA_GRITO, entrada.getBooleanOr("grito", false));
         ponerEstado(entrada.getBooleanOr("dormido", true) ? DORMIDO : LIBRE, 0);
     }

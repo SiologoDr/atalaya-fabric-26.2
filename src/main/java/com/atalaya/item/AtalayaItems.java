@@ -54,6 +54,8 @@ public final class AtalayaItems {
      * quedar liberado; es una de las cuatro piezas de los jefes elementales.
      */
     public static Item LAGRIMA_NEREA;
+    /** El Idolo de Oro de Rajang: solo existe mientras el lo busca (IdoloOroItem). */
+    public static Item IDOLO_ORO;
 
     /** Huevo generador de Nerea: nace dormido y encadenado hasta que ve a alguien. */
     public static Item HUEVO_NEREA;
@@ -288,19 +290,21 @@ public final class AtalayaItems {
         // Ocho usos: la durabilidad hace de contador y se ve en la barra.
         OJO_VIGIA = registrar("ojo_vigia", props -> new OjoVigiaItem(props.durability(8)));
         HUEVO_NEREA = registrar("huevo_nerea",
-                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.NEREA)));
+                props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.NEREA)));
         LAGRIMA_NEREA = registrar("lagrima_nerea", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
         HUEVO_AERALIS = registrar("huevo_aeralis",
-                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.AERALIS)));
+                props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.AERALIS)));
         ESCAMA_AERALIS = registrar("escama_aeralis", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
         HUEVO_RAJANG = registrar("huevo_rajang",
-                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.RAJANG)));
+                props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.RAJANG)));
+        IDOLO_ORO = registrar("idolo_oro", props -> new IdoloOroItem(props.stacksTo(1).fireResistant()
+                .rarity(Rarity.EPIC).component(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)));
         COLMILLO_JADE = registrar("colmillo_jade", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
         HUEVO_NOVILIS = registrar("huevo_novilis",
-                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.NOVILIS)));
+                props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.NOVILIS)));
         NUCLEO_SOLAR = registrar("nucleo_solar", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
 

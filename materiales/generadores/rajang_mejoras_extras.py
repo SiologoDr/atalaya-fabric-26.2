@@ -8,6 +8,10 @@ difumina, cada linea es de pixeles enteros.
                        tumba_borde_aviso.png  muescas y cuatro flechas hacia fuera (por
                                          donde hay que salir); el _aviso es el
                                          parpadeo del ultimo segundo
+                       tumba_borde_anillo.png  el borde de la Tumba en anillo: el mismo,
+                       tumba_borde_anillo_aviso.png  con las flechas hacia DENTRO (hacia el)
+                       tumba_seguro.png  el circulo dorado de la Tumba en anillo: donde
+                                         se salva (testers, 07-10-2026)
                        tumba_raiz.png    lo llenado: raices que salen del centro y
                                          el frente encendido (crece en el juego)
                                          Los tres los pinta RajangRenderer tumbados
@@ -63,7 +67,7 @@ def lienzo(w, h=None):
 #  dieciseis muescas hacia dentro y, en los cuatro puntos, una flecha que
 #  apunta hacia fuera. En el parpadeo, todo un tono mas claro y el aro mas grueso.
 # ----------------------------------------------------------------------
-def borde_tumba(encendido):
+def borde_tumba(encendido, hacia_dentro=False):
     n = 64
     im = lienzo(n)
     q = im.load()
@@ -83,13 +87,14 @@ def borde_tumba(encendido):
             elif 25.0 <= r < 28.8 and abs(((a / TAU * 16) % 1.0) - 0.5) < 0.09:
                 q[x, y] = J5 if not encendido else JADE
     # cuatro flechas hacia fuera, entre el filete y el aro: la punta (fila 0) es
-    # lo de mas fuera y cada fila hacia dentro es un pixel mas ancha
+    # lo de mas fuera y cada fila hacia dentro es un pixel mas ancha. En la Tumba
+    # en anillo, al reves: la punta hacia dentro (hay que ir hacia el)
     for k in range(4):
         ang = k * math.pi / 2 + math.pi / 4
         ux, uy = math.cos(ang), math.sin(ang)
         px, py = -uy, ux
         for fila in range(5):
-            d = 24.0 - fila
+            d = 20.0 + fila if hacia_dentro else 24.0 - fila
             for s in range(-fila, fila + 1):
                 x = round(c + ux * d + px * s * 0.9)
                 y = round(c + uy * d + py * s * 0.9)
@@ -100,6 +105,39 @@ def borde_tumba(encendido):
 
 borde_tumba(False).save(os.path.join(ENT, 'tumba_borde.png'))
 borde_tumba(True).save(os.path.join(ENT, 'tumba_borde_aviso.png'))
+borde_tumba(False, True).save(os.path.join(ENT, 'tumba_borde_anillo.png'))
+borde_tumba(True, True).save(os.path.join(ENT, 'tumba_borde_anillo_aviso.png'))
+
+
+# ----------------------------------------------------------------------
+#  El circulo seguro de la Tumba en anillo: en oro (el de su mascara), para
+#  que no se confunda con el jade de lo que mata. El aro de dos tonos, el
+#  filete a trozos y dentro un velo dorado flojo: ahi no llegan las raices.
+# ----------------------------------------------------------------------
+O1, O2, O3, O4, O5 = (hexc(c) for c in ('5a3a0c', '8a5a12', 'c08a1c', 'ffc23a', 'fff0a8'))
+
+
+def seguro_tumba():
+    n = 64
+    im = lienzo(n)
+    q = im.load()
+    c = (n - 1) / 2
+    for y in range(n):
+        for x in range(n):
+            r = math.hypot(x - c, y - c)
+            a = math.atan2(y - c, x - c)
+            if 30.0 <= r < 31.6:
+                q[x, y] = O4
+            elif 28.8 <= r < 30.0:
+                q[x, y] = O3
+            elif 26.2 <= r < 27.2 and int((a + math.pi) / TAU * 40) % 2 == 0:
+                q[x, y] = alfa(O5, 230)
+            elif r < 28.8:
+                q[x, y] = alfa(O2, 40 + int(30 * r / 28.8))
+    return im
+
+
+seguro_tumba().save(os.path.join(ENT, 'tumba_seguro.png'))
 
 
 # ----------------------------------------------------------------------

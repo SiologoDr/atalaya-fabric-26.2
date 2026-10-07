@@ -539,6 +539,50 @@ _claves += [(1.78, mezcla(_ma_alza, {'torso': r(-12)}, brazo('der', -180, 8, -4)
             (2.4, _ma_baja, 'c'), (3.0, N, 'c')]
 anim('MAREA', 3.0, _claves)
 
+# --- Canto de Sirena (octubre de 2026, mecanicas cooperativas): abre los brazos,
+#     echa la cabeza atras y canta; se mece despacio y la mandibula sigue la
+#     melodia. Mientras canta es inmune y los hechizados caminan hacia ella ---
+T_CANTO = 8.0
+_ca_abre = mezcla({'pelvis': P(0, -0.5, 1), 'torso': r(-7), 'cuello': r(-5), 'cabeza': r(-18), 'mandibula': r(24),
+                   'hombro_izq': r(0, 0, -4), 'hombro_der': r(0, 0, 4)},
+                  brazo('izq', -72, -58, -20), brazo('der', -46, 42, -36))
+_claves = [(0, N, 'c'), (0.6, _ca_abre, 'c')]
+k = 1
+while 0.6 + 0.8 * k < T_CANTO - 0.6:
+    lado = 1 if k % 2 else -1
+    _claves.append((round(0.6 + 0.8 * k, 3),
+                    con(_ca_abre, torso=r(-7, 3 * lado, 3 * lado), cabeza=r(-18 + 2 * lado, 7 * lado, 2 * lado),
+                        mandibula=r(18 + 10 * (k % 3 == 0) + 6 * (k % 2))), 'c'))
+    k += 1
+_claves += [(T_CANTO, N, 'c')]
+anim('CANTO', T_CANTO, _claves)
+
+# --- Marea Alta (octubre de 2026): alza el tridente con las dos manos y aguanta
+#     mientras salen las burbujas y corre la cuenta atras; al acabar lo clava y
+#     el mar revienta fuera de las burbujas ---
+T_MAREA_ALTA = 10.0
+T_MAREA_ALTA_ESTALLA = 9.0
+_mt_alza = mezcla({'pelvis': P(0, -1, 1), 'torso': r(-8), 'cuello': r(-3), 'cabeza': r(-12), 'mandibula': r(20)},
+                  brazo('der', -170, 8, -10), brazo('izq', -158, -14, -16))
+_claves = [(0, N, 'c'), (0.6, _mt_alza, 'c')]
+k = 1
+while 0.6 + 0.5 * k < T_MAREA_ALTA_ESTALLA - 0.3:
+    _claves.append((round(0.6 + 0.5 * k, 3), con(_mt_alza, torso=r(-8 + (1 if k % 2 else -1), 0, 0.6 if k % 2 else -0.6),
+                                                 mandibula=r(18 + 4 * (k % 2))), 'c'))
+    k += 1
+_claves += [(T_MAREA_ALTA_ESTALLA, _ge_clava, 'l'), (9.4, _ge_clava, 'c'), (T_MAREA_ALTA, N, 'c')]
+anim('MAREA_ALTA', T_MAREA_ALTA, _claves)
+
+# --- Encadenados (octubre de 2026): recoge la cadena de la mano y la lanza en
+#     arco por encima de los jugadores; las cadenas de agua caen sobre ellos ---
+T_ENCADENAR = 0.6
+_en_recoge = mezcla({'torso': r(-6, -24), 'cabeza': r(-6, -10), 'mandibula': r(12), 'pelvis': P(0, 0.5, 1)},
+                    brazo('izq', -40, 10, -90))
+_en_lanza = mezcla({'torso': r(10, 26), 'cabeza': r(6, 14), 'mandibula': r(26), 'pelvis': P(0, 2, -2)},
+                   brazo('izq', -100, -70, -10), apoyo('izq', 7, SUELO, -12))
+anim('ENCADENAR', 1.4, [(0, N, 'c'), (0.35, _en_recoge, 'c'), (T_ENCADENAR, _en_lanza, 'l'), (0.9, _en_lanza, 'c'),
+                        (1.4, N, 'c')])
+
 
 # ----------------------------------------------------------------------
 #  De poses a canales
@@ -842,6 +886,10 @@ def java_geometria():
         'DURACION_LIBERACION': tick(ANIMS['LIBERACION']['dur']), 'LIBERACION_OJOS_ORO': tick(3.5),
         'DURACION_GEISER': tick(ANIMS['GEISER']['dur']), 'GEISER_GOLPE': tick(T_GEISER),
         'DURACION_MAREA': tick(ANIMS['MAREA']['dur']), 'MAREA_LANZA': tick(T_MAREA),
+        'DURACION_CANTO': tick(T_CANTO), 'CANTO_EMPIEZA': tick(0.6),
+        'DURACION_MAREA_ALTA': tick(T_MAREA_ALTA), 'MAREA_ALTA_BURBUJAS': tick(0.6),
+        'MAREA_ALTA_ESTALLA': tick(T_MAREA_ALTA_ESTALLA),
+        'DURACION_ENCADENAR': tick(ANIMS['ENCADENAR']['dur']), 'ENCADENAR_SUELTA': tick(T_ENCADENAR),
     }
     L = ['package com.atalaya.entity;', '',
          'import net.minecraft.world.phys.Vec3;', '',

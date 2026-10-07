@@ -42,6 +42,7 @@ final class NereaDibujo {
     static final RenderType CHORRO = brillante("rayo_agua");
     static final RenderType ARO_OJO = brillante("aro_ojo");
     static final RenderType SENDERO = brillante("sendero");
+    static final RenderType AVISO_CALLE = brillante("aviso_calle");
     static final RenderType CORAZON = brillante("corazon_burbuja");
     static final RenderType[] GRIETAS = {translucido("grieta_ojo_1"), translucido("grieta_ojo_2"),
             translucido("grieta_ojo_3"), translucido("grieta_ojo_4")};

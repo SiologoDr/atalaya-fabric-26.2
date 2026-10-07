@@ -1541,5 +1541,74 @@
       "atalaya:espada/solar_golpe2",
       "atalaya:espada/solar_golpe3"
     ]
+  },
+  "jefe.alerta": {
+    "subtitle": "subtitles.atalaya.jefe.alerta",
+    "sounds": [
+      "atalaya:jefes/alerta"
+    ]
+  },
+  "jefe.alerta_mortal": {
+    "subtitle": "subtitles.atalaya.jefe.alerta_mortal",
+    "sounds": [
+      "atalaya:jefes/alerta_mortal"
+    ]
+  },
+  "nerea.canto": {
+    "subtitle": "subtitles.atalaya.nerea.canto",
+    "sounds": [
+      "atalaya:nerea/canto"
+    ]
+  },
+  "nerea.trance": {
+    "subtitle": "subtitles.atalaya.nerea.trance",
+    "sounds": [
+      "atalaya:nerea/trance"
+    ]
+  },
+  "nerea.trance_clic": {
+    "subtitle": "subtitles.atalaya.nerea.trance_clic",
+    "sounds": [
+      "atalaya:nerea/trance_clic1",
+      "atalaya:nerea/trance_clic2",
+      "atalaya:nerea/trance_clic3"
+    ]
+  },
+  "nerea.despierta": {
+    "subtitle": "subtitles.atalaya.nerea.despierta",
+    "sounds": [
+      "atalaya:nerea/despierta"
+    ]
+  },
+  "nerea.encadenar": {
+    "subtitle": "subtitles.atalaya.nerea.encadenar",
+    "sounds": [
+      "atalaya:nerea/encadenar"
+    ]
+  },
+  "nerea.cadena_tiron": {
+    "subtitle": "subtitles.atalaya.nerea.cadena_tiron",
+    "sounds": [
+      "atalaya:nerea/cadena_tiron1",
+      "atalaya:nerea/cadena_tiron2"
+    ]
+  },
+  "nerea.refugio": {
+    "subtitle": "subtitles.atalaya.nerea.refugio",
+    "sounds": [
+      "atalaya:nerea/refugio"
+    ]
+  },
+  "nerea.cuenta": {
+    "subtitle": "subtitles.atalaya.nerea.cuenta",
+    "sounds": [
+      "atalaya:nerea/cuenta"
+    ]
+  },
+  "nerea.marea_alta": {
+    "subtitle": "subtitles.atalaya.nerea.marea_alta",
+    "sounds": [
+      "atalaya:nerea/marea_alta"
+    ]
   }
 }

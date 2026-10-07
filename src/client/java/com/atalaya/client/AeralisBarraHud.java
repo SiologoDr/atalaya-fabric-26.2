@@ -8,6 +8,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -156,14 +157,21 @@ public class AeralisBarraHud implements HudElement {
         int e = a.getEstado();
         boolean juicio = e == AeralisEntity.JUICIO_SUBE || e == AeralisEntity.JUICIO_SOSTIENE || e == AeralisEntity.JUICIO_GOLPE;
         if (!libre && !juicio && fase >= 2) {
-            // El viento de vuelta: apenas se ve.
+            // El viento de vuelta: la raya que se llena con los tornados rotos y la
+            // cuenta al lado (testers, 07-10-2026: antes apenas se veia).
             int vy = y0 + VIENTO_Y;
-            g.fill(hx, vy, hx + HUECO_ANCHO, vy + 2, 0x50101826);
-            float k = Mth.clamp(a.getViento() / (float) AeralisEntity.vientoNecesario(fase), 0.0F, 1.0F);
-            int w = Math.round(HUECO_ANCHO * k);
+            int necesario = a.getVientoNecesario();
+            Component cuenta = Component.translatable("hud.atalaya.aeralis.viento", Math.min(a.getViento(), necesario), necesario);
+            int tw = mc.font.width(cuenta);
+            int largo = HUECO_ANCHO - tw - 4;
+            g.fill(hx - 1, vy - 1, hx + largo + 1, vy + 3, 0xB00A0E18);
+            float k = Mth.clamp(a.getViento() / (float) necesario, 0.0F, 1.0F);
+            int w = Math.round(largo * k);
             if (w > 0) {
-                g.fill(hx, vy, hx + w, vy + 2, 0xA0000000 | COLOR_FASE[fase - 1]);
+                g.fill(hx, vy, hx + w, vy + 2, 0xF0000000 | COLOR_FASE[fase - 1]);
+                g.fill(hx + w - 1, vy, hx + w, vy + 2, 0xFF000000 | CLARO_FASE[fase - 1]);
             }
+            g.text(mc.font, cuenta, hx + HUECO_ANCHO - tw, vy - 3, 0xFF000000 | CLARO_FASE[fase - 1], true);
         }
         // El Juicio, como el Sello de Rajang: los cuatro nucleos y el tiempo que le queda.
         if (!libre && (e == AeralisEntity.JUICIO_SOSTIENE || e == AeralisEntity.JUICIO_GOLPE)) {
@@ -179,6 +187,9 @@ public class AeralisBarraHud implements HudElement {
 
         g.blit(RenderPipelines.GUI_TEXTURED, NOMBRE, x0 + 100, y0 + 9, 0.0F, 0.0F, NOMBRE_ANCHO, LETRAS_ALTO,
                 NOMBRE_ANCHO, LETRAS_ALTO, NOMBRE_ANCHO, LETRAS_ALTO, 0xFFFFFFFF);
+        if (furia) {
+            FuriaHud.cuentaAtras(g, a.getFuriaFin(), hx, hy, HUECO_ANCHO, COLOR_FURIA, parcial);
+        }
         g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, y0 + 8,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
     }

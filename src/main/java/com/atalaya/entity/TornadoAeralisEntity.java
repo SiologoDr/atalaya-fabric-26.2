@@ -284,11 +284,9 @@ public class TornadoAeralisEntity extends Entity {
         // repartidos alrededor del eje y a distintas alturas.
         atrapados.removeIf(v -> !v.isAlive() || v.isRemoved());
         int n = atrapados.size();
-        int dentro = tickCount - inicioAtrapa;
-        float k = Mth.clamp(dentro / 200.0F, 0.0F, 1.0F);
-        double radioGiro = Math.min(3.5, 0.7 + 0.35 * (n - 1));
+        double radioGiro = radioAtrapados();
         for (int i = 0; i < n; i++) {
-            double alto = 1.0 + 9.0 * k * (0.5F + 0.5F * fuerza) + (i % 3) * 1.4;
+            double alto = alturaAtrapados() + (i % 3) * 1.4;
             girar(atrapados.get(i), i, n, alto, radioGiro);
         }
         // Y aparta a los demas: un muro de viento que empuja hacia fuera.
@@ -305,6 +303,17 @@ public class TornadoAeralisEntity extends Entity {
                 v.hurtMarked = true;
             }
         }
+    }
+
+    /** Lo lejos del eje que giran los atrapados del ciclon (mas, cuantos mas son). */
+    public double radioAtrapados() {
+        return Math.min(3.5, 0.7 + 0.35 * (Math.max(1, atrapados.size()) - 1));
+    }
+
+    /** A que altura sobre el suelo van los atrapados: suben en 10 s y bajan con cada nucleo roto. */
+    public double alturaAtrapados() {
+        float k = Mth.clamp((tickCount - inicioAtrapa) / 200.0F, 0.0F, 1.0F);
+        return 1.0 + 9.0 * k * (0.5F + 0.5F * getFuerza());
     }
 
     /** Lleva a v (el i de n que lleva) en espiral alrededor del eje, a la altura dada. */

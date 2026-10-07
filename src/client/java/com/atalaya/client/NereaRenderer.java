@@ -95,6 +95,9 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         s.agotado.copyFrom(n.agotado);
         s.geiser.copyFrom(n.geiser);
         s.marea.copyFrom(n.marea);
+        s.canto.copyFrom(n.canto);
+        s.mareaAlta.copyFrom(n.mareaAlta);
+        s.encadenar.copyFrom(n.encadenar);
         s.liberacion.copyFrom(n.liberacion);
         s.estado = n.getEstado();
         s.pesoLibre = Mth.lerp(parcial, n.pesoLibreAnt, n.pesoLibre);
@@ -104,6 +107,7 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         s.ojosRotos = n.getOjosRotos();
         s.golpesIzq = n.getGolpesOjo(0);
         s.golpesDer = n.getGolpesOjo(1);
+        s.golpesNecesarios = n.getGolpesNecesarios();
         s.furia = n.tieneFuria() && !n.isDeadOrDying();
         s.hueco = n.getHueco();
         // En segundos de ANIMACION: con el ritmo de la fase, como el servidor.
@@ -216,6 +220,7 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
             case NereaEntity.MIRADA, NereaEntity.ATURDIDO -> mirada(s, pose, colector, ojo);
             case NereaEntity.REMOLINO -> remolino(s, pose, colector, ojo, ticks);
             case NereaEntity.MOLINO -> molino(s, pose, colector, ticks);
+            case NereaEntity.ROMPEOLAS -> rompeolas(s, pose, colector, ticks);
             case NereaEntity.MAREA -> marea(s, pose, colector, ticks);
             default -> {
             }
@@ -267,7 +272,7 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
             if (ojos[i] == null || golpes[i] <= 0) {
                 continue;
             }
-            int etapa = Math.min(4, 1 + golpes[i] * 4 / NereaEntity.GOLPES_OJO);
+            int etapa = Math.min(4, 1 + golpes[i] * 4 / Math.max(1, s.golpesNecesarios));
             Vec3 c = ojos[i];
             // Un poco por delante del ojo, hacia quien mira: que no se meta dentro.
             Vec3 delante = c.add(ojo.subtract(c).normalize().scale(0.45));
@@ -308,15 +313,51 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
     // ------------------------------------------------------------------
 
     private static void molino(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, float ticks) {
-        float entra = Mth.clamp((ticks - NereaGeometria.MOLINO_VISIBLE) / 6.0F, 0.0F, 1.0F);
+        // El aro sale desde la espera de aviso (ticks negativos: el ataque aun no corre),
+        // latiendo en rojo hasta que las anclas empiezan a barrer; entonces, blanco.
+        float desde = -NereaEntity.aviso(NereaEntity.MOLINO) * s.ritmo;
+        float entra = Mth.clamp((ticks - desde) / 4.0F, 0.0F, 1.0F);
         float sale = Mth.clamp((NereaGeometria.MOLINO_PARA + 6 - ticks) / 8.0F, 0.0F, 1.0F);
         float k = Math.min(entra, sale);
         if (k <= 0.01F) {
             return;
         }
+        boolean avisa = ticks < NereaGeometria.MOLINO_GOLPEA;
+        int color = avisa ? AVISO : 0xFFFFFF;
+        float late = avisa ? 0.6F + 0.4F * Math.abs(Mth.sin(s.ageInTicks * 0.45F)) : 1.0F;
         float m = (float) NereaEntity.RADIO_MOLINO / NereaDibujo.ARO_EN_TEXTURA;
         colector.submitCustomGeometry(pose, NereaDibujo.ARO, (p, buf) ->
-                NereaDibujo.suelo(buf, p, 0.0, 0.07, 0.0, m, s.ageInTicks * 0.01F, 0xFFFFFF, (int) (230 * k)));
+                NereaDibujo.suelo(buf, p, 0.0, 0.07, 0.0, m, s.ageInTicks * 0.01F, color, (int) (235 * k * late)));
+    }
+
+    /** El color de los avisos en el suelo (antes de que el ataque pegue). */
+    private static final int AVISO = 0xFF5A4A;
+
+    /**
+     * El Rompeolas: por donde van a correr las paredes de agua, en el suelo, desde
+     * la espera de aviso hasta que clava el tridente (siguen al jefe mientras apunta).
+     */
+    private static void rompeolas(NereaRenderState s, PoseStack pose, SubmitNodeCollector colector, float ticks) {
+        float impacto = NereaGeometria.IMPACTO_ROMPEOLAS;
+        if (ticks > impacto + 1) {
+            return;
+        }
+        float desde = -NereaEntity.aviso(NereaEntity.ROMPEOLAS) * s.ritmo;
+        float k = Mth.clamp((ticks - desde) / 4.0F, 0.0F, 1.0F);
+        int olas = new int[]{1, 1, 3, 5, 5}[Mth.clamp(s.fase, 1, 4)];
+        float late = 0.75F + 0.25F * Math.abs(Mth.sin(s.ageInTicks * 0.5F));
+        int alfa = (int) (255 * k * late);
+        float corre = s.ageInTicks * 0.08F;
+        for (int w = 0; w < olas; w++) {
+            float b = (s.bodyRot + (w - (olas - 1) / 2.0F) * NereaEntity.ABANICO_OLAS) * Mth.DEG_TO_RAD;
+            Vec3 dir = new Vec3(-Mth.sin(b), 0, Mth.cos(b));
+            Vec3 a = dir.scale(3.0).add(0, 0.08, 0);
+            Vec3 z = dir.scale(NereaEntity.LARGO_OLA).add(0, 0.08, 0);
+            // El ancho exacto de la ola; el color va en la textura (aviso_calle.py).
+            colector.submitCustomGeometry(pose, NereaDibujo.AVISO_CALLE, (p, buf) ->
+                    NereaDibujo.tira(buf, p, a, z, NereaEntity.MEDIO_ANCHO_OLA, -corre,
+                            (float) NereaEntity.LARGO_OLA / 5.0F - corre, 0xFFFFFF, alfa));
+        }
     }
 
     // ------------------------------------------------------------------

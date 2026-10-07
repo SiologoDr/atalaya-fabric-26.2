@@ -5,6 +5,9 @@ import com.atalaya.effect.CorrienteAbismalEffect;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.minecraft.core.BlockPos;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundStopSoundPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -110,6 +113,10 @@ public class NereaEntity extends Monster {
     public static final int AGOTADO = 13;
     public static final int GEISER = 14;
     public static final int MAREA = 15;
+    /** Las mecanicas cooperativas (octubre de 2026): el Canto de Sirena, la Marea Alta y los Encadenados. */
+    public static final int CANTO = 16;
+    public static final int MAREA_ALTA = 17;
+    public static final int ENCADENAR = 18;
 
     /**
      * Vida EFECTIVA: 12 500, la misma con cualquier numero de jugadores. La de
@@ -130,6 +137,12 @@ public class NereaEntity extends Monster {
     // es cosa de los especiales mortales, que no cambian. En la III y la IV,
     // otro -15 % y -20 % (Juan, tras probarlo: las fases I y II estaban bien).
     private static final float[] DANO_ROMPEOLAS = {22, 28, 30, 37};
+    /** El Canto de Sirena: por segundo de trance, pasa la armadura (solo desde la II). */
+    private static final float[] DANO_CANTO = {3, 3, 4, 5};
+    /** Lo que anda solo un hechizado hacia ella (bloques/tick): 2,6 bloques por segundo. */
+    private static final double PASO_TRANCE = 0.13;
+    /** El tiron de la cadena de los Encadenados, a cada uno. */
+    public static final float[] DANO_TIRON = {10, 10, 12, 14};
     private static final float[] DANO_ESTOCADA = {24, 30, 32, 40};
     private static final float[] DANO_MOLINO = {18, 24, 25, 29};
     private static final float[] DANO_GANCHO = {20, 26, 27, 32};
@@ -153,6 +166,32 @@ public class NereaEntity extends Monster {
     /** Impactos que aguanta cada ojo, sean cuantos sean (como los totems de Rajang y los nucleos de Aeralis). */
     public static final int GOLPES_OJO = 10;
 
+    /**
+     * La espera de aviso al empezar un ataque (ticks reales, no se acelera con la
+     * fase ni con la Furia): el jefe carga quieto, sale el aviso en el suelo y
+     * suena la alerta, y luego corre el ataque como siempre. Asi de aviso a golpe
+     * hay al menos 0,8 s (opiniones de los testers, 07-10-2026: el Molino pegaba
+     * a los 0,35 s de salir su aro, 0,25 s en la fase IV).
+     */
+    public static int aviso(int estado) {
+        return switch (estado) {
+            case MOLINO -> 11;
+            case ROMPEOLAS -> 9;
+            default -> 0;
+        };
+    }
+
+    /**
+     * Tras un ataque fuerte, lo minimo que espera antes del siguiente (ticks): da
+     * para comerse algo (una manzana tarda 1,6 s) o beber una pocion.
+     */
+    private static final int RESPIRO_FUERTE = 40;
+    /** Los ataques de area: no encadena dos seguidos. */
+    private static final java.util.Set<Integer> AREA = java.util.Set.of(ROMPEOLAS, REMOLINO, MOLINO, GEISER, MAREA, MAREA_ALTA);
+    /** Los fuertes: tras ellos, RESPIRO_FUERTE. */
+    private static final java.util.Set<Integer> FUERTES = java.util.Set.of(REMOLINO, MOLINO, MIRADA, GEISER, MAREA, CANTO,
+            MAREA_ALTA);
+
     // --- La Furia de las Mareas (si la Mirada sale) ---
     private static final float FURIA_RITMO = 1.15F;
     private static final float FURIA_DANO = 1.2F;
@@ -168,10 +207,12 @@ public class NereaEntity extends Monster {
     /** Hasta donde puede caer el hueco, a un lado o al otro de su rumbo. */
     private static final float MAREA_HUECO_LADO = 14.0F;
 
-    private static final double LARGO_OLA = 34.0;
+    public static final double LARGO_OLA = 34.0;
     private static final int TICKS_OLA = 14;
     /** El Rompeolas abre tres olas en abanico: centro y a cada lado. */
-    private static final float ABANICO_OLAS = 20.0F;
+    public static final float ABANICO_OLAS = 20.0F;
+    /** Medio ancho de cada pared de agua: lo que se ve, lo que pega y la calle de aviso. */
+    public static final float MEDIO_ANCHO_OLA = 2.6F;
     /** Hasta donde arrastra el remolino (y hasta donde se ve girar el agua, en el cliente). */
     public static final double RADIO_REMOLINO = 64.0;
     /** Lo que alcanzan las cadenas del molino: las del modelo, alargadas por ESCALA_MOLINO. */
@@ -206,6 +247,9 @@ public class NereaEntity extends Monster {
     /** La Furia de las Mareas. */
     private static final EntityDataAccessor<Boolean> DATA_FURIA =
             SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Cuando se le acaba la Furia (tiempo del mundo; 0: sin Furia): el cliente pinta la cuenta atras. */
+    private static final EntityDataAccessor<Long> DATA_FURIA_FIN =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.LONG);
     /** Donde cae el hueco de la Gran Marea (bloques a un lado de su rumbo): el cliente lo marca en el suelo. */
     private static final EntityDataAccessor<Float> DATA_HUECO =
             SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.FLOAT);
@@ -226,6 +270,9 @@ public class NereaEntity extends Monster {
     public final AnimationState tambaleo = new AnimationState();
     public final AnimationState agotado = new AnimationState();
     public final AnimationState geiser = new AnimationState();
+    public final AnimationState canto = new AnimationState();
+    public final AnimationState mareaAlta = new AnimationState();
+    public final AnimationState encadenar = new AnimationState();
     public final AnimationState marea = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
     /** Tick del cliente en que empezo el estado actual. */
@@ -249,6 +296,12 @@ public class NereaEntity extends Monster {
     private int duracion;
     /** Lo rapido que va el estado actual: los ataques se aceleran con cada fase. */
     private float ritmoEstado = 1.0F;
+    /** La espera de aviso del estado actual (ticks reales, ver aviso()). */
+    private int avisoEstado;
+    /** El ultimo ataque que hizo (para no encadenar dos de area). */
+    private int ultimoAtaque = -1;
+    /** Los impactos que hacen falta en cada ojo en esta Mirada (segun cuantos pelean). */
+    private int golpesOjoNecesarios = GOLPES_OJO;
     private int tickImpacto = -1;
     private int respiro = 10;
     /** Lo que le queda en escena tras despertar (ticks): quieto, sin atacar e inmune. */
@@ -261,6 +314,23 @@ public class NereaEntity extends Monster {
     private int enfMirada = 120;
     private int enfGeiser = 60;
     private int enfMarea = 200;
+    private int enfCanto = 200;
+    private int enfCadenas = 160;
+    private int enfMareaAlta = 300;
+    /** Canto de Sirena: los elegidos (al empezar a cantar quedan en trance) y lo que lleva cada hechizado para salir. */
+    private final List<LivingEntity> elegidosCanto = new ArrayList<>();
+    private final java.util.Map<UUID, Integer> trance = new java.util.HashMap<>();
+    private final List<LivingEntity> hechizados = new ArrayList<>();
+    /** Encadenados: a quienes ata (por parejas; el ultimo, si son impares, a un ancla). */
+    private final List<LivingEntity> elegidosCadenas = new ArrayList<>();
+    /** Marea Alta: las burbujas de refugio y su aforo. */
+    private final List<RefugioNereaEntity> refugios = new ArrayList<>();
+    private int aforoRefugio = 2;
+    private int refugiosQueSalen;
+    /** Las pistas de la barra de accion: una vez por combate cada una. */
+    private boolean pistaCanto;
+    private boolean pistaCadenas;
+    private boolean pistaMareaAlta;
     private int relojAgotado = CADA_AGOTADO;
     private int ultimoAvisoInmune;
     private int golpesOjoIzq;
@@ -310,6 +380,7 @@ public class NereaEntity extends Monster {
         datos.define(DATA_GOLPES_OJOS, 0);
         datos.define(DATA_MIRADA, "");
         datos.define(DATA_FURIA, false);
+        datos.define(DATA_FURIA_FIN, 0L);
         datos.define(DATA_HUECO, 0.0F);
     }
 
@@ -348,8 +419,19 @@ public class NereaEntity extends Monster {
         return (entityData.get(DATA_GOLPES_OJOS) >> (ojo * 8)) & 255;
     }
 
+    /** Los impactos que hacen falta en cada ojo en esta Mirada. */
+    public int getGolpesNecesarios() {
+        int n = (entityData.get(DATA_GOLPES_OJOS) >> 16) & 255;
+        return n > 0 ? n : GOLPES_OJO;
+    }
+
     public boolean tieneFuria() {
         return entityData.get(DATA_FURIA);
+    }
+
+    /** El tiempo del mundo en que se le acaba la Furia (0 si no la tiene). */
+    public long getFuriaFin() {
+        return entityData.get(DATA_FURIA_FIN);
     }
 
     /** Donde cae el hueco de la Gran Marea, en bloques a un lado de su rumbo (como OlaNereaEntity.lado). */
@@ -400,7 +482,12 @@ public class NereaEntity extends Monster {
         entityData.set(DATA_ESTADO, estado);
         t = 0;
         ritmoEstado = ritmo(estado, fase(), tieneFuria());
-        duracion = (int) Math.ceil(dur / ritmoEstado);
+        avisoEstado = aviso(estado);
+        duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
+        if (avisoEstado > 0 || estado == MIRADA || estado == MAREA || estado == GEISER || estado == REMOLINO
+                || estado == BURBUJAS || estado == ARPON_LANZAR || estado == CANTO || estado == MAREA_ALTA || estado == ENCADENAR) {
+            PresasJefe.alerta(this, estado == MIRADA || estado == MAREA || estado == MAREA_ALTA, 1.0F);
+        }
     }
 
     /**
@@ -421,12 +508,12 @@ public class NereaEntity extends Monster {
 
     /** Ticks de animacion transcurridos en el estado (los reales por el ritmo). */
     private float ta() {
-        return t * ritmoEstado;
+        return Math.max(0, t - avisoEstado) * ritmoEstado;
     }
 
     /** Si este tick cruza el tick de animacion k: los golpes caen donde la animacion. */
     private boolean cruza(int k) {
-        return (t - 1) * ritmoEstado < k && t * ritmoEstado >= k;
+        return (t - 1 - avisoEstado) * ritmoEstado < k && (t - avisoEstado) * ritmoEstado >= k;
     }
 
     /** El dano de un ataque en la fase actual: cada ataque lleva el suyo de la fase I a la IV; con la Furia, un 35 % mas. */
@@ -446,7 +533,7 @@ public class NereaEntity extends Monster {
 
     private AnimationState[] acciones() {
         return new AnimationState[]{dormido, despertar, rompeolas, remolino, burbujas, molino, arponLanzar,
-                arponEspera, arponTirar, mirada, aturdido, tambaleo, agotado, geiser, marea};
+                arponEspera, arponTirar, mirada, aturdido, tambaleo, agotado, geiser, marea, canto, mareaAlta, encadenar};
     }
 
     private @Nullable AnimationState animacionDe(int estado) {
@@ -466,6 +553,9 @@ public class NereaEntity extends Monster {
             case AGOTADO -> agotado;
             case GEISER -> geiser;
             case MAREA -> marea;
+            case CANTO -> canto;
+            case MAREA_ALTA -> mareaAlta;
+            case ENCADENAR -> encadenar;
             default -> null;
         };
     }
@@ -478,11 +568,13 @@ public class NereaEntity extends Monster {
         for (AnimationState a : acciones()) {
             a.stop();
         }
-        inicioEstado = tickCount;
+        // Con espera de aviso, la animacion (y su reloj) empieza al acabarla.
+        inicioEstado = tickCount + aviso(getEstado());
         ritmoCliente = ritmo(getEstado(), fase(), tieneFuria());
         AnimationState actual = animacionDe(getEstado());
         if (actual != null) {
-            actual.start(tickCount);
+            // Si empieza en el futuro, hasta entonces se queda en su primer fotograma.
+            actual.start(inicioEstado);
         }
     }
 
@@ -571,6 +663,21 @@ public class NereaEntity extends Monster {
     @Override
     protected void customServerAiStep(ServerLevel nivel) {
         super.customServerAiStep(nivel);
+        // Un jefe de cada tipo por mundo: si ya habia otro, este se va (JefesUnicos).
+        if (!admitido) {
+            JefesUnicos.Registro otro = JefesUnicos.admitir(nivel, this);
+            if (otro != null) {
+                JefesUnicos.avisarRepetido(nivel, this, otro);
+                discard();
+                return;
+            }
+            admitido = true;
+        } else if (tickCount % 200 == 0 && !isDeadOrDying()) {
+            JefesUnicos.apuntar(nivel, this);
+        }
+        if (furiaQueda > 0 && --furiaQueda == 0) {
+            ponerFuria(nivel, false);
+        }
         if (centro == null) {
             centro = blockPosition();
         }
@@ -607,6 +714,10 @@ public class NereaEntity extends Monster {
         if (enfMirada > 0) enfMirada--;
         if (enfGeiser > 0) enfGeiser--;
         if (enfMarea > 0) enfMarea--;
+        if (enfCanto > 0) enfCanto--;
+        if (enfCadenas > 0) enfCadenas--;
+        if (enfMareaAlta > 0) enfMareaAlta--;
+        limpiarCooperativas(nivel);
 
         int e = getEstado();
         t++;
@@ -627,6 +738,9 @@ public class NereaEntity extends Monster {
             case AGOTADO -> tickAgotado(nivel);
             case GEISER -> tickGeiser(nivel, objetivo);
             case MAREA -> tickMarea(nivel);
+            case CANTO -> tickCanto(nivel);
+            case MAREA_ALTA -> tickMareaAlta(nivel);
+            case ENCADENAR -> tickEncadenar(nivel);
             default -> {
             }
         }
@@ -648,13 +762,21 @@ public class NereaEntity extends Monster {
         soltarGancho();
         presa = null;
         ponerEstado(LIBRE, 0);
-        respiro = new int[]{0, 18, 14, 11, 8}[fase()];
+        // Nerea es el primer jefe: entre ataque y ataque, algo mas de aire que los demas.
+        respiro = new int[]{0, 24, 20, 15, 11}[fase()];
         if (e == DESPERTAR) {
             respiro = Math.max(respiro, PresasJefe.RESPIRO_PRESENTACION);
             escena = PresasJefe.ESCENA_QUIETO;
         }
         if (tieneFuria()) {
             respiro = (int) (respiro * FURIA_ENFRIA);
+        }
+        // Tras uno fuerte, tiempo para comer o beber (tambien con la Furia).
+        if (FUERTES.contains(e)) {
+            respiro = Math.max(respiro, RESPIRO_FUERTE);
+        }
+        if (e != LIBRE && e != DESPERTAR) {
+            ultimoAtaque = e;
         }
     }
 
@@ -719,6 +841,21 @@ public class NereaEntity extends Monster {
         if (fase >= 3 && enfMirada <= 0 && !presasMirada(nivel).isEmpty()) opciones.add(new int[]{MIRADA, 4});
         if (fase >= 2 && enfGeiser <= 0 && !jugadores(nivel, 40, 0).isEmpty()) opciones.add(new int[]{GEISER, 4});
         if (fase >= 3 && enfMarea <= 0 && !jugadores(nivel, MAREA_LARGO, 0).isEmpty()) opciones.add(new int[]{MAREA, 3});
+        if (fase >= 2 && enfCanto <= 0 && !tercio(nivel, 48).isEmpty()) opciones.add(new int[]{CANTO, 3});
+        if (fase >= 2 && enfCadenas <= 0 && !tercio(nivel, 40).isEmpty()) opciones.add(new int[]{ENCADENAR, 3});
+        if (fase >= 3 && enfMareaAlta <= 0 && !jugadores(nivel, 48, 0).isEmpty()) opciones.add(new int[]{MAREA_ALTA, 3});
+        // No encadena dos de area: tras uno, si puede, otro que no lo sea.
+        if (AREA.contains(ultimoAtaque)) {
+            List<int[]> otros = new ArrayList<>();
+            for (int[] o : opciones) {
+                if (!AREA.contains(o[0])) {
+                    otros.add(o);
+                }
+            }
+            if (!otros.isEmpty()) {
+                opciones = otros;
+            }
+        }
         if (opciones.isEmpty()) {
             return false;
         }
@@ -759,7 +896,8 @@ public class NereaEntity extends Monster {
                 ponerEstado(ROMPEOLAS, NereaGeometria.DURACION_ROMPEOLAS);
                 // No se mueve ni ataca hasta que sus olas acaban de correr (con el ritmo de las
                 // ultimas fases el estado acababa antes y las olas dejaban de pegar a medio camino).
-                duracion = Math.max(duracion, (int) Math.ceil(NereaGeometria.IMPACTO_ROMPEOLAS / ritmoEstado) + TICKS_OLA + 2);
+                duracion = Math.max(duracion, (int) Math.ceil(NereaGeometria.IMPACTO_ROMPEOLAS / ritmoEstado) + TICKS_OLA + 2
+                        + avisoEstado);
                 sonido(AtalayaSonidos.NEREA_ROMPEOLAS_ALZAR, 3.0F);
             }
             case BURBUJAS -> {
@@ -799,7 +937,9 @@ public class NereaEntity extends Monster {
                 sonido(AtalayaSonidos.NEREA_ARPON_LANZAR, 3.0F);
             }
             case MIRADA -> {
-                // A un tercio de los que pelean: los de menos vida que tiene a la vista.
+                // A la mitad de los que pelean: los de menos vida que tiene a la vista. A cambio,
+                // romperle los ojos cuesta segun cuantos son: 5 impactos por ojo con pocos y
+                // hasta 12 con muchos (testers, 07-10-2026).
                 List<LivingEntity> elegidos = presasMirada(nivel);
                 if (elegidos.isEmpty() && presaElegida != null) {
                     elegidos = List.of(presaElegida);
@@ -812,11 +952,69 @@ public class NereaEntity extends Monster {
                 mirados.addAll(elegidos);
                 golpesOjoIzq = 0;
                 golpesOjoDer = 0;
+                golpesOjoNecesarios = Mth.clamp(4 + jugadoresGrupo / 6, 5, 12);
+                entityData.set(DATA_GOLPES_OJOS, golpesOjoNecesarios << 16);
                 anotarMirados();
+                // Que se sepa como pararla: a todos los de alrededor, en la barra de accion.
+                for (Player p : jugadores(nivel, 64, 0)) {
+                    p.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+                            "hud.atalaya.nerea.mirada_aviso").withStyle(net.minecraft.ChatFormatting.AQUA));
+                }
                 entityData.set(DATA_OBJETIVO, elegidos.get(0).getId());
                 ponerEstado(MIRADA, NereaGeometria.DURACION_MIRADA);
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 6.0F);
                 sonido(AtalayaSonidos.NEREA_MIRADA_CARGA, 3.0F);
+            }
+            case CANTO -> {
+                enfCanto = (int) (640 * k);
+                // Un tercio de los que pelean, empezando por los mas lejanos (los que se quedan atras disparando).
+                List<LivingEntity> todos = tercio(nivel, 48);
+                if (todos.isEmpty()) {
+                    return;
+                }
+                todos.sort(java.util.Comparator.comparingDouble((LivingEntity v) -> -horizontal(position(), v.position())));
+                elegidosCanto.clear();
+                elegidosCanto.addAll(todos.subList(0, (todos.size() + 2) / 3));
+                ponerEstado(CANTO, NereaGeometria.DURACION_CANTO);
+                if (!pistaCanto) {
+                    pistaCanto = true;
+                    avisar(nivel, Component.translatable("hud.atalaya.nerea.canto_aviso").withStyle(ChatFormatting.LIGHT_PURPLE));
+                }
+            }
+            case ENCADENAR -> {
+                enfCadenas = (int) (700 * k);
+                // Un tercio, por parejas (con dos, la pareja; si sobra uno o esta solo, a un ancla).
+                List<LivingEntity> todos = tercio(nivel, 40);
+                if (todos.isEmpty()) {
+                    return;
+                }
+                java.util.Collections.shuffle(todos, new java.util.Random(random.nextLong()));
+                int n = todos.size();
+                int cuantos = (n + 2) / 3;
+                if (n >= 2) {
+                    cuantos = Math.max(2, cuantos);
+                }
+                if (cuantos % 2 == 1 && cuantos < n) {
+                    cuantos++;
+                }
+                elegidosCadenas.clear();
+                elegidosCadenas.addAll(todos.subList(0, cuantos));
+                ponerEstado(ENCADENAR, NereaGeometria.DURACION_ENCADENAR);
+                sonido(AtalayaSonidos.NEREA_ENCADENAR, 4.0F);
+            }
+            case MAREA_ALTA -> {
+                enfMareaAlta = (int) (900 * k);
+                // Burbujas de refugio justas: una por cada "aforo" de los que pelean.
+                int n = Math.max(1, tercioTodos(nivel, 48).size());
+                aforoRefugio = n <= 8 ? 2 : n <= 24 ? 3 : 4;
+                refugiosQueSalen = (n + aforoRefugio - 1) / aforoRefugio;
+                ponerEstado(MAREA_ALTA, NereaGeometria.DURACION_MAREA_ALTA);
+                sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
+                if (!pistaMareaAlta) {
+                    pistaMareaAlta = true;
+                    avisar(nivel, Component.translatable("hud.atalaya.nerea.marea_alta_aviso", aforoRefugio)
+                            .withStyle(ChatFormatting.GOLD));
+                }
             }
             case GEISER -> {
                 enfGeiser = (int) (260 * k);
@@ -896,6 +1094,14 @@ public class NereaEntity extends Monster {
                 ponerFuria(nivel, !tieneFuria());
                 return true;
             }
+            case "clic" -> {
+                // Un clic de companero al primer hechizado (para probar el trance sin dos jugadores).
+                if (!hechizados.isEmpty() && blanco instanceof LivingEntity) {
+                    LivingEntity v = hechizados.get(0);
+                    clicTrance(nivel, v, null, TranceSirena.CLIC_COMPANERO);
+                }
+                return true;
+            }
             case "ojo" -> {
                 // Un impacto en el primer ojo que siga encendido, como una flecha (solo durante la Mirada).
                 if (getEstado() == MIRADA) {
@@ -917,6 +1123,9 @@ public class NereaEntity extends Monster {
             case "aturdido" -> ATURDIDO;
             case "geiser" -> GEISER;
             case "marea" -> MAREA;
+            case "canto" -> CANTO;
+            case "marea_alta" -> MAREA_ALTA;
+            case "cadenas" -> ENCADENAR;
             default -> -1;
         };
         if (ataque < 0) {
@@ -936,7 +1145,7 @@ public class NereaEntity extends Monster {
             empezarAgotado();
         } else if (ataque == ATURDIDO) {
             entityData.set(DATA_OJOS, 3);
-            entityData.set(DATA_GOLPES_OJOS, GOLPES_OJO | (GOLPES_OJO << 8));
+            entityData.set(DATA_GOLPES_OJOS, golpesOjoNecesarios | (golpesOjoNecesarios << 8) | (golpesOjoNecesarios << 16));
             ponerEstado(ATURDIDO, NereaGeometria.DURACION_ATURDIDO);
             sonido(AtalayaSonidos.NEREA_ATURDIDO, 3.0F);
         } else {
@@ -1065,7 +1274,7 @@ public class NereaEntity extends Monster {
                 olaOrigenes[w] = p;
                 olaDirs[w] = enRumbo(yBodyRot + abre, 1).subtract(position());
                 // La pared de agua que se ve: avanza con el golpe (golpearLinea, abajo).
-                OlaNereaEntity.ola(nivel, this, p, olaDirs[w], 2.6F, 3.4F, (float) (LARGO_OLA / TICKS_OLA), (float) LARGO_OLA);
+                OlaNereaEntity.ola(nivel, this, p, olaDirs[w], MEDIO_ANCHO_OLA, 3.4F, (float) (LARGO_OLA / TICKS_OLA), (float) LARGO_OLA);
             }
             // El asta al caer: lo que estaba debajo, de sus pies a la punta.
             golpearLinea(nivel, position(), olaDirs[0], 3.0, punta + 1.0, 1.4);
@@ -1076,7 +1285,7 @@ public class NereaEntity extends Monster {
             for (int w = 0; w < olaDirs.length; w++) {
                 Vec3 o = olaOrigenes[w];
                 Vec3 dir = olaDirs[w];
-                golpearLinea(nivel, o, dir, d0, d0 + paso, 2.6);
+                golpearLinea(nivel, o, dir, d0, d0 + paso, MEDIO_ANCHO_OLA);
                 Vec3 lado = new Vec3(-dir.z, 0, dir.x);
                 for (int k = 0; k < 8; k++) {
                     double a = d0 + random.nextDouble() * paso;
@@ -1258,7 +1467,7 @@ public class NereaEntity extends Monster {
         if (t % 8 == 0) {
             sonido(AtalayaSonidos.NEREA_MOLINO_GIRO, 3.0F);
         }
-        float antes = rumbo + NereaGeometria.giroMolino((t - 1) * ritmoEstado);
+        float antes = rumbo + NereaGeometria.giroMolino(Math.max(0, t - 1 - avisoEstado) * ritmoEstado);
         float ahora = rumbo + giro;
         AABB caja = getBoundingBox().inflate(RADIO_MOLINO + 1, 0, RADIO_MOLINO + 1).expandTowards(0, 1, 0);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, caja, this::esPresa)) {
@@ -1516,7 +1725,7 @@ public class NereaEntity extends Monster {
     }
 
     /**
-     * Un impacto en un ojo (0 el izquierdo): se raja; con GOLPES_OJO se rompe.
+     * Un impacto en un ojo (0 el izquierdo): se raja; con los que hagan falta se rompe.
      * Con los dos rotos la Mirada se corta, cae aturdida y se le va la Furia.
      */
     private void golpearOjo(ServerLevel nivel, int cual) {
@@ -1526,12 +1735,13 @@ public class NereaEntity extends Monster {
         }
         Vec3 ojo = puntoMundo(cual == 0 ? NereaGeometria.OJO_IZQ_MIRADA : NereaGeometria.OJO_DER_MIRADA);
         int golpes = cual == 0 ? ++golpesOjoIzq : ++golpesOjoDer;
-        entityData.set(DATA_GOLPES_OJOS, Math.min(255, golpesOjoIzq) | (Math.min(255, golpesOjoDer) << 8));
+        entityData.set(DATA_GOLPES_OJOS, Math.min(255, golpesOjoIzq) | (Math.min(255, golpesOjoDer) << 8)
+                | (golpesOjoNecesarios << 16));
         nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, ojo.x, ojo.y, ojo.z, 8, 0.15, 0.15, 0.15, 0.25);
         nivel.sendParticles(AtalayaParticulas.NEREA_SELLO, true, true, ojo.x, ojo.y, ojo.z, 6, 0.1, 0.1, 0.1, 0.15);
         nivel.playSound(null, ojo.x, ojo.y, ojo.z, AtalayaSonidos.NEREA_SELLO_GOLPE, SoundSource.HOSTILE, 2.0F,
-                1.0F + 0.6F * golpes / GOLPES_OJO);
-        if (golpes < GOLPES_OJO) {
+                1.0F + 0.6F * golpes / golpesOjoNecesarios);
+        if (golpes < golpesOjoNecesarios) {
             return;
         }
         int rotos = ojos | (1 << cual);
@@ -1552,11 +1762,18 @@ public class NereaEntity extends Monster {
     }
 
     /** La Furia de las Mareas: se prende cuando sale la Mirada y se apaga al derribarla. */
+    /** Lo que le queda de Furia (ticks, servidor). */
+    private int furiaQueda;
+
     private void ponerFuria(ServerLevel nivel, boolean si) {
         if (tieneFuria() == si) {
             return;
         }
         entityData.set(DATA_FURIA, si);
+        // Dura 30 s y mientras es inmune: solo toca esquivar (testers, 07-10-2026).
+        furiaQueda = si ? PresasJefe.FURIA_TICKS : 0;
+        entityData.set(DATA_FURIA_FIN, si ? nivel.getGameTime() + PresasJefe.FURIA_TICKS : 0L);
+        PresasJefe.avisarFuria(nivel, this, si);
         Vec3 c = puntoMundo(NereaGeometria.CORAZON);
         if (si) {
             sonido(AtalayaSonidos.NEREA_FURIA, 8.0F);
@@ -1610,6 +1827,282 @@ public class NereaEntity extends Monster {
         BlockHitResult choque = nivel.clip(new ClipContext(v.position(), v.position().add(0, -8, 0), ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE, v));
         return choque.getType() == HitResult.Type.MISS ? v.getY() : choque.getLocation().y;
+    }
+
+    // ------------------------------------------------------------------
+    //  Mecanicas cooperativas (octubre de 2026, Juan: "que cada jefe haga
+    //  cooperar a los jugadores con mecanicas suyas")
+    // ------------------------------------------------------------------
+
+    /**
+     * Los que pelean (jugadores a "radio"; sin jugadores, lo vivo que puede
+     * atacar: los maniquies de las escenas de prueba).
+     */
+    private List<LivingEntity> tercioTodos(ServerLevel nivel, double radio) {
+        List<LivingEntity> out = new ArrayList<>(jugadores(nivel, radio, 0));
+        if (out.isEmpty()) {
+            out.addAll(nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(radio, 16, radio), this::esPresa));
+        }
+        return out;
+    }
+
+    /** Lo mismo, pero vacio si no hay nadie con quien hacerlo (para elegir el ataque). */
+    private List<LivingEntity> tercio(ServerLevel nivel, double radio) {
+        return tercioTodos(nivel, radio);
+    }
+
+    /** Un aviso en la barra de accion a todos los que pelean. */
+    private void avisar(ServerLevel nivel, Component texto) {
+        for (Player p : jugadores(nivel, 64, 0)) {
+            p.sendOverlayMessage(texto);
+        }
+    }
+
+    // --- Canto de Sirena ---
+
+    /**
+     * Canta 8 s. Al empezar, los elegidos (un tercio, los mas lejanos) quedan en
+     * trance: andan solos hacia ella, pierden vida cada segundo y no pueden
+     * atacar. Los saca un companero a clics (TranceSirena). Ella, mientras, es
+     * inmune. Sin rayo: solo canta (las notas le salen de la boca y suben).
+     */
+    private void tickCanto(ServerLevel nivel) {
+        if (t == NereaGeometria.CANTO_EMPIEZA) {
+            sonido(AtalayaSonidos.NEREA_CANTO, 7.0F);
+            for (LivingEntity v : elegidosCanto) {
+                if (esPresa(v)) {
+                    hechizar(nivel, v);
+                }
+            }
+            elegidosCanto.clear();
+        }
+        if (t % 3 == 0) {
+            Vec3 boca = puntoMundo(NereaGeometria.BOCA).add(0, 1.0, 0);
+            double a = random.nextDouble() * Math.PI * 2;
+            nivel.sendParticles(ParticleTypes.NOTE, true, true, boca.x + Math.cos(a) * 1.6, boca.y + random.nextDouble(),
+                    boca.z + Math.sin(a) * 1.6, 0, 0.65 + random.nextDouble() * 0.25, 0, 0, 1.0);
+        }
+        if (t >= NereaGeometria.CANTO_EMPIEZA) {
+            tickTrance(nivel);
+        }
+    }
+
+    private void hechizar(ServerLevel nivel, LivingEntity v) {
+        trance.put(v.getUUID(), 0);
+        if (!hechizados.contains(v)) {
+            hechizados.add(v);
+        }
+        TranceSirena.apuntar(v, this);
+        int queda = Math.max(20, duracion - t);
+        v.addEffect(new MobEffectInstance(MobEffects.NAUSEA, queda + 40, 0, false, false), this);
+        nivel.playSound(null, v.getX(), v.getEyeY(), v.getZ(), AtalayaSonidos.NEREA_TRANCE, SoundSource.HOSTILE, 1.5F, 1.0F);
+        if (v instanceof Player p) {
+            p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.trance", 0, TranceSirena.NECESARIO)
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+    }
+
+    /** Los hechizados andan hacia ella, pierden vida cada segundo y echan notas. */
+    private void tickTrance(ServerLevel nivel) {
+        int desde = t - NereaGeometria.CANTO_EMPIEZA;
+        for (LivingEntity v : new ArrayList<>(hechizados)) {
+            if (!esPresa(v) || v.distanceToSqr(this) > 72 * 72) {
+                soltarTrance(nivel, v, false);
+                continue;
+            }
+            double d = horizontal(position(), v.position());
+            Vec3 hacia = horizontalHacia(v.position(), position());
+            Vec3 vel = v.getDeltaMovement();
+            double parar = getBbWidth() * 0.5 + 2.5;
+            double paso = d > parar ? PASO_TRANCE : 0.0;
+            v.setDeltaMovement(hacia.x * paso, vel.y, hacia.z * paso);
+            v.hurtMarked = true;
+            if (desde % 20 == 10) {
+                v.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.CANTO, this, this), dano(DANO_CANTO));
+            }
+            if (t % 4 == 0) {
+                nivel.sendParticles(ParticleTypes.NOTE, true, true, v.getX(), v.getY() + v.getBbHeight() + 0.4, v.getZ(), 0,
+                        0.8 + random.nextDouble() * 0.15, 0, 0, 1.0);
+                nivel.sendParticles(ParticleTypes.HEART, true, true, v.getX(), v.getY() + v.getBbHeight() + 0.2, v.getZ(), 1,
+                        0.3, 0.1, 0.3, 0.0);
+            }
+            if (t % 10 == 0 && v instanceof Player p) {
+                p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.trance", trance.getOrDefault(v.getUUID(), 0),
+                        TranceSirena.NECESARIO).withStyle(ChatFormatting.LIGHT_PURPLE));
+            }
+        }
+    }
+
+    /** Un clic a un hechizado: de un companero (o de el mismo, que cuenta menos). Al llegar a NECESARIO, sale. */
+    void clicTrance(ServerLevel nivel, LivingEntity v, @Nullable Player quien, int puntos) {
+        Integer antes = trance.get(v.getUUID());
+        if (antes == null) {
+            return;
+        }
+        int ahora = antes + puntos;
+        float k = Math.min(1.0F, ahora / (float) TranceSirena.NECESARIO);
+        nivel.playSound(null, v.getX(), v.getEyeY(), v.getZ(), AtalayaSonidos.NEREA_TRANCE_CLIC, SoundSource.PLAYERS, 1.0F,
+                0.9F + 0.6F * k);
+        nivel.sendParticles(AtalayaParticulas.NEREA_BURBUJA, true, true, v.getX(), v.getY() + 1.2, v.getZ(), 4, 0.3, 0.3, 0.3, 0.05);
+        if (ahora >= TranceSirena.NECESARIO) {
+            soltarTrance(nivel, v, true);
+            return;
+        }
+        trance.put(v.getUUID(), ahora);
+        if (v instanceof Player p) {
+            p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.trance", ahora, TranceSirena.NECESARIO)
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+        if (quien != null && quien != v) {
+            quien.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.despertando", v.getDisplayName(), ahora,
+                    TranceSirena.NECESARIO).withStyle(ChatFormatting.AQUA));
+        }
+    }
+
+    /** Sale del trance (despierto: con su sonido y su aviso). */
+    private void soltarTrance(ServerLevel nivel, LivingEntity v, boolean despierto) {
+        trance.remove(v.getUUID());
+        hechizados.remove(v);
+        TranceSirena.quitar(v);
+        v.removeEffect(MobEffects.NAUSEA);
+        if (despierto) {
+            nivel.playSound(null, v.getX(), v.getEyeY(), v.getZ(), AtalayaSonidos.NEREA_DESPIERTA, SoundSource.PLAYERS, 1.5F, 1.0F);
+            nivel.sendParticles(AtalayaParticulas.NEREA_BURBUJA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 16, 0.4, 0.6, 0.4,
+                    0.15);
+            if (v instanceof Player p) {
+                p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.libre").withStyle(ChatFormatting.AQUA));
+            }
+        }
+    }
+
+    private void liberarTrance(ServerLevel nivel) {
+        for (LivingEntity v : new ArrayList<>(hechizados)) {
+            soltarTrance(nivel, v, true);
+        }
+        hechizados.clear();
+        trance.clear();
+        elegidosCanto.clear();
+    }
+
+    /** Si el canto o la Marea Alta se cortan (un cambio de fase, la muerte), se acaba lo suyo. */
+    private void limpiarCooperativas(ServerLevel nivel) {
+        int e = getEstado();
+        if (e != CANTO && !hechizados.isEmpty()) {
+            liberarTrance(nivel);
+        }
+        if (e != MAREA_ALTA && !refugios.isEmpty()) {
+            for (RefugioNereaEntity r : refugios) {
+                r.reventar(nivel, true);
+            }
+            refugios.clear();
+        }
+    }
+
+    // --- Encadenados ---
+
+    /** Lanza las cadenas: al soltarlas, ata por parejas (o a un ancla) durante 15 s. */
+    private void tickEncadenar(ServerLevel nivel) {
+        if (!cruza(NereaGeometria.ENCADENAR_SUELTA)) {
+            return;
+        }
+        List<LivingEntity> v = new ArrayList<>(elegidosCadenas);
+        v.removeIf(x -> !esPresa(x));
+        elegidosCadenas.clear();
+        for (int i = 0; i + 1 < v.size(); i += 2) {
+            CadenaNereaEntity.atar(nivel, this, v.get(i), v.get(i + 1));
+            avisarCadena(v.get(i), false);
+            avisarCadena(v.get(i + 1), false);
+        }
+        if (v.size() % 2 == 1) {
+            LivingEntity solo = v.get(v.size() - 1);
+            CadenaNereaEntity.atar(nivel, this, solo, null);
+            avisarCadena(solo, true);
+        }
+        Vec3 mano = puntoMundo(NereaGeometria.MANO_IZQ_LANZAR);
+        nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, mano.x, mano.y, mano.z, 20, 0.6, 0.6, 0.6, 0.3);
+        if (!pistaCadenas) {
+            pistaCadenas = true;
+        }
+    }
+
+    private void avisarCadena(LivingEntity v, boolean alAncla) {
+        if (v instanceof Player p) {
+            p.sendOverlayMessage(Component.translatable(alAncla ? "hud.atalaya.nerea.cadena_ancla" : "hud.atalaya.nerea.cadena_pareja",
+                    (int) CadenaNereaEntity.LARGO).withStyle(ChatFormatting.AQUA));
+        }
+    }
+
+    // --- Marea Alta ---
+
+    /**
+     * Alza el tridente: salen las burbujas de refugio (las justas) repartidas
+     * por la arena y corre la cuenta atras; al acabar lo clava y revienta el
+     * mar: a quien no este en una (con sitio), la muerte salvo totem.
+     */
+    private void tickMareaAlta(ServerLevel nivel) {
+        if (t == NereaGeometria.MAREA_ALTA_BURBUJAS) {
+            sacarRefugios(nivel);
+        }
+        int estalla = NereaGeometria.MAREA_ALTA_ESTALLA;
+        if (t > NereaGeometria.MAREA_ALTA_BURBUJAS && t < estalla && (estalla - t) % 20 == 0) {
+            int s = (estalla - t) / 20;
+            sonido(AtalayaSonidos.NEREA_CUENTA, 4.0F);
+            avisar(nivel, Component.translatable("hud.atalaya.nerea.marea_alta", s)
+                    .withStyle(s <= 3 ? ChatFormatting.RED : ChatFormatting.GOLD, ChatFormatting.BOLD));
+        }
+        if (t == estalla) {
+            estallarMareaAlta(nivel);
+        }
+    }
+
+    private void sacarRefugios(ServerLevel nivel) {
+        refugios.clear();
+        Vec3 c = centro != null ? Vec3.atBottomCenterOf(centro) : position();
+        int n = Math.max(1, refugiosQueSalen);
+        double giro = random.nextDouble() * Math.PI * 2;
+        for (int i = 0; i < n; i++) {
+            Vec3 p = null;
+            for (int intento = 0; intento < 8 && p == null; intento++) {
+                double a = giro + i * Math.PI * 2 / n + (random.nextDouble() - 0.5) * 0.6;
+                double r = 11.0 + random.nextDouble() * 11.0;
+                Vec3 q = new Vec3(c.x + Math.cos(a) * r, c.y, c.z + Math.sin(a) * r);
+                if (horizontal(q, position()) > getBbWidth() * 0.5 + 5.0) {
+                    p = q;
+                }
+            }
+            if (p == null) {
+                p = new Vec3(c.x + Math.cos(giro + i) * 16, c.y, c.z + Math.sin(giro + i) * 16);
+            }
+            refugios.add(RefugioNereaEntity.crear(nivel, this, p.x, getY(), p.z, aforoRefugio));
+        }
+        sonido(AtalayaSonidos.NEREA_REFUGIO, 5.0F);
+    }
+
+    private void estallarMareaAlta(ServerLevel nivel) {
+        sonido(AtalayaSonidos.NEREA_MAREA_ALTA, 9.0F);
+        DamageSource fuente = NereaDanos.fuente(nivel, NereaDanos.MAREA_ALTA, this, this);
+        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(72, 24, 72), this::esPresa)) {
+            boolean salvo = false;
+            for (RefugioNereaEntity r : refugios) {
+                if (!r.isRemoved() && r.protege(v)) {
+                    salvo = true;
+                    break;
+                }
+            }
+            if (salvo) {
+                continue;
+            }
+            v.hurtServer(nivel, fuente, MORTAL);
+            nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 30, 0.5, 1.0, 0.5,
+                    0.4);
+        }
+        for (RefugioNereaEntity r : refugios) {
+            r.reventar(nivel, true);
+        }
+        refugios.clear();
+        Vec3 c = centro != null ? Vec3.atBottomCenterOf(centro) : position();
+        nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, true, true, c.x, c.y + 0.1, c.z, 0, 2.6, 40.0, 0.0, 1.0);
+        nivel.sendParticles(AtalayaParticulas.NEREA_OLA, true, true, getX(), getY() + 1.0, getZ(), 80, 18.0, 1.0, 18.0, 0.3);
     }
 
     // ------------------------------------------------------------------
@@ -1710,10 +2203,23 @@ public class NereaEntity extends Monster {
         }
     }
 
+    /** Ya se ha apuntado como el de su tipo en el mundo (JefesUnicos). */
+    private boolean admitido;
+
     @Override
     public void remove(RemovalReason motivo) {
+        if (motivo.shouldDestroy() && admitido && level() instanceof ServerLevel nivelFuera) {
+            JefesUnicos.soltar(nivelFuera, this);
+        }
         super.remove(motivo);
         soltarGancho();
+        if (level() instanceof ServerLevel nivelFuera) {
+            liberarTrance(nivelFuera);
+            for (RefugioNereaEntity r : refugios) {
+                r.reventar(nivelFuera, false);
+            }
+            refugios.clear();
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1730,7 +2236,7 @@ public class NereaEntity extends Monster {
             return false;
         }
         Entity causante = fuente.getEntity();
-        if (causante instanceof NereaEntity || fuente.getDirectEntity() instanceof BurbujaNereaEntity) {
+        if (PresasJefe.esJefe(causante) || fuente.getDirectEntity() instanceof BurbujaNereaEntity) {
             return false;
         }
         int e = getEstado();
@@ -1743,12 +2249,22 @@ public class NereaEntity extends Monster {
                 && impactoEnOjo(nivel, proyectil)) {
             return true;
         }
+        if (e == CANTO) {
+            // Mientras canta no se le puede pegar: hay que sacar a los hechizados.
+            avisoInmune(nivel, causante);
+            return false;
+        }
         if (e == MIRADA) {
             // Mientras mira no se le baja la vida: lo unico que sirve es darle en los ojos.
             avisoInmune(nivel, causante);
             return false;
         }
         if (e == DESPERTAR || escena > 0) {
+            avisoInmune(nivel, causante);
+            return false;
+        }
+        if (tieneFuria()) {
+            // La Furia: inmune mientras dura (30 s); lo de romper (ojos, nucleos...) va aparte.
             avisoInmune(nivel, causante);
             return false;
         }
@@ -1897,11 +2413,9 @@ public class NereaEntity extends Monster {
         return d.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : d.normalize();
     }
 
+    /** Lo que sus ataques pueden golpear: solo jugadores (y maniquies de prueba), nunca otro jefe (PresasJefe.presa). */
     boolean esPresa(LivingEntity v) {
-        if (v == this || v instanceof NereaEntity || !v.isAlive()) {
-            return false;
-        }
-        return !(v instanceof Player p) || (!p.isCreative() && !p.isSpectator());
+        return v != this && PresasJefe.presa(v);
     }
 
     /** Jugadores (que no sean creativo ni espectador) entre min y max bloques del centro de la arena... de el. */
@@ -1956,7 +2470,7 @@ public class NereaEntity extends Monster {
                 }
             }
         }
-        int cuantos = (todos.size() + 2) / 3;
+        int cuantos = (todos.size() + 1) / 2;
         Vec3 ojos = puntoMundo(NereaGeometria.OJO_IZQ_MIRADA).add(puntoMundo(NereaGeometria.OJO_DER_MIRADA)).scale(0.5);
         List<LivingEntity> vistos = new ArrayList<>();
         for (LivingEntity v : todos) {
@@ -2102,6 +2616,7 @@ public class NereaEntity extends Monster {
         salida.putInt("jugadores_grupo", jugadoresGrupo);
         salida.putInt("fase", fase());
         salida.putBoolean("furia", tieneFuria());
+        salida.putInt("furia_queda", furiaQueda);
     }
 
     @Override
@@ -2112,6 +2627,8 @@ public class NereaEntity extends Monster {
         jugadoresGrupo = entrada.getIntOr("jugadores_grupo", 1);
         entityData.set(DATA_FASE, entrada.getIntOr("fase", 1));
         entityData.set(DATA_FURIA, entrada.getBooleanOr("furia", false));
+        furiaQueda = tieneFuria() ? entrada.getIntOr("furia_queda", PresasJefe.FURIA_TICKS) : 0;
+        entityData.set(DATA_FURIA_FIN, furiaQueda > 0 ? level().getGameTime() + furiaQueda : 0L);
         ponerEstado(entrada.getBooleanOr("dormido", true) ? DORMIDO : LIBRE, 0);
     }
 }

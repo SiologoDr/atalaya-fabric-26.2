@@ -45,6 +45,9 @@ public final class AtalayaSonidos {
     public static SoundEvent NEREA_PASO;
     public static SoundEvent NEREA_INMUNE;
     public static SoundEvent NEREA_HERIDO;
+    /** La alerta de los jefes al empezar un ataque peligroso (la misma para todos), y la de los que matan. */
+    public static SoundEvent JEFE_ALERTA;
+    public static SoundEvent JEFE_ALERTA_MORTAL;
     public static SoundEvent NEREA_RUGIDO;
     public static SoundEvent NEREA_DESPERTAR;
     public static SoundEvent NEREA_ROMPEOLAS_ALZAR;
@@ -80,6 +83,16 @@ public final class AtalayaSonidos {
     public static SoundEvent NEREA_GEISER;
     public static SoundEvent NEREA_MAREA_ALZA;
     public static SoundEvent NEREA_MAREA;
+    // Las mecanicas cooperativas de Nerea (octubre de 2026): nerea_cooperativas_sonidos.py
+    public static SoundEvent NEREA_CANTO;
+    public static SoundEvent NEREA_TRANCE;
+    public static SoundEvent NEREA_TRANCE_CLIC;
+    public static SoundEvent NEREA_DESPIERTA;
+    public static SoundEvent NEREA_ENCADENAR;
+    public static SoundEvent NEREA_CADENA_TIRON;
+    public static SoundEvent NEREA_REFUGIO;
+    public static SoundEvent NEREA_CUENTA;
+    public static SoundEvent NEREA_MAREA_ALTA;
     public static SoundEvent NEREA_FURIA;
     // La musica de cada jefe mientras pelea (musica_jefes.py; la pone MusicaJefes en el cliente).
     public static SoundEvent MUSICA_NEREA;
@@ -305,6 +318,8 @@ public final class AtalayaSonidos {
         NEREA_BURBUJA_POMPA = registrar("nerea.burbuja_pompa");
         NEREA_MOLINO_ARRASTRE = registrar("nerea.molino_arrastre");
         NEREA_MOLINO_GIRO = registrar("nerea.molino_giro");
+        JEFE_ALERTA = registrar("jefe.alerta");
+        JEFE_ALERTA_MORTAL = registrar("jefe.alerta_mortal");
         NEREA_ARPON_LANZAR = registrar("nerea.arpon_lanzar");
         NEREA_ARPON_ENGANCHA = registrar("nerea.arpon_engancha");
         NEREA_ARPON_REBOTA = registrar("nerea.arpon_rebota");
@@ -326,6 +341,15 @@ public final class AtalayaSonidos {
         NEREA_GEISER = registrar("nerea.geiser");
         NEREA_MAREA_ALZA = registrar("nerea.marea_alza");
         NEREA_MAREA = registrar("nerea.marea");
+        NEREA_CANTO = registrar("nerea.canto");
+        NEREA_TRANCE = registrar("nerea.trance");
+        NEREA_TRANCE_CLIC = registrar("nerea.trance_clic");
+        NEREA_DESPIERTA = registrar("nerea.despierta");
+        NEREA_ENCADENAR = registrar("nerea.encadenar");
+        NEREA_CADENA_TIRON = registrar("nerea.cadena_tiron");
+        NEREA_REFUGIO = registrar("nerea.refugio");
+        NEREA_CUENTA = registrar("nerea.cuenta");
+        NEREA_MAREA_ALTA = registrar("nerea.marea_alta");
         NEREA_FURIA = registrar("nerea.furia");
         MUSICA_NEREA = registrar("musica.nerea");
         MUSICA_AERALIS = registrar("musica.aeralis");

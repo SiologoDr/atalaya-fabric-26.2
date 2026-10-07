@@ -16,6 +16,7 @@
     "RecipeManagerMixin",
     "SpawnPlacementsInvoker",
     "ThrownTridentAccessor",
+    "TranceClicMixin",
     "VitrificarMixin"
   ],
   "injectors": {

@@ -69,6 +69,13 @@ public final class NereaGeometria {
     public static final int GEISER_GOLPE = 11;
     public static final int DURACION_MAREA = 60;
     public static final int MAREA_LANZA = 40;
+    public static final int DURACION_CANTO = 160;
+    public static final int CANTO_EMPIEZA = 12;
+    public static final int DURACION_MAREA_ALTA = 200;
+    public static final int MAREA_ALTA_BURBUJAS = 12;
+    public static final int MAREA_ALTA_ESTALLA = 180;
+    public static final int DURACION_ENCADENAR = 28;
+    public static final int ENCADENAR_SUELTA = 12;
 
     /** La mano izquierda (donde nace la cadena del gancho), tick a tick, en el espacio del cuerpo. */
     public static final float[][] MANO_ARPON_LANZAR = {{2.61F, 4.01F, 0.92F}, {2.88F, 8.74F, 5.50F}, {2.29F, 14.46F, 0.91F}, {1.85F, 14.58F, -0.10F}, {1.60F, 14.52F, 0.22F}, {1.52F, 14.34F, 1.00F}, {1.51F, 14.21F, 1.38F}, {1.60F, 14.29F, 1.17F}, {1.81F, 14.42F, 0.81F}, {2.02F, 14.52F, 0.41F}, {2.08F, 14.57F, 0.13F}, {1.85F, 14.57F, 0.00F}, {1.45F, 14.53F, -0.01F}, {1.13F, 14.46F, 0.04F}, {1.11F, 14.46F, -0.00F}, {1.42F, 14.57F, -0.52F}, {2.20F, 14.45F, 0.48F}, {0.83F, 7.74F, 7.16F}, {0.31F, 5.40F, 6.64F}, {0.48F, 5.40F, 6.49F}, {0.72F, 5.92F, 6.55F}, {0.99F, 6.57F, 6.61F}, {1.17F, 7.00F, 6.60F}};

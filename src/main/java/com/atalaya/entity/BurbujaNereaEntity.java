@@ -192,10 +192,7 @@ public class BurbujaNereaEntity extends ThrowableProjectile {
         Entity duena = getOwner();
         DamageSource fuente = NereaDanos.fuente(nivel, NereaDanos.BURBUJA, this, duena);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(radio))) {
-            if (v instanceof NereaEntity || v.distanceToSqr(c) > radio * radio) {
-                continue;
-            }
-            if (v instanceof Player p && (p.isCreative() || p.isSpectator())) {
+            if (!PresasJefe.presa(v) || v.distanceToSqr(c) > radio * radio) {
                 continue;
             }
             v.hurtServer(nivel, fuente, dano);
