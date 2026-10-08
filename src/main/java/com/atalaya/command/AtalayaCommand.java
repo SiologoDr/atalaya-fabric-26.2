@@ -281,7 +281,7 @@ public final class AtalayaCommand {
         return 1;
     }
 
-    private static final String[] ORDENES_NOVILIS = {"despertar", "barrido", "castigo", "onda", "sol", "trompetas",
+    private static final String[] ORDENES_NOVILIS = {"despertar", "barrido", "castigo", "onda", "sol", "trompetas", "sombra",
             "estatua", "fuentes", "fuente", "ofrenda", "dios", "aturdido", "furia", "grito", "fase", "liberar", "perseguir"};
 
     /** Fuerza al Novilis mas cercano (en 80 bloques) a hacer algo ya. */
@@ -337,7 +337,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_AERALIS = {"despertar", "aleteo", "tornados", "caceria", "rafaga", "doble",
-            "juicio", "picado", "posada", "escamas", "rasante", "romper", "viento", "mancha", "nucleo", "furia", "aturdida", "agotada", "fase", "liberar"};
+            "juicio", "picado", "posada", "escamas", "rasante", "ladrona", "romper", "viento", "mancha", "nucleo", "furia", "aturdida", "agotada", "fase", "liberar"};
 
     /** Fuerza a la Aeralis mas cercana (en 80 bloques) a hacer algo ya. */
     private static int probarAeralis(CommandSourceStack fuente, String orden) {

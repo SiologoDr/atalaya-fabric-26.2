@@ -5,8 +5,10 @@ import com.atalaya.effect.BendicionSolEffect;
 import com.atalaya.effect.QuemaduraEffect;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundStopSoundPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -70,7 +72,9 @@ import java.util.UUID;
  *                         fuego por el suelo (se salta), Sol x3 (tres soles que
  *                         revientan en fuego y lava), Trompetas del Apocalipsis
  *                         (cuatro estatuas tocan una melodia: si alguna sigue en
- *                         pie al acabar, entra en Furia)
+ *                         pie al acabar, entra en Furia), Sombra del Escudo
+ *                         (lanza su sol al cielo y abrasa la arena 12 s: solo
+ *                         se salva quien esta a la sombra de una Egida)
  *   fase III  Mediodia    + Fuentes solares (el golpe cooperativo: se arrodilla y
  *                         carga; tres fuentes le dan fuego y aceleran la carga;
  *                         rotas a tiempo, se le apaga el sol y cae aturdido; si
@@ -108,6 +112,8 @@ public class NovilisEntity extends Monster {
     public static final int TAMBALEO = 11;
     public static final int GRITO = 12;
     public static final int CASTIGO_ONDA = 13;
+    /** La Sombra del Escudo (octubre de 2026, la que eligio Juan de la segunda ficha de fuego). */
+    public static final int SOMBRA = 14;
 
     /** Vida EFECTIVA: 16 500, la misma con cualquier numero de jugadores (el tope de vanilla es 1024). */
     public static final float VIDA = 16500.0F;
@@ -124,6 +130,8 @@ public class NovilisEntity extends Monster {
     public static final float[] DANO_SOL = {27.5F, 35, 37.4F, 44};
     public static final float[] DANO_SUPERNOVA = {56, 56, 57, 67.2F};
     public static final float[] DANO_DIOS = {174, 174, 174, 174};
+    /** El sol de la Sombra del Escudo, cada segundo al sol (pasa la armadura: solo vale la sombra). */
+    public static final float[] DANO_ABRASA = {4, 4, 5, 6};
     /** Lo que mata salvo totem (todas las bypasses_* menos la de invulnerabilidad). */
     public static final float MORTAL = 10000.0F;
     /** Golpes que aguanta cada fuente y cada estatua, sean cuantos sean los jugadores. */
@@ -192,6 +200,8 @@ public class NovilisEntity extends Monster {
     private static final float OFRENDA_CALOR = 0.04F;
     private static final int ATURDIDO_OFRENDA = 100;
     private static final int ATURDIDO_FUENTES = 120;
+    /** Deslumbrado: lo que queda aturdido si nadie se quemo con la Sombra del Escudo. */
+    private static final int ATURDIDO_SOMBRA = 80;
 
     /** Lo lejos que se aparta de donde nacio. */
     private static final double CORREA = 40.0;
@@ -232,6 +242,12 @@ public class NovilisEntity extends Monster {
     private static final EntityDataAccessor<Integer> DATA_TECLAS =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ACIERTOS =
+            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
+    /** Lo que va de la Sombra del Escudo (0 mientras sube el sol, hasta 1 al acabar); -1 si no hay. */
+    private static final EntityDataAccessor<Float> DATA_SOMBRA =
+            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.FLOAT);
+    /** Los que estan a la sombra (8 bits bajos) y los que pelean (los de encima): la cuenta de la barra. */
+    private static final EntityDataAccessor<Integer> DATA_SOMBRA_CUENTA =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
 
     // --- Solo cliente ---
@@ -298,6 +314,7 @@ public class NovilisEntity extends Monster {
     private int enfFuentes = 600;
     private int enfOfrenda = 300;
     private int enfDios = 200;
+    private int enfSombra = 600;
     private int ultimoAvisoInmune;
     private final Set<UUID> golpeados = new HashSet<>();
     /** A quienes ya lanzo un sol en este Sol x3 (para repartirlos). */
@@ -316,6 +333,12 @@ public class NovilisEntity extends Monster {
     private @Nullable LivingEntity captivo;
     private int inicioCaptura;
     private char[] secuencia = new char[0];
+    // La Sombra del Escudo: corre aparte del estado, como la melodia
+    private int sombra = -1;
+    private @Nullable SolCenitEntity solCenit;
+    private final List<EgidaNovilisEntity> egidas = new ArrayList<>();
+    /** Cuantas veces se ha quemado cada uno: con mas de una, ya no cae deslumbrado. */
+    private final java.util.Map<UUID, Integer> quemadosSombra = new java.util.HashMap<>();
 
     public NovilisEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -352,6 +375,8 @@ public class NovilisEntity extends Monster {
         datos.define(DATA_SEMILLA, 0);
         datos.define(DATA_TECLAS, 0);
         datos.define(DATA_ACIERTOS, 0);
+        datos.define(DATA_SOMBRA, -1.0F);
+        datos.define(DATA_SOMBRA_CUENTA, 0);
     }
 
     @Override
@@ -436,6 +461,21 @@ public class NovilisEntity extends Monster {
         return entityData.get(DATA_ACIERTOS);
     }
 
+    /** Lo que va de la Sombra del Escudo (0 a 1), o -1 si no hay: mientras, su sol esta en el cielo. */
+    public float getSombra() {
+        return entityData.get(DATA_SOMBRA);
+    }
+
+    /** Cuantos estan a la sombra ahora. */
+    public int getSombraDentro() {
+        return entityData.get(DATA_SOMBRA_CUENTA) & 255;
+    }
+
+    /** Cuantos pelean (los que deberian estar a la sombra). */
+    public int getSombraTotal() {
+        return (entityData.get(DATA_SOMBRA_CUENTA) >> 8) & 255;
+    }
+
     /** Lo que lleva de la secuencia el atrapado (0 a 1): la barra de los demas. */
     public float getProgresoOfrenda() {
         int n = getTeclasOfrenda();
@@ -478,7 +518,8 @@ public class NovilisEntity extends Monster {
         avisoEstado = aviso(estado);
         duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
         // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
-        if (estado == BARRIDO || estado == CASTIGO || estado == CASTIGO_ONDA || estado == SOL || estado == TROMPETAS || estado == FUENTES || estado == OFRENDA || estado == DIOS) {
+        if (estado == BARRIDO || estado == CASTIGO || estado == CASTIGO_ONDA || estado == SOL || estado == TROMPETAS || estado == FUENTES || estado == OFRENDA || estado == DIOS
+                || estado == SOMBRA) {
             PresasJefe.alerta(this, estado == OFRENDA || estado == DIOS, 1.05F);
         }
     }
@@ -573,7 +614,7 @@ public class NovilisEntity extends Monster {
             case CASTIGO -> castigo;
             case CASTIGO_ONDA -> castigoOnda;
             case SOL -> sol;
-            case TROMPETAS -> trompetas;
+            case TROMPETAS, SOMBRA -> trompetas;
             case FUENTES -> fuentes;
             case OFRENDA -> ofrenda;
             case DIOS -> dios;
@@ -734,8 +775,10 @@ public class NovilisEntity extends Monster {
         if (enfFuentes > 0) enfFuentes--;
         if (enfOfrenda > 0) enfOfrenda--;
         if (enfDios > 0) enfDios--;
+        if (enfSombra > 0) enfSombra--;
 
         tickMelodia(nivel);
+        tickSombra(nivel);
 
         int e = getEstado();
         t++;
@@ -747,6 +790,7 @@ public class NovilisEntity extends Monster {
             case CASTIGO, CASTIGO_ONDA -> tickCastigo(nivel, objetivo, e == CASTIGO_ONDA);
             case SOL -> tickSol(nivel, objetivo);
             case TROMPETAS -> tickTrompetas(nivel);
+            case SOMBRA -> tickSombraAlza(nivel);
             case FUENTES -> tickFuentes(nivel);
             case OFRENDA -> tickOfrenda(nivel);
             case DIOS -> tickDios(nivel, objetivo);
@@ -801,7 +845,11 @@ public class NovilisEntity extends Monster {
             return;
         }
         getLookControl().setLookAt(objetivo, 20.0F, 20.0F);
-        if (melodia >= 0) {
+        if (sombra >= 0 && solCenit != null) {
+            // Con su sol en el cielo, lo mira (y como en las Trompetas, ni ataca ni se mueve).
+            getLookControl().setLookAt(solCenit.getX(), solCenit.getY(), solCenit.getZ(), 10.0F, 10.0F);
+        }
+        if (melodia >= 0 || sombra >= 0) {
             // Mientras tocan los angeles no ataca ni se mueve (Juan, 08-10-2026): se
             // queda plantado donde esta y los dirige. La amenaza son sus pulsos.
             getNavigation().stop();
@@ -840,7 +888,8 @@ public class NovilisEntity extends Monster {
         if (enfBarrido <= 0 && d < 16) opciones.add(new int[]{BARRIDO, 5});
         if (enfCastigo <= 0 && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{fase >= 2 ? CASTIGO_ONDA : CASTIGO, 4});
         if (fase >= 2 && enfSol <= 0 && !presas(nivel, 44).isEmpty()) opciones.add(new int[]{SOL, 3});
-        if (fase >= 2 && enfTrompetas <= 0 && melodia < 0) opciones.add(new int[]{TROMPETAS, 2});
+        if (fase >= 2 && enfTrompetas <= 0 && melodia < 0 && sombra < 0) opciones.add(new int[]{TROMPETAS, 2});
+        if (fase >= 2 && enfSombra <= 0 && melodia < 0 && sombra < 0 && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{SOMBRA, 3});
         if (fase >= 3 && enfFuentes <= 0) opciones.add(new int[]{FUENTES, 2});
         if (fase >= 3 && enfOfrenda <= 0 && presaOfrenda(nivel) != null) opciones.add(new int[]{OFRENDA, 2});
         if (fase >= 4 && enfDios <= 0) opciones.add(new int[]{DIOS, 3});
@@ -898,6 +947,11 @@ public class NovilisEntity extends Monster {
                 enfTrompetas = (int) (1800 * k);
                 ponerEstado(TROMPETAS, NovilisGeometria.DURACION_TROMPETAS);
                 sonido(AtalayaSonidos.NOVILIS_RUGIDO, 6.0F);
+            }
+            case SOMBRA -> {
+                enfSombra = (int) (1500 * k);
+                ponerEstado(SOMBRA, NovilisGeometria.DURACION_TROMPETAS);
+                sonido(AtalayaSonidos.NOVILIS_SOL_FORMA, 6.0F);
             }
             case FUENTES -> {
                 enfFuentes = (int) (1600 * k);
@@ -1015,6 +1069,7 @@ public class NovilisEntity extends Monster {
             case "onda" -> CASTIGO_ONDA;
             case "sol" -> SOL;
             case "trompetas" -> TROMPETAS;
+            case "sombra" -> SOMBRA;
             case "fuentes" -> FUENTES;
             case "ofrenda" -> OFRENDA;
             case "dios" -> DIOS;
@@ -1036,6 +1091,9 @@ public class NovilisEntity extends Monster {
         }
         if (getEstado() == FUENTES) {
             quitarFuentes(nivel);
+        }
+        if (ataque == SOMBRA || ataque == TROMPETAS) {
+            acabarSombra(nivel, false, false);
         }
         entityData.set(DATA_MARCA, -1);
         // Pasa por LIBRE para que el cliente vea el cambio aunque repita ataque.
@@ -1312,6 +1370,157 @@ public class NovilisEntity extends Monster {
     void alRomperEstatua(ServerLevel nivel, int i) {
         alGolpearEstatua(i, GOLPES);
         cortarSonido(nivel, melodiaDe(i));
+    }
+
+    // ------------------------------------------------------------------
+    //  Sombra del Escudo (octubre de 2026): alza la mano y lanza su sol al
+    //  cielo; 12 s abrasa a todo el que este al sol. Un tercio de los que
+    //  pelean lleva la Egida: si mira al sol, da sombra detras. Si nadie se
+    //  quema mas de una vez, el sol se apaga y el queda deslumbrado 4 s.
+    // ------------------------------------------------------------------
+
+    private void tickSombraAlza(ServerLevel nivel) {
+        fijarRumbo(yBodyRot);
+        if (cruza(NovilisGeometria.TROMPETAS_ALZA)) {
+            lanzarSolCenit(nivel);
+        }
+    }
+
+    private void lanzarSolCenit(ServerLevel nivel) {
+        acabarSombra(nivel, false, false);
+        List<LivingEntity> todos = presas(nivel, 64);
+        if (todos.isEmpty() || centro == null) {
+            return;
+        }
+        int color = tieneFuria() ? 5 : fase();
+        SolCenitEntity sol = SolCenitEntity.lanzar(nivel, this, puntoMundo(NovilisGeometria.SOL_PROPIO),
+                Vec3.atBottomCenterOf(centro), color);
+        solCenit = sol;
+        // Un tercio lleva la Egida (minimo uno; jugando solo, tu).
+        Collections.shuffle(todos, new java.util.Random(random.nextLong()));
+        int n = Math.max(1, (todos.size() + 2) / 3);
+        for (int i = 0; i < todos.size(); i++) {
+            LivingEntity v = todos.get(i);
+            if (i < n) {
+                egidas.add(EgidaNovilisEntity.dar(nivel, v, sol, color));
+                nivel.playSound(null, v.getX(), v.getEyeY(), v.getZ(), AtalayaSonidos.NOVILIS_INMUNE, SoundSource.PLAYERS, 1.5F, 0.8F);
+                nivel.sendParticles(AtalayaParticulas.NOVILIS_LUZ, true, true, v.getX(), v.getY() + 2.0, v.getZ(), 16, 0.6, 0.8, 0.6, 0.05);
+                if (v instanceof Player p) {
+                    p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.egida").withStyle(ChatFormatting.GOLD));
+                }
+            } else if (v instanceof Player p) {
+                p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.sombra_aviso").withStyle(ChatFormatting.GOLD));
+            }
+        }
+        quemadosSombra.clear();
+        sombra = 0;
+        entityData.set(DATA_SOMBRA, 0.0F);
+        entityData.set(DATA_SOMBRA_CUENTA, Math.min(255, todos.size()) << 8);
+        sonido(AtalayaSonidos.NOVILIS_SOL_LANZA, 7.0F);
+    }
+
+    /** La Sombra corre aparte del estado: mientras su sol esta en el cielo, el se queda quieto mirandolo. */
+    private void tickSombra(ServerLevel nivel) {
+        if (sombra < 0) {
+            return;
+        }
+        sombra++;
+        SolCenitEntity sol = solCenit;
+        if (sol == null || sol.isRemoved() || sol.getFin() >= 0) {
+            acabarSombra(nivel, false, true);
+            return;
+        }
+        egidas.removeIf(Entity::isRemoved);
+        int abrasa = sombra - SolCenitEntity.SUBE;
+        entityData.set(DATA_SOMBRA, Mth.clamp((float) abrasa / SolCenitEntity.ABRASA, 0.0F, 1.0F));
+        Vec3 cielo = sol.position();
+        List<LivingEntity> todos = presas(nivel, 64);
+        if (sombra % 5 == 0) {
+            int dentro = 0;
+            for (LivingEntity v : todos) {
+                if (aLaSombra(v, cielo)) {
+                    dentro++;
+                }
+            }
+            entityData.set(DATA_SOMBRA_CUENTA, Math.min(255, dentro) | (Math.min(255, todos.size()) << 8));
+        }
+        if (abrasa > 0 && abrasa % 20 == 0 && abrasa <= SolCenitEntity.ABRASA) {
+            for (LivingEntity v : todos) {
+                if (aLaSombra(v, cielo)) {
+                    continue;
+                }
+                quemar(nivel, v, NovilisDanos.ABRASA, dano(DANO_ABRASA), 0, sol);
+                v.setRemainingFireTicks(Math.max(v.getRemainingFireTicks(), 30));
+                quemadosSombra.merge(v.getUUID(), 1, Integer::sum);
+                nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 10, 0.3, 0.6, 0.3, 0.03);
+                if (v instanceof Player p) {
+                    p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.al_sol").withStyle(ChatFormatting.RED));
+                }
+            }
+            // A los portadores que no miran bien al sol: hacia que lado girarse.
+            for (EgidaNovilisEntity e : egidas) {
+                if (e.getPortador() instanceof Player p) {
+                    Vec3 pies = p.position();
+                    if (EgidaNovilisEntity.deCara(p.getYRot(), pies, cielo) < 0.8) {
+                        Vec3 derecha = EgidaNovilisEntity.frente(p.getYRot() + 90.0F);
+                        boolean aLaDerecha = derecha.dot(EgidaNovilisEntity.haciaSol(pies, cielo)) > 0;
+                        p.sendOverlayMessage(Component.translatable(aLaDerecha ? "hud.atalaya.novilis.egida_derecha"
+                                : "hud.atalaya.novilis.egida_izquierda").withStyle(ChatFormatting.GOLD));
+                    }
+                }
+            }
+        }
+        if (abrasa >= SolCenitEntity.ABRASA) {
+            boolean nadie = true;
+            for (int q : quemadosSombra.values()) {
+                if (q > 1) {
+                    nadie = false;
+                }
+            }
+            acabarSombra(nivel, nadie && !todos.isEmpty(), true);
+        }
+    }
+
+    /** Si v esta a la sombra de alguna Egida. */
+    private boolean aLaSombra(LivingEntity v, Vec3 sol) {
+        for (EgidaNovilisEntity e : egidas) {
+            LivingEntity b = e.getPortador();
+            if (b != null && EgidaNovilisEntity.aLaSombra(new Vec3(b.getX(), e.getY(), b.getZ()), b.getYRot(), sol, v.position())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Se acaba: si nadie se ha quemado mas de una vez, el sol se apaga y el queda deslumbrado. */
+    private void acabarSombra(ServerLevel nivel, boolean exito, boolean avisar) {
+        boolean estaba = sombra >= 0;
+        sombra = -1;
+        entityData.set(DATA_SOMBRA, -1.0F);
+        entityData.set(DATA_SOMBRA_CUENTA, 0);
+        for (EgidaNovilisEntity e : egidas) {
+            e.discard();
+        }
+        egidas.clear();
+        if (solCenit != null) {
+            solCenit.acabar(exito);
+            solCenit = null;
+        }
+        quemadosSombra.clear();
+        if (!estaba || !avisar || isDeadOrDying()) {
+            return;
+        }
+        for (Player p : jugadores(nivel, 80, 0)) {
+            p.sendOverlayMessage(Component.translatable(exito ? "hud.atalaya.novilis.sombra_exito" : "hud.atalaya.novilis.sombra_fallo")
+                    .withStyle(exito ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+        }
+        if (exito) {
+            sonido(AtalayaSonidos.NOVILIS_SOL_APAGA, 7.0F);
+            int e = getEstado();
+            if (e != OFRENDA && e != FUENTES && e != DESPERTAR && e != DORMIDO) {
+                aturdir(nivel, ATURDIDO_SOMBRA);
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1683,6 +1892,7 @@ public class NovilisEntity extends Monster {
         if (nueva == 2) {
             enfSol = Math.min(enfSol, 160);
             enfTrompetas = Math.min(enfTrompetas, 500);
+            enfSombra = Math.min(enfSombra, 900);
         } else if (nueva == 3) {
             enfFuentes = Math.min(enfFuentes, 600);
             enfOfrenda = Math.min(enfOfrenda, 300);
@@ -1794,6 +2004,7 @@ public class NovilisEntity extends Monster {
         }
         quitarFuentes(nivel);
         acabarMelodia(nivel, false);
+        acabarSombra(nivel, false, false);
         entityData.set(DATA_MARCA, -1);
     }
 

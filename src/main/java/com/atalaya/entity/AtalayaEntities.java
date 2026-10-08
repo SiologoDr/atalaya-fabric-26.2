@@ -55,6 +55,9 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_GEISER_NEREA = clave("geiser_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_CADENA_NEREA = clave("cadena_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_REFUGIO_NEREA = clave("refugio_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_REMOLINO_LADRON = clave("remolino_ladron");
+    public static final ResourceKey<EntityType<?>> CLAVE_SOL_CENIT = clave("sol_cenit");
+    public static final ResourceKey<EntityType<?>> CLAVE_EGIDA_NOVILIS = clave("egida_novilis");
 
     /** Nerea, Guardian de los Mares: el jefe elemental del agua. */
     public static EntityType<NereaEntity> NEREA;
@@ -69,6 +72,12 @@ public final class AtalayaEntities {
     /** Las cadenas de los Encadenados y las burbujas de refugio de la Marea Alta (octubre de 2026). */
     public static EntityType<CadenaNereaEntity> CADENA_NEREA;
     public static EntityType<RefugioNereaEntity> REFUGIO_NEREA;
+    /** El remolino de la Rafaga Ladrona de Aeralis, con el arma robada dentro. */
+    public static EntityType<RemolinoLadronEntity> REMOLINO_LADRON;
+    /** El sol de la Sombra del Escudo de Novilis, en el cielo. */
+    public static EntityType<SolCenitEntity> SOL_CENIT;
+    /** La Egida de la Sombra del Escudo: el escudo que da sombra. */
+    public static EntityType<EgidaNovilisEntity> EGIDA_NOVILIS;
 
     public static final ResourceKey<EntityType<?>> CLAVE_AERALIS = clave("aeralis");
     public static final ResourceKey<EntityType<?>> CLAVE_CUCHILLA_VIENTO = clave("cuchilla_viento");
@@ -436,6 +445,22 @@ public final class AtalayaEntities {
                         .clientTrackingRange(12)
                         .updateInterval(20)
                         .build(CLAVE_REFUGIO_NEREA));
+        REMOLINO_LADRON = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_REMOLINO_LADRON,
+                EntityType.Builder.<RemolinoLadronEntity>of(RemolinoLadronEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(10)
+                        .updateInterval(1)
+                        .build(CLAVE_REMOLINO_LADRON));
+        SOL_CENIT = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_SOL_CENIT,
+                EntityType.Builder.<SolCenitEntity>of(SolCenitEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(1)
+                        .build(CLAVE_SOL_CENIT));
+        EGIDA_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_EGIDA_NOVILIS,
+                EntityType.Builder.<EgidaNovilisEntity>of(EgidaNovilisEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.5F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
+                        .build(CLAVE_EGIDA_NOVILIS));
     }
 
     private static void registrarVigia() {

@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.7**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.8**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -1330,7 +1330,7 @@ lo heredó.
 | Fase | Nombre | Color | Qué se añade |
 |---|---|---|---|
 | I | Brisa | cian | Aleteo Cortante, Tornados |
-| II | Ráfaga | añil | la Cacería del Vendaval, el Picado; el viento de vuelta |
+| II | Ráfaga | añil | la Cacería del Vendaval, el Picado, la **Ráfaga Ladrona**; el viento de vuelta |
 | III | Tempestad | violeta | Juicio del Ciclón, Escamas de Tormenta; rayos en las alas y truenos |
 | IV | Ojo de la tormenta | magenta | todo más seguido; cada 25 s cae **agotada** (daño doble) |
 
@@ -1342,6 +1342,7 @@ lo heredó.
 | **Juicio del Ciclón** | sale poco, como el Sello de Rajang: el primero **nada más entrar en la III** (al acabar el tambaleo) y luego no vuelve hasta 1,5 min después de acabar (1,3 en la IV). Se hace el silencio (corta todos sus sonidos) y sube al centro. **Un solo ciclón** atrapa a **un tercio de los que pelean** (los de menos vida: de 30, 10; redondea hacia arriba), los arrastra hasta él y aparecen **cuatro núcleos que giran alrededor del ciclón**, despacio y a la altura de los atrapados | si no los rompen: a cada atrapado, **la muerte salvo tótem** (y luego la caída); a quien esté a 8 bloques, 70 / 70 / 70 / 87, menos un 25 % por núcleo roto; y ella entra en la **Furia del Vendaval** | **romper los cuatro núcleos**: los atrapados, a espadazos cuando les pasan al lado; los de fuera, a flechazos. Aguantan **5 golpes** hasta 11 jugadores, uno más por cada 6, hasta 10. Así cae aturdida 5 s, con daño doble |
 | **Picado del Vendaval** (nuevo) | sube y marca en el suelo la línea por donde se va a lanzar (36 a 60 bloques, galones que se encienden). Se lanza en picado a 45 bloques/s | a quien pille, **la muerte salvo tótem** (pasa armadura, escudo, encantamientos y efectos) y lo **lanza al cielo** (unos 24 bloques): la caída duele | **salir de la línea**. Al final **se posa 5 s** y recibe **daño doble**: la ventana de la espada |
 | **Escamas de Tormenta** (nuevo) | sacude las alas y suelta escamas en un círculo de 15 bloques. Cada mancha se carga y descarga cada 1,5 s durante 6 s | 20 / 20 / 20 / 28 por descarga y **Parálisis 2 s**: ni andar ni saltar, pero sí pegar, el inventario y usar objetos. No te vuelve a paralizar hasta 1 s después de soltarte, para que puedas salir de la mancha | **no pisar las manchas** mientras brillan |
+| **Ráfaga Ladrona** (cooperativa) | desde la II, se gira y sopla: a **un tercio** de los que llevan algo en la mano (mínimo uno) se les va el arma a un **remolino** que gira a su lado, a la altura del pecho y a mano de espada. Tres anillos de luz del color de la fase marcan los golpes que le faltan | ninguno, pero te quedas sin arma | **3 golpes al remolino** (a puñetazos, de un compañero o a flechazos) y el arma **vuelve a la mano de su dueño**; si la tiene ocupada, a su inventario; si está lleno, a sus pies. A los **15 s** vuelve sola |
 | **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya bajo su barra lo cuenta, con la cifra al lado («Viento 3/6»): con **dos tandas de tornados rotas** (6 en grupos pequeños, 8 en la IV; sube con el grupo) **cae aturdida 10 s** con daño doble (el doble que tras el Juicio; mientras, se retuerce en el suelo), con un trueno y el aviso en la barra de acción (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
 
 Mientras dura el Juicio es inmune.
@@ -1503,7 +1504,7 @@ clavada delante y la cabeza gacha.
 | Vida | 16 500 · armadura 16, dureza 10 |
 | Caja | 4,6 × 15 |
 | Correa | 40 bloques |
-| Inmune | dormido, al despertar, en la Ofrenda y mientras carga las Fuentes |
+| Inmune | dormido, al despertar, en la Ofrenda, mientras carga las Fuentes y con la Furia |
 
 No le hace nada el fuego (ni lava ni llamas). En cada fase ataca más rápido
 (`ritmo()` ×1,12, ×1,25 y ×1,4) y espera menos (×0,85, ×0,72 y ×0,6).
@@ -1511,7 +1512,7 @@ No le hace nada el fuego (ni lava ni llamas). En cada fase ataca más rápido
 | Fase | Nombre | Qué se añade |
 |---|---|---|
 | I | Brasa | Barrido Solar, Castigo Divino |
-| II | Llamarada | el Castigo acaba en **Onda de Fuego**; Sol Abrasador; **Trompetas del Apocalipsis** |
+| II | Llamarada | el Castigo acaba en **Onda de Fuego**; Sol Abrasador; **Trompetas del Apocalipsis**; **Sombra del Escudo** |
 | III | Mediodía | **Fuentes Solares** (el golpe cooperativo); **Ofrenda al Sol** |
 | IV | Dios de la Guerra | **Dios de la Guerra** |
 
@@ -1529,9 +1530,24 @@ su número, y la III con calavera.
 | **Onda de Fuego** (II) | el Castigo acaba clavando la espada: un anillo de llamas corre por el suelo hasta 26 bloques | 12 / 16 / 17 / 21,6 y Quemadura I | **saltarla**: solo pega a quien esté en el suelo |
 | **Sol Abrasador** (II) | se le forman tres soles en la mano y los lanza en arco, cada uno a un jugador (lo elige al formar el sol y se va girando hacia él). El sello del suelo marca dónde caen (1,4 s) | 27,5 / 35 / 37,4 / 44 en 4 bloques y **Quemadura II**; deja un charco de lava 5 s que prende | apartarse del sello |
 | **Trompetas del Apocalipsis** (II) | alza la espada y salen del suelo **cuatro ángeles de mármol** a 15 bloques, cada uno sobre un **estrado** de dos escalones (desde el suelo no se le llega: hay que subirse). Tocan una melodía de 24 s y, mientras suena, **él no ataca ni se mueve**: se queda plantado y los dirige. Cada **5 s** cada ángel da un **pulso de fuego** por su estrado que tira abajo a quien esté encima; un segundo antes lo avisa (la trompeta se enciende y suena) | el pulso: 6 / 6 / 8 / 8 y unos 7 bloques de empujón. Si queda alguno en pie al acabar, entra en **Furia** | romper los cuatro (**10 golpes** cada uno), y **saltar el pulso** para no caerse (corre a ras del estrado) |
+| **Sombra del Escudo** (II, cooperativa) | alza la mano y **lanza su sol al cielo**: sube 2 s y luego cruza el cielo, bajo y enorme, durante **12 s**, dando la vuelta a media arena. A **un tercio** de los que pelean (mínimo uno; jugando solo, a ti) le da la **Égida**, un escudo enorme que lleva en alto. Mientras, él no ataca ni se mueve: mira a su sol | cada segundo al sol: 4 / 4 / 5 / 6, pasa la armadura y el escudo, y prende | **ponerse a la sombra de una Égida**: si su portador mira al sol, detrás cae una sombra de 10 bloques que se ensancha; el portador se tiene que ir girando con el sol. Si **nadie se quema más de una vez**, el sol se apaga y Novilis queda **deslumbrado 4 s** con daño doble |
 | **Fuentes Solares** (III) | se arrodilla, clava la espada y carga su sol, que crece. Salen **tres fuentes** a 13 bloques que le mandan fuego: con las tres llena la carga en 15 s, con dos en 20 y con una en 30 | si se llena: **Supernova** a 56 bloques, 56 / 56 / 57 / 67,2, **Quemadura III**, fuego y el **Grito de guerra** | romper las tres (**10 golpes** cada una): se le apaga el sol y cae **aturdido 6 s** con daño doble |
 | **Ofrenda al Sol** (III) | el haz de su sol señala a uno (no se puede esquivar), lo agarra y lo alza al sol. Primero tiene **3 s para prepararse** (cuenta atrás 3, 2, 1; las teclas no cuentan) y luego tiene que seguir **10 letras en 8 s** (**12** en la fase IV); mientras, se quema un 4 % de su vida por segundo | si falla una o se acaba el tiempo: **la muerte salvo tótem**, y él entra en **Furia** | acertarlas todas: lo suelta y cae **aturdido 5 s** con daño doble |
 | **Dios de la Guerra** (IV) | suelta la espada, se envuelve en llamas carmesí y marca **tres zonas** de 6 bloques (sobre los jugadores, al azar). Les lanza un sol a cada una y estallan en cadena | 174 y Quemadura I. Con **Quemadura III**, o con el **Grito de guerra** puesto, **mata a todos** los que pille (salvo tótem) | salir de las zonas, y no llegar con la Quemadura III (se gira hacia cada zona antes de lanzarle su sol) |
+
+**La Sombra del Escudo** (mecánica cooperativa de octubre de 2026; de la segunda
+ficha de fuego, Juan eligió esta). El sol es una entidad (`SolCenitEntity`) que
+gira a 40 bloques del centro del altar y 16 de alto; mientras está fuera, a
+Novilis no se le ve a la espalda. Cada Égida (`EgidaNovilisEntity`) va a los pies
+de su portador y el escudo se dibuja delante de él, de cara a donde mira
+(textura de `novilis_egida.py`). La sombra sale del escudo hacia el lado
+contrario al sol: cuanto más de lado mira el portador, más estrecha, y pasados
+unos 70 grados no da sombra. El servidor y el cliente hacen la misma cuenta
+(`EgidaNovilisEntity.aLaSombra`), así que lo que se ve es lo que vale. Cuando el
+escudo mira bien al sol, su emblema brilla. Al portador, en primera persona, se
+le dibuja casi transparente, y si no mira al sol la barra de acción le dice
+hacia qué lado girarse. Bajo la barra del jefe se ven su sol, lo que le queda y
+cuántos están a la sombra («Sombra 3/4»). Orden de prueba: `sombra`.
 
 **Las teclas de la Ofrenda** (`OfrendaCliente`, `OfrendaTecladoMixin`). Son solo
 letras de la A a la Z y salen de una semilla que el servidor manda al cliente.
@@ -1932,9 +1948,9 @@ El esquema es siempre el mismo:
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `canto`, `clic` (un clic de compañero al primer hechizado), `cadenas`, `marea_alta`, `fase`, `liberar` |
-| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
+| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `ladrona` (la Ráfaga Ladrona), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano al altar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
-| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
+| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
@@ -2077,7 +2093,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.7.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.1.8.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -2108,7 +2124,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.7
+	- atalaya 1.1.8
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2481,7 +2497,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.7.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.1.8.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

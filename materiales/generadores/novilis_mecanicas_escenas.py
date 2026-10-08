@@ -17,6 +17,22 @@ haces, las poses y el acabado).
   llama     Llama Viva: un jugador envuelto en una llama que crece corre hacia
             un companero para pasarsela; encima, la cuenta atras
 
+Segunda ficha (las cuatro de arriba no gustaron). La camara va mas cerca de
+los jugadores; Novilis queda al fondo o cortado:
+
+  sombra      Sombra del Escudo: un sol enorme y bajo a un lado; uno alza la
+              Egida (un escudo grande, oscuro, con el canto de oro) y su sombra
+              larga cubre a tres companeros; el que se queda fuera arde
+  estandarte  Estandarte de Guerra: su estandarte de oro clavado, el circulo
+              dorado alrededor con la barra de conquista al 60 %, tres
+              jugadores dentro y Novilis al fondo lanzandoles un tajo de fuego
+  escuderos   Escuderos de Fuego: Novilis de rodillas bajo una cupula de oro;
+              tres escuderos de fuego (del tamano de un jugador) repartidos, cada
+              uno unido a la cupula por un haz fino; los jugadores, por parejas
+  sol_caido   Sol Caido: un sol pequeno rueda por el suelo dejando un rastro
+              quemado; detras, los jugadores lo golpean (chispas) hacia las
+              piernas de Novilis (la flecha de puntos); uno salta para esquivarlo
+
 Uso: python novilis_mecanicas_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
 """
 import io, math, os, random, sys, zipfile
@@ -812,7 +828,689 @@ def llama(W=1600, H=900, fase=2):
     guardar(img, 'llama')
 
 
-ESCENAS = {'duelo': duelo, 'armadura': armadura, 'espejos': espejos, 'llama': llama}
+# ======================================================================
+#  Segunda ficha: ayudas comunes
+# ======================================================================
+def marco_camara(cam):
+    """Los ejes de la camara sobre el suelo: delante (F) y a la derecha (R)."""
+    F = np.array([cam.f[0], 0.0, cam.f[2]])
+    R = np.array([cam.r[0], 0.0, cam.r[2]])
+    return F / np.linalg.norm(F), R / np.linalg.norm(R)
+
+
+def jugador_luz(lz, cam, x, z, mira, p=None, luz=1.0, tinte=(1.0, 1.0, 1.0), niebla=None, y=0.0, extra=0.0):
+    """Un jugador con la luz que se pida (luz < 1: a la sombra)."""
+    p = p or {}
+    M = vr.T(0, y, 0) @ ne.jugador_a_mundo(x, z, fe.guinada_hacia(x, z, *mira) + extra)
+    luces = [(d, tuple(c * t for c, t in zip(col, tinte)), k * luz, tipo) for d, col, k, tipo in fe.LUCES]
+    amb = tuple(a * (0.6 + 0.4 * luz) * t for a, t in zip(fe.AMB, tinte))
+    nm.dibujar(lz, cam, nm.quads(ne.jugador(), p, M), luces, amb, niebla)
+    return M, p
+
+
+def jugador_inclinado(lz, cam, pie, guinada, ladeo, p=None, niebla=None):
+    """Un jugador en el aire, ladeado hacia un lado (el que salta para esquivar)."""
+    M = vr.T(*pie) @ vr.Ry(math.radians(guinada)) @ vr.Rz(math.radians(ladeo)) @ vr.T(0, 1.5, 0) @ \
+        np.diag([-1 / 16, -1 / 16, 1 / 16, 1])
+    nm.dibujar(lz, cam, nm.quads(ne.jugador(), p or {}, M), fe.LUCES, fe.AMB, niebla)
+    return M
+
+
+def modelo_en(x, y, z, guinada, inclina=0.0, escala=1.0):
+    """De px de un modelo (16 = 1 bloque, Y hacia abajo, el frente en -Z) al mundo."""
+    return vr.T(x, y, z) @ vr.Ry(math.radians(guinada)) @ vr.Rx(math.radians(inclina)) @ \
+        np.diag([-escala / 16, -escala / 16, escala / 16, 1])
+
+
+def punto_de(raiz, M, p, nodo, local=(0, 0, 0)):
+    """Donde cae en el mundo un punto de una pieza de un modelo de nodos."""
+    Mn = np.eye(4)
+    for nombre, off, rot, _, _ in _ruta(raiz, nodo):
+        ex = p.get(nombre, {})
+        r = [rot[i] + ex.get('rot', (0, 0, 0))[i] for i in range(3)]
+        q = [off[i] + ex.get('pos', (0, 0, 0))[i] for i in range(3)]
+        Mn = Mn @ vr.T(*q) @ vr.Rz(r[2] * vr.D2R) @ vr.Ry(r[1] * vr.D2R) @ vr.Rx(r[0] * vr.D2R)
+    return (M @ Mn @ np.array([*local, 1.0]))[:3]
+
+
+def haz_oro(lz, cam, pts, ancho, k=1.0, color=ORO, claro=ORO_CLARO):
+    """Un haz de luz dorada por una lista de puntos (el alma clara)."""
+    tex = np.transpose(fe.tex_haz(claro, color, 32, 8), (1, 0, 2)).copy()
+    fe.aditivo(lz, cam, fe.cinta3d(pts, ancho, cam), tex, k)
+
+
+def curva(a, b, alto, n=16):
+    """Un arco de a a b que sube 'alto' por el medio."""
+    a, b = np.array(a, float), np.array(b, float)
+    return [a + (b - a) * t + np.array([0, alto * math.sin(math.pi * t), 0]) for t in np.linspace(0, 1, n)]
+
+
+def arde(lz, cam, pie, fase, escala=1.0, semilla=0):
+    """Un jugador que arde: el fuego de vanilla detras y a los lados, y bajo a sus pies."""
+    c = np.array(pie, float)
+    lado = np.array([cam.r[0], 0, cam.r[2]]) / np.linalg.norm([cam.r[0], cam.r[2]])
+    fondo = np.array([cam.f[0], 0, cam.f[2]]) / np.linalg.norm([cam.f[0], cam.f[2]])
+    fuegos = sprites_fuego(fase)
+    for dl, df, ancho, alto, cual in ((0.0, 0.5, 0.9, 2.9, 0), (-0.7, 0.35, 0.6, 2.3, 1), (0.7, 0.35, 0.6, 2.4, 0)):
+        llama_plana(lz, cam, c + (lado * dl + fondo * df) * escala, ancho * escala, alto * escala, fuegos[cual], 0.7)
+    for dl, alto, cual in ((-0.4, 0.9, 1), (0.45, 1.0, 0)):
+        llama_plana(lz, cam, c + (lado * dl - fondo * 0.3) * escala, 0.4 * escala, alto * escala, fuegos[cual], 0.55, k=0.7)
+    fe.brillo_en(lz, cam, c + np.array([0, 1.1, 0]) + fondo * 0.6, 2.2 * escala, BRASA, 0.35)
+    r = random.Random(semilla)
+    for _ in range(8):
+        q = c + np.array([r.uniform(-0.8, 0.8), r.uniform(2.0, 3.6), r.uniform(-0.8, 0.8)]) * escala
+        fe.brillo_en(lz, cam, q, 0.12, BRASA, 0.9)
+
+
+def tex_sombra(w=64, h=64):
+    """La sombra en el suelo (u a lo largo, v de lado a lado): oscura, con los
+    bordes blandos y la punta que se apaga."""
+    u = np.linspace(0, 1, w)[None, :] * np.ones((h, 1))
+    v = np.abs(np.linspace(-1, 1, h))[:, None] * np.ones((1, w))
+    a = np.clip((1 - v) / 0.18, 0, 1) * np.clip((1 - u) / 0.25, 0, 1) * np.clip(u / 0.04, 0, 1)
+    col = np.ones((h, w, 3)) * np.array([10, 8, 22])
+    return _rgba(col, a)
+
+
+def tex_chispas(n=128, semilla=6, color=ORO):
+    """El chispazo de un golpe: rayos finos que salen del centro, el alma blanca."""
+    r = random.Random(semilla)
+    im = Image.new('L', (n, n), 0)
+    d = ImageDraw.Draw(im)
+    c = n / 2
+    for k in range(16):
+        a = TAU * k / 16 + r.uniform(-0.15, 0.15)
+        l = n * r.uniform(0.24, 0.48)
+        d.line([(c + math.cos(a) * n * 0.07, c + math.sin(a) * n * 0.07), (c + math.cos(a) * l, c + math.sin(a) * l)],
+               fill=255, width=max(2, n // 42))
+    for _ in range(10):
+        a, l = r.uniform(0, TAU), n * r.uniform(0.2, 0.46)
+        q = (c + math.cos(a) * l, c + math.sin(a) * l)
+        d.ellipse((q[0] - 2, q[1] - 2, q[0] + 2, q[1] + 2), fill=255)
+    d.ellipse((c - n * 0.09, c - n * 0.09, c + n * 0.09, c + n * 0.09), fill=255)
+    m = np.array(im.filter(ImageFilter.GaussianBlur(0.8))).astype(float) / 255
+    halo = np.array(im.filter(ImageFilter.GaussianBlur(n / 14))).astype(float) / 255
+    yy, xx = np.mgrid[0:n, 0:n]
+    k = np.clip(1 - np.hypot(xx - c, yy - c) / (n * 0.3), 0, 1)[..., None]
+    col = np.array(color) * (1 - k) + np.array([255, 255, 250]) * k
+    return _rgba(col, np.clip(m + halo * 0.6, 0, 1))
+
+
+def tex_quemado(w=64, h=32, semilla=7):
+    """El rastro quemado (u a lo largo, v de lado a lado): costra negra con bordes rotos."""
+    r = np.random.RandomState(semilla)
+    v = np.abs(np.linspace(-1, 1, h))[:, None] * np.ones((1, w))
+    borde = 0.75 + 0.25 * np.repeat(r.rand(1, w // 4 + 1), 4, axis=1)[:, :w]
+    a = np.clip((borde - v) / 0.2, 0, 1) * (0.8 + 0.2 * r.rand(h, w))
+    col = np.ones((h, w, 3)) * np.array([22, 12, 10]) + r.rand(h, w, 1) * 14
+    return _rgba(col, a)
+
+
+def tex_ascuas(w=64, h=32, semilla=8):
+    """Ascuas sueltas que brillan sobre el rastro quemado."""
+    r = random.Random(semilla)
+    t = np.zeros((h, w, 4), np.uint8)
+    for _ in range(int(w * h * 0.05)):
+        x, y = r.randrange(w), r.randrange(int(h * 0.15), int(h * 0.85))
+        t[y, x] = (255, r.choice((120, 160, 200)), 40, r.randint(150, 255))
+    return t
+
+
+def tex_banda(color, w=8, h=32, k_alma=0.35):
+    """Una banda plana de luz (para la barra de conquista): u de lado a lado."""
+    t = np.zeros((h, w, 4), np.uint8)
+    claro = fe._mez(color, (255, 255, 255), 0.55)
+    for y in range(h):
+        v = abs(y - (h - 1) / 2) / ((h - 1) / 2)
+        c = claro if v < k_alma else fe._mez(claro, color, (v - k_alma) / (1 - k_alma))
+        t[y, :] = (*c, int(255 * min(1.0, (1 - v) / 0.25)))
+    return np.transpose(t, (1, 0, 2)).copy()
+
+
+_GLOW = {}
+
+
+def tex_halo(color, n=256):
+    """Un resplandor blando, sin el nucleo duro de tex_disco (que a lo grande se ve a escalones)."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    d = np.hypot(xx + 0.5 - n / 2, yy + 0.5 - n / 2) / (n / 2)
+    k = np.clip(1 - d / 0.45, 0, 1)[..., None]
+    col = np.array(color) * (1 - k) + np.array(fe._mez(color, (255, 255, 255), 0.6)) * k
+    return _rgba(col, np.clip(1 - d, 0, 1) ** 2.0)
+
+
+def resplandor(lz, cam, p, tam, color, k=1.0):
+    """Como fe.brillo_en, pero blando y con la textura fina (para los resplandores grandes)."""
+    if color not in _GLOW:
+        _GLOW[color] = tex_halo(color)
+    fe.aditivo(lz, cam, [fe.billboard(p, tam, cam)], _GLOW[color], k)
+
+
+def _sup_fuego(semilla=51):
+    """La superficie del Sol Caido: granulos de fuego naranja, amarillo y rojo (mas
+    saturada que la del sol de cada fase, para que no se queme a blanco)."""
+    r = random.Random(semilla)
+    t = np.zeros((16, 16, 4), np.uint8)
+    for y in range(16):
+        for x in range(16):
+            t[y, x] = (*r.choice(((255, 196, 70), (255, 150, 34), (255, 150, 34), (240, 96, 24), (255, 226, 130))), 255)
+    return t
+
+
+fm.registrar('sol_caido', _sup_fuego(), _sup_fuego(), pleno=True)
+
+
+def bola_de_fuego(lz, cam, p, R, semilla=3, brillo=0.3):
+    """El Sol Caido: una bola de cubos de fuego, la corona naranja y lenguas
+    alrededor (como fe.sol_mini, pero con su color y menos brillo)."""
+    r = random.Random(semilla)
+    p = np.array(p, float)
+    for (w, h, d) in ((0.78, 0.48, 0.48), (0.48, 0.78, 0.48), (0.48, 0.48, 0.78),
+                      (0.68, 0.68, 0.48), (0.68, 0.48, 0.68), (0.48, 0.68, 0.68)):
+        fm.dibujar(lz, cam, fe.caja_mundo(p[0] - R * w, p[1] - R * h, p[2] - R * d, 2 * R * w, 2 * R * h, 2 * R * d, 'sol_caido'),
+                   fe.LUCES, fe.AMB, None, brillo, 1)
+    for i in range(16):
+        a = TAU * i / 16 + r.uniform(-0.1, 0.1)
+        dirv = cam.r * math.cos(a) + cam.u * math.sin(a)
+        fe.aditivo(lz, cam, [fe.billboard(p + dirv * R * 1.05, R * 0.34, cam, a - math.pi / 2, alto=R * 0.6)],
+                   fe.tex_llama_sprite(1, i), 0.85)
+
+
+def disco_sol(lz, cam, p, R, brillo=0.6):
+    """El disco del sol, encendido y con el borde neto, de cara a la camara (lo
+    tapa lo que tenga delante, como el borde del suelo)."""
+    n = 256
+    yy, xx = np.mgrid[0:n, 0:n]
+    d = np.hypot(xx + 0.5 - n / 2, yy + 0.5 - n / 2) / (n / 2)
+    k1 = np.clip(d / 0.75, 0, 1)[..., None]
+    col = np.array([255, 250, 228]) * (1 - k1) + np.array([255, 206, 96]) * k1
+    k2 = np.clip((d - 0.75) / 0.25, 0, 1)[..., None]
+    col = col * (1 - k2) + np.array([255, 140, 44]) * k2
+    tex = _rgba(col, np.clip((1 - d) / 0.015, 0, 1))
+    P, UV = fe.billboard(p, R, cam)
+    for tri in ((0, 1, 2), (0, 2, 3)):
+        lz.triangulo(cam, [P[i] for i in tri], [UV[i] for i in tri], tex, np.ones(3), tex, None, brillo=brillo)
+
+
+def estelas(img, cam, desde, atras, n=4, color=BLANCO):
+    """Rayas de movimiento sobre la foto, detras de lo que se mueve (de 'desde' hacia 'atras')."""
+    a = np.array(cam.proyectar(desde)[:2]) / SS
+    b = np.array(cam.proyectar(atras)[:2]) / SS
+    d = b - a
+    L = np.linalg.norm(d)
+    d /= L
+    nrm = np.array([-d[1], d[0]])
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    dc = ImageDraw.Draw(capa)
+    for i in range(n):
+        o = (i - (n - 1) / 2) * 18
+        p0 = a + d * L * 0.4 + nrm * o
+        p1 = a + d * L * (0.85 + 0.2 * (i % 2)) + nrm * o
+        dc.line([tuple(p0), tuple(p1)], fill=(*SOMBRA, 150), width=7)
+        dc.line([tuple(p0), tuple(p1)], fill=(*color, 235), width=3)
+    img.alpha_composite(capa)
+
+
+def tex_luz_suelo(color, n=128, dura=0.6):
+    """Una mancha de luz en el suelo: el centro fuerte y el borde que se apaga."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    d = np.hypot(xx + 0.5 - n / 2, yy + 0.5 - n / 2) / (n / 2)
+    return _rgba(np.ones((n, n, 3)) * np.array(color), np.clip(1 - d, 0, 1) ** dura)
+
+
+def capa_suelo(lz, cam, cx, cz, R, tex, k, paso=2.0, y=0.05):
+    """Una capa translucida sobre el suelo, en losas pequenas (las que caen detras
+    de la camara se saltan), con la textura extendida por todo el cuadrado."""
+    qs = []
+    n = int(math.ceil(2 * R / paso))
+    for i in range(n):
+        for j in range(n):
+            x0, z0 = cx - R + i * paso, cz - R + j * paso
+            x1, z1 = x0 + paso, z0 + paso
+            if min(cam.proyectar((x, y, z))[2] for x in (x0, x1) for z in (z0, z1)) < 0.3:
+                continue
+            u0, v0, u1, v1 = i / n, j / n, (i + 1) / n, (j + 1) / n
+            qs.append(([(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)], [(u0, v0), (u1, v0), (u1, v1), (u0, v1)]))
+    fe.trans(lz, cam, qs, tex, k, None, 0.0, 1.0)
+
+
+def con_sol_grande(radio):
+    """Hace que la composicion pinte el sol del cielo con otro radio; devuelve
+    la funcion de antes, para dejarla como estaba."""
+    orig = fe.sol_en_cielo
+    fe.sol_en_cielo = lambda arr, cam, W, H, fase=1, pos=None, radio_=5.0: orig(arr, cam, W, H, fase, pos, radio)
+    return orig
+
+
+def calima(img, cam, p, radio_mundo, amp=4.0, semilla=0.0, hueco=0.0):
+    """La calima del calor: ondula la foto ya compuesta alrededor de p (sin
+    tocar el circulo de dentro, de radio 'hueco' en bloques)."""
+    sx, sy, z = cam.proyectar(p)
+    sx, sy = sx / SS, sy / SS
+    rp = cam.foco / SS * radio_mundo / z
+    rh = cam.foco / SS * hueco / z
+    arr = np.array(img)
+    H, W = arr.shape[:2]
+    x0, x1 = max(0, int(sx - rp)), min(W, int(sx + rp))
+    y0, y1 = max(0, int(sy - rp)), min(H, int(sy + rp))
+    if x0 >= x1 or y0 >= y1:
+        return img
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    r = np.hypot(xx - sx, yy - sy)
+    peso = np.clip(1 - r / rp, 0, 1) ** 0.7 * np.clip((r - rh) / max(1.0, rp * 0.15), 0, 1)
+    dx = amp * peso * np.sin(yy * 0.23 + semilla)
+    dy = amp * 0.5 * peso * np.sin(xx * 0.19 + semilla * 2)
+    fx = np.clip((xx + dx).round().astype(int), 0, W - 1)
+    fy = np.clip((yy + dy).round().astype(int), 0, H - 1)
+    out = arr.copy()
+    out[y0:y1, x0:x1] = arr[fy, fx]
+    return Image.fromarray(out)
+
+
+SOSTENER = {'bi': {'rot': (-150, 0, -14)}, 'bd': {'rot': (-150, 0, 14)}, 'pi': {'rot': (-22, 0, 0)}, 'pd': {'rot': (20, 0, 0)}}
+GUARDIA = {'bd': {'rot': (-70, -20, 0)}, 'bi': {'rot': (-40, 0, -14)}, 'pi': {'rot': (-16, 0, -4)}, 'pd': {'rot': (14, 0, 4)}}
+GOLPE = {'bd': {'rot': (-115, -25, 0)}, 'bi': {'rot': (30, 0, -10)}, 'pi': {'rot': (-28, 0, 0)}, 'pd': {'rot': (24, 0, 0)}}
+SALTO = {'pi': {'rot': (-45, 0, 0)}, 'pd': {'rot': (30, 0, 0)}, 'bi': {'rot': (-30, 0, -50)}, 'bd': {'rot': (-20, 0, 60)}}
+
+
+# ======================================================================
+#  5. Sombra del Escudo
+#
+#  Un sol enorme y bajo, al fondo a la izquierda. Uno alza la Egida (un escudo
+#  grande, oscuro, con el canto de oro y el sol en medio) de cara al sol y su
+#  sombra larga cae hacia delante; dentro, tres companeros a la sombra (con
+#  menos luz). El que se ha quedado fuera, al sol, arde.
+# ======================================================================
+def egida_modelo():
+    """La Egida, en px (16 = 1 bloque): 2,6 x 3,2 bloques, el centro en el origen."""
+    cajas = [((-21, -26, -1.2, 42, 52, 2.4), 'placa_osc')]
+    for (x, y, w, h) in ((-22.5, -27.5, 45, 3.5), (-22.5, 24, 45, 3.5), (-22.5, -27.5, 3.5, 55), (19, -27.5, 3.5, 55)):
+        cajas.append(((x, y, -2.0, w, h, 4.0), 'oro'))
+    for z in (-1.9, 1.3):                        # el sol, por las dos caras
+        cajas += [((-5, -5, z, 10, 10, 0.6), 'nucleo'), ((-7, -1.2, z + 0.1, 14, 2.4, 0.4), 'oro'),
+                  ((-1.2, -7, z + 0.1, 2.4, 14, 0.4), 'oro')]
+        for a in range(8):
+            ang = TAU * a / 8 + TAU / 16
+            cx, cy = math.cos(ang) * 10.5, math.sin(ang) * 10.5
+            cajas.append(((cx - 1.4, cy - 1.4, z + 0.1, 2.8, 2.8, 0.4), 'oro'))
+    return nm.nodo('egida', (0, 0, 0), (0, 0, 0), cajas)
+
+
+def sombra(W=1600, H=900, fase=2):
+    cam = vr.Camara(ojo=(-17.0, 6.6, -23.0), objetivo=(-8.0, 2.7, -7.5), fov=50, ancho=W * SS, alto=H * SS)
+    F, R = marco_camara(cam)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    viejo = fe.SOL
+    fe.SOL = fe.sol_en_pantalla(cam, 0.15, 0.24, 140.0)
+    B = np.array([-8.5, 0.0, -7.0])              # el de la Egida
+    s = fe.SOL - B
+    s[1] = 0.0
+    s /= np.linalg.norm(s)                       # hacia el sol, por el suelo
+    lat = np.array([-s[2], 0.0, s[0]])
+    # Novilis al fondo, a la derecha, con la espada alzada al cielo
+    nov = B + F * 46 + R * 17
+    p = pose('CASTIGO_ALZA')
+    M = caballero(lz, cam, nov[0], nov[2], fe.guinada_hacia(nov[0], nov[2], B[0], B[2]), p, fase, niebla)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, k=0.7)
+    # la sombra: de la Egida hacia el lado contrario al sol
+    L, w0, w1 = 12.5, 1.5, 3.2
+    eje = -s
+
+    def en_sombra(t, d):
+        return B + eje * t + lat * d * (w0 + (w1 - w0) * t / L)
+
+    dentro = [en_sombra(4.2, 0.3), en_sombra(7.0, -0.5), en_sombra(9.6, 0.4)]
+    # el portador, de cara al sol, con los brazos arriba
+    jugador(lz, cam, B[0], B[2], (B[0] + s[0], B[2] + s[2]), SOSTENER, niebla=niebla)
+    C = B + s * 0.95 + np.array([0, 2.5, 0])
+    fm.dibujar(lz, cam, nm.quads(egida_modelo(), {}, modelo_en(C[0], C[1], C[2], fe.guinada_hacia(C[0], C[2], C[0] + s[0], C[2] + s[2]), 10)),
+               fe.LUCES, fe.AMB, niebla, 1.2, fase)
+    # los de la sombra: con poca luz y fria
+    for i, q in enumerate(dentro):
+        jugador_luz(lz, cam, q[0], q[2], (B[0], B[2]), (MIRAR, QUIETO, MIRAR)[i], luz=0.25, tinte=(0.72, 0.8, 1.0),
+                    niebla=niebla, extra=(0, 25, -20)[i])
+    # el de fuera, al sol, que corre hacia la sombra mientras arde
+    fuera = B - R * 4.6 - F * 3.0
+    meta = en_sombra(5.5, -0.3)
+    jugador(lz, cam, fuera[0], fuera[2], (meta[0], meta[2]), CORRER, niebla=niebla)
+    # la luz del sol que abrasa el suelo, y encima la sombra
+    centro = B + eje * 4.0
+    capa_suelo(lz, cam, centro[0], centro[2], 20.0, tex_luz_suelo((255, 176, 96), 128, 0.5), 0.42)
+    N0, F0 = B + eje * 0.2, B + eje * L
+    P = [tuple(N0 - lat * w0 + [0, 0.07, 0]), tuple(N0 + lat * w0 + [0, 0.07, 0]),
+         tuple(F0 + lat * w1 + [0, 0.07, 0]), tuple(F0 - lat * w1 + [0, 0.07, 0])]
+    fe.trans(lz, cam, [(P, [(0, 0), (0, 1), (1, 1), (1, 0)])], tex_sombra(), 0.82, None, 0.0, 1.0)
+    # el sol pega en la cara de la Egida: su canto brilla por detras
+    resplandor(lz, cam, C + s * 0.9, 3.6, ORO, 0.6)
+    arde(lz, cam, fuera, fase, 1.0, 3)
+    # el resplandor del sol enorme del cielo
+    lejos = cam.ojo + (fe.SOL - cam.ojo) * 0.9
+    disco_sol(lz, cam, fe.SOL, 15.5, 0.55)
+    resplandor(lz, cam, lejos, 60.0, BRASA, 0.3)
+    resplandor(lz, cam, lejos, 26.0, ORO_CLARO, 0.25)
+    antes = con_sol_grande(17.0)
+    img = acabar(lz, cam, W, H, fase, 91, sol=True)
+    fe.sol_en_cielo = antes
+    img = calima(img, cam, fuera + np.array([0, 1.2, 0]), 2.2, 3.0, 1.0).convert('RGBA')
+    fe.SOL = viejo
+    rotulo(img, cam, C + np.array([0, 1.7, 0]), 'LA ÉGIDA', 40, -120, 50, ORO_CLARO)
+    rotulo(img, cam, en_sombra(8.2, 0.0) + np.array([0, 0.1, 0]), '¡A SU SOMBRA!', 150, 40, 52, (200, 214, 255))
+    rotulo(img, cam, fuera + np.array([0, 2.6, 0]), 'FUERA SE ARDE', -50, -100, 44, (255, 170, 120))
+    guardar(img, 'sombra')
+
+
+# ======================================================================
+#  6. Estandarte de Guerra
+#
+#  Su estandarte de oro clavado en la arena (el asta, el travesano y el pano
+#  carmesi con el sol bordado). Alrededor, el circulo dorado y la barra de
+#  conquista al 60 %. Tres jugadores dentro, juntos; al fondo, Novilis les
+#  lanza un barrido de fuego.
+# ======================================================================
+def estandarte_modelo():
+    """El estandarte, en px (16 = 1 bloque), el pie del asta en el origen y el pano
+    hacia -Z (de cara a quien mira)."""
+    n = nm.nodo
+    alto = 150                                    # el asta: 9,4 bloques
+    asta = [((-6, -4, -6, 12, 4, 12), 'basalto_j'), ((-4.5, -7, -4.5, 9, 3, 9), 'oro'),
+            ((-2.2, -alto, -2.2, 4.4, alto - 7, 4.4), 'oro'),
+            ((-3.0, -alto * 0.55, -3.0, 6.0, 2.5, 6.0), 'oro'),
+            ((-36, -alto + 6, -2.6, 72, 4, 4), 'oro'),                       # el travesano
+            ((-38.5, -alto + 4, -3.2, 5, 8, 5.2), 'oro'), ((33.5, -alto + 4, -3.2, 5, 8, 5.2), 'oro'),
+            ((-4, -alto - 8, -4, 8, 8, 8), 'nucleo')]                         # el sol de la punta
+    # el pano: tres tiras con un poco de vuelo y la cola en dos picos
+    top = -alto + 10
+    pano = []
+    for i, (x0, dz) in enumerate(((-32, -0.4), (-10.7, -1.4), (10.7, -0.6))):
+        pano.append(((x0, top, -4.2 + dz, 21.4, 78, 1.0), 'capa'))
+    for (x, w, h) in ((-32, 21.4, 16), (10.7, 21.4, 16), (-32, 10, 24), (22, 10, 24)):
+        pano.append(((x, top + 78, -4.4, w, h - 8 if w > 15 else h, 1.0), 'capa'))
+    # el ribete de oro y el sol bordado
+    pano += [((-33, top, -5.6, 66, 3, 1.0), 'oro'), ((-33, top, -5.6, 3, 92, 1.0), 'oro'), ((30, top, -5.6, 3, 92, 1.0), 'oro'),
+             ((-33, top + 76, -5.6, 66, 2.4, 1.0), 'oro')]
+    cy = top + 38
+    pano += [((-9, cy - 9, -5.9, 18, 18, 1.0), 'nucleo'), ((-12, cy - 5, -5.7, 24, 10, 0.8), 'oro'),
+             ((-5, cy - 12, -5.7, 10, 24, 0.8), 'oro')]
+    for a in range(12):
+        ang = TAU * a / 12
+        L = 21 if a % 2 == 0 else 17
+        cx, cyy = math.cos(ang) * L, cy + math.sin(ang) * L
+        pano.append(((cx - 2, cyy - 2, -5.7, 4, 4, 0.8), 'oro'))
+    return n('estandarte', (0, 0, 0), (0, 0, 0), asta + pano)
+
+
+def estandarte(W=1600, H=900, fase=2):
+    E = np.array([-3.0, 0.0, -8.5])              # el estandarte (lejos del centro del altar)
+    cam = vr.Camara(ojo=tuple(E + [-6.0, 8.5, -15.5]), objetivo=tuple(E + [1.0, 3.2, 1.0]), fov=54, ancho=W * SS, alto=H * SS)
+    F, R = marco_camara(cam)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    RC = 6.0                                      # el radio del circulo
+    nov = E + F * 25.0 + R * 13.5
+    # Novilis al fondo, a la derecha, lanzando el barrido hacia ellos
+    p = pose('BARRIDO')
+    g = fe.guinada_hacia(nov[0], nov[2], E[0], E[2])
+    M = caballero(lz, cam, nov[0], nov[2], g + 25, p, fase, niebla)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, k=0.8)
+    # el estandarte, el pano de cara a la camara
+    fm.dibujar(lz, cam, nm.quads(estandarte_modelo(), {}, modelo_en(E[0], 0, E[2], fe.guinada_hacia(E[0], E[2], cam.ojo[0], cam.ojo[2]))),
+               fe.LUCES, fe.AMB, niebla, 1.3, fase)
+    # los tres de dentro, juntos y de cara a el
+    dentro = [E - R * 2.6 - F * 2.0, E + R * 0.4 - F * 3.4, E + R * 2.8 - F * 1.4]
+    poses = [ALZAR, GUARDIA, ALZAR]
+    for i, q in enumerate(dentro):
+        Mj, pj = jugador(lz, cam, q[0], q[2], (nov[0], nov[2]), poses[i], niebla=niebla)
+        en_mano(lz, cam, Mj, pj, 'espada', 0.42, giro=math.radians(40 if poses[i] is ALZAR else 10), luz=1.1)
+    # el circulo dorado y la barra de conquista (60 %): lo lleno, claro; lo que falta, apagado
+    aro_suelo(lz, cam, E[0], E[2], RC, ORO, 0.85, 0.6, 0.03, 0, 40)
+    a_cam = math.atan2(-F[2], -F[0])              # el punto del circulo mas cerca de la camara
+    a0 = a_cam - math.radians(66)                 # la punta de la barra: delante, a la derecha
+    a1 = a0 + 0.60 * TAU                          # y empieza detras, a la izquierda
+    fe.trans(lz, cam, fe.banda_horizontal(E[0], 0.09, E[2], RC + 0.3, RC + 1.0, a1, a0 + TAU, 50),
+             tex_banda((70, 40, 24)), 0.85, None, 0.0, 1.0)
+    fe.aditivo(lz, cam, fe.banda_horizontal(E[0], 0.11, E[2], RC + 0.3, RC + 1.0, a0, a1, 90), tex_banda(ORO), 1.5)
+    cabeza = np.array([E[0] + math.cos(a0) * (RC + 0.65), 0.15, E[2] + math.sin(a0) * (RC + 0.65)])
+    resplandor(lz, cam, cabeza + np.array([0, 0.25, 0]), 1.3, ORO_CLARO, 1.0)
+    # el brillo del estandarte (su bendicion)
+    resplandor(lz, cam, E + np.array([0, 9.8, 0]), 1.8, ORO_CLARO, 0.5)
+    fe.llamas_en(lz, cam, E + np.array([0, 9.9, 0]), 0.9, fase, 4, 21, 0.9)
+    # el ataque: un tajo de fuego grande que vuela bajo hacia el circulo, con su estela
+    nuc, pri, hon = (nm._hex(c) for c in fm.FASE[1])
+    hacia = E - nov
+    hacia[1] = 0
+    hacia /= np.linalg.norm(hacia)
+    tex_t = fe.tex_media_luna(nuc, pri, 128)
+    # el tajo llega por la derecha, a la altura del pecho, con la panza hacia ellos
+    tajo = E + R * (RC + 1.6) - F * 0.6 + np.array([0, 1.7, 0])
+    va = (np.mean(dentro, axis=0) - tajo)
+    va[1] = 0
+    va /= np.linalg.norm(va)
+    for j, (atras, tam, k) in enumerate(((4.6, 1.6, 0.22), (2.3, 2.0, 0.45), (0.0, 2.5, 1.1))):
+        fe.aditivo(lz, cam, [fe.billboard(tajo - va * atras, tam * 0.5, cam, math.pi / 2, alto=tam)], tex_t, k)
+    fe.llamas_en(lz, cam, tajo - np.array([0, 0.7, 0]), 1.0, 1, 5, 61, 1.0)
+    fe.trans(lz, cam, fe.suelo_cuad(tajo[0], tajo[2], 2.2, 0.08), tex_luz_suelo(BRASA, 64, 1.2), 0.5, None, 0.4)
+    espada = fe.mundo_de(M, V, p, 'espada', (0, 50, 0))
+    haz_oro(lz, cam, curva(espada, tajo - va * 4.6, 1.5, 14), lambda t: 0.08 + 0.3 * t, 0.35, BRASA, ORO_CLARO)
+    img = acabar(lz, cam, W, H, fase, 92)
+    rotulo(img, cam, E + np.array([0, 9.0, 0]) - R * 2.3, 'SU ESTANDARTE', -40, -30, 48, ORO_CLARO)
+    rotulo(img, cam, cabeza, 'CONQUISTANDO 60%', 70, 30, 46, ORO_CLARO)
+    rotulo(img, cam, dentro[0] + np.array([0, 2.3, 0]), '¡AGUANTAD JUNTOS!', -60, -40, 50, BLANCO)
+    guardar(img, 'estandarte')
+
+
+# ======================================================================
+#  7. Escuderos de Fuego
+#
+#  Novilis de rodillas (con la espada clavada) bajo una cupula de oro. Tres
+#  escuderos de fuego (del tamano de un jugador: armadura oscura, costuras de
+#  lava, el visor encendido y una espada pequena de fuego), repartidos, cada uno
+#  unido a la cupula por un haz fino de oro. Los jugadores, por parejas.
+# ======================================================================
+def escudero_modelo():
+    """Un escudero de fuego, en px como el jugador (las mismas piezas, para usar
+    sus poses): armadura oscura con costuras de lava y una espada de fuego."""
+    n = nm.nodo
+    espada = n('espada_e', (0, 10.5, -0.5), (0, 0, 0), [
+        ((-0.7, -0.7, -1.6, 1.4, 1.4, 3.4), 'cuero'), ((-2.8, -0.9, -2.6, 5.6, 1.8, 1.2), 'oro'),
+        ((-0.8, -0.8, -15, 1.6, 1.6, 12.4), 'lava')])
+
+    def brazo(nombre, x, hijos=()):
+        return n(nombre, (x, 2, 0), (0, 0, 0), [((-2.2, -2, -2.2, 4.4, 12, 4.4), 'placa_osc'),
+                                               ((-3.0, -2.9, -3.0, 6.0, 4.6, 6.0), 'placa'),
+                                               ((-2.4, 6.5, -2.4, 4.8, 0.9, 4.8), 'lava')], hijos)
+
+    def pierna(nombre, x):
+        return n(nombre, (x, 12, 0), (0, 0, 0), [((-2.2, 0, -2.2, 4.4, 12, 4.4), 'placa_osc'),
+                                                ((-2.4, 5, -2.4, 4.8, 0.9, 4.8), 'lava'),
+                                                ((-2.4, 9, -2.8, 4.8, 3, 5.2), 'cota')])
+
+    return n('raiz', (0, 0, 0), (0, 0, 0), [], [
+        n('cuerpo', (0, 0, 0), (0, 0, 0), [
+            ((-4.4, 0, -2.5, 8.8, 12, 5.0), 'placa_osc'),
+            ((-4.6, 3.6, -2.8, 9.2, 0.9, 5.6), 'lava'), ((-0.45, 0, -2.75, 0.9, 10, 0.5), 'lava'),
+            ((-4.7, 10, -2.9, 9.4, 1.7, 5.8), 'oro'), ((-1.6, 5.6, -3.0, 3.2, 3.2, 0.6), 'nucleo')], [
+            n('cabeza', (0, 0, 0), (0, 0, 0), [
+                ((-4.4, -8.8, -4.4, 8.8, 8.8, 8.8), 'placa'),
+                ((-3.4, -5.5, -4.75, 6.8, 1.4, 0.6), 'nucleo'),          # el visor
+                ((-0.6, -4.0, -4.75, 1.2, 3.6, 0.6), 'lava'),
+                ((-1.1, -12.5, -3.5, 2.2, 3.8, 7.0), 'lava')]),          # la cresta
+            brazo('bi', 6), brazo('bd', -6, [espada])]),
+        pierna('pi', 2), pierna('pd', -2)])
+
+
+ESCUDERO = escudero_modelo()
+
+
+def escudero(lz, cam, x, z, mira, p, fase, niebla, escala=1.12):
+    """Dibuja un escudero en (x, z) mirando a 'mira'; devuelve la punta y el pecho."""
+    g = fe.guinada_hacia(x, z, *mira)
+    M = vr.T(x, 0, z) @ vr.Ry(math.radians(g)) @ vr.T(0, 1.5 * escala, 0) @ np.diag([-escala / 16, -escala / 16, escala / 16, 1])
+    fm.dibujar(lz, cam, nm.quads(ESCUDERO, p, M), fe.LUCES, fe.AMB, niebla, 1.3, fase)
+    for i, t in enumerate((-5, -9, -13)):
+        fe.llamas_en(lz, cam, punto_de(ESCUDERO, M, p, 'espada_e', (0, 0, t)), 0.32, fase, 2, 70 + i, 0.9)
+    fe.llamas_en(lz, cam, punto_de(ESCUDERO, M, p, 'cabeza', (0, -12.5, 0)), 0.42, fase, 3, 80, 0.8)
+    fe.brillo_en(lz, cam, punto_de(ESCUDERO, M, p, 'cuerpo', (0, 6, -3)), 0.9, BRASA, 0.4)
+    return punto_de(ESCUDERO, M, p, 'cuerpo', (0, 4, 0)), punto_de(ESCUDERO, M, p, 'cabeza', (0, -10, 0))
+
+
+ESC_ATACA = {'bd': {'rot': (-140, 10, 0)}, 'bi': {'rot': (-20, 0, -12)}, 'pi': {'rot': (-24, 0, 0)}, 'pd': {'rot': (22, 0, 0)}}
+ESC_TAJO = {'bd': {'rot': (-70, -40, 0)}, 'bi': {'rot': (20, 0, -10)}, 'pi': {'rot': (-18, 0, 0)}, 'pd': {'rot': (26, 0, 0)}}
+
+
+def escuderos(W=1600, H=900, fase=3):
+    # cerca de la pelea de un escudero (a la izquierda); los otros dos y Novilis, detras
+    cam = vr.Camara(ojo=(-9.5, 4.6, -17.0), objetivo=(0.0, 3.6, 2.0), fov=56, ancho=W * SS, alto=H * SS)
+    F, R = marco_camara(cam)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    N = np.array([2.5, 0.0, 9.0])
+    p = pose('CASTIGO_CLAVA')
+    M = caballero(lz, cam, N[0], N[2], fe.guinada_hacia(N[0], N[2], cam.ojo[0], cam.ojo[2]), p, fase, niebla, con_espada=False)
+    fe.espada_clavada(lz, cam, M, 0, -30, V, fase, niebla, inclina=0.0)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, espada=False, k=0.6)
+    # los escuderos (de cara a la camara) y su pareja de jugadores delante de cada uno
+    sitios = [np.array([-5.6, 0.0, -6.5]) - R * 3.2 + F * 0.8, np.array([6.0, 0.0, -3.0]), np.array([-10.0, 0.0, 3.5])]
+    parejas = [((-1.9, -2.1), (1.9, -1.2)), ((-2.0, -1.8), (1.9, -2.0)), ((-2.0, -1.8), (2.0, -1.4))]
+    poses_e = [ESC_ATACA, ESC_TAJO, ESC_ATACA]
+    tops = []
+    for i, S in enumerate(sitios):
+        q1 = S + R * parejas[i][0][0] + F * parejas[i][0][1]
+        q2 = S + R * parejas[i][1][0] + F * parejas[i][1][1]
+        objetivo = (q1 + q2) / 2
+        pecho, cima = escudero(lz, cam, S[0], S[2], (objetivo[0], objetivo[2]), poses_e[i], 1, niebla)
+        tops.append(cima)
+        for j, q in enumerate((q1, q2)):
+            pj = ALZAR if j == 0 else GOLPE
+            Mj, pj = jugador(lz, cam, q[0], q[2], (S[0], S[2]), pj, niebla=niebla)
+            en_mano(lz, cam, Mj, pj, 'espada', 0.38, giro=math.radians(40 if j == 0 else -20), luz=1.1)
+    # la cupula de oro sobre el
+    cima_nov = fe.mundo_de(M, V, p, 'halo')
+    RD = max(8.5, (cima_nov[1] + 1.5) / 1.15)
+    c = np.array([N[0], 0.0, N[2]])
+    fe.trans(lz, cam, fe.cupula(c, RD, 28, 10), fe.tex_cupula(ORO, 64), 0.36, None, 0.3)
+    # los haces: del escudero a la cupula (al punto de la cupula que mira hacia el)
+    mitades = []
+    for cima in tops:
+        d = cima - c
+        d[1] = 0
+        d /= np.linalg.norm(d)
+        sup = c + d * RD * math.cos(math.asin(0.45)) + np.array([0, RD * 1.15 * 0.45, 0])
+        pts = curva(cima, sup, 2.2, 24)
+        haz_oro(lz, cam, pts, 0.06, 1.1, BRASA, ORO_CLARO)
+        haz_oro(lz, cam, pts, 0.18, 0.3, ORO, ORO_CLARO)
+        resplandor(lz, cam, sup, 1.8, ORO, 0.9)
+        resplandor(lz, cam, cima, 0.8, ORO_CLARO, 0.7)
+        mitades.append(pts[len(pts) // 2])
+    img = acabar(lz, cam, W, H, fase, 93)
+    rotulo(img, cam, c + R * RD * 0.62 + np.array([0, RD * 1.15 * 0.72, 0]), 'SU ESCUDO', 110, -60, 54, ORO_CLARO)
+    rotulo(img, cam, tops[0] + np.array([0, 0.3, 0]), 'ESCUDERO', -80, -70, 50, (255, 190, 120))
+    rotulo(img, cam, mitades[0], '¡SIN ELLOS CAE EL ESCUDO!', -40, -150, 48, BLANCO)
+    guardar(img, 'escuderos')
+
+
+# ======================================================================
+#  8. Sol Caido
+#
+#  Su sol cae y rueda por la arena: una bola de fuego de 3 bloques que deja un
+#  rastro quemado. Detras, los jugadores lo golpean (chispas) para mandarlo
+#  contra las piernas de Novilis (la flecha de puntos). Delante, uno salta a un
+#  lado para que no le pase por encima.
+# ======================================================================
+def sol_caido(W=1600, H=900, fase=3):
+    # de lado: el sol rueda de izquierda a derecha, hacia las piernas de Novilis
+    cam = vr.Camara(ojo=(-10.0, 6.8, -22.0), objetivo=(-2.0, 2.4, -6.0), fov=54, ancho=W * SS, alto=H * SS)
+    F, R = marco_camara(cam)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    Q = np.array([cam.ojo[0], 0.0, cam.ojo[2]]) + F * 12.5
+    RS = 1.5
+    S = Q - R * 3.2                               # el sol, en el suelo
+    N = Q + R * 11.0 + F * 3.5
+    p = pose('GRITO')
+    M = caballero(lz, cam, N[0], N[2], fe.guinada_hacia(N[0], N[2], S[0], S[2]) + 15, p, fase, niebla)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, k=0.7)
+    piernas = (fe.mundo_de(M, V, p, 'pie_izq') + fe.mundo_de(M, V, p, 'pie_der')) / 2
+    piernas[1] = 0.1
+    hacia = piernas - S
+    hacia[1] = 0
+    hacia /= np.linalg.norm(hacia)
+    lat = np.array([-hacia[2], 0, hacia[0]])
+    if lat @ F < 0:
+        lat = -lat                                # lat: hacia el fondo
+    # el rastro quemado, de la izquierda hasta el sol (con una curva)
+    ruta = [S - hacia * 11.5 * t + lat * 1.8 * math.sin(math.pi * t) for t in np.linspace(1, 0, 18)]
+    quad, bordes = [], []
+    for i in range(len(ruta) - 1):
+        a, b = ruta[i], ruta[i + 1]
+        d = b - a
+        lado = np.array([-d[2], 0, d[0]]) / (np.linalg.norm(d) + 1e-9)
+        ancho = 1.45 * (0.7 + 0.3 * i / (len(ruta) - 2))
+        quad.append(([tuple(a - lado * ancho + [0, 0.07, 0]), tuple(b - lado * ancho + [0, 0.07, 0]),
+                      tuple(b + lado * ancho + [0, 0.07, 0]), tuple(a + lado * ancho + [0, 0.07, 0])],
+                     [(0, 1), (1, 1), (1, 0), (0, 0)]))
+        for sg in (-1, 1):
+            e0, e1 = a + lado * ancho * sg, b + lado * ancho * sg
+            bordes.append(([tuple(e0 - lado * 0.14 + [0, 0.08, 0]), tuple(e1 - lado * 0.14 + [0, 0.08, 0]),
+                            tuple(e1 + lado * 0.14 + [0, 0.08, 0]), tuple(e0 + lado * 0.14 + [0, 0.08, 0])],
+                           [(0, 0), (0, 1), (1, 1), (1, 0)]))
+    # los que lo golpean, detras (los dos de este lado) y otro que llega corriendo
+    golpes = [S - hacia * 2.3 - lat * 1.5, S - hacia * 1.9 + lat * 2.1]
+    for i, q in enumerate(golpes):
+        Mj, pj = jugador(lz, cam, q[0], q[2], (S[0], S[2]), GOLPE, niebla=niebla)
+        en_mano(lz, cam, Mj, pj, 'espada', 0.38, giro=math.radians(-30), luz=1.1)
+    corre = S - hacia * 6.6 - lat * 2.2
+    jugador(lz, cam, corre[0], corre[2], (S[0], S[2]), CORRER, niebla=niebla)
+    # el que esquiva: estaba en su camino y salta hacia delante (hacia la camara)
+    salta = S + hacia * 3.9 - lat * 3.0
+    mira = (S - salta) / np.linalg.norm(S - salta)
+    LADEO = 36 if np.cross([0, 1.0, 0], mira) @ (-lat) > 0 else -36    # que se incline hacia donde salta
+    Ms = jugador_inclinado(lz, cam, salta + np.array([0, 1.6, 0]), fe.guinada_hacia(salta[0], salta[2], S[0], S[2]), LADEO,
+                           SALTO, niebla)
+    fe.trans(lz, cam, quad, tex_quemado(), 0.92, None, 0.0, 1.0)
+    fe.aditivo(lz, cam, quad, tex_ascuas(), 1.4)
+    fe.aditivo(lz, cam, bordes, tex_banda(BRASA), 0.6)
+    r = random.Random(4)
+    for i, q in enumerate(ruta[4:-2]):
+        if i % 2 == 0:
+            fe.llamas_en(lz, cam, q + lat * r.uniform(-0.7, 0.7), 0.55, 1, 2, 90 + i, 0.75)
+    # su sombra en el suelo, donde estaba
+    fe.trans(lz, cam, fe.suelo_cuad(salta[0], salta[2], 0.9, 0.08), tex_luz_suelo((10, 6, 6), 64, 0.8), 0.6, None, 0.0)
+    # la flecha de puntos hasta sus pies
+    a2 = np.array([S[0], S[2]]) + np.array([hacia[0], hacia[2]]) * (RS + 1.0)
+    b2 = np.array([piernas[0], piernas[2]]) - np.array([hacia[0], hacia[2]]) * 2.6
+    linea_puntos(lz, cam, a2, b2, ORO_CLARO, y=0.12, paso=1.0, largo=0.55, ancho=0.22, brillo=1.8)
+    # el sol: la corona y el calor detras, la bola de fuego encima
+    c = S + np.array([0, RS, 0])
+    resplandor(lz, cam, c + (cam.ojo - c) / np.linalg.norm(cam.ojo - c) * 0.1, RS * 4.2, BRASA, 0.5)
+    bola_de_fuego(lz, cam, c, RS, 11, 0.3)
+    # las chispas de los golpes
+    chis = tex_chispas()
+    for i, q in enumerate(golpes):
+        d = q - S
+        d[1] = 0
+        d /= np.linalg.norm(d)
+        imp = c + d * RS * 1.0 + np.array([0, -0.1 + 0.35 * i, 0])
+        fe.aditivo(lz, cam, [fe.billboard(imp, 1.0, cam, 0.4 * i)], chis, 1.4)
+    img = acabar(lz, cam, W, H, fase, 94)
+    img = calima(img, cam, c, RS * 2.8, 3.0, 2.0, hueco=RS * 1.15).convert('RGBA')
+    estelas(img, cam, salta + np.array([0, 2.6, 0]), salta + np.array([0, 2.4, 0]) + lat * 2.6 + hacia * 0.4)
+    flechas(img, cam, np.array([a2[0], 0.12, a2[1]]), np.array([b2[0], 0.12, b2[1]]), ts=(0.35, 0.65, 0.95), tam=18)
+    rotulo(img, cam, c + np.array([0, RS * 1.3, 0]), 'SOL CAÍDO', -20, -150, 56, ORO_CLARO)
+    rotulo(img, cam, np.array([b2[0], 0.2, b2[1]]), '¡EMPUJADLO CONTRA ÉL!', -40, 70, 52, BLANCO)
+    guardar(img, 'sol_caido')
+
+
+ESCENAS = {'duelo': duelo, 'armadura': armadura, 'espejos': espejos, 'llama': llama,
+           'sombra': sombra, 'estandarte': estandarte, 'escuderos': escuderos, 'sol_caido': sol_caido}
 
 if __name__ == '__main__':
     pedidas = sys.argv[3].split(',') if len(sys.argv) > 3 else list(ESCENAS)

@@ -82,6 +82,7 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         s.furia = n.tieneFuria() && !n.isDeadOrDying();
         s.grito = n.tieneGrito() && !n.isDeadOrDying();
         s.carga = n.getCarga();
+        s.solFuera = n.getSombra() >= 0.0F;
         s.segundosEstado = (n.tickCount - n.inicioEstado + parcial) / 20.0F * n.ritmoCliente;
         s.segundosLibera = (n.deathTime + parcial) / 20.0F;
         s.libre = n.deathTime >= NovilisGeometria.LIBERACION_ORO;
@@ -151,7 +152,7 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
             case NovilisEntity.DESPERTAR -> NovilisEstelas.DESPERTAR;
             case NovilisEntity.TAMBALEO -> NovilisEstelas.TAMBALEO;
             case NovilisEntity.GRITO -> NovilisEstelas.GRITO;
-            case NovilisEntity.TROMPETAS -> NovilisEstelas.TROMPETAS;
+            case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA -> NovilisEstelas.TROMPETAS;
             case NovilisEntity.FUENTES -> NovilisEstelas.FUENTES;
             case NovilisEntity.SOL -> NovilisEstelas.SOL;
             default -> null;
@@ -200,6 +201,10 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
             float k = 1.0F - s.disolver;
             radio = 2.2F * (0.6F + 0.4F * k);
             alfa = (int) (230 * k);
+        } else if (s.solFuera) {
+            // Su sol esta en el cielo (la Sombra del Escudo): a la espalda no le queda.
+            radio = 0.0F;
+            alfa = 0;
         } else if (s.estado == NovilisEntity.DORMIDO) {
             radio = 1.2F;
             alfa = (int) (120 + 40 * Mth.sin(edad * 0.06F));

@@ -41,6 +41,8 @@ public class NovilisRenderState extends LivingEntityRenderState {
     public float disolver;
     /** La carga de su sol en las Fuentes (0 a 1). */
     public float carga;
+    /** Su sol esta en el cielo (la Sombra del Escudo). */
+    public boolean solFuera;
 
     // --- Lo que se pinta fuera del cuerpo, relativo a los pies ---
     /** Su sol (sobre el halo). */

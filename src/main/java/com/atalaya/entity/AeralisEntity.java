@@ -105,6 +105,8 @@ public class AeralisEntity extends Monster {
     public static final int POSADA = 16;
     /** Escamas de Tormenta: sacude las alas y el suelo se carga donde caen. */
     public static final int ESCAMAS = 17;
+    /** La Rafaga Ladrona (octubre de 2026): un soplido que quita el arma de la mano a un tercio. */
+    public static final int LADRONA = 18;
 
     /**
      * Vida EFECTIVA: 13 500 (Nerea, 11 250), la misma con cualquier numero de
@@ -320,6 +322,10 @@ public class AeralisEntity extends Monster {
     private int enfJuicio = 200;
     private int enfPicado = 160;
     private int enfEscamas = 300;
+    private int enfLadrona = 300;
+    /** A quien le va a quitar el arma la Rafaga Ladrona (al soltarla). */
+    private final List<LivingEntity> elegidosLadrona = new ArrayList<>();
+    private boolean pistaLadrona;
     /** El Picado: rumbo, largo de la linea, lo que lleva y a quien ya ha golpeado. */
     private Vec3 dirPicado = new Vec3(0, 0, 1);
     private double largoPicado;
@@ -498,7 +504,8 @@ public class AeralisEntity extends Monster {
         avisoEstado = aviso(estado);
         duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
         // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
-        if (estado == ALETEO || estado == TORNADOS || estado == MARCA || estado == PICADO_AVISO || estado == ESCAMAS || estado == JUICIO_SUBE) {
+        if (estado == ALETEO || estado == TORNADOS || estado == MARCA || estado == PICADO_AVISO || estado == ESCAMAS || estado == JUICIO_SUBE
+                || estado == LADRONA) {
             PresasJefe.alerta(this, estado == PICADO_AVISO || estado == JUICIO_SUBE, 1.12F);
         }
     }
@@ -584,7 +591,7 @@ public class AeralisEntity extends Monster {
             case ALETEO -> aleteo;
             case TORNADOS -> tornados;
             case MARCA -> marca;
-            case RAFAGA -> rafaga;
+            case RAFAGA, LADRONA -> rafaga;
             case DOBLE_RAFAGA -> dobleRafaga;
             case JUICIO_SUBE -> juicioSube;
             case JUICIO_SOSTIENE -> juicioSostiene;
@@ -932,6 +939,7 @@ public class AeralisEntity extends Monster {
         if (enfJuicio > 0) enfJuicio--;
         if (enfPicado > 0) enfPicado--;
         if (enfEscamas > 0) enfEscamas--;
+        if (enfLadrona > 0) enfLadrona--;
         tornadosVivos.removeIf(Entity::isRemoved);
         tickManchas(nivel);
         tickVientos(nivel);
@@ -960,6 +968,7 @@ public class AeralisEntity extends Monster {
             case PICADO -> tickPicado(nivel);
             case POSADA -> tickPosada(nivel);
             case ESCAMAS -> tickEscamas(nivel, objetivo);
+            case LADRONA -> tickLadrona(nivel);
             default -> {
             }
         }
@@ -1075,6 +1084,7 @@ public class AeralisEntity extends Monster {
         if (fase >= 3 && enfJuicio <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{JUICIO_SUBE, 2});
         if (fase >= 2 && enfPicado <= 0 && d >= 12.0 && d <= 50.0) opciones.add(new int[]{PICADO_AVISO, 4});
         if (fase >= 3 && enfEscamas <= 0) opciones.add(new int[]{ESCAMAS, 3});
+        if (fase >= 2 && enfLadrona <= 0 && !armados(nivel).isEmpty()) opciones.add(new int[]{LADRONA, 3});
         if (opciones.isEmpty()) {
             return;
         }
@@ -1151,6 +1161,25 @@ public class AeralisEntity extends Monster {
                 ponerEstado(PICADO_AVISO, AeralisGeometria.DURACION_PICADO_AVISO);
                 entityData.set(DATA_PICADO, (float) PICADO_MIN);
                 sonido(AtalayaSonidos.AERALIS_PICADO_AVISO, 6.0F);
+            }
+            case LADRONA -> {
+                enfLadrona = (int) (900 * k);
+                // Un tercio de los que llevan algo en la mano (minimo uno).
+                List<LivingEntity> todos = armados(nivel);
+                if (todos.isEmpty()) {
+                    return;
+                }
+                java.util.Collections.shuffle(todos, new java.util.Random(random.nextLong()));
+                elegidosLadrona.clear();
+                elegidosLadrona.addAll(todos.subList(0, (todos.size() + 2) / 3));
+                ponerEstado(LADRONA, AeralisGeometria.DURACION_RAFAGA);
+                sonido(AtalayaSonidos.AERALIS_CHILLIDO, 5.0F);
+                if (!pistaLadrona) {
+                    pistaLadrona = true;
+                    for (Player p : jugadores(nivel, 64, 0)) {
+                        p.sendOverlayMessage(Component.translatable("hud.atalaya.aeralis.ladrona_aviso").withStyle(ChatFormatting.AQUA));
+                    }
+                }
             }
             case ESCAMAS -> {
                 enfEscamas = (int) (500 * k);
@@ -1270,6 +1299,7 @@ public class AeralisEntity extends Monster {
             case "picado" -> PICADO_AVISO;
             case "posada" -> POSADA;
             case "escamas" -> ESCAMAS;
+            case "ladrona" -> LADRONA;
             default -> -1;
         };
         if (ataque < 0) {
@@ -1777,6 +1807,56 @@ public class AeralisEntity extends Monster {
         RafagaAeralisEntity.lanzar(nivel, this, desde, presa, fase(), isAcelerada(), aguanta, dano(DANO_RAFAGA));
         sonido(AtalayaSonidos.AERALIS_RAFAGA, 4.0F);
         nivel.sendParticles(AtalayaParticulas.AERALIS_JIRON, true, true, desde.x, desde.y, desde.z, 10, 0.6, 0.6, 0.6, 0.05);
+    }
+
+    // ------------------------------------------------------------------
+    //  Rafaga Ladrona (octubre de 2026, la que eligio Juan de la ficha de
+    //  viento): un soplido arranca el arma de la mano a un tercio de los que
+    //  pelean; cada arma gira en un remolino junto a su dueno y vuelve a su
+    //  mano con 3 golpes al remolino (RemolinoLadronEntity) o a los 15 s.
+    // ------------------------------------------------------------------
+
+    /** Los que llevan algo en la mano a 40 bloques (sin jugadores, las presas de alrededor: pruebas). */
+    private List<LivingEntity> armados(ServerLevel nivel) {
+        List<LivingEntity> out = new ArrayList<>();
+        for (Player p : jugadores(nivel, 40, 0)) {
+            if (!p.getMainHandItem().isEmpty()) {
+                out.add(p);
+            }
+        }
+        if (out.isEmpty() && jugadores(nivel, 40, 0).isEmpty()) {
+            for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(40, 24, 40), this::esPresa)) {
+                if (!v.getMainHandItem().isEmpty()) {
+                    out.add(v);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Sopla: al soltar la rafaga, a cada elegido se le va el arma a un remolino. */
+    private void tickLadrona(ServerLevel nivel) {
+        if (!elegidosLadrona.isEmpty()) {
+            girarHacia(elegidosLadrona.get(0).position(), 12.0F);
+        }
+        if (!cruza(AeralisGeometria.RAFAGA_SUELTA)) {
+            return;
+        }
+        sonido(AtalayaSonidos.AERALIS_RAFAGA, 5.0F);
+        Vec3 desde = puntoMundo(AeralisGeometria.NUCLEO);
+        for (LivingEntity v : elegidosLadrona) {
+            if (!esPresa(v)) {
+                continue;
+            }
+            // La rafaga se ve ir de su pecho al robado.
+            Vec3 hasta = v.position().add(0, 1.2, 0);
+            for (int i = 1; i <= 10; i++) {
+                Vec3 q = desde.lerp(hasta, i / 10.0);
+                nivel.sendParticles(AtalayaParticulas.AERALIS_VIENTO, true, true, q.x, q.y, q.z, 1, 0.2, 0.2, 0.2, 0.05);
+            }
+            RemolinoLadronEntity.robar(nivel, this, v);
+        }
+        elegidosLadrona.clear();
     }
 
     // ------------------------------------------------------------------

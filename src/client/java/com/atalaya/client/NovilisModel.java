@@ -169,7 +169,7 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
                 case NovilisEntity.CASTIGO -> castigo.apply(ms, 1.0F);
                 case NovilisEntity.CASTIGO_ONDA -> castigoOnda.apply(ms, 1.0F);
                 case NovilisEntity.SOL -> sol.apply(ms, 1.0F);
-                case NovilisEntity.TROMPETAS -> trompetas.apply(ms, 1.0F);
+                case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA -> trompetas.apply(ms, 1.0F);
                 case NovilisEntity.FUENTES -> entradaYBucle(fuentes, fuentesCarga, NovilisGeometria.DURACION_FUENTES, seg);
                 case NovilisEntity.OFRENDA -> entradaYBucle(ofrenda, ofrendaSostiene, NovilisGeometria.DURACION_OFRENDA, seg);
                 case NovilisEntity.DIOS -> dios.apply(ms, 1.0F);

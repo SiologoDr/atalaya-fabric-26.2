@@ -34,6 +34,8 @@ import org.jspecify.annotations.Nullable;
  *              del sol, del oro al rojo, hasta el estallido.
  *   Ofrenda    el sol con el cautivo dentro y lo que lleva de liberacion (lo que
  *              ven los demas; el cautivo ve ademas OfrendaHud).
+ *   Sombra     su sol, lo que le queda en el cielo (del oro al rojo, se va
+ *              vaciando) y cuantos estan a la sombra de una Egida.
  *
  * Va debajo de las de Nerea, Aeralis y Rajang si estan a la vista.
  */
@@ -273,7 +275,9 @@ public class NovilisBarraHud implements HudElement {
         // alza la espada para llamarlos: el estado TROMPETAS dura 2,6 s y la
         // melodia sigue sonando mientras el pelea.
         boolean melodia = n.getMelodia() >= 0.0F;
-        int vista = e == NovilisEntity.FUENTES || e == NovilisEntity.OFRENDA ? e : melodia ? NovilisEntity.TROMPETAS : -1;
+        boolean sombra = n.getSombra() >= 0.0F && !melodia;
+        int vista = e == NovilisEntity.FUENTES || e == NovilisEntity.OFRENDA ? e : melodia ? NovilisEntity.TROMPETAS
+                : sombra ? NovilisEntity.SOMBRA : -1;
         // Al cambiar de vista (o de jefe) los golpes se toman como estan, sin temblar.
         boolean sincronizar = nuevo || vista != vistaAntes;
         vistaAntes = vista;
@@ -287,6 +291,37 @@ public class NovilisBarraHud implements HudElement {
             int abajo = vista == NovilisEntity.TROMPETAS ? 0 : FILA_EXTRA;
             trompetasBajo(g, n, x0, y0 + abajo, ahora, sincronizar);
         }
+        if (sombra) {
+            // Como los angeles: si a la vez hay Fuentes u Ofrenda, una fila mas abajo.
+            int abajo = vista == NovilisEntity.SOMBRA ? 0 : FILA_EXTRA;
+            sombraBajo(g, n, x0, y0 + abajo, ahora);
+        }
+    }
+
+    /** Su sol, lo que le queda abrasando (se vacia del rojo al oro) y cuantos estan a la sombra. */
+    private static void sombraBajo(GuiGraphicsExtractor g, NovilisEntity n, int x0, int y0, float ahora) {
+        float queda = 1.0F - Mth.clamp(n.getSombra(), 0.0F, 1.0F);
+        // El sol late mientras abrasa.
+        int tinte = BLANCO;
+        if (n.getSombra() > 0.0F) {
+            tinte = 0xFF000000 | escalar(0xFFFFFF, 0.82F + 0.18F * Math.abs(Mth.sin(ahora * 0.2F)));
+        }
+        pieza(g, OFRENDA_SOL, x0 + SOL_X, y0 + SOL_Y, SOL_LADO, SOL_LADO, tinte);
+        int lx = x0 + CARGA_X;
+        int ly = y0 + CARGA_Y;
+        pieza(g, CARGA_LOSA, lx, ly, CARGA_ANCHO, CARGA_ALTO, BLANCO);
+        int w = Math.round((CARGA_ANCHO - 2) * queda);
+        if (w > 0) {
+            recorte(g, CARGA, lx + 1, ly + 1, w, CARGA_ALTO - 2, CARGA_ANCHO - 2, BLANCO);
+        }
+        if (w > 1) {
+            g.fill(lx + w, ly + 1, lx + w + 1, ly + CARGA_ALTO - 1, CARGA_FRENTE);
+        }
+        int dentro = n.getSombraDentro();
+        int total = n.getSombraTotal();
+        Minecraft mc = Minecraft.getInstance();
+        g.text(mc.font, Component.translatable("hud.atalaya.novilis.sombra", dentro, total), lx + CARGA_ANCHO + 4, ly - 1,
+                total > 0 && dentro >= total ? 0xFFFFE07A : 0xFFE8E2D6, true);
     }
 
     /** El frente encendido de la lava y la chispa que salta por encima del canto (sube y se apaga). */

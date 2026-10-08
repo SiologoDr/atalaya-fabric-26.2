@@ -124,6 +124,11 @@ public final class AeralisEfectosCliente {
                     NereaPresencia.asustar(x, y, z, 0.35F, 48, true);
                 }
             }
+            case AeralisEntity.LADRONA -> {
+                if (t == AeralisGeometria.RAFAGA_SUELTA) {
+                    NereaPresencia.sacudir(x, y, z, 0.5F, 32);
+                }
+            }
             case AeralisEntity.MARCA -> {
                 if (t == AeralisGeometria.MARCA_FIJA) {
                     NereaPresencia.asustar(x, y, z, soyYo ? 1.0F : 0.35F, soyYo ? 400 : 48, true);

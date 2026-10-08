@@ -25,6 +25,8 @@ import org.jspecify.annotations.Nullable;
  *   supernova  Fuentes solares, si se llena la carga: todo el altar (explosion, sin escudo)
  *   dios       Dios de la Guerra: las explosiones en cadena (explosion, sin escudo)
  *   calor      lo que quema estar en sus manos en la Ofrenda: pasa la armadura
+ *   abrasa     el sol de la Sombra del Escudo, cada segundo al sol: pasa la armadura
+ *              y el escudo y no empuja (lo que vale es la sombra de la Egida)
  *   mortal     lo que mata salvo totem: la Ofrenda fallada y el Dios de la Guerra
  *              contra quien tiene quemadura grave o si el tiene el Grito de guerra
  *              (todas las bypasses_* menos la de invulnerabilidad)
@@ -40,6 +42,7 @@ public final class NovilisDanos {
     public static final ResourceKey<DamageType> SUPERNOVA = clave("novilis_supernova");
     public static final ResourceKey<DamageType> DIOS = clave("novilis_dios");
     public static final ResourceKey<DamageType> CALOR = clave("novilis_calor");
+    public static final ResourceKey<DamageType> ABRASA = clave("novilis_abrasa");
     public static final ResourceKey<DamageType> MORTAL = clave("novilis_mortal");
 
     private NovilisDanos() {
