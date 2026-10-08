@@ -177,6 +177,9 @@ public class NereaEntity extends Monster {
         return switch (estado) {
             case MOLINO -> 11;
             case ROMPEOLAS -> 9;
+            // La Gran Marea marca el paso 2,5 s mas (4,5 s en total antes de soltar
+            // la ola), quieta y mirando a donde va a ir (Juan, 08-10-2026).
+            case MAREA -> 50;
             default -> 0;
         };
     }
@@ -327,10 +330,6 @@ public class NereaEntity extends Monster {
     private final List<RefugioNereaEntity> refugios = new ArrayList<>();
     private int aforoRefugio = 2;
     private int refugiosQueSalen;
-    /** Las pistas de la barra de accion: una vez por combate cada una. */
-    private boolean pistaCanto;
-    private boolean pistaCadenas;
-    private boolean pistaMareaAlta;
     private int relojAgotado = CADA_AGOTADO;
     private int ultimoAvisoInmune;
     private int golpesOjoIzq;
@@ -484,23 +483,23 @@ public class NereaEntity extends Monster {
         ritmoEstado = ritmo(estado, fase(), tieneFuria());
         avisoEstado = aviso(estado);
         duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
-        if (avisoEstado > 0 || estado == MIRADA || estado == MAREA || estado == GEISER || estado == REMOLINO
-                || estado == BURBUJAS || estado == ARPON_LANZAR || estado == CANTO || estado == MAREA_ALTA || estado == ENCADENAR) {
-            PresasJefe.alerta(this, estado == MIRADA || estado == MAREA || estado == MAREA_ALTA, 1.0F);
-        }
     }
 
     /**
-     * Lo rapido que van los ataques en cada fase: x1, x1,12, x1,25 y x1,4, y un
-     * 25 % mas con la Furia (menos la Mirada: romperle los ojos tiene que seguir
-     * siendo posible). La Gran Marea avisa siempre lo mismo, para que de tiempo
+     * Lo rapido que van los ataques en cada fase: x1, x1,12, x1,18 y x1,28, y un
+     * 15 % mas con la Furia. La Mirada no: va mas lenta que su animacion y la
+     * Furia no la toca, porque romperle los ojos tiene que dar tiempo. La Gran Marea avisa siempre lo mismo, para que de tiempo
      * a llegar al hueco. El cliente usa el mismo numero para la velocidad de la
      * animacion, asi que lo que se ve y lo que pega siguen yendo juntos.
      */
     public static float ritmo(int estado, int fase, boolean furia) {
         float k = switch (estado) {
-            case ROMPEOLAS, BURBUJAS, MOLINO, ARPON_LANZAR, ARPON_TIRAR, MIRADA, GEISER ->
+            case ROMPEOLAS, BURBUJAS, MOLINO, ARPON_LANZAR, ARPON_TIRAR, GEISER ->
                     new float[]{1.0F, 1.0F, 1.12F, 1.18F, 1.28F}[Mth.clamp(fase, 1, 4)];
+            // La Mirada va mas lenta que su animacion: 8,5 s en la I y la II, 7,8 en
+            // la III y 7,3 en la IV, para que de tiempo a romperle los ojos (Juan,
+            // 08-10-2026: antes eran de 5 a 3,8 s y no daba).
+            case MIRADA -> new float[]{0.6F, 0.6F, 0.6F, 0.65F, 0.7F}[Mth.clamp(fase, 1, 4)];
             default -> 1.0F;
         };
         return furia && k > 1.0F && estado != MIRADA ? k * FURIA_RITMO : k;
@@ -955,11 +954,6 @@ public class NereaEntity extends Monster {
                 golpesOjoNecesarios = Mth.clamp(4 + jugadoresGrupo / 6, 5, 12);
                 entityData.set(DATA_GOLPES_OJOS, golpesOjoNecesarios << 16);
                 anotarMirados();
-                // Que se sepa como pararla: a todos los de alrededor, en la barra de accion.
-                for (Player p : jugadores(nivel, 64, 0)) {
-                    p.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
-                            "hud.atalaya.nerea.mirada_aviso").withStyle(net.minecraft.ChatFormatting.AQUA));
-                }
                 entityData.set(DATA_OBJETIVO, elegidos.get(0).getId());
                 ponerEstado(MIRADA, NereaGeometria.DURACION_MIRADA);
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 6.0F);
@@ -976,10 +970,6 @@ public class NereaEntity extends Monster {
                 elegidosCanto.clear();
                 elegidosCanto.addAll(todos.subList(0, (todos.size() + 2) / 3));
                 ponerEstado(CANTO, NereaGeometria.DURACION_CANTO);
-                if (!pistaCanto) {
-                    pistaCanto = true;
-                    avisar(nivel, Component.translatable("hud.atalaya.nerea.canto_aviso").withStyle(ChatFormatting.LIGHT_PURPLE));
-                }
             }
             case ENCADENAR -> {
                 enfCadenas = (int) (700 * k);
@@ -1010,11 +1000,6 @@ public class NereaEntity extends Monster {
                 refugiosQueSalen = (n + aforoRefugio - 1) / aforoRefugio;
                 ponerEstado(MAREA_ALTA, NereaGeometria.DURACION_MAREA_ALTA);
                 sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
-                if (!pistaMareaAlta) {
-                    pistaMareaAlta = true;
-                    avisar(nivel, Component.translatable("hud.atalaya.nerea.marea_alta_aviso", aforoRefugio)
-                            .withStyle(ChatFormatting.GOLD));
-                }
             }
             case GEISER -> {
                 enfGeiser = (int) (260 * k);
@@ -1032,9 +1017,9 @@ public class NereaEntity extends Monster {
                 entityData.set(DATA_HUECO, (random.nextFloat() * 2.0F - 1.0F) * MAREA_HUECO_LADO);
                 ponerEstado(MAREA, NereaGeometria.DURACION_MAREA);
                 // Puesta la direccion, ni se mueve ni ataca hasta que la ola acaba de cruzar.
-                duracion = Math.max(duracion, (int) Math.ceil(NereaGeometria.MAREA_LANZA / ritmoEstado)
+                duracion = Math.max(duracion, avisoEstado + (int) Math.ceil(NereaGeometria.MAREA_LANZA / ritmoEstado)
                         + (int) Math.ceil(MAREA_LARGO / MAREA_VEL) + OlaNereaEntity.APAGA / 2);
-                sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
+                // Ruge al marcar el paso; el mar se alza cuando alza el tridente (tickMarea).
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 5.0F);
             }
             default -> {
@@ -2010,26 +1995,13 @@ public class NereaEntity extends Monster {
         elegidosCadenas.clear();
         for (int i = 0; i + 1 < v.size(); i += 2) {
             CadenaNereaEntity.atar(nivel, this, v.get(i), v.get(i + 1));
-            avisarCadena(v.get(i), false);
-            avisarCadena(v.get(i + 1), false);
         }
         if (v.size() % 2 == 1) {
             LivingEntity solo = v.get(v.size() - 1);
             CadenaNereaEntity.atar(nivel, this, solo, null);
-            avisarCadena(solo, true);
         }
         Vec3 mano = puntoMundo(NereaGeometria.MANO_IZQ_LANZAR);
         nivel.sendParticles(AtalayaParticulas.NEREA_GOTA, true, true, mano.x, mano.y, mano.z, 20, 0.6, 0.6, 0.6, 0.3);
-        if (!pistaCadenas) {
-            pistaCadenas = true;
-        }
-    }
-
-    private void avisarCadena(LivingEntity v, boolean alAncla) {
-        if (v instanceof Player p) {
-            p.sendOverlayMessage(Component.translatable(alAncla ? "hud.atalaya.nerea.cadena_ancla" : "hud.atalaya.nerea.cadena_pareja",
-                    (int) CadenaNereaEntity.LARGO).withStyle(ChatFormatting.AQUA));
-        }
     }
 
     // --- Marea Alta ---
@@ -2048,7 +2020,7 @@ public class NereaEntity extends Monster {
             int s = (estalla - t) / 20;
             sonido(AtalayaSonidos.NEREA_CUENTA, 4.0F);
             avisar(nivel, Component.translatable("hud.atalaya.nerea.marea_alta", s)
-                    .withStyle(s <= 3 ? ChatFormatting.RED : ChatFormatting.GOLD, ChatFormatting.BOLD));
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         }
         if (t == estalla) {
             estallarMareaAlta(nivel);
@@ -2111,7 +2083,16 @@ public class NereaEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickMarea(ServerLevel nivel) {
+        // Quieta y mirando siempre al mismo sitio, de principio a fin: ni anda, ni
+        // la mueve su control de movimiento, ni gira la cabeza hacia nadie.
         fijarRumbo(rumbo);
+        getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+        setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+        float b = rumbo * Mth.DEG_TO_RAD;
+        getLookControl().setLookAt(getX() - Mth.sin(b) * 20.0, getEyeY(), getZ() + Mth.cos(b) * 20.0, 360.0F, 360.0F);
+        if (t == avisoEstado) {
+            sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
+        }
         if (cruza(NereaGeometria.MAREA_LANZA)) {
             Vec3 p = puntoMundo(NereaGeometria.PUNTA_MAREA);
             nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_ROMPEOLAS_GOLPE, SoundSource.HOSTILE, 6.0F, 0.7F);

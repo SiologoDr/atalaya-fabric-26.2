@@ -75,12 +75,15 @@ public final class PresentacionJefe {
      * colmillos de Rajang); "poder", la vuelta por detras (las alas de Aeralis
      * llenan el plano); "cierre", el grito final, y "cierreBaja", lo que se
      * mira por debajo de la cabeza en el (de su alto: asi sube en el plano y el
-     * cartel no le tapa el pecho a Rajang, que es bajo).
+     * cartel no le tapa el pecho a Rajang, que es bajo); "alzaLado", de que lado
+     * se mira cuando se levanta (1, su izquierda; -1, su derecha: Novilis agarra
+     * ahi la espada clavada), y "alzaLejos", lo que se aparta entonces.
      */
-    public record Tomas(float cara, float caraAlta, float poder, float cierre, float cierreBaja) {
+    public record Tomas(float cara, float caraAlta, float poder, float cierre, float cierreBaja, float alzaLado,
+                        float alzaLejos) {
     }
 
-    private static final Tomas NORMALES = new Tomas(1.0F, 0.02F, 1.0F, 1.0F, 0.0F);
+    private static final Tomas NORMALES = new Tomas(1.0F, 0.02F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F);
 
     private static final Ficha NEREA = new Ficha("nerea", 0x3FE0FF, 0xD43CFF,
             NereaGeometria.OJO_IZQ.add(NereaGeometria.OJO_DER).scale(0.5), NereaGeometria::cabezaDespertar,
@@ -91,16 +94,18 @@ public final class PresentacionJefe {
             AeralisGeometria.CABEZA, AeralisGeometria::cabezaDespertar, AeralisGeometria::pechoDespertar,
             AeralisGeometria.DESPERTAR_ABRE, AeralisGeometria.DESPERTAR_SE_ALZA, AeralisGeometria.DESPERTAR_ALZADO,
             AeralisGeometria.DESPERTAR_RUGE, AeralisGeometria.DURACION_DESPERTAR, AtalayaSonidos.MUSICA_AERALIS_GRANDE, 1.0F,
-            new Tomas(1.8F, 0.2F, 1.6F, 1.0F, 0.0F));
+            new Tomas(1.8F, 0.2F, 1.6F, 1.0F, 0.0F, 1.0F, 1.0F));
     private static final Ficha RAJANG = new Ficha("rajang", 0x5BE38A, 0xE8C25A,
             RajangGeometria.CABEZA, RajangGeometria::cabezaDespertar, RajangGeometria::pechoDespertar,
             RajangGeometria.DESPERTAR_ABRE, RajangGeometria.DESPERTAR_SE_ALZA, RajangGeometria.DESPERTAR_ALZADO,
             RajangGeometria.DESPERTAR_RUGE, RajangGeometria.DURACION_DESPERTAR, AtalayaSonidos.MUSICA_RAJANG_GRANDE, 1.75F,
-            new Tomas(1.6F, 0.12F, 1.0F, 0.78F, 0.25F));
+            new Tomas(1.6F, 0.12F, 1.0F, 0.78F, 0.25F, 1.0F, 1.0F));
     private static final Ficha NOVILIS = new Ficha("novilis", 0xFFC23A, 0xFF2A3A,
             NovilisGeometria.CABEZA, NovilisGeometria::cabezaDespertar, NovilisGeometria::pechoDespertar,
             NovilisGeometria.DESPERTAR_ABRE, NovilisGeometria.DESPERTAR_SE_ALZA, NovilisGeometria.DESPERTAR_ALZADO,
-            NovilisGeometria.DESPERTAR_RUGE, NovilisGeometria.DURACION_DESPERTAR, AtalayaSonidos.MUSICA_NOVILIS_GRANDE, 1.0F, NORMALES);
+            NovilisGeometria.DESPERTAR_RUGE, NovilisGeometria.DURACION_DESPERTAR, AtalayaSonidos.MUSICA_NOVILIS_GRANDE, 1.0F,
+            // Se levanta visto por su derecha y mas de lejos: que se vea como agarra la espada clavada.
+            new Tomas(1.0F, 0.02F, 1.0F, 1.0F, 0.0F, -1.0F, 1.45F));
 
     private static final int DORMIDO = 1;
     private static final int DESPERTAR = 2;
@@ -283,7 +288,8 @@ public final class PresentacionJefe {
         } else if (s < f.alzado()) {
             // 3. Se levanta: contrapicado a ras de suelo, de lado, que sube con el.
             float k = suave((s - f.seAlza()) / (f.alzado() - f.seAlza()));
-            cam = orbita(base, b, Mth.lerp(k, -62.0F, -44.0F), 0.82F * alto, Mth.lerp(k, 0.04F, 0.12F) * alto);
+            cam = orbita(base, b, Mth.lerp(k, -62.0F, -44.0F) * tm.alzaLado(), 0.82F * alto * tm.alzaLejos(),
+                    Mth.lerp(k, 0.04F, 0.12F) * alto * tm.alzaLejos());
             mira = pecho.lerp(cabeza, k);
         } else if (s < f.ruge()) {
             // 4. Muestra su poder: gira por detras hasta su costado.

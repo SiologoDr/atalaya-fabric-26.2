@@ -10,9 +10,10 @@ import net.minecraft.world.entity.Entity;
  * Lo que Novilis provoca alrededor y que el servidor no necesita saber:
  *
  *   - el suelo que tiembla con sus pasos y el golpe de cada tajo;
- *   - el miedo (los bordes que se queman) al despertar, al rugir, mientras
- *     carga la Supernova y en el Dios de la Guerra;
- *   - el retumbo de su sol cuando carga.
+ *   - el miedo (los bordes que se queman) al despertar, al rugir, en el Dios
+ *     de la Guerra y en el Mar de Llamas;
+ *   - el retumbo mientras carga la Espada del Fuego, el golpe al salir, la caida
+ *     y la explosion de la Furia Infernal.
  *
  * Los golpes con onda los sacude la propia particula de la onda.
  */
@@ -68,10 +69,25 @@ public final class NovilisEfectosCliente {
                     NereaPresencia.retumbar(x, y, z, 0.25F, 60);
                 }
             }
-            case NovilisEntity.FUENTES -> {
-                NereaPresencia.retumbar(x, y, z, 0.12F + 0.5F * n.getCarga(), 80);
-                if (n.tickCount % 20 == 0) {
-                    NereaPresencia.asustarFuego(x, y, z, 0.3F + 0.6F * n.getCarga(), 80);
+            case NovilisEntity.ESPADA -> {
+                if (t < NovilisGeometria.ESPADA_SALE) {
+                    NereaPresencia.retumbar(x, y, z, 0.08F + 0.3F * t / NovilisGeometria.ESPADA_SALE, 48);
+                } else if (t == NovilisGeometria.ESPADA_SALE) {
+                    NereaPresencia.sacudir(x, y, z, 1.6F, 48);
+                }
+            }
+            case NovilisEntity.INFERNAL -> {
+                if (t == NovilisGeometria.INFERNAL_ATERRIZA) {
+                    NereaPresencia.sacudir(x, y, z, 2.6F, 64);
+                } else if (t == NovilisGeometria.INFERNAL_EXPLOTA) {
+                    NereaPresencia.sacudir(x, y, z, 2.8F, 72);
+                    NereaPresencia.asustarFuego(x, y, z, 0.8F, 56);
+                }
+            }
+            case NovilisEntity.MAR -> {
+                if (t == NovilisGeometria.MAR_CLAVA) {
+                    NereaPresencia.sacudir(x, y, z, 2.4F, 90);
+                    NereaPresencia.asustarFuego(x, y, z, 1.0F, 90);
                 }
             }
             case NovilisEntity.DIOS -> {

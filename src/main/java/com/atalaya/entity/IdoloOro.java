@@ -6,10 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -23,8 +21,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * El Idolo de Oro de Rajang (octubre de 2026): lo arranca de su templo y lo
  * lanza; quien lo coge tiene que llevarlo al altar mientras el le persigue. Es
- * un objeto de verdad: se suelta con la Q y se recoge andando por encima, y
- * quien lo lleva se lo pasa a un companero dandole un clic (sin hacerle dano).
+ * un objeto de verdad: con la Q sale lanzado (RajangEntity.lanzarIdolo) y se
+ * recoge andando por encima, y quien lo lleva se lo pasa a un companero dandole
+ * un clic (sin hacerle dano).
  *
  * Cada idolo lleva dentro de que Rajang es; si ese Rajang ya no lo busca, el
  * idolo se deshace (IdoloOroItem). Aqui estan el indice de los Rajang con el
@@ -147,7 +146,6 @@ public final class IdoloOro {
                     ServerLevel sn = (ServerLevel) nivel;
                     sn.playSound(null, otro.getX(), otro.getEyeY(), otro.getZ(), AtalayaSonidos.RAJANG_TOTEM, SoundSource.PLAYERS,
                             1.5F, 1.4F);
-                    otro.sendOverlayMessage(Component.translatable("hud.atalaya.rajang.idolo_portador").withStyle(ChatFormatting.GOLD));
                     return InteractionResult.FAIL;
                 }
             }

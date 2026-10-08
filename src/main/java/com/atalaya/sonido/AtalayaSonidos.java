@@ -45,9 +45,6 @@ public final class AtalayaSonidos {
     public static SoundEvent NEREA_PASO;
     public static SoundEvent NEREA_INMUNE;
     public static SoundEvent NEREA_HERIDO;
-    /** La alerta de los jefes al empezar un ataque peligroso (la misma para todos), y la de los que matan. */
-    public static SoundEvent JEFE_ALERTA;
-    public static SoundEvent JEFE_ALERTA_MORTAL;
     public static SoundEvent NEREA_RUGIDO;
     public static SoundEvent NEREA_DESPERTAR;
     public static SoundEvent NEREA_ROMPEOLAS_ALZAR;
@@ -255,9 +252,6 @@ public final class AtalayaSonidos {
     public static SoundEvent NOVILIS_MELODIA_4;
     public static SoundEvent NOVILIS_ESTATUA_GOLPE;
     public static SoundEvent NOVILIS_ESTATUA_ROTA;
-    public static SoundEvent NOVILIS_FUENTES;
-    public static SoundEvent NOVILIS_FUENTE_GOLPE;
-    public static SoundEvent NOVILIS_FUENTE_ROTA;
     public static SoundEvent NOVILIS_CARGA;
     public static SoundEvent NOVILIS_SUPERNOVA;
     public static SoundEvent NOVILIS_SOL_APAGA;
@@ -276,6 +270,15 @@ public final class AtalayaSonidos {
     public static SoundEvent NOVILIS_INMUNE;
     public static SoundEvent NOVILIS_LIBERACION;
     public static SoundEvent NOVILIS_DISOLVER;
+    // Los ataques de octubre (08-10-2026)
+    public static SoundEvent NOVILIS_EMBESTIDA;
+    public static SoundEvent NOVILIS_CAMINO;
+    public static SoundEvent NOVILIS_INFERNAL_SALTO;
+    public static SoundEvent NOVILIS_INFERNAL_GOLPE;
+    public static SoundEvent NOVILIS_GRIETA;
+    public static SoundEvent NOVILIS_GEISER;
+    public static SoundEvent NOVILIS_INFERNAL_EXPLOTA;
+    public static SoundEvent NOVILIS_MAR;
 
     private AtalayaSonidos() {
     }
@@ -318,8 +321,6 @@ public final class AtalayaSonidos {
         NEREA_BURBUJA_POMPA = registrar("nerea.burbuja_pompa");
         NEREA_MOLINO_ARRASTRE = registrar("nerea.molino_arrastre");
         NEREA_MOLINO_GIRO = registrar("nerea.molino_giro");
-        JEFE_ALERTA = registrar("jefe.alerta");
-        JEFE_ALERTA_MORTAL = registrar("jefe.alerta_mortal");
         NEREA_ARPON_LANZAR = registrar("nerea.arpon_lanzar");
         NEREA_ARPON_ENGANCHA = registrar("nerea.arpon_engancha");
         NEREA_ARPON_REBOTA = registrar("nerea.arpon_rebota");
@@ -500,9 +501,6 @@ public final class AtalayaSonidos {
         NOVILIS_MELODIA_4 = registrar("novilis.melodia_4");
         NOVILIS_ESTATUA_GOLPE = registrar("novilis.estatua_golpe");
         NOVILIS_ESTATUA_ROTA = registrar("novilis.estatua_rota");
-        NOVILIS_FUENTES = registrar("novilis.fuentes");
-        NOVILIS_FUENTE_GOLPE = registrar("novilis.fuente_golpe");
-        NOVILIS_FUENTE_ROTA = registrar("novilis.fuente_rota");
         NOVILIS_CARGA = registrar("novilis.carga");
         NOVILIS_SUPERNOVA = registrar("novilis.supernova");
         NOVILIS_SOL_APAGA = registrar("novilis.sol_apaga");
@@ -521,6 +519,14 @@ public final class AtalayaSonidos {
         NOVILIS_INMUNE = registrar("novilis.inmune");
         NOVILIS_LIBERACION = registrar("novilis.liberacion");
         NOVILIS_DISOLVER = registrar("novilis.disolver");
+        NOVILIS_EMBESTIDA = registrar("novilis.embestida");
+        NOVILIS_CAMINO = registrar("novilis.camino");
+        NOVILIS_INFERNAL_SALTO = registrar("novilis.infernal_salto");
+        NOVILIS_INFERNAL_GOLPE = registrar("novilis.infernal_golpe");
+        NOVILIS_GRIETA = registrar("novilis.grieta");
+        NOVILIS_GEISER = registrar("novilis.geiser");
+        NOVILIS_INFERNAL_EXPLOTA = registrar("novilis.infernal_explota");
+        NOVILIS_MAR = registrar("novilis.mar");
     }
 
     private static SoundEvent registrar(String nombre) {

@@ -1153,12 +1153,145 @@ def estrado_lado():
     return de_array(out)
 
 
+# ----------------------------------------------------------------------
+#  Las grietas de fuego (08-10-2026), en grises: el codigo las tine con el
+#  color de la fase. grieta.png (32x64) es un tramo de la grieta de la Furia
+#  Infernal visto desde arriba, a lo largo de v y que se repite: la raja
+#  quebrada en medio con el alma al blanco, el canto encendido y el suelo
+#  chamuscado a los lados, que se apaga. grieta_boca.png (64x64), una boca del
+#  Mar de Llamas: el agujero encendido en medio y las grietas que salen de el
+#  quebradas, con alguna rama, sobre un cerco de hollin.
+# ----------------------------------------------------------------------
+def grieta():
+    w, h = 32, 64
+    r = random.Random(61)
+    # la raja: un quiebro cada pocos pixeles, que vuelve a su sitio al acabar (se repite)
+    xs = []
+    x = w / 2
+    for y in range(h):
+        if y % 4 == 0:
+            x += r.choice((-1.5, -1, 0, 1, 1.5))
+            x = min(w / 2 + 5, max(w / 2 - 5, x))
+        xs.append(x)
+    fin = h - 12
+    for y in range(fin, h):
+        xs[y] = xs[fin] + (xs[0] - xs[fin]) * (y - fin) / (h - fin)
+    nr = ruido(w, h, 4, 62)
+    out = np.zeros((h, w, 4))
+    for y in range(h):
+        ancho = 1.6 + 1.1 * abs(math.sin(TAU * y / h * 2 + 0.6)) + 0.6 * nr[y, int(xs[y]) % w]
+        for xx in range(w):
+            d = abs(xx + 0.5 - xs[y])
+            if d < ancho * 0.45:
+                v, a = 255, 255
+            elif d < ancho:
+                v, a = 215, 250
+            elif d < ancho + 1.4:
+                v, a = 140, 235
+            else:
+                k = (d - ancho - 1.4) / (w / 2 - ancho)
+                if k > 1:
+                    continue
+                v, a = 40 + 30 * nr[y, xx], 200 * (1 - k) ** 1.5
+            out[y, xx] = (v, v, v, a)
+    # vetas finas que salen de la raja hacia los lados
+    for _ in range(9):
+        y = r.randrange(4, h - 4)
+        lado = r.choice((-1, 1))
+        px, py = xs[y], y
+        for _k in range(r.randint(3, 6)):
+            px += lado * r.uniform(0.8, 1.6)
+            py += r.uniform(-1.2, 1.2)
+            ix, iy = int(px), int(py) % h
+            if 0 <= ix < w:
+                out[iy, ix] = (200, 200, 200, 240)
+    return de_array(out)
+
+
+def grieta_boca():
+    n = 64
+    c = n / 2
+    r = random.Random(71)
+    nr = ruido(n, n, 8, 72, envolver=False)
+    out = np.zeros((n, n, 4))
+    yy, xx = np.mgrid[0:n, 0:n] + 0.5
+    d = np.hypot(xx - c, yy - c)
+    a = np.arctan2(yy - c, xx - c)
+    borde = 27 + 2.5 * np.sin(5 * a + 0.7) + 1.5 * np.sin(9 * a + 2.0) + (nr - 0.5) * 5
+    hollin = d < borde
+    out[hollin] = np.stack([40 + 30 * nr, 40 + 30 * nr, 40 + 30 * nr, 210 * np.clip((borde - d) / 9, 0, 1) ** 0.8], -1)[hollin]
+    # el agujero: lo mas encendido
+    agujero = d < 6.5 + 1.2 * np.sin(4 * a + 1.0)
+    out[agujero] = (255, 255, 255, 255)
+    canto = (d < 8.5 + 1.2 * np.sin(4 * a + 1.0)) & ~agujero
+    out[canto] = (210, 210, 210, 250)
+    puntos = {}
+    for i in range(8):
+        ang = i * TAU / 8 + r.uniform(-0.3, 0.3)
+        x, y, recorrido = c + 6 * math.cos(ang), c + 6 * math.sin(ang), 0.0
+        largo = r.uniform(17, 25)
+        while recorrido < largo:
+            ang += r.uniform(-0.45, 0.45)
+            paso = r.uniform(1.6, 2.6)
+            nx, ny = x + paso * math.cos(ang), y + paso * math.sin(ang)
+            for k in range(6):
+                q = (int(x + (nx - x) * k / 6), int(y + (ny - y) * k / 6))
+                puntos[q] = min(puntos.get(q, 99), recorrido / largo)
+            if r.random() < 0.25:
+                b = ang + r.choice((-1, 1)) * r.uniform(0.7, 1.1)
+                for k in range(1, 4):
+                    q = (int(nx + math.cos(b) * k), int(ny + math.sin(b) * k))
+                    puntos[q] = min(puntos.get(q, 99), 0.8)
+            x, y = nx, ny
+            recorrido += paso
+    for (x, y), t in puntos.items():
+        for dx, dy in VECINOS4:
+            q = (x + dx, y + dy)
+            if q not in puntos and 0 <= q[0] < n and 0 <= q[1] < n:
+                out[q[1], q[0]] = (130, 130, 130, 235)
+    for (x, y), t in puntos.items():
+        if 0 <= x < n and 0 <= y < n:
+            v = 255 if t < 0.3 else 225 if t < 0.65 else 185
+            out[y, x] = (v, v, v, 255)
+    return de_array(out)
+
+
+# ----------------------------------------------------------------------
+#  El sol que lanza (08-10-2026: Juan queria mejorar los soles bomba), en
+#  grises para tenirlo: sol_cubo.png (16x16) es una cara del cubo de plasma que
+#  gira dentro de cada sol: celdas de plasma claro separadas por surcos mas
+#  oscuros, algun punto al blanco y el canto un poco mas oscuro (que se lea el
+#  cubo).
+# ----------------------------------------------------------------------
+def sol_cubo():
+    n = 16
+    r = random.Random(91)
+    centros = [(r.uniform(0, n), r.uniform(0, n)) for _ in range(7)]
+    out = np.zeros((n, n, 4))
+    for y in range(n):
+        for x in range(n):
+            d = sorted(math.hypot(x + 0.5 - cx, y + 0.5 - cy) for cx, cy in centros)
+            surco = d[1] - d[0]
+            if surco < 1.0:
+                v = 150 + 25 * surco
+            else:
+                v = 205 + min(45, (surco - 1.0) * 18)
+            if x in (0, n - 1) or y in (0, n - 1):
+                v *= 0.86
+            out[y, x] = (v, v, v, 255)
+    for _ in range(6):
+        x, y = r.randrange(2, n - 2), r.randrange(2, n - 2)
+        out[y, x, :3] = 255
+    return de_array(out)
+
+
 ENTIDAD = {
     'sello': sello(), 'haz': haz(), 'llamas_n': pared_llamas(PARED_N), 'llamas_c': pared_llamas(PARED_C),
     'llamas_a': pared_llamas(PARED_A), 'media_luna': media_luna(), 'sol': sol(), 'sol_superficie': sol_superficie(),
     'charco': charco(), 'estela': estela(), 'chispas_suelo': chispas_suelo(), 'novilis_disolver': disolver(),
     'llama_sprite': llama_sprite(), 'tajo_estela': tajo_estela(),
-    'estrado_cima': estrado_cima(), 'estrado_lado': estrado_lado(),
+    'estrado_cima': estrado_cima(), 'estrado_lado': estrado_lado(), 'grieta': grieta(), 'grieta_boca': grieta_boca(),
+    'sol_cubo': sol_cubo(),
 }
 for nombre, im in ENTIDAD.items():
     im.save(os.path.join(ENT, nombre + '.png'))

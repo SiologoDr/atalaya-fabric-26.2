@@ -70,7 +70,7 @@ import java.util.List;
  *
  * Las mejoras de octubre de 2026 (tras las pruebas del grupo: "tosco y lento"):
  * la Embestida y la Tumba, los pinchos que lanzan a diez bloques y dejan el
- * Peso tres segundos, fragmentos del Cataclismo mas grandes y menos, escalones
+ * Peso dos segundos, fragmentos del Cataclismo mas grandes y menos, escalones
  * del Sello que se caen, el pulso de cada totem roto y la Furia de Jade.
  *
  * Como Nerea y Aeralis, el estado vive en un numero sincronizado, el cliente
@@ -122,10 +122,10 @@ public class RajangEntity extends Monster {
     // es cosa de los especiales mortales, que no cambian. En la III y la IV,
     // otro -15 % y -20 % (Juan, tras probarlo: las fases I y II estaban bien).
     public static final float[] DANO_GARRA = {17, 22.5F, 25, 32};
-    /** El zarpazo al que lleva el Idolo de Oro cuando le alcanza. */
-    private static final float[] DANO_IDOLO = {24, 30, 34, 42};
     /** Lo que dura el Idolo de Oro fuera (ticks): 25 s. */
     private static final int IDOLO_TICKS = 500;
+    /** Con el idolo fuera, a cuanto tiene que estar el portador para lanzarle la Garra (su zarpazo llega a 13). */
+    private static final double GARRA_IDOLO = 11.0;
     public static final float[] DANO_TERREMOTO = {13.5F, 20, 21, 25.2F};
     public static final float[] DANO_SALTO = {19, 25, 27.5F, 35.2F};
     /**
@@ -140,9 +140,10 @@ public class RajangEntity extends Monster {
     /** Piel de Jade (tras el Terremoto): recibe un 40 % menos durante 10 s. */
     private static final float PIEL_REDUCE = 0.4F;
     private static final int PIEL_TICKS = 200;
-    private static final int PESO_TICKS = 160;
-    /** El Peso que deja un pincho de tierra, sea del ataque que sea: 3 s como mucho. */
-    public static final int PESO_PINCHO = 60;
+    /** El Peso de la Tierra dura 2 s, venga de donde venga (Juan, 08-10-2026: antes 8 s el del Terremoto). */
+    private static final int PESO_TICKS = 40;
+    /** El Peso que deja un pincho de tierra, sea del ataque que sea. */
+    public static final int PESO_PINCHO = PESO_TICKS;
 
     /**
      * La Embestida: 26 bloques/s, contra una presa a 10-36 bloques. La flecha
@@ -190,7 +191,7 @@ public class RajangEntity extends Monster {
     private static final double GALOPE_IV = 2.3;
     /** Cliente: por encima de esto (bloques/tick) galopa; por debajo, anda (al paso no pasa de 0,4). */
     public static final float VEL_GALOPE = 0.6F;
-    private static final int TUMBA_PESO = 100;
+    private static final int TUMBA_PESO = PESO_TICKS;
     /** Sin Tumba hasta 8 s despues de un Terremoto: con su Peso no se puede escapar. */
     private static final int TUMBA_TRAS_TERREMOTO = 160;
 
@@ -203,7 +204,10 @@ public class RajangEntity extends Monster {
     /** El pulso de cada totem roto: 7 bloques alrededor, y te echa en horizontal. */
     private static final double PULSO_RADIO = 7.0;
     private static final double PULSO_EMPUJE = 2.4;
-    /** Cada cuanto tiembla un escalon del Sello (y cae un segundo despues). */
+    /**
+     * Cada cuanto tiembla un escalon del Sello al azar (y cae un segundo despues).
+     * Aparte, el que se pisa tiembla al rato (PlataformaSelloEntity.PISADA).
+     */
     private static final int ESCALON_CADA = 30;
 
     /** El Sello: 45 s para subir y romper los cuatro totems. Un totem roto se queda roto. */
@@ -262,6 +266,9 @@ public class RajangEntity extends Monster {
     /** Lo que mide la flecha de la Embestida desde sus manos (0: no hay flecha). */
     private static final EntityDataAccessor<Float> DATA_CARGA =
             SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.FLOAT);
+    /** Quien lleva el Idolo de Oro (id de entidad, -1 nadie): el cliente se lo pinta en la cabeza. */
+    private static final EntityDataAccessor<Integer> DATA_PORTADOR =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
 
     // --- Solo cliente ---
     public final AnimationState dormido = new AnimationState();
@@ -318,11 +325,16 @@ public class RajangEntity extends Monster {
     /** El Idolo de Oro fuera: lo que le queda, el altar, quien lo lleva o donde esta tirado. */
     private int idoloQueda;
     private @Nullable Vec3 altar;
+    /** El pilar del altar, donde se pone el idolo. */
+    private @Nullable AltarIdoloEntity pilarAltar;
     private @Nullable Player portador;
+    /** Quien lo llevaba el tick de antes: si lo suelta con la Q, el idolo sale lanzado. */
+    private @Nullable Player portadorAntes;
+    /** El ultimo idolo lanzado con la Q (su id de entidad), para no lanzarlo dos veces. */
+    private int idoloLanzado = -1;
     private @Nullable ItemEntity idoloSuelo;
     /** Lo que espera antes de poder dar el zarpazo al portador (que le de tiempo a correr). */
     private int idoloAgarra;
-    private boolean pistaIdolo;
     private int ultimoTerremoto = -1000;
     private int ultimoEscalon;
     private int ultimoAvisoInmune;
@@ -358,9 +370,6 @@ public class RajangEntity extends Monster {
     private @Nullable Vec3 centroTumba;
     /** Las Tumbas que lleva: las impares van en anillo. */
     private int tumbas;
-    /** La pista de la barra de accion de cada Tumba: sale una vez por combate. */
-    private boolean pistaCirculo;
-    private boolean pistaAnillo;
 
     public RajangEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -392,6 +401,7 @@ public class RajangEntity extends Monster {
         datos.define(DATA_FURIA_FIN, 0L);
         datos.define(DATA_TUMBA_ANILLO, false);
         datos.define(DATA_CARGA, 0.0F);
+        datos.define(DATA_PORTADOR, -1);
     }
 
     @Override
@@ -484,12 +494,6 @@ public class RajangEntity extends Monster {
         ritmoEstado = ritmo(estado, fase(), tieneFuria());
         avisoEstado = aviso(estado);
         duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
-        // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
-        if (estado == GARRA || estado == TERREMOTO || estado == RUGIDO || estado == CATACLISMO || estado == SALTO || estado == EMBESTIDA_AVISO || estado == TUMBA
-                || estado == IDOLO) {
-            PresasJefe.alerta(this, estado == CATACLISMO || estado == EMBESTIDA_AVISO || estado == TUMBA
-                    || (estado == RUGIDO && rugidoFinal), 0.9F);
-        }
     }
 
     /**
@@ -518,12 +522,22 @@ public class RajangEntity extends Monster {
     public static int aviso(int estado) {
         return switch (estado) {
             case GARRA -> 11;
+            // La Embestida: 2 s mas con la flecha en el suelo (Juan, 08-10-2026),
+            // para que de tiempo a correr antes de que cargue.
+            case EMBESTIDA_AVISO -> EMBESTIDA_ESPERA;
             default -> 0;
         };
     }
 
     /** La espera de aviso del estado actual (ticks reales). */
     private int avisoEstado;
+    /** Lo que espera la Embestida con la flecha puesta antes de agazaparse (ticks reales). */
+    public static final int EMBESTIDA_ESPERA = 40;
+    /**
+     * Lo que sigue a su presa con la flecha al empezar la Embestida (ticks reales):
+     * despues el rumbo y el largo quedan fijos unos 2 s, para apartarse de la linea.
+     */
+    public static final int EMBESTIDA_SIGUE = 20;
 
     private boolean cruza(int k) {
         return (t - 1 - avisoEstado) * ritmoEstado < k && (t - avisoEstado) * ritmoEstado >= k;
@@ -1017,7 +1031,13 @@ public class RajangEntity extends Monster {
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
         if (idoloQueda > 0 && escena <= 0) {
+            // Con el idolo fuera solo anda o corre a por el y, si alcanza a quien
+            // lo lleva, la Garra (nada de ataques especiales: Juan, 08-10-2026).
             perseguirIdolo();
+            if (portador != null && idoloAgarra <= 0 && respiro <= 0 && enfGarra <= 0
+                    && horizontal(position(), portador.position()) < GARRA_IDOLO) {
+                iniciar(nivel, GARRA, portador);
+            }
             return;
         }
         if (escena > 0) {
@@ -1164,15 +1184,6 @@ public class RajangEntity extends Monster {
                 if (anillo) {
                     nivel.playSound(null, getX(), getEyeY(), getZ(), AtalayaSonidos.RAJANG_TUMBA, SoundSource.HOSTILE, 8.0F, 1.35F);
                 }
-                if (anillo ? !pistaAnillo : !pistaCirculo) {
-                    if (anillo) {
-                        pistaAnillo = true;
-                    } else {
-                        pistaCirculo = true;
-                    }
-                    avisar(nivel, Component.translatable(anillo ? "hud.atalaya.rajang.tumba_anillo" : "hud.atalaya.rajang.tumba_circulo")
-                            .withStyle(anillo ? ChatFormatting.GOLD : ChatFormatting.GREEN));
-                }
             }
             case RUGIDO -> {
                 enfSello = (int) (1100 * k);
@@ -1261,6 +1272,18 @@ public class RajangEntity extends Monster {
                 respiro = 160;
                 return true;
             }
+            case "pisar" -> {
+                // Sube al jugador mas cercano a un escalon alto del Sello (para ver que el que se pisa se cae).
+                if (blanco instanceof ServerPlayer jp) {
+                    for (PlataformaSelloEntity p : plataformas) {
+                        if (p.getTipo() == PlataformaSelloEntity.PIEDRA && p.getEscalon() >= 6 && p.firme() && !p.enCaida()) {
+                            jp.teleportTo(p.getX(), p.getBoundingBox().maxY + 0.05, p.getZ());
+                            break;
+                        }
+                    }
+                }
+                return true;
+            }
             case "romper" -> {
                 // Rompe los totems que queden en pie (para ver el final bueno del Sello).
                 for (TotemSelloEntity tot : new ArrayList<>(totems)) {
@@ -1284,9 +1307,10 @@ public class RajangEntity extends Monster {
             }
         }
         if (orden.equals("altar")) {
+            // Junto al pilar (encima no: es una caja de choque).
             Player p = nivel.getNearestPlayer(this, 96);
             if (p != null && altar != null) {
-                p.teleportTo(altar.x, altar.y + 0.1, altar.z);
+                p.teleportTo(altar.x + 1.6, altar.y + 0.1, altar.z);
             }
             return true;
         }
@@ -1513,6 +1537,9 @@ public class RajangEntity extends Monster {
             v.hurtServer(nivel, fuente, contraArmadura(v, dano));
             lanzar(v, new Vec3(dx / d, 0, dz / d).scale(GARRA_EMPUJE), 0.3);
             nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 10, 0.3, 0.5, 0.3, 0.12);
+            if (idoloQueda > 0 && v == portador) {
+                recuperarIdolo(nivel, portador);
+            }
         }
     }
 
@@ -1566,7 +1593,8 @@ public class RajangEntity extends Monster {
         // El lastre: la tierra tira de todos los que pisan su templo.
         for (Player p : jugadores(nivel, 40, 0)) {
             p.addEffect(new MobEffectInstance(PesoTierraEffect.PESO, PESO_TICKS, 0, false, true, true), this);
-            nivel.sendParticles(AtalayaParticulas.RAJANG_LASTRE, true, true, p.getX(), p.getY() + 0.06, p.getZ(), 0, 1.4, 60.0, 0.0, 1.0);
+            nivel.sendParticles(AtalayaParticulas.RAJANG_LASTRE, true, true, p.getX(), p.getY() + 0.06, p.getZ(), 0, 1.4, PESO_TICKS,
+                    0.0, 1.0);
         }
         sonido(AtalayaSonidos.RAJANG_LASTRE, 4.0F);
         // La Piel de Jade.
@@ -2011,8 +2039,9 @@ public class RajangEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickEmbestidaAviso(ServerLevel nivel) {
-        // Sigue a su presa hasta poco antes de soltarse: al llenarse la flecha, el rumbo queda fijo.
-        if (presa != null && presa.isAlive() && ta() < RajangGeometria.DURACION_EMBESTIDA_AVISO - 4) {
+        // Sigue a su presa el primer segundo; luego el rumbo y el largo quedan fijos
+        // hasta que carga (unos 2 s), y quien se aparte de la flecha se salva.
+        if (presa != null && presa.isAlive() && t < EMBESTIDA_SIGUE) {
             girarHacia(presa.position(), 10.0F);
             double d = horizontal(puntoMundo(RajangGeometria.ZARPA_IZQ), presa.position());
             double largo = Mth.clamp((d + CARGA_PASA) * CARGA_VECES, CARGA_MIN, CARGA_MAX);
@@ -2381,8 +2410,11 @@ public class RajangEntity extends Monster {
     // ------------------------------------------------------------------
     //  El Idolo de Oro (octubre de 2026, Juan: "sobre Rajang me gusta el
     //  Idolo de Oro"): lo arranca de su templo y lo lanza; quien lo coja lo
-    //  lleva al altar dorado mientras el le persigue. Se pasa de mano en mano
-    //  (Q para soltarlo, o un clic a un companero: IdoloOro).
+    //  lleva al pilar del altar mientras el le persigue. Se pasa de mano en
+    //  mano: con la Q sale lanzado hacia donde mira, o con un clic a un
+    //  companero (IdoloOro). Sin textos (Juan, 08-10-2026: "no pongas textos
+    //  ahi"): solo se le dice a quien lo coge que con la Q lo lanza; el camino
+    //  al altar son los puntos de oro del suelo y las chispas del pilar.
     // ------------------------------------------------------------------
 
     /** El idolo esta fuera: lo busca (IdoloOroItem lo deshace si no). */
@@ -2390,7 +2422,7 @@ public class RajangEntity extends Monster {
         return idoloQueda > 0;
     }
 
-    /** Ruge con el idolo en alto y, al rugir, lo lanza a un lado de la arena; el altar sale al otro. */
+    /** Ruge con el idolo en alto y, al rugir, lo lanza a un lado de la arena; el pilar del altar sale al otro. */
     private void tickIdolo(ServerLevel nivel) {
         if (t != RajangGeometria.RUGIDO_RUGE) {
             return;
@@ -2401,6 +2433,8 @@ public class RajangEntity extends Monster {
         Vec3 cae = c.add(dir.scale(10.0 + random.nextDouble() * 5.0));
         Vec3 al = c.subtract(dir.scale(20.0));
         altar = new Vec3(al.x, sueloBajo(nivel, al.x, c.y + 6, al.z), al.z);
+        // El pilar, de cara al centro de la arena (por donde llegan).
+        pilarAltar = AltarIdoloEntity.alzar(nivel, this, altar, (float) (Mth.atan2(dir.z, dir.x) * Mth.RAD_TO_DEG) - 90.0F);
         Vec3 desde = puntoMundo(RajangGeometria.PECHO).add(0, 2.0, 0);
         ItemEntity it = new ItemEntity(nivel, desde.x, desde.y,
                 desde.z, IdoloOro.crear(this));
@@ -2410,53 +2444,57 @@ public class RajangEntity extends Monster {
         it.setUnlimitedLifetime();
         it.setGlowingTag(true);
         nivel.addFreshEntity(it);
+        // Donde va a caer, marcado en el suelo desde ya.
+        double yc = sueloBajo(nivel, cae.x, c.y + 6, cae.z);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_AVISO, true, true, cae.x, yc + 0.07, cae.z, 0, 2.2, 30.0, 0.0, 1.0);
         idoloQueda = IDOLO_TICKS;
         idoloAgarra = 80;
         IdoloOro.activar(this);
         sonido(AtalayaSonidos.RAJANG_TOTEM_REHACE, 6.0F);
         nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, desde.x, desde.y, desde.z, 30, 0.6, 0.6, 0.6, 0.2);
-        avisar(nivel, Component.translatable(pistaIdolo ? "hud.atalaya.rajang.idolo_corto" : "hud.atalaya.rajang.idolo_aviso")
-                .withStyle(ChatFormatting.GOLD));
-        pistaIdolo = true;
     }
 
-    /** Cada tick con el idolo fuera: el altar se ve, el portador va lento y brilla, y se entrega o lo atrapa. */
+    /** Cada tick con el idolo fuera: el portador va lento y brilla, lo lanza, lo pone en el pilar o lo atrapa. */
     private void tickIdoloFuera(ServerLevel nivel) {
         idoloQueda--;
         portador = IdoloOro.portador(nivel, this);
         idoloSuelo = portador == null ? IdoloOro.enSuelo(nivel, this) : null;
-        if (altar != null && tickCount % 3 == 0) {
-            for (int i = 0; i < 4; i++) {
-                double y = altar.y + random.nextDouble() * 14.0;
-                nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, altar.x + random.nextGaussian() * 0.3, y,
-                        altar.z + random.nextGaussian() * 0.3, 1, 0.05, 0.2, 0.05, 0.02);
-            }
-            if (tickCount % 12 == 0) {
-                nivel.sendParticles(AtalayaParticulas.RAJANG_AVISO, true, true, altar.x, altar.y + 0.07, altar.z, 0, 2.6, 14.0,
-                        0.0, 1.0);
-            }
+        if (portador != null && portador != portadorAntes) {
+            // Lo unico que se le dice: con que tecla lo lanza.
+            portador.sendOverlayMessage(Component.translatable("hud.atalaya.rajang.idolo_lanzar",
+                    Component.keybind("key.drop")).withStyle(ChatFormatting.GOLD));
         }
+        if (portador == null && idoloSuelo != null && portadorAntes != null && idoloSuelo.getId() != idoloLanzado
+                && idoloSuelo.tickCount <= 2 && idoloSuelo.getOwner() == portadorAntes) {
+            lanzarIdolo(nivel, portadorAntes, idoloSuelo);
+        }
+        portadorAntes = portador;
         if (idoloAgarra > 0) {
             idoloAgarra--;
         }
+        idoloEnCabeza(portador);
         if (portador != null) {
             portador.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.SLOWNESS, 12,
                     0, false, false), this);
             portador.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, 12,
                     0, false, false), this);
-            if (tickCount % 20 == 0) {
-                portador.sendOverlayMessage(Component.translatable("hud.atalaya.rajang.idolo_portador").withStyle(ChatFormatting.GOLD));
+            if (altar != null && tickCount % 4 == 0) {
+                senalarAltar(nivel, portador);
             }
-            if (altar != null && horizontal(portador.position(), altar) < 3.0 && Math.abs(portador.getY() - altar.y) < 4.0) {
+            if (altar != null && horizontal(portador.position(), altar) < IDOLO_ENTREGA && Math.abs(portador.getY() - altar.y) < 3.0) {
                 entregarIdolo(nivel, portador);
                 return;
             }
-            if (idoloAgarra <= 0 && getEstado() == LIBRE
-                    && horizontal(position(), portador.position()) < getBbWidth() * 0.5 + 3.5) {
-                zarpazoIdolo(nivel, portador);
-                return;
-            }
         } else if (idoloSuelo != null) {
+            // Tirado: una columna de oro encima y un aro en el suelo, para verlo desde lejos.
+            Vec3 q = idoloSuelo.position();
+            if (tickCount % 3 == 0) {
+                nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, q.x, q.y + 0.5 + random.nextDouble() * 6.0, q.z, 2, 0.08,
+                        0.4, 0.08, 0.01);
+            }
+            if (tickCount % 12 == 0 && idoloSuelo.onGround()) {
+                nivel.sendParticles(AtalayaParticulas.RAJANG_AVISO, true, true, q.x, q.y + 0.07, q.z, 0, 1.6, 14.0, 0.0, 1.0);
+            }
             // Solo si ya esta en el suelo y paso el margen: al lanzarlo sale de su pecho.
             if (idoloAgarra <= 0 && idoloSuelo.onGround()
                     && horizontal(position(), idoloSuelo.position()) < getBbWidth() * 0.5 + 2.0) {
@@ -2465,7 +2503,6 @@ public class RajangEntity extends Monster {
                 heal(getMaxHealth() * 0.03F);
                 nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, p.x, p.y + 0.5, p.z, 30, 0.5, 0.5, 0.5, 0.2);
                 sonido(AtalayaSonidos.RAJANG_CURA, 5.0F);
-                avisar(nivel, Component.translatable("hud.atalaya.rajang.idolo_perdido").withStyle(ChatFormatting.RED));
                 acabarIdolo(nivel);
                 return;
             }
@@ -2475,9 +2512,33 @@ public class RajangEntity extends Monster {
             return;
         }
         if (idoloQueda <= 0) {
-            avisar(nivel, Component.translatable("hud.atalaya.rajang.idolo_tiempo").withStyle(ChatFormatting.RED));
+            // Se acabo el tiempo: el idolo se deshace en polvo de oro donde este.
+            Vec3 q = portador != null ? portador.position().add(0, portador.getBbHeight() + 0.4, 0)
+                    : idoloSuelo != null ? idoloSuelo.position().add(0, 0.4, 0) : null;
+            if (q != null) {
+                nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, q.x, q.y, q.z, 40, 0.3, 0.3, 0.3, 0.08);
+                nivel.playSound(null, q.x, q.y, q.z, AtalayaSonidos.RAJANG_TOTEM_ROTO, SoundSource.HOSTILE, 2.5F, 1.4F);
+            }
             acabarIdolo(nivel);
         }
+    }
+
+    /** Lo cerca que hay que llegar del pilar (al centro, en horizontal) para poner el idolo encima. */
+    private static final double IDOLO_ENTREGA = 2.2;
+
+    /**
+     * Lo ha soltado con la Q: sale lanzado hacia donde mira (unos diez bloques),
+     * para pasarselo a un companero de lejos; se puede coger enseguida.
+     */
+    private void lanzarIdolo(ServerLevel nivel, Player p, ItemEntity it) {
+        idoloLanzado = it.getId();
+        Vec3 mira = p.getLookAngle();
+        Vec3 h = new Vec3(mira.x, 0, mira.z);
+        h = h.lengthSqr() < 1.0E-4 ? Vec3.directionFromRotation(0, p.getYRot()) : h.normalize();
+        it.setDeltaMovement(h.x * 0.6, 0.32 + Math.max(0.0, mira.y) * 0.3, h.z * 0.6);
+        it.setPickUpDelay(8);
+        nivel.playSound(null, p.getX(), p.getEyeY(), p.getZ(), AtalayaSonidos.RAJANG_TOTEM, SoundSource.PLAYERS, 1.2F, 1.7F);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, it.getX(), it.getY(), it.getZ(), 10, 0.15, 0.15, 0.15, 0.05);
     }
 
     /** Persigue al portador al galope, o va a por el idolo tirado; no ataca con otra cosa. */
@@ -2493,48 +2554,97 @@ public class RajangEntity extends Monster {
             rel = rel.normalize().scale(CORREA);
             meta = new Vec3(c.x + rel.x, meta.y, c.z + rel.z);
         }
-        getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, (fase() >= 4 ? GALOPE_IV : GALOPE) * (tieneFuria() ? FURIA_CORRE : 1.0));
+        double d = horizontal(position(), meta);
+        double furia = tieneFuria() ? FURIA_CORRE : 1.0;
+        if (d > 10.0) {
+            getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, (fase() >= 4 ? GALOPE_IV : GALOPE) * furia);
+        } else if (d > 5.0 || portador == null) {
+            getMoveControl().setWantedPosition(meta.x, meta.y, meta.z, PASO * furia);
+        } else {
+            quieto();
+        }
         girarHacia(meta, 12.0F);
     }
 
-    /** Llega al altar: el idolo revienta, le quita un 5 % de vida y cae aturdido con dano doble. */
+    /**
+     * El idolo, en la cabeza de quien lo lleva (Juan: "el idolo debe tenerlo en
+     * la cabeza el jugador"): se sincroniza quien es y el cliente lo pinta encima
+     * de su cabeza (RajangRenderer). Un jugador no se puede montar (el servidor
+     * no deja), asi que no vale un objeto de exhibicion montado en el.
+     */
+    private void idoloEnCabeza(@Nullable Player p) {
+        int id = p != null ? p.getId() : -1;
+        if (entityData.get(DATA_PORTADOR) != id) {
+            entityData.set(DATA_PORTADOR, id);
+        }
+    }
+
+    /** Quien lleva el idolo (id de entidad; -1 si nadie): el cliente se lo pinta en la cabeza. */
+    public int getPortadorIdolo() {
+        return entityData.get(DATA_PORTADOR);
+    }
+
+    /**
+     * El camino al pilar: puntos de oro en el suelo delante del portador, que ven
+     * todos (sin textos: Juan, 08-10-2026).
+     */
+    private void senalarAltar(ServerLevel nivel, Player p) {
+        double dx = altar.x - p.getX();
+        double dz = altar.z - p.getZ();
+        double lejos = Math.sqrt(dx * dx + dz * dz);
+        if (lejos < 2.0) {
+            return;
+        }
+        double ux = dx / lejos;
+        double uz = dz / lejos;
+        for (double k = 1.5; k < Math.min(lejos, 10.5); k += 1.5) {
+            double x = p.getX() + ux * k;
+            double z = p.getZ() + uz * k;
+            nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, x, sueloBajo(nivel, x, p.getY() + 2, z) + 0.15, z, 1, 0.05,
+                    0.02, 0.05, 0.0);
+        }
+    }
+
+    /**
+     * Llega al pilar: pone el idolo encima (se queda un momento y revientan los
+     * dos, AltarIdoloEntity), le quita un 5 % de vida y cae aturdido con dano doble.
+     */
     private void entregarIdolo(ServerLevel nivel, Player p) {
         IdoloOro.quitar(p, this);
-        Vec3 a = altar;
-        nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, a.x, a.y + 1.5, a.z, 80, 1.2, 2.0, 1.2, 0.35);
-        nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, a.x, a.y + 1.0, a.z, 40, 1.0, 1.0, 1.0, 0.25);
-        nivel.playSound(null, a.x, a.y, a.z, AtalayaSonidos.RAJANG_TOTEM_ROTO, SoundSource.HOSTILE, 6.0F, 0.8F);
+        if (pilarAltar != null && !pilarAltar.isRemoved()) {
+            pilarAltar.recibir(nivel);
+        }
         setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * 0.05F));
-        avisar(nivel, Component.translatable("hud.atalaya.rajang.idolo_entregado").withStyle(ChatFormatting.GOLD));
         acabarIdolo(nivel);
         cancelarSello(nivel, false);
         ponerEstado(ATURDIDO, RajangGeometria.DURACION_ATURDIDO);
         sonido(AtalayaSonidos.RAJANG_ATURDIDO, 7.0F);
     }
 
-    /** Alcanza al portador: zarpazo fuerte, recupera el idolo y se cura un 3 %. */
-    private void zarpazoIdolo(ServerLevel nivel, Player p) {
+    /** Su Garra ha pillado al portador: recupera el idolo y se cura un 3 %. */
+    private void recuperarIdolo(ServerLevel nivel, Player p) {
         IdoloOro.quitar(p, this);
-        girarHacia(p.position(), 90.0F);
-        p.hurtServer(nivel, RajangDanos.fuente(nivel, RajangDanos.GARRA, this, this), contraArmadura(p, dano(DANO_IDOLO)));
-        Vec3 fuera = horizontalHacia(position(), p.position());
-        p.setDeltaMovement(fuera.x * 1.6, 0.6, fuera.z * 1.6);
-        p.hurtMarked = true;
         heal(getMaxHealth() * 0.03F);
         sonido(AtalayaSonidos.RAJANG_ZARPAZO, 6.0F);
         sonido(AtalayaSonidos.RAJANG_CURA, 4.0F);
         nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, p.getX(), p.getY() + 1.0, p.getZ(), 30, 0.5, 0.8, 0.5, 0.25);
-        avisar(nivel, Component.translatable("hud.atalaya.rajang.idolo_perdido").withStyle(ChatFormatting.RED));
         acabarIdolo(nivel);
     }
 
     /** Se acabo el idolo (bien o mal): fuera de donde este y vuelve a pelear como siempre. */
     private void acabarIdolo(ServerLevel nivel) {
         idoloQueda = 0;
+        idoloEnCabeza(null);
         IdoloOro.quitarTodos(nivel, this);
         IdoloOro.desactivar(this);
+        // El pilar se hunde, salvo que ya tenga el idolo encima (entonces revienta el solo).
+        if (pilarAltar != null && !pilarAltar.isRemoved() && !pilarAltar.conIdolo()) {
+            pilarAltar.retirar(nivel);
+        }
+        pilarAltar = null;
         altar = null;
         portador = null;
+        portadorAntes = null;
         idoloSuelo = null;
     }
 

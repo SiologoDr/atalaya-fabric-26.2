@@ -965,17 +965,21 @@ toma de cine (`PresentacionJefe`, todo en el cliente):
 
   Cada jefe ajusta las distancias a su forma (`PresentacionJefe.Tomas`: las
   alas de Aeralis, Rajang largo y bajo);
-- con el rugido sale su **cartel**, en el estilo de los pósters: un destello
-  que cruza, el **NOMBRE** que se abre desde el centro, lo que es («JEFE DEL
-  FUEGO») y su epíteto con el lema, con el acento grande de su música. Los
-  PNG (`presentacion_jefes.py`) vienen en cuatro anchos y se pintan píxel a
-  píxel de pantalla, así salen limpios a cualquier resolución;
+- con el rugido sale su **cartel**: un destello que cruza, el **NOMBRE** que
+  se abre desde el centro con una línea de adorno debajo y, encima, lo que es
+  («JEFE DEL FUEGO»), con el acento grande de su música. Solo eso: sin
+  epíteto ni lema. Va en **letras de píxel**, las mismas de las barras de vida
+  (y una pequeña de 3×5 para lo que es), no en fuentes de ordenador. Los PNG (`presentacion_jefes.py`) son el
+  mismo pixel art de 240×82 ampliado ×2, ×3, ×4 y ×6, y se pintan píxel a
+  píxel de pantalla: los píxeles salen cuadrados a cualquier resolución;
 - tras el grito el jefe sigue **en escena** unos 5 s más
   (`PresasJefe.ESCENA`), quieto y con el cartel, para que se lea;
 - al acabar, la cámara vuelve sola a los ojos del jugador, que ya le mira.
 
 Mientras dura no se anda ni se salta, y **no se puede saltar** (Juan quiere que
-se vea entera). Durante toda la
+se vea entera). Tampoco se ven las manos del jugador ni lo que lleva en ellas,
+ni en primera persona ni cuando la cámara le ve desde fuera
+(`ManosPresentacionMixin` y `ManosPresentacionCuerpoMixin`). Durante toda la
 presentación el jefe **no golpea**: el grito ya no empuja, no se mueve, no
 ataca y no se le hace daño (hasta que la cámara ha vuelto,
 `PresasJefe.ESCENA_QUIETO`). Después espera aún 1,5 s antes del primer golpe
@@ -1008,18 +1012,14 @@ roja engastada en un aro de sus colores, que se mueve con su elemento.
 (07-10-2026: «el giro te pega sin avisar», «no sabía de dónde venían los
 golpes»):
 
-- **La alerta «¡!».** Al empezar un ataque peligroso suena desde el jefe un
-  sonido común a los cuatro (`jefes/alerta.ogg`, dos campanadas que suben),
-  así se aprende una vez y avisa aunque no se esté mirando. Los ataques que
-  matan llevan otro (`jefes/alerta_mortal.ogg`, un acorde de metal con el
-  «¡!» encima). Salen de `alerta_jefes_sonidos.py`.
-
-  | Jefe | Alerta | Alerta mortal |
-  |---|---|---|
-  | Nerea | Rompeolas, Remolino, Burbujas, Molino, Arpón, Géiser | Mirada, Gran Marea |
-  | Aeralis | Aleteo, Tornados, Marca, Escamas | Picado, Juicio |
-  | Rajang | Garra, Terremoto, Rugido, Salto | Cataclismo, Embestida, Tumba, el rugido tras el Sello |
-  | Novilis | Barrido, Castigo, Sol, Trompetas, Fuentes | Ofrenda, Dios |
+- **Sin alerta ni avisos de texto.** Al empezar una habilidad no suena
+  ninguna alerta ni sale nada escrito, y no hay arcos rojos alrededor de la mira
+  al recibir un golpe (Juan, 08-10-2026: los ataques llegan al momento y no da
+  tiempo a leer). Lo que avisa es el propio jefe: su pose, sus sonidos y las
+  marcas del suelo. Solo quedan los textos que acompañan a una mecánica mientras
+  dura (contadores, «cúpula llena», la cuenta atrás de la Marea Alta, la
+  Furia...). Del Ídolo de Oro solo se le dice a quien lo coge con qué tecla lo
+  lanza.
 
 - **Una espera de aviso.** Los golpes que llegaban antes de 0,8 s empiezan
   ahora con el jefe **quieto en el primer fotograma** del ataque mientras sale
@@ -1038,19 +1038,13 @@ golpes»):
   El **Salto** de Rajang, que no avisaba de dónde caía, pinta ahora el aro
   de 6,5 bloques donde va a aterrizar, desde que se agacha.
 
-- **De dónde vino el golpe.** Cualquier daño que venga de algún sitio (jefe,
-  mob, flecha) pinta un **arco rojo** alrededor de la mira, girado hacia allí,
-  que se apaga en 1,5 s; si te giras, sigue apuntando al sitio
-  (`IndicadorGolpe`, con un mixin en `LivingEntity.handleDamageEvent`). La
-  textura sale de `indicador_golpe.py`. Se esconde en la presentación.
-
 **Un golpe cooperativo por jefe.** En cada combate hay un momento en que el jefe
 es inmune y lo único que sirve es que el grupo rompa algo a la vez:
 
 - a Nerea, los **dos ojos**;
 - a Aeralis, los **cuatro núcleos**;
 - a Rajang, los **cuatro tótems**;
-- a Novilis, las **tres fuentes solares**.
+- a Novilis, los **cuatro ángeles** de las Trompetas, desde lo alto de sus estrados.
 
 Si sale bien, cae aturdido con **daño doble**. Si sale mal, el castigo es gordo:
 los atrapados mueren salvo tótem y el jefe entra en **Furia**: más rápido, más
@@ -1058,8 +1052,9 @@ daño y menos espera, pero solo **30 s** y siendo **inmune**, así que toca esqu
 (`PresasJefe.FURIA_TICKS`). Si lo derriban antes, se acaba antes. Una franja clara
 por dentro de su barra, arriba, se va acortando (`FuriaHud`), y la barra de
 acción avisa al empezar y al acabar. Antes duraba hasta que lo derribaran, y en
-Rajang podían ser minutos (testers, 07-10-2026). Los tótems de Rajang y las fuentes
-de Novilis aguantan **10 golpes**, sean cuantos sean los jugadores. Los ojos de
+Rajang podían ser minutos (testers, 07-10-2026). Los tótems de Rajang aguantan
+**10 golpes** y los ángeles de Novilis **15** (desde el 08-10-2026), sean cuantos
+sean los jugadores. Los ojos de
 Nerea y los núcleos de Aeralis, desde los testers (07-10-2026), van de **5** (hasta
 11 jugadores) a 12 y 10: uno más por cada 6.
 
@@ -1147,12 +1142,11 @@ La de Rajang al mismo estilo está **solo en propuesta**
 La de **Novilis** es del mismo estilo desde el principio: lenguas de fuego que
 salen del emblema (su yelmo ante el sol), lava del color de la fase y muescas
 que son rayos de sol. Debajo, lo que esté haciendo: los **cuatro ángeles** de
-las Trompetas (enteros, rajados o en cascotes) y la melodía que avanza; las
-**tres fuentes** y la **carga** de su sol, del oro al rojo; o el **sol** de la
-Ofrenda con lo que lleva el atrapado. Los ángeles se ven mientras suene la
-melodía (no solo mientras los llama), y junto a los ángeles y las fuentes va la
-cuenta: «Rotas 1/4». Con la Furia, todo en fuego azul; con el
-Grito de guerra, un cuerno carmesí junto al rótulo.
+las Trompetas (enteros, rajados o en cascotes) y la melodía que avanza; el
+**sol** de la Sombra del Escudo con lo que le queda; o el **sol** de la Ofrenda
+con lo que lleva el atrapado. Los ángeles se ven mientras suene la melodía (no
+solo mientras los llama), y junto a ellos va la cuenta: «Rotas 1/4». Con la
+Furia, todo en fuego azul.
 
 Las barras **se apilan**: Nerea arriba, Aeralis debajo, Rajang debajo de las
 dos y Novilis la última (cada una usa el `ALTO` de las de encima). Cada una enseña el jefe despierto
@@ -1237,8 +1231,8 @@ El daño de cada ataque va en el orden de las fases, I / II / III / IV:
 | **Molino de anclas** | dos cadenas de 21 bloques con un ancla al final dan dos vueltas; un aro de espuma marca hasta dónde llegan | 48 / 58 / 72, el escudo no la para | **saltarla**, pegarse a sus pies o irse lejos |
 | **Arpón** | un ancla por cada 10 jugadores (hasta 5) a los más lejanos, con estela y un aro bajo el blanco; los arrastra hasta el tridente y remata con la Estocada | 48 / 58 / 72, y la estocada 55 / 69 / 91 | escudo de cara al ancla, o romper la línea de visión |
 | **Géiser del Abismo** | desde la II. Clava el tridente y bajo cada jugador se abre un remolino oscuro; a los 1,5 s revienta una columna de agua de 14 bloques que lanza a unos 12 (y la caída duele) | 36 / 44 / 58 | **salir del remolino** a tiempo |
-| **Gran Marea** | desde la III. Alza el tridente 2 s y una ola de 9 bloques cruza la arena de lado a lado (80 bloques) hacia donde hay más gente. Solo deja **un hueco** de 5 bloques, marcado antes en el suelo | **mata** (10 000) y arrastra: solo salva un tótem | correr al **hueco** o ponerse detrás de ella |
-| **Mirada del Abismo** | carga 4 s un chorro de agua del abismo desde cada ojo hacia **la mitad** de los que pelean (de 30, 15): los de menos vida que tiene a la vista | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos: **5 impactos** cada uno hasta 11 jugadores, uno más por cada 6 (de 30, 9), hasta 12. Así cae aturdida, con daño doble |
+| **Gran Marea** | desde la III. Se vuelve hacia donde hay más gente y se queda **quieta, mirando siempre al mismo sitio**: marca en el suelo el paso **4,5 s** (2,5 s quieta y 2 s alzando el tridente) y suelta una ola de 9 bloques que cruza la arena de lado a lado (80 bloques). Solo deja **un hueco** de 5 bloques, el marcado | **mata** (10 000) y arrastra: solo salva un tótem | correr al **hueco** o ponerse detrás de ella |
+| **Mirada del Abismo** | carga un chorro de agua del abismo desde cada ojo durante **8,5 s** en las fases I y II (7,8 en la III, 7,3 en la IV; la Furia no la acelera) hacia **la mitad** de los que pelean (de 30, 15): los de menos vida que tiene a la vista | **mata** (10 000): solo salva un tótem | **esconderse tras un bloque** o **romperle los dos ojos** a flechazos: **5 impactos** cada uno hasta 11 jugadores, uno más por cada 6 (de 30, 9), hasta 12. Así cae aturdida, con daño doble |
 
 **Mecánicas cooperativas (octubre de 2026).** Juan: «que cada jefe haga cooperar a
 los jugadores con mecánicas suyas, que los otros no tengan». De la ficha
@@ -1249,19 +1243,17 @@ que pelean (con dos, a uno o a la pareja; jugando solo, a ti):
 |---|---|---|---|
 | **Canto de Sirena** (II) | abre los brazos y canta 8 s (sin rayo: las notas le salen de la boca). Los **más lejanos** caen en **trance**: andan solos hacia ella, no pueden atacar, la pantalla se les tuerce (náusea) y pierden vida cada segundo. Mientras canta, **no se le puede pegar** | 3 / 3 / 4 / 5 por segundo, pasa la armadura | **darle clics** al hechizado: cada clic de un compañero vale 3 de los 12 que hacen falta (no le hace daño). El hechizado también puede hacer clic (al aire vale), pero cada uno vale 1. `TranceSirena`, con un mixin en el clic izquierdo (`TranceClicMixin`) |
 | **Encadenados** (II) | lanza sus cadenas: ata por parejas durante 15 s (el que sobra, o si juegas solo, a un **ancla** clavada en el suelo). Una cadena de eslabones con un hilo de agua que se pone **rojo** al tensarse (`CadenaNereaEntity`) | si se separan más de **10 bloques**, tirón que los junta y 10 / 10 / 12 / 14 a cada uno (como mucho uno por segundo) | moverse **con tu pareja**, esquivando a la vez lo que siga lanzando |
-| **Marea Alta** (III) | alza el tridente 10 s: salen **cúpulas de refugio** celestes (`RefugioNereaEntity`, Juan: «celeste y como una cúpula») repartidas por la arena, las justas: una por cada 2 jugadores (3 con más de 8, 4 con más de 24). Encima de cada una, cuántos caben («1/2»; roja si está llena). Cuenta atrás en la barra de acción | al acabar, a quien no esté en una cúpula con sitio, **la muerte salvo tótem** | **repartirse**: si entra uno de más, ese no está a salvo (cuentan los primeros en entrar) |
+| **Marea Alta** (III) | alza el tridente 10 s: salen **cúpulas de refugio** celestes (`RefugioNereaEntity`, Juan: «celeste y como una cúpula») repartidas por la arena, las justas: una por cada 2 jugadores (3 con más de 8, 4 con más de 24). Encima de cada una, cuántos caben («1/2»). **Llena, se cierra**: se pone roja, le sale una capa roja que late y echa hacia fuera a quien intente entrar («¡Esta cúpula está llena! Busca otra») hasta que salga alguno de dentro. Cuenta atrás en la barra de acción | al acabar, a quien no esté en una cúpula con sitio, **la muerte salvo tótem** | **repartirse**: el que llega tarde a una llena tiene que buscar otra |
 
-Cada una lleva su alerta «¡!» (la Marea Alta, la mortal) y su pista en la barra de
-acción la primera vez. Sonidos de `nerea_cooperativas_sonidos.py` (el canto es una
+Sonidos de `nerea_cooperativas_sonidos.py` (el canto es una
 vocalización de sirena de 8 s en re menor con una segunda voz y el coro del
 abismo); la textura de la cúpula, de `nerea_cupula.py`; las animaciones (CANTO,
 MAREA_ALTA, ENCADENAR), de `nerea_juego_anim.py`.
 
 Mientras mira es inmune, y romper un solo ojo no salva: el disparo sale del punto
 medio entre los dos. Cada ojo lleva un aro de agua que gira y se va rajando con
-los impactos. Al empezar, a todos los que pelean les sale en la barra de acción
-cómo pararla («¡Rómpele los dos ojos a flechazos o escóndete tras un bloque!») y
-bajo el emblema de su barra se cuentan los impactos de cada ojo («3/5  0/5»).
+los impactos. Bajo el emblema de su barra se cuentan los impactos de cada ojo
+(«3/5  0/5»).
 
 **Respiro.** Tras un ataque fuerte (Remolino, Molino, Mirada, Géiser, Gran
 Marea) espera al menos 2 s antes del siguiente, y nunca encadena dos ataques de
@@ -1346,13 +1338,6 @@ lo heredó.
 | **Viento de vuelta** (nuevo) | desde la fase II, cada tornado roto le devuelve su viento: un orbe de luz que vuela a su pecho. Una raya bajo su barra lo cuenta, con la cifra al lado («Viento 3/6»): con **dos tandas de tornados rotas** (6 en grupos pequeños, 8 en la IV; sube con el grupo) **cae aturdida 10 s** con daño doble (el doble que tras el Juicio; mientras, se retuerce en el suelo), con un trueno y el aviso en la barra de acción (se le corta lo que hacía; en el Juicio, el suelo o el Picado espera a acabar) | ninguno | **romper tornados** |
 
 Mientras dura el Juicio es inmune.
-
-**Pistas.** La primera vez que hace cada cosa, la barra de acción dice cómo se
-sale: el Aleteo («Cuchillas azules: ¡salta! · Blancas: ¡agáchate!»), los
-tornados desde la II (cuántos rotos la derriban) y el Juicio (dónde están los
-núcleos y cómo se rompen). Salen de las opiniones de los testers (07-10-2026):
-el aturdimiento por tornados casi no se notaba y el Juicio, jugando solo, no
-tenía salida.
 
 **La Furia del Vendaval.** Es la Furia de Jade de Rajang en Aeralis: si el
 Juicio sale mal, a los que queden se la encuentran con un aura de rayos violetas
@@ -1440,13 +1425,13 @@ entre un ataque y otro (enfriamientos ×0,84, ×0,72 y ×0,6).
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
 | **Garra Terrestre** | zarpazo en abanico de 125° que te **empuja unos 6 bloques** y una fila de picos de roca que corre hasta la presa. La avisan una grieta y un hexágono. Cada pico te **lanza unos 10 bloques** y te deja el **Peso 3 s** | 34 / 45 / 59 / 80 | salir del frente y del hexágono. El escudo para el zarpazo |
-| **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 8 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores (pegan a 2,5–3,2 bloques de su centro), que **lanzan unos 10 bloques** y dejan el Peso 3 s. Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 40 / 49 / 63 | apartarse del hexágono y no pegarle con la Piel puesta |
-| **Embestida de Jade** | va a por el jugador **más lejano** que tenga a tiro (de 10 a 36 bloques, con camino libre): los arqueros de lejos salían casi ilesos. Se agazapa y rasca el suelo mientras una **flecha** en el suelo marca por dónde va a cargar (1,15 s en la fase I, 0,75 s en la IV; al llenarse, el rumbo queda fijo). Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
-| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** (1 s), se cae y vuelve a los 3 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (**10 golpes** cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
+| **Terremoto Ancestral** | golpea con las dos zarpas: **Peso de la Tierra** 2 s a 40 bloques (−35 % de velocidad, −50 % de salto) y pilares bajo los jugadores (pegan a 2,5–3,2 bloques de su centro), que **lanzan unos 10 bloques** y dejan el Peso 2 s (el Peso dura siempre 2 s, venga de donde venga). Él se cubre de **Piel de Jade** 10 s (−40 % de daño) | pilares 27 / 40 / 49 / 63 | apartarse del hexágono y no pegarle con la Piel puesta |
+| **Embestida de Jade** | va a por el jugador **más lejano** que tenga a tiro (de 10 a 36 bloques, con camino libre): los arqueros de lejos salían casi ilesos. Una **flecha** en el suelo marca por dónde va a cargar y se va llenando: espera quieto **2 s** con ella puesta y luego se agazapa y rasca el suelo (1,15 s en la fase I, 0,75 s en la IV). Solo sigue a su presa el **primer segundo**: después el rumbo y el largo quedan fijos unos 2 s, para que dé tiempo a apartarse. Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
+| **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** al azar y, además, **el que se pisa** empieza a temblar a los 0,8 s: tiembla 1 s, se cae (con quien esté encima) y vuelve a los 2 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (**10 golpes** cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
 | **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga. **Una de cada dos va en anillo** (la segunda, la cuarta...): ruge más agudo, las flechas del borde apuntan hacia dentro, alrededor de él brilla un **círculo dorado de 10 bloques** y lo llenado avanza **del borde hacia él** | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s. En anillo, a quien esté fuera del círculo dorado | **en anillo, correr hacia él** y meterse en el dorado (desde el borde llegas igual que huyendo de la otra). En círculo, salir: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
 | **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás 1,2 s (es de reflejos) | dentro de su marca (4,8 a 5,7 bloques): **mata**; fuera de la marca, nada | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
 | **Salto** (fase IV) | salta en parábola sobre el jugador **más lejano** a tiro (de 8 a 26 bloques); un aro marca dónde cae | 80 en 6,5 bloques | apartarse cuando despega |
-| **Ídolo de Oro** (II, mecánica cooperativa de octubre de 2026) | ruge, arranca un **ídolo de oro** de su templo y lo lanza a un lado de la arena; al otro sale un **altar dorado** (columna de luz y aro). Quien lo recoge lo lleva (va más lento y brilla) y Rajang **solo persigue al portador**, al galope, sin otros ataques. Si está tirado, va a por él. 25 s | si alcanza al portador: zarpazo de 24 / 30 / 34 / 42, **recupera el ídolo y se cura un 3 %**; si lo recoge del suelo, también se cura | **llevarlo al altar**: revienta, le quita **un 5 % de vida** y cae **aturdido** con daño doble. Se pasa de mano en mano: **Q** para soltarlo o **un clic a un compañero** para dárselo (sin hacerle daño). El ídolo es un objeto de verdad (`IdoloOroItem`, textura de `idolo_oro.py`) que se deshace si ya no lo busca su Rajang |
+| **Ídolo de Oro** (II, mecánica cooperativa de octubre de 2026) | ruge, arranca un **ídolo de oro** de su templo y lo lanza a un lado de la arena; al otro sale del suelo un **pilar pequeño** (algo más de un bloque: zócalo y fuste de jade con el jaguar tallado en oro y un capitel de oro con el hueco del ídolo), del que suben chispas de oro para verlo de lejos. Donde va a caer se marca en el suelo y, tirado, tiene encima una columna de oro. El ídolo es una **estatuilla en 3D** (un jaguar de oro sentado en su pedestal, con los ojos y la frente de jade y las manchas del jaguar): así se ve en la mano, tirado en el suelo, encima del pilar y **sentado en la cabeza** de quien lo lleva, mirando hacia donde mira él (lo ven todos; va más lento y brilla). En el suelo, delante del portador, un camino de puntos de oro lleva al pilar. **Sin textos**: solo, al cogerlo, la barra de acción le dice con qué tecla lo lanza. Rajang **solo anda o corre hacia el portador** (o hacia el ídolo tirado): nada de ataques especiales, solo la **Garra** cuando lo tiene a menos de 11 bloques. 25 s | si la Garra pilla al portador, **recupera el ídolo y se cura un 3 %**; si lo recoge del suelo, también se cura | **ponerlo en el pilar** (basta llegar a su lado): el ídolo se queda encima un momento y revientan los dos en oro; le quita **un 5 % de vida** y cae **aturdido** con daño doble. Se pasa de mano en mano: con la **Q** sale **lanzado** unos diez bloques hacia donde mira (se puede coger enseguida), o **un clic a un compañero** se lo da (sin hacerle daño). Si se acaba el tiempo, se deshace en polvo de oro. El ídolo es un objeto de verdad (`IdoloOroItem`; el modelo 3D, su textura, el icono y el pilar salen de `idolo_oro.py`) que se deshace si ya no lo busca su Rajang |
 
 **Las columnas del Sello son entidades, no bloques.** Son pisables a cualquier
 altura gracias a un truco: el juego solo busca choques con entidades cuyo origen
@@ -1474,10 +1459,6 @@ Furia persigue al jugador **más lejano** y la Garra va a por él: que el arquer
 sienta el miedo. En la barra, el rótulo pasa a **FURIA** y la energía late en verde
 vivo.
 
-**Pistas.** La primera Tumba de cada tipo avisa en la barra de acción: «¡Sal del
-círculo de raíces antes de que se llene!» o «¡Anillo de raíces! Corre hacia él: el
-círculo dorado es seguro».
-
 > Estas mejoras salen de las pruebas del grupo de octubre de 2026 («tosco y
 > lento»). La ficha con los renders y las cifras está en
 > `materiales/fichas/rajang_mejoras/`, con las hojas de control de las
@@ -1485,7 +1466,7 @@ círculo dorado es seguro».
 
 ### Novilis, el Caballero Solar
 
-> *Rompe sus fuentes. Apaga su sol.*
+> *Rompe a sus ángeles. Apaga su sol.*
 
 Un guerrero de leyenda con una armadura forjada en lava, que trae **su propio
 sol** flotando sobre él y saca de él su poder:
@@ -1496,25 +1477,35 @@ sol** flotando sobre él y saca de él su poder:
 - hombreras por capas con aletas, peto en V, gola alta, tabardo y capa doble;
 - una espada de fuego tan larga como medio cuerpo.
 
-Las grietas de lava crecen fase a fase. Nace **de rodilla**, con la espada
-clavada delante y la cabeza gacha.
+Las grietas de lava crecen fase a fase. Nace **de rodilla**, con las manos sobre
+la rodilla, la cabeza gacha y la espada **clavada a su lado**: al despertar la
+busca con la mirada, la agarra, se apoya en ella para ponerse en pie y la arranca
+(08-10-2026, Juan: si la tenía ya en la mano se veía raro). La mano sube de la
+rodilla por fuera, a la altura de la cadera, y llega a la empuñadura con el codo
+abajo; ya no se retuerce el brazo ni se le va la mano de la empuñadura mientras se
+levanta (el IK prefiere el codo hacia abajo y afuera: `fm.alcanzar(..., codo=)`).
 
 | | |
 |---|---|
 | Vida | 16 500 · armadura 16, dureza 10 |
 | Caja | 4,6 × 15 |
 | Correa | 40 bloques |
-| Inmune | dormido, al despertar, en la Ofrenda, mientras carga las Fuentes y con la Furia |
+| Inmune | dormido, al despertar, en la Ofrenda, mientras suenan las Trompetas y con la Furia |
 
 No le hace nada el fuego (ni lava ni llamas). En cada fase ataca más rápido
 (`ritmo()` ×1,12, ×1,25 y ×1,4) y espera menos (×0,85, ×0,72 y ×0,6).
 
 | Fase | Nombre | Qué se añade |
 |---|---|---|
-| I | Brasa | Barrido Solar, Castigo Divino |
-| II | Llamarada | el Castigo acaba en **Onda de Fuego**; Sol Abrasador; **Trompetas del Apocalipsis**; **Sombra del Escudo** |
-| III | Mediodía | **Fuentes Solares** (el golpe cooperativo); **Ofrenda al Sol** |
-| IV | Dios de la Guerra | **Dios de la Guerra** |
+| I | Brasa | Barrido Solar, Castigo Divino, **Espada del Fuego** (su embestida) |
+| II | Llamarada | el Castigo acaba en **Onda de Fuego**; Sol Abrasador (con la **Supernova**); **Trompetas del Apocalipsis**; **Sombra del Escudo** |
+| III | Mediodía | **Furia Infernal**; **Ofrenda al Sol** |
+| IV | Dios de la Guerra | **Mar de Llamas**; **Dios de la Guerra** |
+
+Las **Fuentes Solares** (el golpe cooperativo de la III) y el **Grito de guerra**
+que soltaba la Supernova si fallaban **se quitaron** el 08-10-2026 (Juan). Los
+ataques nuevos de ese día (la Espada del Fuego, la Furia Infernal, el Mar de
+Llamas y la Supernova como cuarto sol) salen de una ficha de ideas que pasó Juan.
 
 **La Quemadura.** Casi todo su fuego la deja. Tiene tres niveles (I leve, II
 fuerte, III grave) y cada golpe suma. Por sí sola no quita vida: es una marca,
@@ -1527,13 +1518,15 @@ su número, y la III con calavera.
 |---|---|---|---|
 | **Barrido Solar** | solo si tiene a alguien a menos de 16 bloques: va a por el más cercano, se encara mientras carga el primer tajo y lo sigue entre tajo y tajo. Cuatro tajos seguidos; cada uno pega con la hoja a 12 bloques por delante y suelta **tres medias lunas de fuego** en abanico (una sola y grande en el tajo de arriba) que vuelan unos 28 bloques | hoja 18 / 23,5 / 25,5 / 32; media luna 13 / 17 / 18,7 / 23,2 y Quemadura I | salir del frente; las medias lunas, de lado |
 | **Castigo Divino** | alza la espada y su sol le manda un haz. Marca con un sello a **cada jugador** a 48 bloques y, 1,1 s después, cae un rayo en cada sello | 19 / 24 / 26,4 / 32,8 y Quemadura I; no lo para el escudo | salir del sello |
+| **Espada del Fuego** (su embestida, como la carrera de Rajang, la pasada de Aeralis o el tsunami de Nerea) | elige a uno a entre 8 y 30 bloques y se planta en zancada baja con la espada atrás, rozando el suelo: **3 s cargando** (el fuego le sube por la hoja y en el suelo se ve el **carril**, 40 × 8 bloques). Los dos primeros segundos el carril le sigue; el último queda fijo. Sale disparado **40 bloques en 1 s** arrastrando la punta, frena derrapando y remata con un tajo hacia arriba. Detrás deja un **camino de llamas malditas** que arde 10 s | su cuerpo: 24 / 31 / 34 / 42, Quemadura I y fuera del carril; el remate, como la hoja; el camino, 3 / 4 / 5 / 6 cada medio segundo y Quemadura I cada dos; no lo para el escudo | **salir del carril** en el último segundo y no pisar el camino |
 | **Onda de Fuego** (II) | el Castigo acaba clavando la espada: un anillo de llamas corre por el suelo hasta 26 bloques | 12 / 16 / 17 / 21,6 y Quemadura I | **saltarla**: solo pega a quien esté en el suelo |
-| **Sol Abrasador** (II) | se le forman tres soles en la mano y los lanza en arco, cada uno a un jugador (lo elige al formar el sol y se va girando hacia él). El sello del suelo marca dónde caen (1,4 s) | 27,5 / 35 / 37,4 / 44 en 4 bloques y **Quemadura II**; deja un charco de lava 5 s que prende | apartarse del sello |
-| **Trompetas del Apocalipsis** (II) | alza la espada y salen del suelo **cuatro ángeles de mármol** a 15 bloques, cada uno sobre un **estrado** de dos escalones (desde el suelo no se le llega: hay que subirse). Tocan una melodía de 24 s y, mientras suena, **él no ataca ni se mueve**: se queda plantado y los dirige. Cada **5 s** cada ángel da un **pulso de fuego** por su estrado que tira abajo a quien esté encima; un segundo antes lo avisa (la trompeta se enciende y suena) | el pulso: 6 / 6 / 8 / 8 y unos 7 bloques de empujón. Si queda alguno en pie al acabar, entra en **Furia** | romper los cuatro (**10 golpes** cada uno), y **saltar el pulso** para no caerse (corre a ras del estrado) |
+| **Sol Abrasador** (II) | se le forman tres soles en la mano y los lanza en arco, cada uno a un jugador (lo elige al formar el sol y se va girando hacia él). El sello del suelo marca dónde caen (1,4 s). Después, la **Supernova**: alza la espada y en la otra mano le crece **un cuarto sol, más grande**, durante algo más de un segundo; echa el brazo atrás y lo lanza con todo el cuerpo a su objetivo. Vuela más despacio (2,2 s) y su sello mide **12 bloques**. Cada sol es un **cubo de plasma** que gira dentro de otro transparente que gira al revés, con llamaradas en abanico; la Supernova, además, con un anillo de cubos que le dan vueltas | cada sol: 27,5 / 35 / 37,4 / 44 en 4 bloques y **Quemadura II**; deja un charco de lava 5 s que prende. La Supernova: 36 / 45 / 49 / 57 en 12 bloques, Quemadura II y un charco de 6 | apartarse del sello (del de la Supernova, con tiempo: es grande) |
+| **Trompetas del Apocalipsis** (II) | alza la espada y salen del suelo **cuatro ángeles de mármol** a 15 bloques, cada uno en lo alto de un **estrado de cinco escalones** (de un bloque cada uno, cada uno más estrecho: el ángel queda a 5 bloques). **Solo se le puede pegar desde el escalón de arriba**: desde más abajo, o desde el suelo con el arco, el golpe rebota. Tocan una melodía de 24 s y, mientras suena, **él no ataca ni se mueve**: se queda plantado y los dirige, y **no se le puede pegar** (es inmune desde que alza la espada hasta que acaba la melodía). Cada **5 s** cada ángel da un **pulso de fuego** que **baja por los cinco escalones** (un cuadro de llamas por cada uno, que corre por su pisada) y **expulsa dos o tres bloques** hacia fuera a todo el que esté subiendo, escalones abajo; un segundo antes lo avisa (la trompeta se enciende y suena) | el pulso: 6 / 6 / 8 / 8 y dos o tres bloques de empujón. Si queda alguno en pie al acabar, entra en **Furia** | romper los cuatro (**15 golpes** cada uno), subir entre pulso y pulso y **saltar el pulso** para no caerse (corre a ras del escalón) |
 | **Sombra del Escudo** (II, cooperativa) | alza la mano y **lanza su sol al cielo**: sube 2 s y luego cruza el cielo, bajo y enorme, durante **12 s**, dando la vuelta a media arena. A **un tercio** de los que pelean (mínimo uno; jugando solo, a ti) le da la **Égida**, un escudo enorme que lleva en alto. Mientras, él no ataca ni se mueve: mira a su sol | cada segundo al sol: 4 / 4 / 5 / 6, pasa la armadura y el escudo, y prende | **ponerse a la sombra de una Égida**: si su portador mira al sol, detrás cae una sombra de 10 bloques que se ensancha; el portador se tiene que ir girando con el sol. Si **nadie se quema más de una vez**, el sol se apaga y Novilis queda **deslumbrado 4 s** con daño doble |
-| **Fuentes Solares** (III) | se arrodilla, clava la espada y carga su sol, que crece. Salen **tres fuentes** a 13 bloques que le mandan fuego: con las tres llena la carga en 15 s, con dos en 20 y con una en 30 | si se llena: **Supernova** a 56 bloques, 56 / 56 / 57 / 67,2, **Quemadura III**, fuego y el **Grito de guerra** | romper las tres (**10 golpes** cada una): se le apaga el sol y cae **aturdido 6 s** con daño doble |
-| **Ofrenda al Sol** (III) | el haz de su sol señala a uno (no se puede esquivar), lo agarra y lo alza al sol. Primero tiene **3 s para prepararse** (cuenta atrás 3, 2, 1; las teclas no cuentan) y luego tiene que seguir **10 letras en 8 s** (**12** en la fase IV); mientras, se quema un 4 % de su vida por segundo | si falla una o se acaba el tiempo: **la muerte salvo tótem**, y él entra en **Furia** | acertarlas todas: lo suelta y cae **aturdido 5 s** con daño doble |
-| **Dios de la Guerra** (IV) | suelta la espada, se envuelve en llamas carmesí y marca **tres zonas** de 6 bloques (sobre los jugadores, al azar). Les lanza un sol a cada una y estallan en cadena | 174 y Quemadura I. Con **Quemadura III**, o con el **Grito de guerra** puesto, **mata a todos** los que pille (salvo tótem) | salir de las zonas, y no llegar con la Quemadura III (se gira hacia cada zona antes de lanzarle su sol) |
+| **Furia Infernal** (III) | elige a uno a entre 8 y 30 bloques y se agacha con la espada a dos manos detrás de la cabeza. Un sello de 7 bloques marca **dónde va a caer** (1 s antes). Salta (6 bloques de alto) y cae **clavando la espada** en el sello; el suelo se abre en **tres grietas de 16 bloques** que escupen lava y fuego mientras empuja (1 s) y, al arrancarla, **revienta** en el centro y en la punta de cada grieta | la caída: 26 / 33 / 36 / 45 en 7 bloques y Quemadura I; cada chorro de la grieta, 10 / 13 / 14 / 18 (lanza hacia arriba); la explosión, 22 / 28 / 31 / 38 en 11 bloques (un 70 % en las puntas) y **Quemadura II**; no lo para el escudo | salir del sello antes de que caiga, no pisar las grietas y alejarse antes de que arranque la espada |
+| **Ofrenda al Sol** (III) | el haz de su sol señala a uno (no se puede esquivar), lo agarra y lo alza al sol. Primero tiene **3 s para prepararse** (cuenta atrás 3, 2, 1; las teclas no cuentan) y luego tiene que seguir **12 letras en 8 s** (**14** en la fase IV); mientras, se quema un 4 % de su vida por segundo | si falla una o se acaba el tiempo: **la muerte salvo tótem**, y él entra en **Furia** | acertarlas todas: lo suelta y cae **aturdido 5 s** con daño doble |
+| **Mar de Llamas** (IV) | alza la espada a dos manos y la **hunde de rodilla**: el suelo de toda la arena se raja. Sale una **boca de fuego bajo cada jugador** (hasta 20) y otras 8 sueltas; cada grieta brilla 1,5 s y luego escupe una **columna de fuego que se queda** hasta que acaba el Mar (15 s). Cada 4,5 s se raja otra tanda, así que la arena se va llenando. Corre aparte: mientras, **él sigue peleando** (no saca las Trompetas ni la Sombra) | dentro de una boca: 8 / 10 / 12 / 14 cada medio segundo y Quemadura I cada segundo | **moverse** en cuanto brilla la grieta bajo los pies y no quedarse encerrado entre columnas |
+| **Dios de la Guerra** (IV) | suelta la espada, se envuelve en llamas carmesí y marca **tres zonas** de 6 bloques (sobre los jugadores, al azar). Les lanza un sol a cada una y estallan en cadena | 174 y Quemadura I. Con **Quemadura III** **mata** (salvo tótem) | salir de las zonas, y no llegar con la Quemadura III (se gira hacia cada zona antes de lanzarle su sol) |
 
 **La Sombra del Escudo** (mecánica cooperativa de octubre de 2026; de la segunda
 ficha de fuego, Juan eligió esta). El sol es una entidad (`SolCenitEntity`) que
@@ -1562,12 +1555,11 @@ F. El atrapado lo ve en tercera persona, de cara a Novilis.
 sol azules, y le salen **lenguas de fuego azul** del yelmo, las hombreras, el
 puño, la espalda y la hoja (`NovilisLlamasLayer`: cada lengua va pegada a su
 hueso y sube hacia arriba del mundo aunque él se doble). En el Dios de la Guerra
-el mismo fuego es carmesí. Antes era la malla entera hinchada con bandas de fuego
-encima: lo tapaba todo y no se le veía. **El Grito de guerra** (de la Supernova)
-le deja llamas carmesí en el yelmo y las hombreras y hace que el Dios de la
-Guerra mate a todos. Los dos se van cuando cae aturdido: una Ofrenda superada o
-las Fuentes rotas a tiempo. La Furia, además, dura como mucho **30 s** y mientras
-es inmune; el Grito se queda hasta que lo derriben.
+el mismo fuego es carmesí, y en la Espada del Fuego solo arde la hoja, del color
+de la fase, cada vez más mientras carga. Antes era la malla entera hinchada con
+bandas de fuego encima: lo tapaba todo y no se le veía. La Furia se va cuando cae
+aturdido (una Ofrenda superada o su sol apagado en la Sombra del Escudo), dura
+como mucho **30 s** y mientras es inmune.
 
 **Los tajos dejan estela**: una cinta de fuego por donde pasó la hoja, que solo
 sale cuando corta deprisa. El generador guarda por dónde pasan la base y la punta
@@ -1592,22 +1584,49 @@ pasar del límite de Java). El paso no usa el reloj de andar de vanilla, que se
 satura a 0,25 bloques por tick: la entidad lleva el suyo y avanza lo que anda,
 así que los pies no patinan.
 
+**La guardia y el paso** (08-10-2026, Juan: «al andar y al correr está raro, y
+como sostiene la espada no parece de una persona»). Antes llevaba la espada por
+delante, tiesa como una lanza, andaba con el cuerpo echado atrás, los brazos casi
+quietos y las rodillas siempre dobladas, y corría agachado. Ahora lleva la
+**guardia baja**: el puño a la altura de la cadera, un poco adelantado, y la hoja
+**por delante**, con la punta hacia el suelo a unos pasos de él y el brazo
+suelto (antes la llevaba con la punta hacia atrás, y Juan: «la sostiene para
+atrás, no para adelante, eso se ve raro»). Al andar, el torso va algo adelantado, la cadera
+sube al pasar el pie, los hombros giran contra la cadera y el brazo libre se
+balancea contra su pierna; el de la espada, menos. Corre más erguido, con el
+torso echado y el brazo libre bombeando. En la Furia Infernal y el Mar de Llamas
+coge la espada **a dos manos** (el puño izquierdo por encima del derecho).
+
 **Anda y corre.** Anda a unos 6 bloques/s y, si su presa se le aleja a más de 20
 bloques, **corre** a unos 13 (15 en la fase IV; la Furia, un 10 % más), hasta
 que la tiene a menos de 15. La carrera tiene su animación: zancada larga con
 vuelo (cada pie pisa solo un tercio de la vuelta), el cuerpo echado adelante,
-el brazo libre bombeando y la espada baja y hacia atrás. El cliente funde andar
+el brazo libre bombeando y la espada baja y por delante, con la punta hacia el
+suelo. El cliente funde andar
 y correr según lo rápido que va, cada uno con su reloj. Vanilla empuja con el
 cuadrado de (atributo × lo que pide la IA), así que con 0,27 de atributo pide
 1,37 para andar y 2,0 para correr. De pie tiene una postura propia (las rodillas algo
 dobladas, un pie delante) que va horneada en la malla.
 
 El generador del cuerpo es `novilis_juego.py` (149 piezas, 390 cajas, atlas de
-512×512) y el de las 19 animaciones, `novilis_juego_anim.py`, con IK para que la
-espada y las manos lleguen donde tienen que llegar. `novilis_hojas.py` saca las
-hojas de control con dos vistas por fotograma (tres cuartos y de perfil, para
-ver los pies contra el suelo). Las estatuas y las fuentes son mallas propias
-(`novilis_props.py`).
+512×512) y el de las 21 animaciones, `novilis_juego_anim.py`, con IK para que la
+espada y las manos lleguen donde tienen que llegar (tarda minutos: con
+`NOVILIS_CACHE_IK=<archivo>` guarda cada solución y la siguiente vez sale al
+momento). `novilis_hojas.py` saca las hojas de control con dos vistas por
+fotograma (tres cuartos y de perfil, para ver los pies contra el suelo). Las
+estatuas son mallas propias (`novilis_props.py`; la fuente solar se sigue
+construyendo ahí para las fichas, pero ya no se exporta).
+
+**Los efectos de los ataques nuevos** son entidades que no se mueven y que el
+cliente dibuja: el camino de llamas (`CaminoLlamasEntity`: el suelo quemado a
+tramos y tres paredes de llamas a lo largo) y las grietas (`GrietaNovilisEntity`:
+la raja de la Furia Infernal, que se abre de cerca a lejos y echa una pared de
+llamas, y las bocas del Mar de Llamas, que laten cada vez más deprisa y luego
+sueltan una columna de fuego: un aro de llamas y, dentro, otro más alto con dos
+lenguas cruzadas). Las texturas de las grietas (`grieta.png`,
+`grieta_boca.png`) salen de `novilis_extras.py`, en grises para teñirlas del
+color de la fase; los ocho sonidos nuevos, de `novilis_sonidos.py` (con su propia
+semilla, al final: no cambian los de antes).
 
 ### Las armaduras y las armas de rol
 
@@ -1949,8 +1968,8 @@ El esquema es siempre el mismo:
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `canto`, `clic` (un clic de compañero al primer hechizado), `cadenas`, `marea_alta`, `fase`, `liberar` |
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `ladrona` (la Ráfaga Ladrona), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
-| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano al altar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
-| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `fuentes`, `fuente` (un golpe a una fuente), `ofrenda`, `dios`, `aturdido`, `furia` y `grito` (se los pone o se los quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
+| `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `pisar` (sube al jugador más cercano a un escalón alto del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano junto al pilar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
+| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `espada` (la Espada del Fuego), `infernal` (la Furia Infernal), `ofrenda`, `mar` (el Mar de Llamas), `dios`, `aturdido`, `furia` (se la pone o se la quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 

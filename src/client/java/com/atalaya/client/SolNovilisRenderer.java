@@ -12,10 +12,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Un sol que Novilis lanza: vuela en arco con su estela de fuego. El del Sol x3
- * enseña desde el principio su sello donde va a caer, y al llegar deja el
- * charco de lava. El del Dios de la Guerra cae en su zona (el sello carmesi lo
- * pone la zona) y la llena de explosiones.
+ * Un sol que Novilis lanza: vuela en arco con su estela de fuego. El del Sol
+ * Abrasador enseña desde el principio su sello donde va a caer, y al llegar deja
+ * el charco de lava; la Supernova, igual pero mas grande. El del Dios de la
+ * Guerra cae en su zona (el sello carmesi lo pone la zona) y la llena de
+ * explosiones.
  */
 public class SolNovilisRenderer extends EntityRenderer<SolNovilisEntity, SolNovilisRenderer.Estado> {
 
@@ -61,30 +62,33 @@ public class SolNovilisRenderer extends EntityRenderer<SolNovilisEntity, SolNovi
         float e = s.edad;
         Vec3 d = s.destino;
         if (e < s.vuelo) {
-            float r = s.tipo == SolNovilisEntity.DIOS ? 0.9F : 1.25F;
-            colector.submitCustomGeometry(pose, NovilisDibujo.SOL, (p, buf) -> NovilisDibujo.sol(buf, p, s.sol, ojo, r, e, s.color, 240));
+            float r = s.tipo == SolNovilisEntity.DIOS ? 0.9F : s.tipo == SolNovilisEntity.SUPERNOVA ? 2.6F : 1.25F;
+            NovilisDibujo.solBomba(colector, pose, s.sol, ojo, r, e, s.color, 240, s.tipo == SolNovilisEntity.SUPERNOVA);
             colector.submitCustomGeometry(pose, NovilisDibujo.ESTELA, (p, buf) ->
                     NovilisDibujo.cinta(buf, p, s.sol, s.atras, ojo, r * 0.7F, 0.0F, 1.0F, s.color, 220));
-            if (s.tipo == SolNovilisEntity.SOL) {
+            if (s.tipo != SolNovilisEntity.DIOS) {
                 // El sello donde va a caer: se aprieta y parpadea mas deprisa al acercarse.
                 float k = e / s.vuelo;
-                float m = NovilisEntity.RADIO_SOL * (1.12F - 0.12F * k);
+                float radio = s.tipo == SolNovilisEntity.SUPERNOVA ? NovilisEntity.RADIO_SUPERNOVA : NovilisEntity.RADIO_SOL;
+                float m = radio * (1.12F - 0.12F * k);
                 int alfa = (int) (160 + 80 * (0.5F + 0.5F * Mth.sin(e * (0.3F + 0.8F * k))));
                 colector.submitCustomGeometry(pose, NovilisDibujo.SELLO, (p, buf) ->
                         NereaDibujo.suelo(buf, p, d.x, d.y + 0.06, d.z, m, e * 0.05F, s.color, alfa));
             }
-        } else if (s.tipo == SolNovilisEntity.SOL) {
+        } else if (s.tipo != SolNovilisEntity.DIOS) {
             float c = e - s.vuelo;
+            boolean nova = s.tipo == SolNovilisEntity.SUPERNOVA;
             if (c < SolNovilisEntity.CHARCO) {
                 // El charco de lava: entra de golpe, burbujea y se enfria al final.
                 float k = Mth.clamp(1.0F - (c - SolNovilisEntity.CHARCO + 20) / 20.0F, 0.0F, 1.0F);
-                float m = 2.8F * (0.85F + 0.15F * Mth.clamp(c / 4.0F, 0.0F, 1.0F));
+                float m = (nova ? SolNovilisEntity.CHARCO_NOVA : SolNovilisEntity.CHARCO_SOL) * (0.85F + 0.15F * Mth.clamp(c / 4.0F, 0.0F, 1.0F));
                 colector.submitCustomGeometry(pose, NovilisDibujo.CHARCO, (p, buf) ->
                         NereaDibujo.suelo(buf, p, d.x, d.y + 0.05, d.z, m, 0.0F, 0xFFFFFF, (int) (245 * k)));
                 if (c < 6) {
                     float f = 1.0F - c / 6.0F;
                     colector.submitCustomGeometry(pose, NovilisDibujo.SOL, (p, buf) ->
-                            NovilisDibujo.sol(buf, p, d.add(0, 1.5, 0), ojo, NovilisEntity.RADIO_SOL * (1.0F + c * 0.2F), e,
+                            NovilisDibujo.sol(buf, p, d.add(0, 1.5, 0), ojo, (nova ? NovilisEntity.RADIO_SUPERNOVA : NovilisEntity.RADIO_SOL)
+                                    * (1.0F + c * 0.2F), e,
                                     s.color, (int) (240 * f)));
                 }
             }

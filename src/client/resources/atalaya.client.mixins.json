@@ -10,10 +10,11 @@
     "OfrendaTecladoMixin",
     "CamaraPresentacionMixin",
     "TecladoPresentacionMixin",
+    "ManosPresentacionMixin",
+    "ManosPresentacionCuerpoMixin",
     "ClientInputAccesor",
     "CorazonesJefeMixin",
-    "IconosArmaduraMixin",
-    "GolpeRecibidoMixin"
+    "IconosArmaduraMixin"
   ],
   "injectors": {
     "defaultRequire": 1

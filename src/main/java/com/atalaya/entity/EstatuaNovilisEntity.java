@@ -19,29 +19,34 @@ import org.jspecify.annotations.Nullable;
 /**
  * Una de las cuatro estatuas de las Trompetas del Apocalipsis: un angel de
  * marmol con su trompeta de oro, en su pedestal. Sale del suelo y toca su voz
- * de la melodia (cada una la suya: melodia_1 a melodia_4). Aguanta 10 golpes,
- * sean cuantos sean los jugadores; rota, su trompeta se calla.
+ * de la melodia (cada una la suya: melodia_1 a melodia_4). Aguanta
+ * NovilisEntity.GOLPES golpes (15), sean cuantos sean los jugadores; rota, su
+ * trompeta se calla.
  *
  * Si la melodia acaba con alguna en pie, Novilis entra en Furia.
  *
- * Desde el 08-10-2026 (Juan) cada angel sale sobre un estrado de dos escalones
- * (EstradoNovilisEntity): desde el suelo no se le llega, hay que subirse. Y cada
- * 5 s da un pulso de fuego por su estrado que tira abajo a quien este encima;
+ * Cada angel sale sobre un estrado (EstradoNovilisEntity): cinco escalones de
+ * un bloque, cada uno mas estrecho, y el angel en lo alto, a cinco bloques
+ * (08-10-2026, Juan: con dos escalones se llegaba de un salto y se rompian
+ * enseguida). Solo se le puede pegar desde el escalon de arriba: desde mas
+ * abajo, o desde el suelo con el arco, el golpe rebota. Cada 5 s da un pulso de
+ * fuego que baja por todos los escalones (un cuadro de llamas por cada uno) y
+ * expulsa dos o tres bloques hacia fuera a quien este subiendo (08-10-2026, Juan);
  * un segundo antes lo avisa (la trompeta se enciende y suena). El pulso corre a
- * ras del estrado: saltandolo a tiempo, te quedas arriba.
+ * ras del escalon: saltandolo a tiempo, te quedas donde estas.
  */
 public class EstatuaNovilisEntity extends Entity {
 
     /** Lo que tarda en salir del suelo (ticks): el cliente la sube en ese tiempo. */
     public static final int SALE = 30;
-    /** El estrado: el escalon de abajo (ancho y de 1 bloque) y el de arriba (de 2), donde esta el angel. */
-    public static final float ESTRADO_ANCHO = 9.0F;
-    public static final float ESTRADO_CIMA = 5.4F;
-    public static final float ESTRADO_ALTO = 2.0F;
-    /** Cada cuanto da su pulso (ticks), lo que lo avisa antes y hasta donde llega (bloques). */
+    /** El estrado: el ancho de cada escalon, de abajo arriba (cada uno, un bloque mas alto); el angel, en el ultimo. */
+    public static final float[] ESTRADO_ANCHOS = {13.0F, 10.6F, 8.2F, 6.4F, 4.6F};
+    public static final float ESTRADO_ALTO = ESTRADO_ANCHOS.length;
+    /** Lo que puede estar por debajo de los pies del angel quien le pega (bloques). */
+    private static final double DESDE_ARRIBA = 0.75;
+    /** Cada cuanto da su pulso (ticks) y lo que lo avisa antes. */
     public static final int PULSO_CADA = 100;
     public static final int PULSO_AVISO = 20;
-    private static final float PULSO_RADIO = 6.0F;
 
     private static final EntityDataAccessor<Integer> DATA_GOLPES =
             SynchedEntityData.defineId(EstatuaNovilisEntity.class, EntityDataSerializers.INT);
@@ -72,11 +77,12 @@ public class EstatuaNovilisEntity extends Entity {
         s.dueno = dueno;
         s.entityData.set(DATA_INDICE, indice);
         s.setYRot(rumbo);
-        // El angel, encima del estrado; los dos escalones, desde el suelo.
+        // El angel, encima del estrado; los escalones, desde el suelo.
         s.setPos(donde.x, donde.y + ESTRADO_ALTO, donde.z);
         nivel.addFreshEntity(s);
-        EstradoNovilisEntity.alzar(nivel, s, donde, ESTRADO_ANCHO, 1.0F);
-        EstradoNovilisEntity.alzar(nivel, s, donde, ESTRADO_CIMA, ESTRADO_ALTO);
+        for (int i = 0; i < ESTRADO_ANCHOS.length; i++) {
+            EstradoNovilisEntity.alzar(nivel, s, donde, ESTRADO_ANCHOS[i], i + 1.0F);
+        }
         nivel.sendParticles(AtalayaParticulas.NOVILIS_ROCA, true, true, donde.x, donde.y + 0.3, donde.z, 24, 1.2, 0.3, 1.2, 0.2);
         nivel.sendParticles(AtalayaParticulas.NOVILIS_HUMO, true, true, donde.x, donde.y + 0.5, donde.z, 20, 1.4, 0.4, 1.4, 0.03);
         // Su voz de la melodia, desde ella: se oye en toda la arena.
@@ -146,11 +152,17 @@ public class EstatuaNovilisEntity extends Entity {
             entityData.set(DATA_AVISA, true);
             nivel.playSound(null, getX(), getY() + 6.5, getZ(), AtalayaSonidos.NOVILIS_SOL_FORMA, SoundSource.HOSTILE, 3.0F, 1.3F);
             nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, getX(), getY() + 0.2, getZ(), 24,
-                    ESTRADO_CIMA * 0.35, 0.1, ESTRADO_CIMA * 0.35, 0.02);
+                    ESTRADO_ANCHOS[ESTRADO_ANCHOS.length - 1] * 0.35, 0.1, ESTRADO_ANCHOS[ESTRADO_ANCHOS.length - 1] * 0.35, 0.02);
         }
         if (ciclo == 0) {
             entityData.set(DATA_AVISA, false);
-            OndaFuegoEntity.lanzarPulso(nivel, dueno, position(), PULSO_RADIO, dueno.dano(NovilisEntity.DANO_PULSO), dueno.fase());
+            // Un cuadro de llamas por escalon, a la altura de su pisada: baja por todo el estrado.
+            float dano = dueno.dano(NovilisEntity.DANO_PULSO);
+            for (int i = 0; i < ESTRADO_ANCHOS.length; i++) {
+                float desde = i + 1 < ESTRADO_ANCHOS.length ? ESTRADO_ANCHOS[i + 1] * 0.5F : 0.0F;
+                Vec3 pisada = new Vec3(getX(), getY() - ESTRADO_ALTO + i + 1, getZ());
+                OndaFuegoEntity.lanzarPulso(nivel, dueno, pisada, desde, ESTRADO_ANCHOS[i] * 0.5F, dano, dueno.fase());
+            }
             nivel.playSound(null, getX(), getY() + 6.5, getZ(), AtalayaSonidos.NOVILIS_ONDA, SoundSource.HOSTILE, 3.0F, 1.2F);
             nivel.playSound(null, getX(), getY() + 6.5, getZ(), AtalayaSonidos.NOVILIS_ESTATUAS, SoundSource.HOSTILE, 2.0F, 1.4F);
         }
@@ -189,6 +201,11 @@ public class EstatuaNovilisEntity extends Entity {
     @Override
     public boolean hurtServer(ServerLevel nivel, DamageSource fuente, float cantidad) {
         if (isRemoved() || isRoto() || fuente.getEntity() instanceof NovilisEntity || tickCount < SALE / 2) {
+            return false;
+        }
+        if (fuente.getEntity() instanceof net.minecraft.world.entity.LivingEntity quien && quien.getY() < getY() - DESDE_ARRIBA) {
+            // Desde abajo no vale: hay que subir al escalon de arriba.
+            nivel.playSound(null, getX(), getY() + 3.5, getZ(), AtalayaSonidos.NOVILIS_INMUNE, SoundSource.HOSTILE, 1.5F, 1.25F);
             return false;
         }
         int golpes = getGolpes() + 1;

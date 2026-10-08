@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -41,8 +42,9 @@ import java.util.List;
  *
  * Mientras dura, la escalera no se queda quieta: Rajang hace temblar una
  * piedra cada poco (un segundo, con polvo y crujidos), se cae (y quien estuviera
- * encima con ella) y a los tres segundos vuelve volando a su sitio. Sin ella,
- * el siguiente salto es de dos bloques: toca esperar.
+ * encima con ella) y a los dos segundos vuelve volando a su sitio. Ademas, la
+ * que se pisa empieza a temblar al poco (PISADA): no hay que quedarse quieto.
+ * Sin ella, el siguiente salto es de dos bloques: toca esperar.
  *
  * El juego solo busca choques con entidades cuyo origen este a menos de unos
  * 4 bloques por debajo de quien se mueve: la columna, ya arriba, se pisa por
@@ -67,7 +69,13 @@ public class PlataformaSelloEntity extends Entity {
     public static final float GRUESO = 0.6F;
     /** El escalon que se cae: lo que tiembla, lo que esta fuera y lo que tarda en volver (CAE y VUELA, los de arriba). */
     public static final int TIEMBLA = 20;
-    public static final int FUERA = 60;
+    public static final int FUERA = 40;
+    /**
+     * Lo que aguanta pisado un escalon antes de empezar a temblar (Juan, 08-10-2026:
+     * "los escalones no se rompen"; con cien piedras, los que tiemblan al azar
+     * casi nunca eran los que alguien pisaba).
+     */
+    public static final int PISADA = 16;
     /** Lo que cae un escalon antes de deshacerse. */
     public static final float CAIDA = 6.0F;
 
@@ -97,6 +105,8 @@ public class PlataformaSelloEntity extends Entity {
     private int columna = -1;
     private int escalon = -1;
     private float altoVisto = -1.0F;
+    /** Los ticks seguidos que lleva pisado (escalon de piedra; servidor). */
+    private int pisado;
     private final List<PlataformaSelloEntity> tramos = new ArrayList<>();
 
     public PlataformaSelloEntity(EntityType<? extends PlataformaSelloEntity> tipo, Level nivel) {
@@ -348,6 +358,8 @@ public class PlataformaSelloEntity extends Entity {
         int e = tickCount - getNace();
         if (tipo == PIEDRA && enCaida()) {
             tickCaida(nivel, tickCount - getTiembla());
+        } else if (tipo == PIEDRA && getEscalon() >= 3 && firme()) {
+            tickPisada(nivel);
         }
         if (tipo == COLUMNA) {
             tickColumna(nivel, e);
@@ -357,6 +369,24 @@ public class PlataformaSelloEntity extends Entity {
         } else if (e == VUELA) {
             nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, getX(), getY() + GRUESO, getZ(), 6, getAncho() * 0.3,
                     0.1, getAncho() * 0.3, 0.02);
+        }
+    }
+
+    /** Si alguien esta de pie encima, cuenta; al rato, el escalon empieza a temblar. */
+    private void tickPisada(ServerLevel nivel) {
+        AABB caja = getBoundingBox();
+        AABB encima = new AABB(caja.minX, caja.maxY - 0.1, caja.minZ, caja.maxX, caja.maxY + 0.6, caja.maxZ);
+        boolean pisada = false;
+        for (Player p : nivel.getEntitiesOfClass(Player.class, encima)) {
+            if (!p.isSpectator() && Math.abs(p.getY() - caja.maxY) < 0.35) {
+                pisada = true;
+                break;
+            }
+        }
+        pisado = pisada ? pisado + 1 : 0;
+        if (pisado >= PISADA) {
+            pisado = 0;
+            temblar(nivel);
         }
     }
 

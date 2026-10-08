@@ -21,9 +21,11 @@ import java.util.function.Function;
  * combate y no de una animacion:
  *
  *   - la espada de la mano o la clavada en el suelo (en la Ofrenda y el Dios
- *     de la Guerra la clava para tener las dos manos libres);
- *   - las animaciones de entrada y de bucle (las Fuentes, la Ofrenda y el
- *     aturdido entran una vez y luego siguen en bucle mientras dure);
+ *     de la Guerra la clava para tener las dos manos libres; dormido la tiene
+ *     clavada a su lado; al despertar la agarra, se apoya en ella sin moverla
+ *     y luego la saca);
+ *   - las animaciones de entrada y de bucle (la Ofrenda y el aturdido entran
+ *     una vez y luego siguen en bucle mientras dure);
  *   - el halo que gira despacio y late;
  *   - el reloj de andar, que lleva la entidad: la animacion avanza lo que el
  *     anda, y asi los pies no patinan ni a 8 bloques por segundo.
@@ -54,8 +56,6 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
     private final KeyframeAnimation castigoOnda;
     private final KeyframeAnimation sol;
     private final KeyframeAnimation trompetas;
-    private final KeyframeAnimation fuentes;
-    private final KeyframeAnimation fuentesCarga;
     private final KeyframeAnimation ofrenda;
     private final KeyframeAnimation ofrendaSostiene;
     private final KeyframeAnimation dios;
@@ -64,6 +64,9 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
     private final KeyframeAnimation aturdidoBucle;
     private final KeyframeAnimation tambaleo;
     private final KeyframeAnimation liberacion;
+    private final KeyframeAnimation espadaFuego;
+    private final KeyframeAnimation infernal;
+    private final KeyframeAnimation mar;
 
     public NovilisModel(ModelPart raiz) {
         super(raiz);
@@ -92,8 +95,6 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
         this.castigoOnda = NovilisAnimaciones.CASTIGO_ONDA.bake(raiz);
         this.sol = NovilisAnimaciones.SOL.bake(raiz);
         this.trompetas = NovilisAnimaciones.TROMPETAS.bake(raiz);
-        this.fuentes = NovilisAnimaciones.FUENTES.bake(raiz);
-        this.fuentesCarga = NovilisAnimaciones.FUENTES_CARGA.bake(raiz);
         this.ofrenda = NovilisAnimaciones.OFRENDA.bake(raiz);
         this.ofrendaSostiene = NovilisAnimaciones.OFRENDA_SOSTIENE.bake(raiz);
         this.dios = NovilisAnimaciones.DIOS.bake(raiz);
@@ -102,6 +103,9 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
         this.aturdidoBucle = NovilisAnimaciones.ATURDIDO_BUCLE.bake(raiz);
         this.tambaleo = NovilisAnimaciones.TAMBALEO.bake(raiz);
         this.liberacion = NovilisAnimaciones.LIBERACION.bake(raiz);
+        this.espadaFuego = NovilisAnimaciones.ESPADA.bake(raiz);
+        this.infernal = NovilisAnimaciones.INFERNAL.bake(raiz);
+        this.mar = NovilisAnimaciones.MAR.bake(raiz);
     }
 
     private void cadena(Function<String, ModelPart> pieza, String nombre, String[] desde, String... resto) {
@@ -137,7 +141,8 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
 
         // --- La espada: en la mano o clavada a su lado ---
         boolean clavada = !muriendo && ((e == NovilisEntity.OFRENDA && tk >= NovilisGeometria.OFRENDA_SUELTA)
-                || (e == NovilisEntity.DIOS && tk >= NovilisGeometria.DIOS_SUELTA && tk < NovilisGeometria.DIOS_RECOGE));
+                || (e == NovilisEntity.DIOS && tk >= NovilisGeometria.DIOS_SUELTA && tk < NovilisGeometria.DIOS_RECOGE)
+                || e == NovilisEntity.DORMIDO || (e == NovilisEntity.DESPERTAR && tk < NovilisGeometria.DESPERTAR_SACA));
         espada.visible = !clavada;
         espadaSuelta.visible = clavada;
 
@@ -170,12 +175,14 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
                 case NovilisEntity.CASTIGO_ONDA -> castigoOnda.apply(ms, 1.0F);
                 case NovilisEntity.SOL -> sol.apply(ms, 1.0F);
                 case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA -> trompetas.apply(ms, 1.0F);
-                case NovilisEntity.FUENTES -> entradaYBucle(fuentes, fuentesCarga, NovilisGeometria.DURACION_FUENTES, seg);
                 case NovilisEntity.OFRENDA -> entradaYBucle(ofrenda, ofrendaSostiene, NovilisGeometria.DURACION_OFRENDA, seg);
                 case NovilisEntity.DIOS -> dios.apply(ms, 1.0F);
                 case NovilisEntity.GRITO -> grito.apply(ms, 1.0F);
                 case NovilisEntity.ATURDIDO -> entradaYBucle(aturdido, aturdidoBucle, NovilisGeometria.DURACION_ATURDIDO, seg);
                 case NovilisEntity.TAMBALEO -> tambaleo.apply(ms, 1.0F);
+                case NovilisEntity.ESPADA -> espadaFuego.apply(ms, 1.0F);
+                case NovilisEntity.INFERNAL -> infernal.apply(ms, 1.0F);
+                case NovilisEntity.MAR -> mar.apply(ms, 1.0F);
                 default -> {
                 }
             }

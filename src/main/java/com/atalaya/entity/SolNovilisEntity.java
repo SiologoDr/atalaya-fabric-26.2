@@ -31,8 +31,10 @@ import org.jspecify.annotations.Nullable;
  *       prende a quien lo pisa.</li>
  *   <li>DIOS (Dios de la Guerra): cae en una de las tres zonas y la llena de
  *       explosiones en cadena (cinco en algo mas de un segundo). A quien tiene
- *       quemadura grave, o a todos si Novilis tiene el Grito de guerra, lo mata
- *       salvo totem.</li>
+ *       quemadura grave lo mata salvo totem.</li>
+ *   <li>SUPERNOVA (el cuarto del Sol Abrasador, 08-10-2026): mas grande y mas
+ *       lento; su sello mide 12 bloques. Revienta en grande (dos niveles de
+ *       quemadura) y deja un charco de lava mas ancho.</li>
  * </ul>
  *
  * Como las olas de Nerea, la entidad se queda donde nacio: el arco sale de la
@@ -42,6 +44,10 @@ public class SolNovilisEntity extends Entity {
 
     public static final int SOL = 0;
     public static final int DIOS = 1;
+    public static final int SUPERNOVA = 2;
+    /** El charco de lava del Sol y el de la Supernova (radio). */
+    public static final float CHARCO_SOL = 2.8F;
+    public static final float CHARCO_NOVA = 6.0F;
     /** Lo que sube el arco por encima de la recta. */
     private static final float ARCO = 7.0F;
     /** Lo que dura el charco de lava del Sol. */
@@ -130,9 +136,9 @@ public class SolNovilisEntity extends Entity {
                 Vec3 p = position().add(enVuelo(tickCount));
                 level().addParticle(getTipo() == DIOS ? AtalayaParticulas.NOVILIS_CARMESI : AtalayaParticulas.NOVILIS_LLAMA,
                         p.x, p.y, p.z, 0, 0.02, 0);
-            } else if (getTipo() == SOL && tickCount < vuelo + CHARCO && tickCount % 4 == 0) {
+            } else if (getTipo() != DIOS && tickCount < vuelo + CHARCO && tickCount % (getTipo() == SUPERNOVA ? 2 : 4) == 0) {
                 double a = random.nextDouble() * Math.PI * 2;
-                double r = random.nextDouble() * 2.6;
+                double r = random.nextDouble() * (getTipo() == SUPERNOVA ? CHARCO_NOVA : CHARCO_SOL) * 0.93;
                 level().addParticle(AtalayaParticulas.NOVILIS_LLAMA, dest.x + Math.cos(a) * r, dest.y + 0.1,
                         dest.z + Math.sin(a) * r, 0, 0.05, 0);
             }
@@ -144,12 +150,13 @@ public class SolNovilisEntity extends Entity {
         }
         ServerLevel nivel = (ServerLevel) level();
         int dentro = tickCount - vuelo;
-        if (getTipo() == SOL) {
+        if (getTipo() == SOL || getTipo() == SUPERNOVA) {
+            boolean nova = getTipo() == SUPERNOVA;
             if (dentro == 0) {
-                explotar(nivel, dest, NovilisEntity.RADIO_SOL);
-                nivel.playSound(null, dest.x, dest.y, dest.z, AtalayaSonidos.NOVILIS_LAVA, SoundSource.HOSTILE, 2.5F, 1.0F);
+                explotar(nivel, dest, nova ? NovilisEntity.RADIO_SUPERNOVA : NovilisEntity.RADIO_SOL);
+                nivel.playSound(null, dest.x, dest.y, dest.z, AtalayaSonidos.NOVILIS_LAVA, SoundSource.HOSTILE, nova ? 4.0F : 2.5F, 1.0F);
             } else if (dentro > 0 && dentro < CHARCO && dentro % 10 == 0) {
-                charco(nivel, dest);
+                charco(nivel, dest, nova ? CHARCO_NOVA : CHARCO_SOL);
             }
             if (dentro >= CHARCO) {
                 discard();
@@ -169,8 +176,13 @@ public class SolNovilisEntity extends Entity {
 
     private void explotar(ServerLevel nivel, Vec3 p, float r) {
         boolean dios = getTipo() == DIOS;
-        nivel.playSound(null, p.x, p.y, p.z, dios ? AtalayaSonidos.NOVILIS_DIOS_EXPLOSION : AtalayaSonidos.NOVILIS_SOL_EXPLOTA,
-                SoundSource.HOSTILE, 5.0F, 0.9F + random.nextFloat() * 0.2F);
+        boolean nova = getTipo() == SUPERNOVA;
+        nivel.playSound(null, p.x, p.y, p.z, dios ? AtalayaSonidos.NOVILIS_DIOS_EXPLOSION
+                        : nova ? AtalayaSonidos.NOVILIS_SUPERNOVA : AtalayaSonidos.NOVILIS_SOL_EXPLOTA,
+                SoundSource.HOSTILE, nova ? 9.0F : 5.0F, 0.9F + random.nextFloat() * 0.2F);
+        if (nova) {
+            nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, p.x, p.y + 2.0, p.z, 90, r * 0.35, 2.0, r * 0.35, 0.35);
+        }
         nivel.sendParticles(dios ? AtalayaParticulas.NOVILIS_CARMESI : AtalayaParticulas.NOVILIS_LLAMA, true, true, p.x, p.y + 1.0,
                 p.z, 50, r * 0.4, 1.0, r * 0.4, 0.25);
         nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, p.x, p.y + 1.0, p.z, 30, r * 0.3, 0.8, r * 0.3, 0.5);
@@ -187,7 +199,8 @@ public class SolNovilisEntity extends Entity {
                 v.hurtServer(nivel, NovilisDanos.fuente(nivel, NovilisDanos.MORTAL, this, dueno), NovilisEntity.MORTAL);
                 continue;
             }
-            if (dueno.quemar(nivel, v, dios ? NovilisDanos.DIOS : NovilisDanos.SOL, dano, dios ? 1 : 2, this)) {
+            if (dueno.quemar(nivel, v, dios ? NovilisDanos.DIOS : nova ? NovilisDanos.SUPERNOVA : NovilisDanos.SOL, dano,
+                    dios ? 1 : 2, this)) {
                 v.igniteForSeconds(3.0F);
                 Vec3 fuera = new Vec3(dx, 0, dz).lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : new Vec3(dx, 0, dz).normalize();
                 v.setDeltaMovement(fuera.x * 0.9, 0.6, fuera.z * 0.9);
@@ -197,12 +210,12 @@ public class SolNovilisEntity extends Entity {
     }
 
     /** El charco de lava: prende a quien lo pisa. */
-    private void charco(ServerLevel nivel, Vec3 p) {
-        AABB caja = new AABB(p.x - 2.8, p.y - 0.5, p.z - 2.8, p.x + 2.8, p.y + 1.5, p.z + 2.8);
+    private void charco(ServerLevel nivel, Vec3 p, float radio) {
+        AABB caja = new AABB(p.x - radio, p.y - 0.5, p.z - radio, p.x + radio, p.y + 1.5, p.z + radio);
         for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, caja, x -> dueno != null && dueno.esPresa(x))) {
             double dx = v.getX() - p.x;
             double dz = v.getZ() - p.z;
-            if (dx * dx + dz * dz <= 2.8 * 2.8 && v.onGround()) {
+            if (dx * dx + dz * dz <= radio * radio && v.onGround()) {
                 v.igniteForSeconds(3.0F);
                 if (QuemaduraEffect.nivel(v) == 0) {
                     QuemaduraEffect.quemar(v, 1);

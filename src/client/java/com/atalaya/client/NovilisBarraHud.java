@@ -24,14 +24,12 @@ import org.jspecify.annotations.Nullable;
  * frente encendido, una chispa que salta y el rastro claro del ultimo golpe;
  * las muescas son rayos de sol de oro que se apagan y se rajan al pasarlos.
  * "NOVILIS" y la fase, en letras de pixel. Con la Furia, todo en fuego azul y
- * el rotulo FURIA; con el Grito de guerra, el cuerno carmesi junto al rotulo.
+ * el rotulo FURIA.
  * Liberado, oro en calma.
  *
  * Debajo, segun lo que este haciendo (como los totems del Sello de Rajang):
  *   Trompetas  los cuatro angeles (enteros, rajados o en cascotes) y la melodia
  *              que van tocando; al final espera la llama azul de la Furia.
- *   Fuentes    las tres fuentes solares, que se rajan golpe a golpe, y la carga
- *              del sol, del oro al rojo, hasta el estallido.
  *   Ofrenda    el sol con el cautivo dentro y lo que lleva de liberacion (lo que
  *              ven los demas; el cautivo ve ademas OfrendaHud).
  *   Sombra     su sol, lo que le queda en el cielo (del oro al rojo, se va
@@ -53,15 +51,9 @@ public class NovilisBarraHud implements HudElement {
     /** FASE I-IV, FURIA y LIBERADO, en el orden de CLAVES: en gris, para tenirlos. */
     private static final Identifier[] ROTULOS = {tex("novilis_barra_fase_1"), tex("novilis_barra_fase_2"),
             tex("novilis_barra_fase_3"), tex("novilis_barra_fase_4"), tex("novilis_barra_furia"), tex("novilis_barra_libre")};
-    private static final Identifier CUERNO = tex("novilis_barra_cuerno");
 
-    private static final Identifier FUENTE = tex("novilis_barra_fuente");
-    private static final Identifier[] FUENTE_RAJADA = {tex("novilis_barra_fuente_rajada_1"),
-            tex("novilis_barra_fuente_rajada_2"), tex("novilis_barra_fuente_rajada_3")};
-    private static final Identifier FUENTE_ROTA = tex("novilis_barra_fuente_rota");
     private static final Identifier CARGA_LOSA = tex("novilis_barra_carga_losa");
     private static final Identifier CARGA = tex("novilis_barra_carga");
-    private static final Identifier ESTALLIDO = tex("novilis_barra_estallido");
 
     private static final Identifier ESTATUA = tex("novilis_barra_estatua");
     private static final Identifier[] ESTATUA_RAJADA = {tex("novilis_barra_estatua_rajada_1"),
@@ -100,11 +92,11 @@ public class NovilisBarraHud implements HudElement {
     private static final int ANCHO = 240;
     private static final int MARCO_ALTO = 44;
     /**
-     * Lo que ocupa con lo de debajo: 56 y no 44, porque las fuentes, los angeles
-     * y el sol de la ofrenda bajan hasta ahi. Lo usaria una barra que fuera debajo.
+     * Lo que ocupa con lo de debajo: 56 y no 44, porque los angeles y el sol de
+     * la ofrenda bajan hasta ahi. Lo usaria una barra que fuera debajo.
      */
     public static final int ALTO = 56;
-    /** Lo que baja la fila de los angeles si comparte la barra con las Fuentes o la Ofrenda. */
+    /** Lo que baja la fila de los angeles si comparte la barra con la Ofrenda. */
     private static final int FILA_EXTRA = 22;
     private static final int HUECO_X = 40;
     private static final int HUECO_Y = 22;
@@ -124,23 +116,13 @@ public class NovilisBarraHud implements HudElement {
     private static final int LETRAS_ALTO = 10;
     /** Lo que ocupa el texto de cada rotulo (va pegado a la derecha): el cuerno se pone justo a su izquierda. */
     private static final int[] TEXTO_ROTULO = {37, 42, 47, 44, 34, 55};
-    private static final int CUERNO_ANCHO = 16;
-    private static final int CUERNO_ALTO = 15;
-    private static final int CUERNO_Y = 2;
 
     /** Las vistas de debajo, relativas al marco. */
     private static final int DEBAJO_Y = 36;
-    private static final int FUENTE_X = 40;
-    private static final int FUENTE_PASO = 13;
-    private static final int FUENTE_ANCHO = 11;
-    private static final int FUENTE_ALTO = 18;
     private static final int CARGA_X = 84;
     private static final int CARGA_Y = 42;
     private static final int CARGA_ANCHO = 134;
     private static final int CARGA_ALTO = 7;
-    private static final int ESTALLIDO_X = 217;
-    private static final int ESTALLIDO_Y = 39;
-    private static final int ESTALLIDO_LADO = 13;
     private static final int ESTATUA_X = 38;
     private static final int ESTATUA_PASO = 15;
     private static final int ESTATUA_ANCHO = 14;
@@ -260,12 +242,6 @@ public class NovilisBarraHud implements HudElement {
 
         pieza(g, NOMBRE, x0 + NOMBRE_X, y0 + NOMBRE_Y, NOMBRE_ANCHO, LETRAS_ALTO, BLANCO);
         pieza(g, ROTULOS[i], x0 + ROTULO_X, y0 + ROTULO_Y, ROTULO_ANCHO, LETRAS_ALTO, color);
-        if (n.tieneGrito() && !libre) {
-            // El cuerno del Grito de guerra, justo a la izquierda del rotulo: late como si sonara.
-            float k = 0.82F + 0.18F * (0.5F + 0.5F * Mth.sin(ahora * 0.3F));
-            int gx = x0 + ROTULO_X + ROTULO_ANCHO - (TEXTO_ROTULO[i] - 1) - CUERNO_ANCHO;
-            pieza(g, CUERNO, gx, y0 + CUERNO_Y, CUERNO_ANCHO, CUERNO_ALTO, 0xFF000000 | escalar(0xFFFFFF, k));
-        }
 
         if (libre) {
             return;
@@ -276,23 +252,20 @@ public class NovilisBarraHud implements HudElement {
         // melodia sigue sonando mientras el pelea.
         boolean melodia = n.getMelodia() >= 0.0F;
         boolean sombra = n.getSombra() >= 0.0F && !melodia;
-        int vista = e == NovilisEntity.FUENTES || e == NovilisEntity.OFRENDA ? e : melodia ? NovilisEntity.TROMPETAS
-                : sombra ? NovilisEntity.SOMBRA : -1;
+        int vista = e == NovilisEntity.OFRENDA ? e : melodia ? NovilisEntity.TROMPETAS : sombra ? NovilisEntity.SOMBRA : -1;
         // Al cambiar de vista (o de jefe) los golpes se toman como estan, sin temblar.
         boolean sincronizar = nuevo || vista != vistaAntes;
         vistaAntes = vista;
-        if (e == NovilisEntity.FUENTES) {
-            fuentesBajo(g, n, x0, y0, ahora, sincronizar);
-        } else if (e == NovilisEntity.OFRENDA) {
+        if (e == NovilisEntity.OFRENDA) {
             ofrendaBajo(g, n, x0, y0);
         }
         if (melodia) {
-            // Si a la vez hay Fuentes u Ofrenda, los angeles van una fila mas abajo.
+            // Si a la vez hay Ofrenda, los angeles van una fila mas abajo.
             int abajo = vista == NovilisEntity.TROMPETAS ? 0 : FILA_EXTRA;
             trompetasBajo(g, n, x0, y0 + abajo, ahora, sincronizar);
         }
         if (sombra) {
-            // Como los angeles: si a la vez hay Fuentes u Ofrenda, una fila mas abajo.
+            // Como los angeles: si a la vez hay Ofrenda, una fila mas abajo.
             int abajo = vista == NovilisEntity.SOMBRA ? 0 : FILA_EXTRA;
             sombraBajo(g, n, x0, y0 + abajo, ahora);
         }
@@ -339,41 +312,6 @@ public class NovilisBarraHud implements HudElement {
             int sy = hy - 2 - salto;
             g.fill(sx, sy, sx + 1, sy + 1, 0xFF000000 | FUEGO[i]);
         }
-    }
-
-    /** Las tres fuentes solares (rajandose golpe a golpe) y la carga del sol hasta el estallido. */
-    private void fuentesBajo(GuiGraphicsExtractor g, NovilisEntity n, int x0, int y0, float ahora, boolean sincronizar) {
-        int cuantas = Math.min(n.numFuentes(), 3);
-        int rotas = 0;
-        for (int k = 0; k < cuantas; k++) {
-            int golpes = Mth.clamp(n.getGolpesFuente(k), 0, NovilisEntity.GOLPES);
-            if (golpes >= NovilisEntity.GOLPES) {
-                rotas++;
-            }
-            Identifier t = golpes >= NovilisEntity.GOLPES ? FUENTE_ROTA : golpes == 0 ? FUENTE
-                    : FUENTE_RAJADA[Math.min(2, (golpes - 1) * 3 / Math.max(1, NovilisEntity.GOLPES - 1))];
-            int dx = temblor(k, golpes, ahora, sincronizar);
-            pieza(g, t, x0 + FUENTE_X + k * FUENTE_PASO + dx, y0 + DEBAJO_Y, FUENTE_ANCHO, FUENTE_ALTO, BLANCO);
-        }
-        // La carga: el relleno lleva pintado el paso del oro al rojo; se recorta por la izquierda.
-        float carga = Mth.clamp(n.getCarga(), 0.0F, 1.0F);
-        int lx = x0 + CARGA_X;
-        int ly = y0 + CARGA_Y;
-        pieza(g, CARGA_LOSA, lx, ly, CARGA_ANCHO, CARGA_ALTO, BLANCO);
-        int w = Math.round((CARGA_ANCHO - 2) * carga);
-        if (w > 0) {
-            recorte(g, CARGA, lx + 1, ly + 1, w, CARGA_ALTO - 2, CARGA_ANCHO - 2, BLANCO);
-        }
-        if (w > 1) {
-            g.fill(lx + w, ly + 1, lx + w + 1, ly + CARGA_ALTO - 1, CARGA_FRENTE);
-        }
-        // El estallido que viene: parpadea en el ultimo tramo, y mas deprisa al final.
-        int tinte = BLANCO;
-        if (carga > 0.8F && ((int) (ahora / (carga > 0.95F ? 2.0F : 4.0F))) % 2 == 0) {
-            tinte = 0xFF000000 | escalar(0xFFFFFF, 0.65F);
-        }
-        pieza(g, ESTALLIDO, x0 + ESTALLIDO_X, y0 + ESTALLIDO_Y, ESTALLIDO_LADO, ESTALLIDO_LADO, tinte);
-        cuenta(g, rotas, cuantas, x0 + ESTALLIDO_X + ESTALLIDO_LADO + 4, y0 + ESTALLIDO_Y + 3, rotas >= cuantas ? 0xFFFFE07A : 0xFFE8E2D6);
     }
 
     /** "Rotas 1/4" a la derecha de la fila: cuantas hay y cuantas van rotas, sin tener que contar iconos. */
@@ -432,7 +370,7 @@ public class NovilisBarraHud implements HudElement {
         }
     }
 
-    /** Cuanto se mueve la fuente o el angel k: un pixel a cada lado durante 6 ticks tras cada golpe. */
+    /** Cuanto se mueve el angel k: un pixel a cada lado durante 6 ticks tras cada golpe. */
     private int temblor(int k, int golpes, float ahora, boolean sincronizar) {
         if (sincronizar) {
             golpesAntes[k] = golpes;

@@ -78,8 +78,13 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
         return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/entity/rajang/" + nombre + ".png");
     }
 
+    private final net.minecraft.client.renderer.item.ItemModelResolver modelos;
+    /** El idolo que se pinta en la cabeza del portador (el mismo objeto de siempre; se hace al usarlo: al crear el renderer aun no hay componentes). */
+    private net.minecraft.world.item.@Nullable ItemStack idolo;
+
     public RajangRenderer(EntityRendererProvider.Context contexto) {
         super(contexto, new RajangModel(contexto.bakeLayer(RajangModel.CAPA)), 4.5F);
+        this.modelos = contexto.getItemModelResolver();
         addLayer(new RajangBrilloLayer(this));
         addLayer(new RajangFuriaLayer(this, new RajangModel(contexto.bakeLayer(RajangModel.CAPA_AURA))));
     }
@@ -92,6 +97,23 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
     @Override
     public void extractRenderState(RajangEntity r, RajangRenderState s, float parcial) {
         super.extractRenderState(r, s, parcial);
+        // El Idolo de Oro, sentado en la cabeza de quien lo lleva (donde este, en su posicion de este
+        // fotograma) y mirando hacia donde mira el. A quien lo lleva en primera persona no se le pinta:
+        // le taparia la vista.
+        s.idoloCabeza = null;
+        int portador = r.getPortadorIdolo();
+        net.minecraft.world.entity.Entity p = portador >= 0 && r.deathTime <= 0 ? r.level().getEntity(portador) : null;
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        boolean propio = p != null && p == mc.getCameraEntity() && mc.options.getCameraType().isFirstPerson();
+        if (p != null && !p.isInvisible() && !propio) {
+            s.idoloCabeza = p.getPosition(parcial).add(0, p.getBbHeight() + 0.02, 0).subtract(r.getPosition(parcial));
+            s.idoloRumbo = p instanceof net.minecraft.world.entity.LivingEntity l ? Mth.rotLerp(parcial, l.yHeadRotO, l.yHeadRot)
+                    : p.getViewYRot(parcial);
+            if (idolo == null) {
+                idolo = new net.minecraft.world.item.ItemStack(com.atalaya.item.AtalayaItems.IDOLO_ORO);
+            }
+            modelos.updateForNonLiving(s.idolo, idolo, net.minecraft.world.item.ItemDisplayContext.FIXED, r);
+        }
         s.dormido.copyFrom(r.dormido);
         s.despertar.copyFrom(r.despertar);
         s.garra.copyFrom(r.garra);
@@ -126,8 +148,11 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
         s.furia = r.tieneFuria();
         int e = r.getEstado();
         s.carga = (e == RajangEntity.EMBESTIDA_AVISO || e == RajangEntity.EMBESTIDA) && r.deathTime <= 0 ? r.getCarga() : 0.0F;
+        // La flecha se llena en todo el aviso: la espera con ella puesta y el agazaparse.
         s.cargaLlena = e == RajangEntity.EMBESTIDA_AVISO
-                ? Mth.clamp((r.tickCount - r.inicioEstado + parcial) * r.ritmoCliente / RajangGeometria.DURACION_EMBESTIDA_AVISO, 0.0F, 1.0F)
+                ? Mth.clamp((r.tickCount - r.inicioEstado + RajangEntity.EMBESTIDA_ESPERA + parcial)
+                        / (RajangEntity.EMBESTIDA_ESPERA + RajangGeometria.DURACION_EMBESTIDA_AVISO / Math.max(0.01F, r.ritmoCliente)),
+                        0.0F, 1.0F)
                 : 1.0F;
         s.circuloTumba = e == RajangEntity.TUMBA && r.deathTime <= 0 ? r.tickCount - r.inicioEstado + parcial : -1.0F;
         s.tumbaAnillo = r.isTumbaAnillo();
@@ -139,6 +164,9 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
         super.submit(s, pose, colector, camara);
         if (s.carga > 0.5F) {
             flecha(s, pose, colector);
+        }
+        if (s.idoloCabeza != null) {
+            idoloCabeza(s, pose, colector, camara);
         }
         if (s.circuloTumba >= 0.0F) {
             tumba(s, pose, colector);
@@ -334,6 +362,24 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
     @Override
     protected int getModelTint(RajangRenderState s) {
         return s.disolver > 0.0F ? ARGB.white(1.0F - s.disolver) : -1;
+    }
+
+    /** Lo alto del idolo en la cabeza del portador, en bloques (el modelo mide uno). */
+    private static final float IDOLO_CABEZA = 0.7F;
+
+    /**
+     * El Idolo de Oro en la cabeza del portador (el modelo 3D del objeto, de
+     * idolo_oro.py): sentado encima, mirando hacia donde mira el y a plena luz,
+     * para que se vea desde toda la arena.
+     */
+    private static void idoloCabeza(RajangRenderState s, PoseStack pose, SubmitNodeCollector colector, CameraRenderState camara) {
+        net.minecraft.world.phys.Vec3 c = s.idoloCabeza;
+        pose.pushPose();
+        pose.translate(c.x, c.y + IDOLO_CABEZA * 0.5F, c.z);
+        pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F - s.idoloRumbo));
+        pose.scale(IDOLO_CABEZA, IDOLO_CABEZA, IDOLO_CABEZA);
+        s.idolo.submit(pose, colector, 15728880, OverlayTexture.NO_OVERLAY, 0);
+        pose.popPose();
     }
 
     /** Veinticinco bloques de largo: que no desaparezca al girar la camara. */

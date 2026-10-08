@@ -12,8 +12,8 @@ comando corta lo que haya en marcha. Las presas son maniquies.
 
   /function escenas_novilis:recorrido     todas, una detras de otra
   /function escenas_novilis:<escena>      solo esa (cuerpo, fases, barrido,
-                                          castigo, onda, sol, trompetas, fuentes,
-                                          supernova, ofrenda, dios, furia,
+                                          castigo, espada, onda, sol, trompetas,
+                                          infernal, ofrenda, mar, dios, furia,
                                           liberacion)
   /function escenas_novilis:ofrenda_tu    te agarra a ti: la secuencia de teclas
   /function escenas_novilis:sol_tu        te cae un sol: la Quemadura (bebe agua)
@@ -148,7 +148,18 @@ ESCENAS['castigo'] = (
      (75, [orden('castigo')]), (91, [foto('alza')]), (99, [foto('marcas')]), (119, [foto('rayos')]),
      (126, [foto('rayos_2')]),
      (140, [camara(24, 4, -10, 10, 3, 0), orden('castigo')]), (186, [foto('rayos_cerca')])],
-    230, 'onda')
+    230, 'espada')
+
+# La embestida: 3 s cargando (el carril en el suelo), 20 bloques a la carrera,
+# el remate y el camino de llamas que se queda ardiendo.
+ESCENAS['espada'] = (
+    [novilis(), maniqui(20, 0, totem=True), maniqui(24, 5, totem=True), camara(4, 16, -34, 14, 2, 0)] +
+    titulo('Espada del Fuego', 'Carga 3 s, embiste 20 bloques y deja un camino de llamas'),
+    [(0, [orden('despertar')]),
+     (75, [orden('espada')]), (95, [foto('planta')]), (125, [foto('carga')]), (133, [foto('carril')]),
+     (137, [foto('sale')]), (141, [foto('corre')]), (151, [foto('remata')]), (165, [foto('camino')]),
+     (175, [camara(26, 6, -14, 12, 2, 0)]), (185, [foto('camino_cerca')])],
+    240, 'onda')
 
 ESCENAS['onda'] = (
     [novilis(), maniqui(10, 0), maniqui(16, 8), camara(0, 20, -46, 0, 0, 0)] +
@@ -161,51 +172,43 @@ ESCENAS['onda'] = (
 ESCENAS['sol'] = (
     [novilis(), maniqui(18, 4, totem=True), maniqui(14, -10, totem=True), maniqui(24, -2, totem=True),
      camara(4, 22, -48, 12, 2, 0)] +
-    titulo('Sol Abrasador', 'Tres soles; el sello marca donde caen y dejan lava'),
+    titulo('Sol Abrasador', 'Tres soles y la Supernova, el cuarto: mas grande y mas lento'),
     [(0, [orden('despertar')])] + subir(2, 0) +
-    [(150, [orden('sol')]), (164, [foto('forma')]), (174, [foto('lanza1')]), (196, [foto('lanza2')]),
-     (216, [foto('lanza3')]), (234, [foto('charcos')]),
-     (240, [camara(30, 8, -18, 18, 1, 0)]), (250, [foto('charcos_cerca')])],
-    300, 'trompetas')
+    [(150, [orden('sol')]), (158, [foto('forma')]), (163, [foto('lanza1')]), (175, [foto('lanza2')]),
+     (187, [foto('lanza3')]), (200, [foto('nova_forma')]), (214, [foto('nova_alta')]), (222, [foto('nova_vuela')]),
+     (262, [foto('nova_revienta')]), (275, [foto('charcos')]),
+     (285, [camara(30, 8, -18, 18, 1, 0)]), (295, [foto('charcos_cerca')])],
+    340, 'trompetas')
 
-# Los angeles en sus estrados: uno con un maniqui encima (el pulso lo tira), y
-# Novilis plantado en medio sin atacar mientras suena la melodia.
+# Los angeles en lo alto de sus estrados de cinco escalones: uno con un maniqui
+# arriba (el pulso lo tira), y Novilis plantado en medio sin atacar mientras
+# suena la melodia.
 ESCENAS['trompetas'] = (
     [novilis(), maniqui(26, 0), camara(-30, 16, -32, 0, 5, 0)] +
     titulo('Trompetas del Apocalipsis', 'Cada angel en su estrado: cada 5 s un pulso de fuego tira a quien este encima'),
     [(0, [orden('despertar')])] + subir(2, 0) +
     [(150, [orden('trompetas')]), (176, [foto('alza')]), (192, [foto('salen')]), (215, [foto('estatuas')]),
-     # un maniqui en el estrado del segundo angel (a -10,6 / +10,6 del centro)
-     (212, ['summon minecraft:mannequin ~-10.6 ~2.1 ~8.2 {Tags:["escena"],CustomName:"en el estrado",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}']),
-     (220, [camara(-24, 7, -6, -10.6, 3, 10.6)]), (230, [foto('estrado')]),
+     # un maniqui en lo alto del estrado del segundo angel (a -10,6 / +10,6 del centro)
+     (212, ['summon minecraft:mannequin ~-10.6 ~5.1 ~8.8 {Tags:["escena"],CustomName:"en el estrado",attributes:[{id:"minecraft:max_health",base:1000}],Health:1000f}']),
+     (220, [camara(-26, 9, -8, -10.6, 5, 10.6)]), (230, [foto('estrado')]),
      (276, [foto('aviso')]), (296, [foto('pulso')]), (302, [foto('pulso_2')]), (312, [foto('pulso_3')]),
      (330, [camara(0, 34, -34, 0, 0, 0)]), (340, [foto('estatuas_arriba')]), (360, [foto('novilis_quieto')])] +
-    [(380 + 3 * i, [orden('estatua')]) for i in range(10)] +
-    [(415, [foto('estatua_rota')]),
+    [(380 + 3 * i, [orden('estatua')]) for i in range(15)] +
+    [(430, [foto('estatua_rota')]),
      (640, [camara(-30, 16, -32, 0, 5, 0)]), (650, [foto('melodia_acaba')]), (680, [foto('furia')])],
-    740, 'fuentes')
+    740, 'infernal')
 
-ESCENAS['fuentes'] = (
-    [novilis(), maniqui(22, 0, totem=True), camara(-14, 22, -44, 0, 5, 0)] +
-    titulo('Fuentes Solares', 'Tres fuentes le dan fuego; rotas, cae aturdido'),
+# El salto: el sello marca donde cae; cae clavando la espada, tres grietas
+# escupen lava y, al arrancarla, revienta en el centro y en sus puntas.
+ESCENAS['infernal'] = (
+    [novilis(), maniqui(18, 4, totem=True), maniqui(22, -3, totem=True), camara(-6, 20, -40, 14, 3, 0)] +
+    titulo('Furia Infernal', 'Salta sobre uno y cae clavando la espada: la grieta escupe lava y revienta'),
     [(0, [orden('despertar')])] + subir(3, 0) +
-    [(225, [orden('fuentes')]), (243, [foto('clava')]), (260, [foto('fuentes')]), (300, [foto('carga')]),
-     (310, [camara(16, 9, -18, 0, 8, 0)]), (320, [foto('fuente_cerca')]),
-     (330, [camara(-14, 22, -44, 0, 5, 0)])] +
-    [(340 + 3 * i, [orden('fuente')]) for i in range(30)] +
-    [(372, [foto('una_rota')]), (436, [foto('aturdido')]),
-     (446, [camara(26, 5, 12, 0, 4, 0)]), (456, [foto('aturdido_cerca')])],
-    520, 'supernova')
-
-ESCENAS['supernova'] = (
-    [novilis(), maniqui(16, 6, totem=True), maniqui(-10, 12, totem=True), camara(-20, 30, -56, 0, 6, 0)] +
-    titulo('Supernova', 'Si las fuentes siguen en pie al acabar la carga'),
-    [(0, [orden('despertar')])] + subir(3, 0) +
-    # Con las tres fuentes en pie carga en 300 ticks (CARGA_CON): estalla hacia el 541.
-    [(225, [orden('fuentes')]), (390, [foto('carga_media')]), (530, [foto('carga_llena')]),
-     (544, [foto('supernova')]), (552, [foto('supernova_2')]), (566, [foto('supernova_3')]),
-     (600, [foto('despues')])],
-    640, 'ofrenda')
+    [(225, [orden('infernal')]), (232, [foto('agacha')]), (238, [foto('salta')]), (245, [foto('vuelo')]),
+     (252, [foto('cae')]), (260, [foto('grietas')]), (268, [foto('lava')]), (273, [foto('revienta')]),
+     (278, [foto('revienta_2')]),
+     (320, [camara(30, 6, -16, 18, 2, 0), orden('infernal')]), (347, [foto('cae_cerca')]), (368, [foto('revienta_cerca')])],
+    420, 'ofrenda')
 
 ESCENAS['ofrenda'] = (
     [novilis(), maniqui(10, 0, totem=True), camara(16, 12, -28, 4, 9, 0)] +
@@ -214,7 +217,19 @@ ESCENAS['ofrenda'] = (
     [(225, [orden('ofrenda')]), (235, [foto('marca')]), (253, [foto('agarra')]), (275, [foto('alzado')]),
      (285, [camara(12, 15, 6, 0, 14, 3)]), (300, [foto('alzado_cerca')]),
      (310, [camara(16, 12, -28, 4, 9, 0)]), (425, [foto('fallo')]), (450, [foto('furia')])],
-    490, 'dios')
+    490, 'mar')
+
+# El suelo en llamas: hunde la espada, la arena se raja (una boca bajo cada uno
+# y otras sueltas), sale el fuego y se queda; cada 4,5 s, otra tanda.
+ESCENAS['mar'] = (
+    [novilis()] + [maniqui(x, z, totem=True) for x, z in ((14, 6), (-10, 10), (16, -12), (-14, -8), (22, 0))] +
+    [camara(-24, 34, -56, 0, 0, 0)] +
+    titulo('Mar de Llamas', 'Hunde la espada: el suelo se raja y salen bocas de fuego que no se apagan'),
+    [(0, [orden('despertar')])] + subir(4, 0) +
+    [(300, [orden('mar')]), (312, [foto('alza')]), (319, [foto('clava')]), (335, [foto('grietas')]), (352, [foto('fuego')]),
+     (412, [foto('segunda')]), (440, [foto('mar')]), (500, [foto('tercera')]),
+     (520, [camara(20, 6, -20, 6, 2, 0)]), (530, [foto('cerca')]), (600, [foto('apaga')])],
+    640, 'dios')
 
 ESCENAS['dios'] = (
     [novilis()] + [maniqui(x, z, totem=True) for x, z in ((12, 6), (-8, 8), (14, -10), (-12, -6))] +
@@ -239,13 +254,12 @@ ESCENAS['punteria'] = (
 
 ESCENAS['furia'] = (
     [novilis(), camara(24, 10, -6, 0, 10, 0)] +
-    titulo('Furia y Grito', 'Furia: aura azul, mas rapido. Grito: el aura carmesi'),
+    titulo('Furia', 'Furia: aura azul, mas rapido e inmune 30 s'),
     [(0, [orden('despertar')]),
-     (75, [orden('furia')]), (90, [foto('furia_grito')]), (125, [foto('furia')]),
+     (75, [orden('furia')]), (90, [foto('furia_prende')]), (125, [foto('furia')]),
      (135, [camara(-22, 12, 12, 0, 10, 0)]), (145, [foto('furia_espalda')]),
      (150, [camara(10, 15, -8, 0, 13, 0)]), (152, [foto('furia_cerca')]),
-     (155, [orden('furia'), orden('grito'), camara(24, 10, -6, 0, 10, 0)]), (175, [foto('grito')]),
-     (185, [orden('grito'), orden('dios')]), (210, [foto('dios')]), (235, [foto('dios_2')])],
+     (185, [orden('furia'), camara(24, 10, -6, 0, 10, 0), orden('dios')]), (210, [foto('dios')]), (235, [foto('dios_2')])],
     290, 'liberacion')
 
 ESCENAS['liberacion'] = (

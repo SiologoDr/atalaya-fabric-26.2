@@ -126,8 +126,8 @@ public final class NereaEfectosCliente {
             }
             case NereaEntity.MAREA -> {
                 if (t < NereaGeometria.MAREA_LANZA) {
-                    // El mar se retira: retumba cada vez mas.
-                    NereaPresencia.retumbar(x, y, z, 0.2F + 0.5F * t / NereaGeometria.MAREA_LANZA, 60);
+                    // El mar se retira: retumba cada vez mas (en la espera de aviso, flojo).
+                    NereaPresencia.retumbar(x, y, z, 0.2F + 0.5F * Math.max(0, t) / NereaGeometria.MAREA_LANZA, 60);
                 }
                 if (t == NereaGeometria.MAREA_LANZA) {
                     NereaPresencia.sacudir(x, y, z, 2.8F, 70);

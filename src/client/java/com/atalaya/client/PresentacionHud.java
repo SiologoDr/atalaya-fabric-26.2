@@ -12,13 +12,14 @@ import net.minecraft.util.Mth;
 /**
  * Lo que se ve encima en la presentacion de un jefe (PresentacionJefe): las
  * bandas negras de cine arriba y abajo (con un filo de luz del color del jefe)
- * y, al rugir, su cartel en el tercio de abajo, como en los posters
- * (presentacion_jefes.py): el destello que cruza, el NOMBRE que se abre desde
- * el centro, la linea, lo que es (JEFE DEL FUEGO) y su epiteto con el lema.
+ * y, al rugir, su cartel en el tercio de abajo (presentacion_jefes.py): el
+ * destello que cruza, el NOMBRE que se abre desde el centro, la linea y lo que
+ * es (JEFE DEL FUEGO). Solo eso (Juan, 08-10-2026: sin el epiteto ni el lema).
  *
  * El cartel se pinta pixel a pixel de pantalla (no a la escala del HUD): sus
- * PNG vienen en cuatro anchos y se coge el mayor que quepa, asi las letras
- * salen limpias a cualquier resolucion.
+ * PNG vienen en cuatro anchos (el mismo pixel art de 240x82 por 2, 3, 4 y 6,
+ * con las letras de pixel de las barras de vida) y se coge el mayor que quepa,
+ * asi los pixeles salen cuadrados y limpios a cualquier resolucion.
  */
 public class PresentacionHud implements HudElement {
 
@@ -78,7 +79,8 @@ public class PresentacionHud implements HudElement {
                 w = a;
             }
         }
-        int h = Math.round(w * 0.34F);
+        // Los rotulos son pixel art de 240x82 ampliado por un entero (presentacion_jefes.py).
+        int h = w / 240 * 82;
         String lengua = mc.options.languageCode != null && mc.options.languageCode.startsWith("es") ? "es" : "en";
         String j = f.id();
         int x0 = (sw - w) / 2;
@@ -105,10 +107,6 @@ public class PresentacionHud implements HudElement {
         float aa = Mth.clamp((tr - 8.0F) / 8.0F, 0.0F, 1.0F);
         capa(g, tex(j + "_" + lengua + "_" + w + "_ante"), x0, y0, w, h, 1.0F, aa * apaga,
                 -Math.round(6 * (1.0F - suave(aa))));
-        // El epiteto y el lema, debajo: aparecen y suben.
-        float ea = Mth.clamp((tr - 13.0F) / 10.0F, 0.0F, 1.0F);
-        capa(g, tex(j + "_" + lengua + "_" + w + "_epiteto"), x0, y0, w, h, 1.0F, ea * apaga,
-                Math.round(6 * (1.0F - suave(ea))));
         g.pose().popMatrix();
     }
 

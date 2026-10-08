@@ -18,7 +18,9 @@ import org.joml.Vector3f;
  * El fuego de la Furia (azul) y del Dios de la Guerra (carmesi): lenguas de
  * fuego que le salen del yelmo, de las hombreras, de los punos y de la hoja,
  * cada una pegada a su hueso (siguen la animacion) y siempre de cara a quien
- * mira, subiendo hacia arriba del mundo aunque el se doble.
+ * mira, subiendo hacia arriba del mundo aunque el se doble. En la Espada del
+ * Fuego, solo la hoja, del color de la fase: el fuego le sube por ella
+ * mientras carga.
  *
  * Antes era la malla entera hinchada con bandas de fuego encima: lo tapaba todo
  * con un manto azul y no se le veia ("la Furia se ve rara"). Ahora se le ve la
@@ -39,24 +41,24 @@ public class NovilisLlamasLayer extends RenderLayer<NovilisRenderState, NovilisM
     /** Lo que tarda en prender del todo al entrar en Furia (ticks). */
     private static final float PRENDE = 12.0F;
 
-    /** Donde arde: hueso, punto (px del hueso), alto y ancho (px), y en que fuego. */
-    private record Lengua(String hueso, float x, float y, float z, float alto, float ancho, boolean grito) {
+    /** Donde arde: hueso, punto (px del hueso), alto y ancho (px). */
+    private record Lengua(String hueso, float x, float y, float z, float alto, float ancho) {
     }
 
     private static final Lengua[] LENGUAS = {
-            new Lengua("cabeza", 0, -28, 0, 54, 26, true),
-            new Lengua("cabeza", 9, -22, 3, 32, 16, false),
-            new Lengua("cabeza", -9, -22, 3, 32, 16, false),
-            new Lengua("hombro_izq", 5, -12, 0, 44, 24, true),
-            new Lengua("hombro_der", -5, -12, 0, 44, 24, true),
-            new Lengua("hombro_izq", 11, -8, 9, 30, 16, false),
-            new Lengua("hombro_der", -11, -8, 9, 30, 16, false),
-            new Lengua("hombro_izq", 2, -10, -9, 26, 14, false),
-            new Lengua("hombro_der", -2, -10, -9, 26, 14, false),
-            new Lengua("mano_izq", 0, 5, -2, 28, 17, false),
-            new Lengua("torso", 0, -44, 14, 34, 28, false),
-            new Lengua("torso", 12, -40, 13, 26, 18, false),
-            new Lengua("torso", -12, -40, 13, 26, 18, false),
+            new Lengua("cabeza", 0, -28, 0, 54, 26),
+            new Lengua("cabeza", 9, -22, 3, 32, 16),
+            new Lengua("cabeza", -9, -22, 3, 32, 16),
+            new Lengua("hombro_izq", 5, -12, 0, 44, 24),
+            new Lengua("hombro_der", -5, -12, 0, 44, 24),
+            new Lengua("hombro_izq", 11, -8, 9, 30, 16),
+            new Lengua("hombro_der", -11, -8, 9, 30, 16),
+            new Lengua("hombro_izq", 2, -10, -9, 26, 14),
+            new Lengua("hombro_der", -2, -10, -9, 26, 14),
+            new Lengua("mano_izq", 0, 5, -2, 28, 17),
+            new Lengua("torso", 0, -44, 14, 34, 28),
+            new Lengua("torso", 12, -40, 13, 26, 18),
+            new Lengua("torso", -12, -40, 13, 26, 18),
     };
     /** Lo largo de la hoja (px desde el agarre de la espada, hacia la punta). */
     private static final float[] HOJA = {28, 38, 48, 58, 68, 78};
@@ -72,36 +74,34 @@ public class NovilisLlamasLayer extends RenderLayer<NovilisRenderState, NovilisM
         }
         int color;
         float k;
-        boolean soloGrito = false;
+        boolean soloHoja = false;
         if (s.furia) {
             color = NovilisDibujo.FURIA;
             k = Mth.clamp(s.desdeFuria / PRENDE, 0.0F, 1.0F);
         } else if (s.estado == NovilisEntity.DIOS) {
             color = NovilisDibujo.COLOR_FASE[3];
             k = 1.15F;
-        } else if (s.grito) {
-            color = NovilisDibujo.COLOR_FASE[3];
-            k = 0.7F;
-            soloGrito = true;
+        } else if (s.estado == NovilisEntity.ESPADA && s.segundosEstado < 4.3F) {
+            // La Espada del Fuego: la hoja prende mientras carga y arde a la carrera.
+            color = NovilisDibujo.color(s.fase);
+            k = 0.35F + 0.75F * Mth.clamp(s.segundosEstado / 2.8F, 0.0F, 1.0F);
+            soloHoja = true;
         } else {
             return;
         }
         NovilisModel modelo = getParentModel();
         float t = s.ageInTicks;
         int i = 0;
-        for (Lengua l : LENGUAS) {
-            i++;
-            if (soloGrito && !l.grito()) {
-                continue;
-            }
-            lengua(pose, colector, modelo, l.hueso(), l.x(), l.y(), l.z(), l.alto() * k, l.ancho() * k, color, t, i);
-        }
-        if (!soloGrito) {
-            String hoja = modelo.espadaEnMano() ? "espada" : "espada_suelta";
-            for (float y : HOJA) {
+        if (!soloHoja) {
+            for (Lengua l : LENGUAS) {
                 i++;
-                lengua(pose, colector, modelo, hoja, 0, y, 0, 22 * k, 13 * k, color, t, i);
+                lengua(pose, colector, modelo, l.hueso(), l.x(), l.y(), l.z(), l.alto() * k, l.ancho() * k, color, t, i);
             }
+        }
+        String hoja = modelo.espadaEnMano() ? "espada" : "espada_suelta";
+        for (float y : HOJA) {
+            i++;
+            lengua(pose, colector, modelo, hoja, 0, y, 0, 22 * k, 13 * k, color, t, i);
         }
     }
 

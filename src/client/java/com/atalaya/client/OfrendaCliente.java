@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -39,8 +40,19 @@ public final class OfrendaCliente {
     private static long inicio;
     private static boolean fallo;
     private static boolean exito;
+    /**
+     * Cuando acabo, en ticks de RELOJ (no del mundo): la hora del mundo puede ir
+     * hacia atras si se entra en otro mundo o servidor, y entonces el FALLASTE
+     * se quedaba en pantalla hasta que esa hora alcanzaba a la vieja.
+     */
     private static long fin = -1000;
+    /** Ticks de cliente desde que arranco el juego: solo va hacia delante. */
+    private static long reloj;
+    /** El mundo en que se estaba: si cambia (otro mundo, otro servidor), se empieza de cero. */
+    private static @Nullable Level nivelVisto;
     private static @Nullable CameraType camaraAntes;
+    /** Pasado esto desde el final (ticks), el FALLASTE o el LIBRE se olvidan (la pantalla ya se apago). */
+    private static final int OLVIDO = 100;
     /** El ultimo segundo de la cuenta atras que sono (para el tic de cada uno). */
     private static int cuentaSonada = -1;
 
@@ -89,22 +101,31 @@ public final class OfrendaCliente {
 
     /** Ticks desde que acabo (bien o mal). */
     public static float ticksDesdeFin(float parcial) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) {
-            return 1000.0F;
-        }
-        return mc.level.getGameTime() - fin + parcial;
+        return reloj - fin + parcial;
     }
 
     /** Cada tick: mira si algun Novilis tiene al jugador local en las manos. */
     public static void tick(Minecraft mc) {
+        reloj++;
         if (mc.level == null || mc.player == null) {
-            terminar(mc, false);
+            reiniciar(mc);
+            nivelVisto = null;
             return;
+        }
+        if (mc.level != nivelVisto) {
+            // Otro mundo u otro servidor: lo de antes no cuenta.
+            reiniciar(mc);
+            nivelVisto = mc.level;
+        }
+        if (!activo && (fallo || exito) && reloj - fin > OLVIDO) {
+            // Ya se apago la pantalla del final: se olvida.
+            fallo = false;
+            exito = false;
         }
         NovilisEntity dueno = null;
         for (Entity e : mc.level.entitiesForRendering()) {
-            if (e instanceof NovilisEntity n && n.getIdOfrenda() == mc.player.getId() && n.getTeclasOfrenda() > 0) {
+            if (e instanceof NovilisEntity n && n.isAlive() && !n.isRemoved() && n.getIdOfrenda() == mc.player.getId()
+                    && n.getTeclasOfrenda() > 0) {
                 dueno = n;
                 break;
             }
@@ -154,6 +175,21 @@ public final class OfrendaCliente {
         mc.player.setYHeadRot(giro);
     }
 
+    /** Todo a cero, sin pantalla de final: vuelve la camara que habia. */
+    private static void reiniciar(Minecraft mc) {
+        activo = false;
+        fallo = false;
+        exito = false;
+        teclas = new char[0];
+        indice = 0;
+        jefe = -1;
+        fin = -1000;
+        if (camaraAntes != null) {
+            mc.options.setCameraType(camaraAntes);
+            camaraAntes = null;
+        }
+    }
+
     private static void terminar(Minecraft mc, boolean bien) {
         if (!activo) {
             return;
@@ -163,9 +199,7 @@ public final class OfrendaCliente {
             exito = bien;
             fallo = !bien;
         }
-        if (mc.level != null) {
-            fin = mc.level.getGameTime();
-        }
+        fin = reloj;
         if (camaraAntes != null) {
             mc.options.setCameraType(camaraAntes);
             camaraAntes = null;
@@ -174,9 +208,7 @@ public final class OfrendaCliente {
 
     private static void fallar(Minecraft mc) {
         fallo = true;
-        if (mc.level != null) {
-            fin = mc.level.getGameTime();
-        }
+        fin = reloj;
         mc.getSoundManager().play(SimpleSoundInstance.forUI(AtalayaSonidos.NOVILIS_OFRENDA_FALLO, 1.0F));
     }
 

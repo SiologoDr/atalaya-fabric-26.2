@@ -22,13 +22,18 @@ import org.jspecify.annotations.Nullable;
  *   rayo       Castigo solar: el rayo que cae del cielo (sin escudo)
  *   onda       Castigo solar: la onda de fuego por el suelo (sin escudo; se salta)
  *   sol        Sol x3: la explosion de fuego y lava (cuenta como explosion)
- *   supernova  Fuentes solares, si se llena la carga: todo el altar (explosion, sin escudo)
+ *   supernova  el cuarto sol del Sol Abrasador, el grande (explosion, sin escudo)
+ *   embestida  Espada del Fuego: su cuerpo y la hoja a la carrera (sin escudo)
+ *   llamas     el camino de llamas malditas y las bocas del Mar de Llamas: arde
+ *              mientras se pisa (no empuja; la armadura cuenta)
+ *   infernal   Furia Infernal: la caida, los chorros de la grieta y la explosion
+ *              (explosion, sin escudo)
  *   dios       Dios de la Guerra: las explosiones en cadena (explosion, sin escudo)
  *   calor      lo que quema estar en sus manos en la Ofrenda: pasa la armadura
  *   abrasa     el sol de la Sombra del Escudo, cada segundo al sol: pasa la armadura
  *              y el escudo y no empuja (lo que vale es la sombra de la Egida)
  *   mortal     lo que mata salvo totem: la Ofrenda fallada y el Dios de la Guerra
- *              contra quien tiene quemadura grave o si el tiene el Grito de guerra
+ *              contra quien tiene quemadura grave
  *              (todas las bypasses_* menos la de invulnerabilidad)
  * </pre>
  */
@@ -44,6 +49,9 @@ public final class NovilisDanos {
     public static final ResourceKey<DamageType> CALOR = clave("novilis_calor");
     public static final ResourceKey<DamageType> ABRASA = clave("novilis_abrasa");
     public static final ResourceKey<DamageType> MORTAL = clave("novilis_mortal");
+    public static final ResourceKey<DamageType> EMBESTIDA = clave("novilis_embestida");
+    public static final ResourceKey<DamageType> LLAMAS = clave("novilis_llamas");
+    public static final ResourceKey<DamageType> INFERNAL = clave("novilis_infernal");
 
     private NovilisDanos() {
     }

@@ -23,12 +23,14 @@ import org.jspecify.annotations.Nullable;
  * de la Guerra), y lo que sus ataques dejan alrededor:
  *
  * <ul>
- *   <li>su sol, que flota sobre el halo: crece mientras carga las Fuentes y se
- *       vuelve de oro al liberarse;</li>
+ *   <li>su sol, que flota sobre el halo y se vuelve de oro al liberarse;</li>
  *   <li>el Castigo solar: el haz de su sol a la punta de la espada en alto;</li>
  *   <li>la Ofrenda: el haz que senala a quien va a coger, y luego al que tiene
  *       en las manos;</li>
- *   <li>el sol que se le forma en la mano en el Sol x3.</li>
+ *   <li>el sol que se le forma en la mano en el Sol Abrasador (el cuarto, la
+ *       Supernova, crece hasta el doble);</li>
+ *   <li>el carril de la Espada del Fuego mientras carga: la franja de 40 x 8
+ *       en el suelo por donde va a pasar, con los cantos encendidos.</li>
  * </ul>
  *
  * Al final de la liberacion se deshace con la mascara de novilis_disolver.png.
@@ -80,8 +82,6 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         s.fase = n.fase();
         s.ritmo = n.ritmoCliente;
         s.furia = n.tieneFuria() && !n.isDeadOrDying();
-        s.grito = n.tieneGrito() && !n.isDeadOrDying();
-        s.carga = n.getCarga();
         s.solFuera = n.getSombra() >= 0.0F;
         s.segundosEstado = (n.tickCount - n.inicioEstado + parcial) / 20.0F * n.ritmoCliente;
         s.segundosLibera = (n.deathTime + parcial) / 20.0F;
@@ -107,7 +107,8 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         }
         // La estela de la hoja: por donde paso hace un momento (base y punta, en el mundo).
         s.estelaN = 0;
-        if (tabla != null && n.deathTime <= 0) {
+        // En el despertar, hasta que saca la espada clavada no hay estela: la de la mano no se ve.
+        if (tabla != null && n.deathTime <= 0 && !(s.estado == NovilisEntity.DESPERTAR && tk < NovilisGeometria.DESPERTAR_SACA)) {
             float[] h = new float[6];
             for (int k = 0; k < NovilisRenderState.ESTELA; k++) {
                 if (!NovilisEstelas.en(tabla, s.segundosEstado - k * NovilisRenderState.ESTELA_PASO, h)) {
@@ -128,8 +129,17 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
                 s.marca = v.getPosition(parcial).add(0, v.getBbHeight() * 0.6, 0).subtract(pies);
             }
         }
+        s.carril = s.estado == NovilisEntity.ESPADA && tk < NovilisGeometria.ESPADA_SALE && n.deathTime <= 0;
+        s.cargaEspada = Mth.clamp(tk / NovilisGeometria.ESPADA_SALE, 0.0F, 1.0F);
         s.solMano = null;
-        if (s.estado == NovilisEntity.SOL && tk > 6 && tk < NovilisGeometria.SOL_LANZA_3) {
+        s.solManoRadio = 1.1F;
+        if (s.estado == NovilisEntity.SOL && tk >= NovilisGeometria.SOL_NOVA_FORMA - 6 && tk < NovilisGeometria.SOL_LANZA_4) {
+            // La Supernova: crece en su mano hasta lanzarla.
+            float k = Mth.clamp((tk - NovilisGeometria.SOL_NOVA_FORMA + 6) / (NovilisGeometria.SOL_LANZA_4 - NovilisGeometria.SOL_NOVA_FORMA + 6),
+                    0.0F, 1.0F);
+            s.solMano = NovilisEntity.puntoMundo(NovilisGeometria.MANO_NOVA, pies, rumbo).subtract(pies);
+            s.solManoRadio = 1.1F + 1.5F * k;
+        } else if (s.estado == NovilisEntity.SOL && tk > 6 && tk < NovilisGeometria.SOL_LANZA_3) {
             // Se le forma en la mano y desaparece al soltarlo (hasta que se forma el siguiente).
             boolean ve = true;
             for (int l : new int[]{NovilisGeometria.SOL_LANZA_1, NovilisGeometria.SOL_LANZA_2}) {
@@ -153,7 +163,9 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
             case NovilisEntity.TAMBALEO -> NovilisEstelas.TAMBALEO;
             case NovilisEntity.GRITO -> NovilisEstelas.GRITO;
             case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA -> NovilisEstelas.TROMPETAS;
-            case NovilisEntity.FUENTES -> NovilisEstelas.FUENTES;
+            case NovilisEntity.ESPADA -> NovilisEstelas.ESPADA;
+            case NovilisEntity.INFERNAL -> NovilisEstelas.INFERNAL;
+            case NovilisEntity.MAR -> NovilisEstelas.MAR;
             case NovilisEntity.SOL -> NovilisEstelas.SOL;
             default -> null;
         };
@@ -209,7 +221,7 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
             radio = 1.2F;
             alfa = (int) (120 + 40 * Mth.sin(edad * 0.06F));
         } else {
-            radio = 2.2F + (s.estado == NovilisEntity.FUENTES ? 4.0F * s.carga : 0.0F);
+            radio = 2.2F;
             alfa = 235;
         }
         if (alfa > 4) {
@@ -262,11 +274,47 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
             colector.submitCustomGeometry(pose, NovilisDibujo.HAZ, (p, buf) ->
                     NovilisDibujo.haz(buf, p, s.sol, m, ojo, 0.9F + 0.15F * Mth.sin(edad * 0.6F), -edad * 0.15F, color, 200));
         }
-        // --- El Sol x3: el que se le forma en la mano ---
+        // --- El Sol Abrasador: el que se le forma en la mano ---
         if (s.solMano != null) {
-            Vec3 c = s.solMano;
-            colector.submitCustomGeometry(pose, NovilisDibujo.SOL, (p, buf) -> NovilisDibujo.sol(buf, p, c, ojo, 1.1F, edad, color, 240));
+            NovilisDibujo.solBomba(colector, pose, s.solMano, ojo, s.solManoRadio, edad, color, 240, s.solManoRadio > 1.3F);
         }
+        // --- La Espada del Fuego: el carril por donde va a pasar ---
+        if (s.carril) {
+            carril(s, pose, colector, ojo, edad, color);
+        }
+    }
+
+    /**
+     * La franja de la embestida en el suelo: 40 x 8 desde sus pies hacia donde
+     * mira (el rumbo es el del cuerpo: los dos primeros segundos le sigue a su
+     * presa). El haz tendido a lo largo y los dos cantos, mas claros; todo late
+     * mas deprisa segun se acaba la carga.
+     */
+    private static void carril(NovilisRenderState s, PoseStack pose, SubmitNodeCollector colector, Vec3 ojo, float edad, int color) {
+        float b = s.bodyRot * Mth.DEG_TO_RAD;
+        Vec3 f = new Vec3(-Mth.sin(b), 0, Mth.cos(b));
+        Vec3 izq = new Vec3(f.z, 0, -f.x);
+        float largo = NovilisEntity.ESPADA_LARGO;
+        double medio = NovilisEntity.ESPADA_ANCHO * 0.5;
+        float k = s.cargaEspada;
+        float late = 0.5F + 0.5F * Mth.sin(edad * (0.25F + 0.9F * k));
+        // Bien visible tambien de dia y sobre hierba: el haz casi opaco y los cantos llenos.
+        int alfa = (int) ((170 + 80 * late) * Math.min(1.0F, k * 6.0F));
+        int canto = (int) (255 * Math.min(1.0F, k * 6.0F));
+        int claro = NovilisDibujo.claro(color, 0.55F);
+        colector.submitCustomGeometry(pose, NovilisDibujo.HAZ, (p, buf) -> {
+            Vec3 a0 = izq.scale(medio).add(0, 0.07, 0);
+            Vec3 a1 = izq.scale(-medio).add(0, 0.07, 0);
+            NovilisDibujo.cara(buf, p, ojo, a0, a1, a1.add(f.scale(largo)), a0.add(f.scale(largo)), 0.0F, 1.0F, -edad * 0.05F,
+                    -edad * 0.05F + largo / 6.0F, color, alfa, alfa);
+            for (int lado = -1; lado <= 1; lado += 2) {
+                Vec3 c0 = izq.scale(lado * medio).add(0, 0.08, 0);
+                Vec3 x0 = c0.add(izq.scale(0.4));
+                Vec3 x1 = c0.add(izq.scale(-0.4));
+                NovilisDibujo.cara(buf, p, ojo, x0, x1, x1.add(f.scale(largo)), x0.add(f.scale(largo)), 0.0F, 1.0F, 0.0F,
+                        largo / 6.0F, claro, canto, canto);
+            }
+        });
     }
 
     @Override

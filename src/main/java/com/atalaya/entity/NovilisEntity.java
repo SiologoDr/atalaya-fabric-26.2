@@ -30,6 +30,7 @@ import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -67,29 +68,35 @@ import java.util.UUID;
  * <pre>
  *   fase I    Brasa       Barrido de fuego (cuatro tajos: la hoja de cerca y
  *                         medias lunas de fuego que vuelan), Castigo solar
- *                         (un sello bajo cada jugador y un rayo que cae)
+ *                         (un sello bajo cada jugador y un rayo que cae),
+ *                         Espada del Fuego (su embestida: 3 s cargando, 40
+ *                         bloques en linea recta y un camino de llamas detras)
  *   fase II   Llamarada   + el Castigo acaba clavando la espada: una onda de
- *                         fuego por el suelo (se salta), Sol x3 (tres soles que
- *                         revientan en fuego y lava), Trompetas del Apocalipsis
- *                         (cuatro estatuas tocan una melodia: si alguna sigue en
- *                         pie al acabar, entra en Furia), Sombra del Escudo
- *                         (lanza su sol al cielo y abrasa la arena 12 s: solo
- *                         se salva quien esta a la sombra de una Egida)
- *   fase III  Mediodia    + Fuentes solares (el golpe cooperativo: se arrodilla y
- *                         carga; tres fuentes le dan fuego y aceleran la carga;
- *                         rotas a tiempo, se le apaga el sol y cae aturdido; si
- *                         no, la Supernova quema a todos y suelta el Grito de
- *                         guerra), Ofrenda al Sol (coge a uno, lo alza y el
- *                         atrapado tiene que seguir una secuencia de teclas)
- *   fase IV   Dios de la Guerra   + Dios de la Guerra (llamas carmesi y soles a
- *                         tres zonas con explosiones en cadena: mata a quien
- *                         tiene quemadura grave, y a todos con el Grito)
+ *                         fuego por el suelo (se salta), Sol Abrasador (tres
+ *                         soles que revientan en fuego y lava y la Supernova,
+ *                         un cuarto mas grande y mas lento), Trompetas del
+ *                         Apocalipsis (cuatro angeles en lo alto de sus
+ *                         estrados tocan una melodia: si alguno sigue en pie al
+ *                         acabar, entra en Furia), Sombra del Escudo (lanza su
+ *                         sol al cielo y abrasa la arena 12 s: solo se salva
+ *                         quien esta a la sombra de una Egida)
+ *   fase III  Mediodia    + Furia Infernal (salta sobre uno, cae clavando la
+ *                         espada, la grieta escupe lava y revienta), Ofrenda al
+ *                         Sol (coge a uno, lo alza y el atrapado tiene que
+ *                         seguir una secuencia de teclas)
+ *   fase IV   Dios de la Guerra   + Mar de Llamas (hunde la espada y el suelo se
+ *                         raja por toda la arena: bocas de fuego que se quedan
+ *                         hasta que acaba), Dios de la Guerra (llamas carmesi y
+ *                         soles a tres zonas con explosiones en cadena: mata a
+ *                         quien tiene quemadura grave)
  * </pre>
+ *
+ * Las Fuentes solares y el Grito de guerra que soltaban si fallaban se
+ * quitaron el 08-10-2026 (Juan).
  *
  * El fuego deja Quemadura (I a III, QuemaduraEffect). La Furia es de fuego
  * azul: un 25 % mas rapido, un 35 % mas de dano y un 35 % menos de espera; se
- * va al aturdirlo (una Ofrenda superada o las Fuentes rotas a tiempo), igual
- * que el Grito de guerra.
+ * va al aturdirlo (una Ofrenda superada o el sol apagado en la Sombra).
  *
  * Como los otros tres, el estado vive en un numero sincronizado y el cliente
  * arranca la animacion que toca al verlo cambiar. Los ticks de cada golpe y los
@@ -105,7 +112,6 @@ public class NovilisEntity extends Monster {
     public static final int CASTIGO = 4;
     public static final int SOL = 5;
     public static final int TROMPETAS = 6;
-    public static final int FUENTES = 7;
     public static final int OFRENDA = 8;
     public static final int DIOS = 9;
     public static final int ATURDIDO = 10;
@@ -114,6 +120,10 @@ public class NovilisEntity extends Monster {
     public static final int CASTIGO_ONDA = 13;
     /** La Sombra del Escudo (octubre de 2026, la que eligio Juan de la segunda ficha de fuego). */
     public static final int SOMBRA = 14;
+    /** Los ataques de octubre de 2026 (Juan): la embestida, el salto y el suelo en llamas. */
+    public static final int ESPADA = 15;
+    public static final int INFERNAL = 16;
+    public static final int MAR = 17;
 
     /** Vida EFECTIVA: 16 500, la misma con cualquier numero de jugadores (el tope de vanilla es 1024). */
     public static final float VIDA = 16500.0F;
@@ -128,14 +138,27 @@ public class NovilisEntity extends Monster {
     public static final float[] DANO_RAYO = {19, 24, 26.4F, 32.8F};
     public static final float[] DANO_ONDA = {12, 16, 17, 21.6F};
     public static final float[] DANO_SOL = {27.5F, 35, 37.4F, 44};
-    public static final float[] DANO_SUPERNOVA = {56, 56, 57, 67.2F};
+    /** El cuarto sol del Sol Abrasador, el grande (radio RADIO_SUPERNOVA). */
+    public static final float[] DANO_SUPERNOVA = {36, 45, 49, 57};
+    /** La Espada del Fuego: su cuerpo y la hoja a la carrera, y el camino de llamas (cada medio segundo). */
+    public static final float[] DANO_ESPADA = {24, 31, 34, 42};
+    public static final float[] DANO_CAMINO = {3, 4, 5, 6};
+    /** La Furia Infernal: la caida, cada chorro de la grieta y la explosion final. */
+    public static final float[] DANO_INFERNAL = {26, 33, 36, 45};
+    public static final float[] DANO_GEISER = {10, 13, 14, 18};
+    public static final float[] DANO_EXPLOSION_INFERNAL = {22, 28, 31, 38};
+    /** Cada boca del Mar de Llamas, cada medio segundo dentro. */
+    public static final float[] DANO_MAR = {8, 10, 12, 14};
     public static final float[] DANO_DIOS = {174, 174, 174, 174};
     /** El sol de la Sombra del Escudo, cada segundo al sol (pasa la armadura: solo vale la sombra). */
     public static final float[] DANO_ABRASA = {4, 4, 5, 6};
     /** Lo que mata salvo totem (todas las bypasses_* menos la de invulnerabilidad). */
     public static final float MORTAL = 10000.0F;
-    /** Golpes que aguanta cada fuente y cada estatua, sean cuantos sean los jugadores. */
-    public static final int GOLPES = 10;
+    /**
+     * Golpes que aguanta cada estatua, sean cuantos sean los jugadores (15 desde
+     * el 08-10-2026: Juan queria que costara mas; antes, 10).
+     */
+    public static final int GOLPES = 15;
 
     // --- La Furia (fuego azul) ---
     private static final float FURIA_RITMO = 1.15F;
@@ -163,19 +186,37 @@ public class NovilisEntity extends Monster {
     /** La onda de fuego del Castigo: hasta donde llega y lo que avanza por tick. */
     public static final float ONDA_MAX = 26.0F;
     public static final float ONDA_VEL = 0.9F;
-    /** El sello del Sol x3 (donde revienta). */
+    /** El sello del Sol x3 (donde revienta) y el de la Supernova, el cuarto. */
     public static final float RADIO_SOL = 4.0F;
+    public static final float RADIO_SUPERNOVA = 12.0F;
     /** Cada zona del Dios de la Guerra. */
     public static final float RADIO_ZONA = 6.0F;
     /** Lo que dura la melodia de las Trompetas (24 s, como los cuatro .ogg). */
     public static final int MELODIA = 480;
-    /** A cuanto del centro salen las estatuas y las fuentes. */
+    /** A cuanto del centro salen las estatuas. */
     private static final double RADIO_ESTATUAS = 15.0;
-    private static final double RADIO_FUENTES = 13.0;
-    public static final int NUM_FUENTES = 3;
     public static final int NUM_ESTATUAS = 4;
-    /** Lo que tarda en llenarse la carga con 3, 2 y 1 fuentes en pie (ticks). */
-    private static final int[] CARGA_CON = {0, 600, 400, 300};
+    /**
+     * La Espada del Fuego: el carril que corre (bloques) y su ancho. Juan
+     * (08-10-2026): 20 se quedaba corto, 40; y dos bloques mas a cada lado, 8.
+     */
+    public static final float ESPADA_LARGO = 40.0F;
+    public static final float ESPADA_ANCHO = 8.0F;
+    /** Los dos primeros segundos de la carga sigue a su presa; el ultimo, el carril queda fijo. */
+    public static final int ESPADA_SIGUE = 40;
+    /** La Furia Infernal: cuando queda fijo donde cae, lo alto del salto, el radio del golpe y de la explosion. */
+    private static final int INFERNAL_MARCA = 6;
+    private static final double ALTURA_SALTO = 6.0;
+    private static final float RADIO_INFERNAL = 7.0F;
+    private static final float RADIO_EXPLOSION_INFERNAL = 11.0F;
+    private static final float GRIETA_LARGO = 16.0F;
+    /** El Mar de Llamas: lo que dura, cada cuanto se raja otra vez, el aviso y cada boca. */
+    public static final int MAR_DURA = 300;
+    private static final int MAR_OLA = 90;
+    private static final int MAR_AVISO = 30;
+    private static final float MAR_RADIO = 2.6F;
+    private static final int MAR_JUGADORES = 20;
+    private static final int MAR_SUELTAS = 8;
     /** El tiempo de la Ofrenda: 8 s para las teclas (y un poco mas en el servidor, por el lag). */
     public static final int OFRENDA_TIEMPO = 160;
     /**
@@ -183,9 +224,9 @@ public class NovilisEntity extends Monster {
      * no te enterabas, tocabas algo y fallabas). Mientras, las teclas no cuentan.
      */
     public static final int OFRENDA_PREPARA = 60;
-    /** Las teclas de la Ofrenda: 10 en la fase III y 12 en la IV (antes 15 y 20). */
-    public static final int TECLAS_III = 10;
-    public static final int TECLAS_IV = 12;
+    /** Las teclas de la Ofrenda: 12 en la fase III y 14 en la IV (Juan, 08-10-2026; antes 10 y 12). */
+    public static final int TECLAS_III = 12;
+    public static final int TECLAS_IV = 14;
     /** El pulso de los angeles de las Trompetas: apenas dana, lo que hace es tirar del estrado. */
     public static final float[] DANO_PULSO = {6, 6, 8, 8};
     private static final int OFRENDA_GRACIA = 10;
@@ -199,7 +240,6 @@ public class NovilisEntity extends Monster {
     /** Lo que quema estar en sus manos: la vida maxima del atrapado, por segundo. */
     private static final float OFRENDA_CALOR = 0.04F;
     private static final int ATURDIDO_OFRENDA = 100;
-    private static final int ATURDIDO_FUENTES = 120;
     /** Deslumbrado: lo que queda aturdido si nadie se quemo con la Sombra del Escudo. */
     private static final int ATURDIDO_SOMBRA = 80;
 
@@ -217,14 +257,6 @@ public class NovilisEntity extends Monster {
     /** Cuando se le acaba la Furia (tiempo del mundo; 0: sin Furia): el cliente pinta la cuenta atras. */
     private static final EntityDataAccessor<Long> DATA_FURIA_FIN =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.LONG);
-    /** El Grito de guerra (si las Fuentes fallaron): el Dios de la Guerra mata a todos. */
-    private static final EntityDataAccessor<Boolean> DATA_GRITO =
-            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.BOOLEAN);
-    /** Golpes de cada fuente: 4 bits por fuente. */
-    private static final EntityDataAccessor<Integer> DATA_GOLPES_FUENTES =
-            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> DATA_CARGA =
-            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.FLOAT);
     /** Golpes de cada estatua: 4 bits por estatua. */
     private static final EntityDataAccessor<Integer> DATA_GOLPES_ESTATUAS =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
@@ -258,13 +290,15 @@ public class NovilisEntity extends Monster {
     public final AnimationState castigoOnda = new AnimationState();
     public final AnimationState sol = new AnimationState();
     public final AnimationState trompetas = new AnimationState();
-    public final AnimationState fuentes = new AnimationState();
     public final AnimationState ofrenda = new AnimationState();
     public final AnimationState dios = new AnimationState();
     public final AnimationState aturdido = new AnimationState();
     public final AnimationState tambaleo = new AnimationState();
     public final AnimationState grito = new AnimationState();
     public final AnimationState liberacion = new AnimationState();
+    public final AnimationState espada = new AnimationState();
+    public final AnimationState infernal = new AnimationState();
+    public final AnimationState mar = new AnimationState();
     /** Tick del cliente en que empezo el estado actual. */
     public int inicioEstado;
     /** Ritmo de la animacion actual en el cliente (el mismo que usa el servidor). */
@@ -311,7 +345,9 @@ public class NovilisEntity extends Monster {
     private int enfCastigo = 60;
     private int enfSol = 120;
     private int enfTrompetas = 400;
-    private int enfFuentes = 600;
+    private int enfEspada = 120;
+    private int enfInfernal = 300;
+    private int enfMar = 300;
     private int enfOfrenda = 300;
     private int enfDios = 200;
     private int enfSombra = 600;
@@ -325,9 +361,21 @@ public class NovilisEntity extends Monster {
     // Las Trompetas
     private final EstatuaNovilisEntity[] estatuas = new EstatuaNovilisEntity[NUM_ESTATUAS];
     private int melodia = -1;
-    // Las Fuentes
-    private final FuenteSolarEntity[] fuentesSolares = new FuenteSolarEntity[NUM_FUENTES];
-    private float carga;
+    // La Espada del Fuego: el rumbo, la velocidad y lo que lleva recorrido de la carrera
+    private Vec3 dirCarga = Vec3.ZERO;
+    private double velCarga;
+    private double avanceCarga;
+    private double recorrido;
+    private final Set<Integer> arrollados = new HashSet<>();
+    // La Furia Infernal: el salto, donde cae y el rumbo de las grietas
+    private boolean saltando;
+    private double gravedadSalto = 0.1;
+    private @Nullable Vec3 destinoSalto;
+    private @Nullable Vec3 golpeInfernal;
+    private float rumboInfernal;
+    // El Mar de Llamas: corre aparte del estado, como la melodia
+    private int marCampo = -1;
+    private final List<GrietaNovilisEntity> bocas = new ArrayList<>();
     // La Ofrenda
     private @Nullable LivingEntity presa;
     private @Nullable LivingEntity captivo;
@@ -365,9 +413,6 @@ public class NovilisEntity extends Monster {
         datos.define(DATA_FASE, 1);
         datos.define(DATA_FURIA, false);
         datos.define(DATA_FURIA_FIN, 0L);
-        datos.define(DATA_GRITO, false);
-        datos.define(DATA_GOLPES_FUENTES, 0);
-        datos.define(DATA_CARGA, 0.0F);
         datos.define(DATA_GOLPES_ESTATUAS, 0);
         datos.define(DATA_MELODIA, -1.0F);
         datos.define(DATA_MARCA, -1);
@@ -409,28 +454,11 @@ public class NovilisEntity extends Monster {
         return entityData.get(DATA_FURIA_FIN);
     }
 
-    public boolean tieneGrito() {
-        return entityData.get(DATA_GRITO);
-    }
-
-    public int numFuentes() {
-        return NUM_FUENTES;
-    }
-
-    /** Golpes de la fuente i (0 a 10; con 10, rota). */
-    public int getGolpesFuente(int i) {
-        return (entityData.get(DATA_GOLPES_FUENTES) >> (i * 4)) & 15;
-    }
-
-    public float getCarga() {
-        return entityData.get(DATA_CARGA);
-    }
-
     public int numEstatuas() {
         return NUM_ESTATUAS;
     }
 
-    /** Golpes de la estatua i (0 a 10; con 10, rota). */
+    /** Golpes de la estatua i (0 a GOLPES; con GOLPES, rota). */
     public int getGolpesEstatua(int i) {
         return (entityData.get(DATA_GOLPES_ESTATUAS) >> (i * 4)) & 15;
     }
@@ -517,17 +545,13 @@ public class NovilisEntity extends Monster {
         ritmoEstado = ritmo(estado, fase(), tieneFuria());
         avisoEstado = aviso(estado);
         duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
-        // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
-        if (estado == BARRIDO || estado == CASTIGO || estado == CASTIGO_ONDA || estado == SOL || estado == TROMPETAS || estado == FUENTES || estado == OFRENDA || estado == DIOS
-                || estado == SOMBRA) {
-            PresasJefe.alerta(this, estado == OFRENDA || estado == DIOS, 1.05F);
-        }
     }
 
     /**
      * Lo rapido que van los ataques en cada fase: x1, x1,12, x1,25 y x1,4, y un
      * 25 % mas con la Furia. Lo que cuenta con el tiempo de los jugadores (la
-     * Ofrenda, las Fuentes, las Trompetas) no se acelera nunca. El cliente usa el
+     * Ofrenda, las Trompetas, la carga de la Espada del Fuego, el salto de la
+     * Furia Infernal, el Mar de Llamas) no se acelera nunca. El cliente usa el
      * mismo numero para la animacion.
      */
     public static float ritmo(int estado, int fase, boolean furia) {
@@ -571,9 +595,9 @@ public class NovilisEntity extends Monster {
         return tieneFuria() ? d * FURIA_DANO : d;
     }
 
-    /** Si el Dios de la Guerra mata a este (quemadura grave, o el Grito de guerra puesto). */
+    /** Si el Dios de la Guerra mata a este (quemadura grave). */
     public boolean mataDios(LivingEntity v) {
-        return tieneGrito() || QuemaduraEffect.nivel(v) >= 3;
+        return QuemaduraEffect.nivel(v) >= 3;
     }
 
     /** Pega con su fuego: el dano y los niveles de quemadura. */
@@ -602,8 +626,8 @@ public class NovilisEntity extends Monster {
     }
 
     private AnimationState[] acciones() {
-        return new AnimationState[]{dormido, despertar, barrido, castigo, castigoOnda, sol, trompetas, fuentes, ofrenda,
-                dios, aturdido, tambaleo, grito};
+        return new AnimationState[]{dormido, despertar, barrido, castigo, castigoOnda, sol, trompetas, ofrenda,
+                dios, aturdido, tambaleo, grito, espada, infernal, mar};
     }
 
     private @Nullable AnimationState animacionDe(int estado) {
@@ -615,12 +639,14 @@ public class NovilisEntity extends Monster {
             case CASTIGO_ONDA -> castigoOnda;
             case SOL -> sol;
             case TROMPETAS, SOMBRA -> trompetas;
-            case FUENTES -> fuentes;
             case OFRENDA -> ofrenda;
             case DIOS -> dios;
             case ATURDIDO -> aturdido;
             case TAMBALEO -> tambaleo;
             case GRITO -> grito;
+            case ESPADA -> espada;
+            case INFERNAL -> infernal;
+            case MAR -> mar;
             default -> null;
         };
     }
@@ -699,21 +725,19 @@ public class NovilisEntity extends Monster {
                 level().addParticle(AtalayaParticulas.NOVILIS_AZUL, a.x, a.y, a.z, 0, 0.06 + random.nextDouble() * 0.04, 0);
             }
         }
-        if ((tieneGrito() || e == DIOS) && e != DORMIDO) {
-            int n = e == DIOS ? 4 : 2;
-            for (int i = 0; i < n; i++) {
+        if (e == DIOS) {
+            for (int i = 0; i < 4; i++) {
                 Vec3 a = puntoMundo(new Vec3((random.nextDouble() - 0.5) * 5.5, 0.5 + random.nextDouble() * 15.0,
                         (random.nextDouble() - 0.5) * 3.5));
                 level().addParticle(AtalayaParticulas.NOVILIS_CARMESI, a.x, a.y, a.z, 0, 0.07 + random.nextDouble() * 0.05, 0);
             }
         }
-        if (e == FUENTES && tickCount % 2 == 0) {
-            // El sol que se va cargando sobre el: chispas que suben hacia el.
-            Vec3 c = puntoMundo(NovilisGeometria.SOL_PROPIO);
-            double a = random.nextDouble() * Math.PI * 2;
-            double r = 3.0 + random.nextDouble() * 3.0;
-            level().addParticle(AtalayaParticulas.NOVILIS_CHISPA, c.x + Math.cos(a) * r, c.y - 2.0, c.z + Math.sin(a) * r,
-                    -Math.cos(a) * 0.2, 0.15, -Math.sin(a) * 0.2);
+        if (e == ESPADA && tickCount - inicioEstado < NovilisGeometria.ESPADA_SALE && tickCount % 2 == 0) {
+            // La carga: brasas que se levantan por los cantos del carril.
+            double a = random.nextDouble() * ESPADA_LARGO;
+            double l = (random.nextBoolean() ? 1 : -1) * ESPADA_ANCHO * 0.5;
+            Vec3 c = puntoMundo(new Vec3(l, 0.15, a));
+            level().addParticle(AtalayaParticulas.NOVILIS_BRASA, c.x, c.y, c.z, 0, 0.05 + random.nextDouble() * 0.04, 0);
         }
         if (e == ATURDIDO && tickCount % 4 == 0) {
             Vec3 c = puntoMundo(NovilisGeometria.CABEZA).add(0, -2.0, 0);
@@ -772,13 +796,16 @@ public class NovilisEntity extends Monster {
         if (enfCastigo > 0) enfCastigo--;
         if (enfSol > 0) enfSol--;
         if (enfTrompetas > 0) enfTrompetas--;
-        if (enfFuentes > 0) enfFuentes--;
+        if (enfEspada > 0) enfEspada--;
+        if (enfInfernal > 0) enfInfernal--;
+        if (enfMar > 0) enfMar--;
         if (enfOfrenda > 0) enfOfrenda--;
         if (enfDios > 0) enfDios--;
         if (enfSombra > 0) enfSombra--;
 
         tickMelodia(nivel);
         tickSombra(nivel);
+        tickMar(nivel);
 
         int e = getEstado();
         t++;
@@ -791,10 +818,12 @@ public class NovilisEntity extends Monster {
             case SOL -> tickSol(nivel, objetivo);
             case TROMPETAS -> tickTrompetas(nivel);
             case SOMBRA -> tickSombraAlza(nivel);
-            case FUENTES -> tickFuentes(nivel);
             case OFRENDA -> tickOfrenda(nivel);
             case DIOS -> tickDios(nivel, objetivo);
             case GRITO -> tickGrito(nivel);
+            case ESPADA -> tickEspada(nivel, objetivo);
+            case INFERNAL -> tickInfernal(nivel, objetivo);
+            case MAR -> tickMarEstado(nivel);
             case ATURDIDO, TAMBALEO -> fijarRumbo(yBodyRot);
             default -> {
             }
@@ -813,9 +842,8 @@ public class NovilisEntity extends Monster {
         if (e == OFRENDA) {
             soltarCaptivo(nivel, false);
         }
-        if (e == FUENTES) {
-            quitarFuentes(nivel);
-        }
+        velCarga = 0.0;
+        saltando = false;
         entityData.set(DATA_MARCA, -1);
         presa = null;
         ponerEstado(LIBRE, 0);
@@ -885,13 +913,17 @@ public class NovilisEntity extends Monster {
         int fase = fase();
         double d = horizontal(position(), objetivo.position());
         List<int[]> opciones = new ArrayList<>();
+        boolean campo = melodia >= 0 || sombra >= 0 || marCampo >= 0;
+        LivingEntity lejos = presaEntre(nivel, 8.0, 30.0, objetivo);
         if (enfBarrido <= 0 && d < 16) opciones.add(new int[]{BARRIDO, 5});
         if (enfCastigo <= 0 && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{fase >= 2 ? CASTIGO_ONDA : CASTIGO, 4});
+        if (enfEspada <= 0 && lejos != null) opciones.add(new int[]{ESPADA, 4});
         if (fase >= 2 && enfSol <= 0 && !presas(nivel, 44).isEmpty()) opciones.add(new int[]{SOL, 3});
-        if (fase >= 2 && enfTrompetas <= 0 && melodia < 0 && sombra < 0) opciones.add(new int[]{TROMPETAS, 2});
-        if (fase >= 2 && enfSombra <= 0 && melodia < 0 && sombra < 0 && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{SOMBRA, 3});
-        if (fase >= 3 && enfFuentes <= 0) opciones.add(new int[]{FUENTES, 2});
+        if (fase >= 2 && enfTrompetas <= 0 && !campo) opciones.add(new int[]{TROMPETAS, 2});
+        if (fase >= 2 && enfSombra <= 0 && !campo && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{SOMBRA, 3});
+        if (fase >= 3 && enfInfernal <= 0 && lejos != null) opciones.add(new int[]{INFERNAL, 3});
         if (fase >= 3 && enfOfrenda <= 0 && presaOfrenda(nivel) != null) opciones.add(new int[]{OFRENDA, 2});
+        if (fase >= 4 && enfMar <= 0 && !campo) opciones.add(new int[]{MAR, 3});
         if (fase >= 4 && enfDios <= 0) opciones.add(new int[]{DIOS, 3});
         if (opciones.isEmpty()) {
             return false;
@@ -907,6 +939,10 @@ public class NovilisEntity extends Monster {
                 break;
             }
         }
+        if (elegido == ESPADA || elegido == INFERNAL) {
+            // A uno que este a media distancia (ni encima ni fuera de su alcance).
+            presa = lejos;
+        }
         if (elegido == BARRIDO) {
             // Al mas cercano (antes, uno al azar a 30 bloques: tajaba al aire).
             List<LivingEntity> cerca = presas(nivel, 16);
@@ -916,6 +952,26 @@ public class NovilisEntity extends Monster {
             }
         }
         return iniciar(nivel, elegido);
+    }
+
+    /** Uno al azar entre min y max bloques (si no hay, el objetivo si esta en ese tramo). */
+    private @Nullable LivingEntity presaEntre(ServerLevel nivel, double min, double max, @Nullable LivingEntity objetivo) {
+        List<LivingEntity> todos = new ArrayList<>();
+        for (LivingEntity v : presas(nivel, max)) {
+            if (horizontal(position(), v.position()) >= min) {
+                todos.add(v);
+            }
+        }
+        if (!todos.isEmpty()) {
+            return todos.get(random.nextInt(todos.size()));
+        }
+        if (objetivo != null) {
+            double d = horizontal(position(), objetivo.position());
+            if (d >= min && d <= max) {
+                return objetivo;
+            }
+        }
+        return null;
     }
 
     /** Arranca un ataque. */
@@ -953,15 +1009,24 @@ public class NovilisEntity extends Monster {
                 ponerEstado(SOMBRA, NovilisGeometria.DURACION_TROMPETAS);
                 sonido(AtalayaSonidos.NOVILIS_SOL_FORMA, 6.0F);
             }
-            case FUENTES -> {
-                enfFuentes = (int) (1600 * k);
-                carga = 0.0F;
-                entityData.set(DATA_CARGA, 0.0F);
-                entityData.set(DATA_GOLPES_FUENTES, 0);
-                ponerEstado(FUENTES, NovilisGeometria.DURACION_FUENTES);
-                // No acaba solo: acaba cuando se rompen las fuentes o se llena la carga.
-                duracion = Integer.MAX_VALUE;
-                sonido(AtalayaSonidos.NOVILIS_RUGIDO, 6.0F);
+            case ESPADA -> {
+                enfEspada = (int) (320 * k);
+                velCarga = 0.0;
+                ponerEstado(ESPADA, NovilisGeometria.DURACION_ESPADA);
+                sonido(AtalayaSonidos.NOVILIS_CARGA, 5.0F);
+            }
+            case INFERNAL -> {
+                enfInfernal = (int) (420 * k);
+                destinoSalto = null;
+                golpeInfernal = null;
+                saltando = false;
+                ponerEstado(INFERNAL, NovilisGeometria.DURACION_INFERNAL);
+                sonido(AtalayaSonidos.NOVILIS_RUGIDO, 5.0F);
+            }
+            case MAR -> {
+                enfMar = (int) (1400 * k);
+                ponerEstado(MAR, NovilisGeometria.DURACION_MAR);
+                sonido(AtalayaSonidos.NOVILIS_RUGIDO, 7.0F);
             }
             case OFRENDA -> {
                 LivingEntity p = presaOfrenda(nivel);
@@ -1026,10 +1091,6 @@ public class NovilisEntity extends Monster {
                 ponerFuria(nivel, !tieneFuria());
                 return true;
             }
-            case "grito" -> {
-                ponerGrito(nivel, !tieneGrito());
-                return true;
-            }
             case "perseguir" -> {
                 // Para ver el paso: anda tras el blanco 8 s sin atacar.
                 if (getEstado() == DORMIDO) {
@@ -1039,16 +1100,6 @@ public class NovilisEntity extends Monster {
                     setTarget(blanco);
                 }
                 soloAndarHasta = tickCount + 160;
-                return true;
-            }
-            case "fuente" -> {
-                // Un golpe a la primera fuente que siga en pie.
-                for (FuenteSolarEntity f : fuentesSolares) {
-                    if (f != null && !f.isRoto()) {
-                        f.hurtServer(nivel, nivel.damageSources().generic(), 1.0F);
-                        break;
-                    }
-                }
                 return true;
             }
             case "estatua" -> {
@@ -1070,7 +1121,9 @@ public class NovilisEntity extends Monster {
             case "sol" -> SOL;
             case "trompetas" -> TROMPETAS;
             case "sombra" -> SOMBRA;
-            case "fuentes" -> FUENTES;
+            case "espada" -> ESPADA;
+            case "infernal" -> INFERNAL;
+            case "mar" -> MAR;
             case "ofrenda" -> OFRENDA;
             case "dios" -> DIOS;
             case "aturdido" -> ATURDIDO;
@@ -1089,13 +1142,18 @@ public class NovilisEntity extends Monster {
         if (getEstado() == OFRENDA) {
             soltarCaptivo(nivel, false);
         }
-        if (getEstado() == FUENTES) {
-            quitarFuentes(nivel);
+        if (ataque == ESPADA || ataque == INFERNAL) {
+            presa = blanco;
         }
         if (ataque == SOMBRA || ataque == TROMPETAS) {
             acabarSombra(nivel, false, false);
         }
         entityData.set(DATA_MARCA, -1);
+        velCarga = 0.0;
+        saltando = false;
+        if (ataque == MAR) {
+            acabarMar(nivel);
+        }
         // Pasa por LIBRE para que el cliente vea el cambio aunque repita ataque.
         ponerEstado(LIBRE, 0);
         if (ataque == ATURDIDO) {
@@ -1246,6 +1304,7 @@ public class NovilisEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickSol(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        tickSupernova(nivel, objetivo);
         int[] lanza = {NovilisGeometria.SOL_LANZA_1, NovilisGeometria.SOL_LANZA_2, NovilisGeometria.SOL_LANZA_3};
         Vec3[] manos = {NovilisGeometria.MANO_LANZA_1, NovilisGeometria.MANO_LANZA_2, NovilisGeometria.MANO_LANZA_3};
         for (int i = 0; i < 3; i++) {
@@ -1269,6 +1328,36 @@ public class NovilisEntity extends Monster {
                     dano(DANO_SOL), fase());
             sonido(AtalayaSonidos.NOVILIS_SOL_LANZA, 5.0F);
         }
+    }
+
+    /**
+     * La Supernova (08-10-2026): tras los tres soles, alza la espada y en la otra
+     * mano se le forma un cuarto, mas grande, que crece mas tiempo; lo lanza con
+     * todo el cuerpo. Vuela mas despacio y revienta en un sello de 9 bloques.
+     */
+    private void tickSupernova(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (cruza(NovilisGeometria.SOL_NOVA_FORMA)) {
+            sonido(AtalayaSonidos.NOVILIS_SOL_FORMA, 7.0F);
+            solBlanco = objetivo != null && objetivo.isAlive() ? objetivo : blancoSol(nivel, objetivo);
+        }
+        if (ta() > NovilisGeometria.SOL_NOVA_FORMA && ta() < NovilisGeometria.SOL_LANZA_4 && solBlanco != null) {
+            girarHacia(solBlanco.position(), 8.0F);
+            if (t % 3 == 0) {
+                Vec3 m = puntoMundo(NovilisGeometria.MANO_NOVA);
+                nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, m.x, m.y, m.z, 3, 1.4, 1.4, 1.4, 0.15);
+            }
+        }
+        if (!cruza(NovilisGeometria.SOL_LANZA_4)) {
+            return;
+        }
+        LivingEntity blanco = solBlanco != null && solBlanco.isAlive() ? solBlanco : blancoSol(nivel, objetivo);
+        if (blanco == null) {
+            return;
+        }
+        girarHacia(blanco.position(), 45.0F);
+        SolNovilisEntity.lanzar(nivel, this, puntoMundo(NovilisGeometria.MANO_LANZA_4), sueloBajo(nivel, blanco.position()), 44,
+                SolNovilisEntity.SUPERNOVA, dano(DANO_SUPERNOVA), fase());
+        sonido(AtalayaSonidos.NOVILIS_SOL_LANZA, 8.0F);
     }
 
     private @Nullable LivingEntity blancoSol(ServerLevel nivel, @Nullable LivingEntity objetivo) {
@@ -1408,8 +1497,6 @@ public class NovilisEntity extends Monster {
                 if (v instanceof Player p) {
                     p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.egida").withStyle(ChatFormatting.GOLD));
                 }
-            } else if (v instanceof Player p) {
-                p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.sombra_aviso").withStyle(ChatFormatting.GOLD));
             }
         }
         quemadosSombra.clear();
@@ -1454,7 +1541,7 @@ public class NovilisEntity extends Monster {
                 quemadosSombra.merge(v.getUUID(), 1, Integer::sum);
                 nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, v.getX(), v.getY() + 1.0, v.getZ(), 10, 0.3, 0.6, 0.3, 0.03);
                 if (v instanceof Player p) {
-                    p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.al_sol").withStyle(ChatFormatting.RED));
+                    p.sendOverlayMessage(Component.translatable("hud.atalaya.novilis.al_sol").withStyle(ChatFormatting.GOLD));
                 }
             }
             // A los portadores que no miran bien al sol: hacia que lado girarse.
@@ -1517,98 +1604,322 @@ public class NovilisEntity extends Monster {
         if (exito) {
             sonido(AtalayaSonidos.NOVILIS_SOL_APAGA, 7.0F);
             int e = getEstado();
-            if (e != OFRENDA && e != FUENTES && e != DESPERTAR && e != DORMIDO) {
+            if (e != OFRENDA && e != DESPERTAR && e != DORMIDO) {
                 aturdir(nivel, ATURDIDO_SOMBRA);
             }
         }
     }
 
     // ------------------------------------------------------------------
-    //  Fuentes solares (el golpe cooperativo): se arrodilla y carga su sol;
-    //  las fuentes le dan fuego y aceleran la carga
+    //  Espada del Fuego (la embestida, 08-10-2026): elige a uno a media
+    //  distancia y se planta 3 s cargando con la espada atras; el carril (40 x 8)
+    //  se ve en el suelo y le sigue los dos primeros segundos, el ultimo queda
+    //  fijo. Sale disparado arrastrando la punta: a quien pille, su cuerpo y la
+    //  hoja; detras deja un camino de llamas malditas. Frena y remata con un
+    //  tajo hacia arriba
     // ------------------------------------------------------------------
 
-    private void tickFuentes(ServerLevel nivel) {
+    private void tickEspada(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        LivingEntity p = presa != null && presa.isAlive() ? presa : objetivo;
+        if (ta() < NovilisGeometria.ESPADA_SALE) {
+            if (p != null && t < ESPADA_SIGUE) {
+                girarHacia(p.position(), 12.0F);
+            } else {
+                fijarRumbo(yBodyRot);
+            }
+            return;
+        }
+        if (cruza(NovilisGeometria.ESPADA_SALE)) {
+            empezarEmbestida(nivel);
+        }
         fijarRumbo(yBodyRot);
-        if (cruza(NovilisGeometria.FUENTES_CLAVA)) {
-            Vec3 c = position();
-            for (int i = 0; i < NUM_FUENTES; i++) {
-                double a = yBodyRot * Mth.DEG_TO_RAD + Math.PI / 2 + Math.PI * 2 * i / NUM_FUENTES;
-                Vec3 donde = sueloBajo(nivel, new Vec3(c.x + Math.cos(a) * RADIO_FUENTES, c.y, c.z + Math.sin(a) * RADIO_FUENTES));
-                fuentesSolares[i] = FuenteSolarEntity.alzar(nivel, this, donde, i);
-            }
-            sonido(AtalayaSonidos.NOVILIS_CASTIGO_CLAVA, 7.0F);
-            sonido(AtalayaSonidos.NOVILIS_FUENTES, 7.0F);
-            sonido(AtalayaSonidos.NOVILIS_CARGA, 6.0F);
-            golpeSuelo(nivel, position(), 2.2F, 14.0F, 16);
-            return;
-        }
-        if (ta() < NovilisGeometria.FUENTES_CLAVA) {
-            return;
-        }
-        int vivas = 0;
-        for (FuenteSolarEntity f : fuentesSolares) {
-            if (f != null && !f.isRoto()) {
-                vivas++;
+        if (velCarga > 0.0) {
+            recorrido += avanceCarga;
+            arrollar(nivel);
+            boolean choca = ta() > NovilisGeometria.ESPADA_SALE + 1 && horizontalCollision && avanceCarga < velCarga * 0.35;
+            boolean fuera = centro != null && horizontal(position(), Vec3.atBottomCenterOf(centro)) > CORREA + 8.0;
+            if (recorrido >= ESPADA_LARGO || choca || fuera || ta() >= NovilisGeometria.ESPADA_PARA + 2) {
+                velCarga = 0.0;
+                golpeSuelo(nivel, position(), 1.6F, 9.0F, 18);
             }
         }
-        if (vivas == 0) {
-            // Rotas a tiempo: el sol se le apaga y cae aturdido.
-            cortarSonido(nivel, AtalayaSonidos.NOVILIS_CARGA);
-            sonido(AtalayaSonidos.NOVILIS_SOL_APAGA, 7.0F);
-            Vec3 s = puntoMundo(NovilisGeometria.SOL_PROPIO);
-            nivel.sendParticles(AtalayaParticulas.NOVILIS_HUMO, true, true, s.x, s.y, s.z, 40, 2.0, 2.0, 2.0, 0.05);
-            nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, s.x, s.y, s.z, 30, 2.0, 2.0, 2.0, 0.2);
-            quitarFuentes(nivel);
-            aturdir(nivel, ATURDIDO_FUENTES);
-            return;
-        }
-        carga += 1.0F / CARGA_CON[Math.min(3, vivas)];
-        entityData.set(DATA_CARGA, Math.min(1.0F, carga));
-        if (carga >= 1.0F) {
-            supernova(nivel);
+        if (cruza(NovilisGeometria.ESPADA_TAJO)) {
+            remateEspada(nivel);
         }
     }
 
-    /** La carga llena: el sol revienta sobre todo el altar. */
-    private void supernova(ServerLevel nivel) {
+    /** Se acaba la carga: el rumbo queda fijo y sale disparado; detras prende el camino. */
+    private void empezarEmbestida(ServerLevel nivel) {
+        dirCarga = frente();
+        velCarga = ESPADA_LARGO / Math.max(1, NovilisGeometria.ESPADA_PARA - NovilisGeometria.ESPADA_SALE);
+        avanceCarga = velCarga;
+        recorrido = 0.0;
+        arrollados.clear();
         cortarSonido(nivel, AtalayaSonidos.NOVILIS_CARGA);
-        sonido(AtalayaSonidos.NOVILIS_SUPERNOVA, 12.0F);
-        Vec3 s = puntoMundo(NovilisGeometria.SOL_PROPIO);
-        nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, s.x, s.y, s.z, 160, 8.0, 6.0, 8.0, 0.4);
-        nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, s.x, s.y, s.z, 120, 6.0, 6.0, 6.0, 0.8);
-        golpeSuelo(nivel, position(), 4.0F, 48.0F, 40);
-        for (LivingEntity v : presas(nivel, 56)) {
-            if (quemar(nivel, v, NovilisDanos.SUPERNOVA, dano(DANO_SUPERNOVA), 0, this)) {
-                Vec3 fuera = horizontalHacia(position(), v.position());
-                v.setDeltaMovement(fuera.x * 1.6, 0.8, fuera.z * 1.6);
+        sonido(AtalayaSonidos.NOVILIS_EMBESTIDA, 8.0F);
+        sonido(AtalayaSonidos.NOVILIS_CAMINO, 5.0F);
+        golpeSuelo(nivel, position(), 1.8F, 10.0F, 24);
+        CaminoLlamasEntity.lanzar(nivel, this, position(), yBodyRot, ESPADA_LARGO, ESPADA_ANCHO,
+                NovilisGeometria.ESPADA_PARA - NovilisGeometria.ESPADA_SALE, dano(DANO_CAMINO), tieneFuria() ? 5 : fase());
+    }
+
+    /** Su cuerpo y la hoja, a la carrera: a quien este en el carril, el golpe, fuego y fuera de su camino. */
+    private void arrollar(ServerLevel nivel) {
+        Vec3 f = dirCarga;
+        Vec3 izq = new Vec3(f.z, 0, -f.x);
+        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(8, 3, 8), this::esPresa)) {
+            if (arrollados.contains(v.getId())) {
+                continue;
+            }
+            Vec3 d = v.position().subtract(position());
+            double largo = d.x * f.x + d.z * f.z;
+            double lado = d.x * izq.x + d.z * izq.z;
+            if (largo < -3.0 || largo > 5.0 || Math.abs(lado) > ESPADA_ANCHO * 0.5 + v.getBbWidth() * 0.5 || d.y < -1.5 || d.y > 12.0) {
+                continue;
+            }
+            arrollados.add(v.getId());
+            if (quemar(nivel, v, NovilisDanos.EMBESTIDA, dano(DANO_ESPADA), 1, this)) {
+                double s = lado >= 0 ? 1.0 : -1.0;
+                v.setDeltaMovement(izq.x * s * 1.3 + f.x * 0.6, 0.75, izq.z * s * 1.3 + f.z * 0.6);
+                v.hurtMarked = true;
+                v.igniteForSeconds(3.0F);
+            }
+        }
+    }
+
+    /** El tajo hacia arriba con que remata: lo que tenga delante sale por los aires. */
+    private void remateEspada(ServerLevel nivel) {
+        sonido(AtalayaSonidos.NOVILIS_TAJO, 5.0F);
+        Vec3 frente = frente();
+        for (LivingEntity v : presas(nivel, 10.0)) {
+            Vec3 hacia = horizontalHacia(position(), v.position());
+            if (hacia.dot(frente) < 0.2) {
+                continue;
+            }
+            if (quemar(nivel, v, NovilisDanos.HOJA, dano(DANO_HOJA), 0, this)) {
+                v.setDeltaMovement(hacia.x * 0.6, 0.95, hacia.z * 0.6);
                 v.hurtMarked = true;
             }
-            if (v.isAlive()) {
-                QuemaduraEffect.poner(v, 3);
-                v.igniteForSeconds(6.0F);
-            }
         }
-        quitarFuentes(nivel);
-        ponerGrito(nivel, true);
-        ponerEstado(GRITO, NovilisGeometria.DURACION_GRITO);
+        Vec3 c = position().add(frente.scale(6.0)).add(0, 5.0, 0);
+        nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, c.x, c.y, c.z, 30, 1.5, 3.0, 1.5, 0.3);
     }
 
-    private void quitarFuentes(ServerLevel nivel) {
-        for (int i = 0; i < NUM_FUENTES; i++) {
-            if (fuentesSolares[i] != null) {
-                fuentesSolares[i].desmontar(nivel);
-                fuentesSolares[i] = null;
+    // ------------------------------------------------------------------
+    //  Furia Infernal (08-10-2026): se agacha con la espada a dos manos,
+    //  elige a uno y el sello marca donde va a caer; salta, cae clavando la
+    //  espada, el suelo se abre en tres grietas que escupen lava y fuego, y al
+    //  arrancarla todo revienta
+    // ------------------------------------------------------------------
+
+    private void tickInfernal(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        LivingEntity p = presa != null && presa.isAlive() ? presa : objetivo;
+        if (t < INFERNAL_MARCA) {
+            if (p != null) {
+                girarHacia(p.position(), 20.0F);
+                destinoSalto = p.position();
             }
+            return;
         }
-        carga = 0.0F;
-        entityData.set(DATA_CARGA, 0.0F);
-        cortarSonido(nivel, AtalayaSonidos.NOVILIS_CARGA);
+        if (t == INFERNAL_MARCA) {
+            // Queda fijo: el sello en el suelo y ya no le sigue.
+            if (destinoSalto == null) {
+                destinoSalto = position().add(frente().scale(12.0));
+            }
+            destinoSalto = sueloBajo(nivel, destinoSalto);
+            int dura = Math.max(1, NovilisGeometria.INFERNAL_ATERRIZA - INFERNAL_MARCA);
+            SelloSolEntity.poner(nivel, this, destinoSalto, RADIO_INFERNAL, dura, SelloSolEntity.AVISO_DIOS, 0.0F,
+                    tieneFuria() ? 5 : fase());
+            sonido(AtalayaSonidos.NOVILIS_CASTIGO_AVISO, 5.0F);
+        }
+        if (destinoSalto != null && ta() < NovilisGeometria.INFERNAL_DESPEGA) {
+            girarHacia(destinoSalto, 30.0F);
+        } else {
+            fijarRumbo(yBodyRot);
+        }
+        if (cruza(NovilisGeometria.INFERNAL_DESPEGA) && destinoSalto != null) {
+            saltar(nivel);
+        }
+        if (cruza(NovilisGeometria.INFERNAL_ATERRIZA)) {
+            saltando = false;
+            setDeltaMovement(0, Math.min(0, getDeltaMovement().y), 0);
+            aterrizarInfernal(nivel);
+        }
+        if (cruza(NovilisGeometria.INFERNAL_EXPLOTA)) {
+            explotarInfernal(nivel);
+        }
     }
 
-    void alGolpearFuente(int i, int golpes) {
-        int v = entityData.get(DATA_GOLPES_FUENTES) & ~(15 << (i * 4));
-        entityData.set(DATA_GOLPES_FUENTES, v | (Math.min(GOLPES, golpes) << (i * 4)));
+    /** Una parabola que sube ALTURA_SALTO y cae justo al acabar el vuelo de la animacion, con la punta en el sello. */
+    private void saltar(ServerLevel nivel) {
+        double vuelo = Math.max(6.0, (NovilisGeometria.INFERNAL_ATERRIZA - NovilisGeometria.INFERNAL_DESPEGA) / ritmoEstado);
+        Vec3 punta = puntoMundo(NovilisGeometria.PUNTA_INFERNAL, Vec3.ZERO, yBodyRot);
+        Vec3 meta = new Vec3(destinoSalto.x - punta.x, destinoSalto.y, destinoSalto.z - punta.z);
+        gravedadSalto = Math.max(0.08, 8.0 * ALTURA_SALTO / (vuelo * vuelo));
+        double vy = 0.5 * gravedadSalto * vuelo + (meta.y - getY()) / vuelo;
+        setDeltaMovement((meta.x - getX()) / vuelo, vy, (meta.z - getZ()) / vuelo);
+        saltando = true;
+        sonido(AtalayaSonidos.NOVILIS_INFERNAL_SALTO, 7.0F);
+        golpeSuelo(nivel, position(), 1.2F, 8.0F, 20);
+    }
+
+    /** Cae clavando la espada: el golpe alrededor de la punta y tres grietas que se abren. */
+    private void aterrizarInfernal(ServerLevel nivel) {
+        Vec3 punta = puntoMundo(NovilisGeometria.PUNTA_INFERNAL);
+        Vec3 c = new Vec3(punta.x, getY(), punta.z);
+        golpeInfernal = c;
+        rumboInfernal = yBodyRot;
+        sonido(AtalayaSonidos.NOVILIS_INFERNAL_GOLPE, 9.0F);
+        sonido(AtalayaSonidos.NOVILIS_GRIETA, 6.0F);
+        golpeSuelo(nivel, c, 3.2F, 22.0F, 60);
+        for (LivingEntity v : presas(nivel, 40.0)) {
+            double d = horizontal(c, v.position());
+            if (d > RADIO_INFERNAL + v.getBbWidth() * 0.5 || Math.abs(v.getY() - c.y) > 4.0) {
+                continue;
+            }
+            if (quemar(nivel, v, NovilisDanos.INFERNAL, dano(DANO_INFERNAL), 1, this)) {
+                Vec3 fuera = horizontalHacia(c, v.position());
+                v.setDeltaMovement(fuera.x * 1.4, 0.7, fuera.z * 1.4);
+                v.hurtMarked = true;
+            }
+        }
+        int dura = Math.max(8, (int) Math.ceil((NovilisGeometria.INFERNAL_EXPLOTA - NovilisGeometria.INFERNAL_ATERRIZA) / ritmoEstado));
+        int color = tieneFuria() ? 5 : fase();
+        for (int k = -1; k <= 1; k++) {
+            GrietaNovilisEntity.linea(nivel, this, c, rumboInfernal + k * 120.0F, GRIETA_LARGO, 6, dura, dano(DANO_GEISER), color);
+        }
+    }
+
+    /** Arranca la espada y todo revienta: en el centro y en la punta de cada grieta. */
+    private void explotarInfernal(ServerLevel nivel) {
+        Vec3 c = golpeInfernal != null ? golpeInfernal : position();
+        sonido(AtalayaSonidos.NOVILIS_INFERNAL_EXPLOTA, 10.0F);
+        explosionInfernal(nivel, c, RADIO_EXPLOSION_INFERNAL, 1.0F);
+        golpeSuelo(nivel, c, 3.6F, 30.0F, 50);
+        for (int k = -1; k <= 1; k++) {
+            float b = (rumboInfernal + k * 120.0F) * Mth.DEG_TO_RAD;
+            Vec3 fin = c.add(-Mth.sin(b) * GRIETA_LARGO, 0, Mth.cos(b) * GRIETA_LARGO);
+            explosionInfernal(nivel, sueloBajo(nivel, fin), 4.5F, 0.7F);
+        }
+    }
+
+    private void explosionInfernal(ServerLevel nivel, Vec3 c, float radio, float k) {
+        nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, c.x, c.y + 1.5, c.z, (int) (radio * 10), radio * 0.4, 1.5,
+                radio * 0.4, 0.3);
+        nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, c.x, c.y + 1.5, c.z, (int) (radio * 6), radio * 0.3, 1.2,
+                radio * 0.3, 0.6);
+        nivel.sendParticles(AtalayaParticulas.NOVILIS_HUMO, true, true, c.x, c.y + 2.0, c.z, (int) (radio * 3), radio * 0.3, 1.0,
+                radio * 0.3, 0.04);
+        nivel.sendParticles(AtalayaParticulas.NOVILIS_ONDA, true, true, c.x, c.y + 0.12, c.z, 0, 2.0, radio * 2.2, 0.0, 1.0);
+        for (LivingEntity v : presas(nivel, 48.0)) {
+            double d = horizontal(c, v.position());
+            if (d > radio + v.getBbWidth() * 0.5 || v.getY() - c.y > 6.0 || v.getY() - c.y < -3.0) {
+                continue;
+            }
+            if (quemar(nivel, v, NovilisDanos.INFERNAL, dano(DANO_EXPLOSION_INFERNAL) * k, 2, this)) {
+                Vec3 fuera = horizontalHacia(c, v.position());
+                v.setDeltaMovement(fuera.x * 1.8 * k, 0.9, fuera.z * 1.8 * k);
+                v.hurtMarked = true;
+                v.igniteForSeconds(5.0F);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  Mar de Llamas (08-10-2026): alza la espada a dos manos y la hunde de
+    //  rodilla; el suelo se raja por toda la arena. Cada 4,5 s se raja otra vez
+    //  (una boca bajo cada uno y otras sueltas): primero brilla la grieta y,
+    //  1,5 s despues, sale el fuego, que se queda hasta que acaba el Mar (15 s).
+    //  Corre aparte del estado: mientras, el sigue peleando
+    // ------------------------------------------------------------------
+
+    private void tickMarEstado(ServerLevel nivel) {
+        fijarRumbo(yBodyRot);
+        if (cruza(NovilisGeometria.MAR_CLAVA)) {
+            empezarMar(nivel);
+        }
+    }
+
+    private void empezarMar(ServerLevel nivel) {
+        acabarMar(nivel);
+        marCampo = 0;
+        Vec3 p = puntoMundo(NovilisGeometria.PUNTA_MAR);
+        sonido(AtalayaSonidos.NOVILIS_CASTIGO_CLAVA, 8.0F);
+        sonido(AtalayaSonidos.NOVILIS_MAR, 10.0F);
+        golpeSuelo(nivel, new Vec3(p.x, getY(), p.z), 3.0F, 40.0F, 40);
+        olaMar(nivel);
+    }
+
+    /** El Mar corre aparte del estado: cada MAR_OLA ticks, otra tanda de bocas. */
+    private void tickMar(ServerLevel nivel) {
+        if (marCampo < 0) {
+            return;
+        }
+        marCampo++;
+        bocas.removeIf(Entity::isRemoved);
+        if (marCampo % MAR_OLA == 0 && marCampo < MAR_DURA - MAR_AVISO - 20) {
+            olaMar(nivel);
+        }
+        if (marCampo >= MAR_DURA + GrietaNovilisEntity.APAGA) {
+            marCampo = -1;
+            bocas.clear();
+        }
+    }
+
+    /** Una tanda: una boca bajo cada uno (hasta MAR_JUGADORES) y otras sueltas por la arena. */
+    private void olaMar(ServerLevel nivel) {
+        int dura = Math.max(MAR_AVISO + 20, MAR_DURA - marCampo);
+        int color = tieneFuria() ? 5 : fase();
+        float d = dano(DANO_MAR);
+        List<LivingEntity> todos = presas(nivel, 56.0);
+        Collections.shuffle(todos, new java.util.Random(random.nextLong()));
+        for (int i = 0; i < Math.min(MAR_JUGADORES, todos.size()); i++) {
+            bocas.add(GrietaNovilisEntity.boca(nivel, this, sueloBajo(nivel, todos.get(i).position()), MAR_RADIO, MAR_AVISO, dura,
+                    d, color));
+        }
+        Vec3 c = Vec3.atBottomCenterOf(centro != null ? centro : blockPosition());
+        for (int k = 0; k < MAR_SUELTAS; k++) {
+            double a = random.nextDouble() * Math.PI * 2;
+            double r = 8.0 + random.nextDouble() * 30.0;
+            Vec3 p = new Vec3(c.x + Math.cos(a) * r, c.y, c.z + Math.sin(a) * r);
+            if (horizontal(p, position()) < 7.0) {
+                continue;
+            }
+            bocas.add(GrietaNovilisEntity.boca(nivel, this, sueloBajo(nivel, p), MAR_RADIO, MAR_AVISO, dura, d, color));
+        }
+        sonido(AtalayaSonidos.NOVILIS_GRIETA, 8.0F);
+    }
+
+    private void acabarMar(ServerLevel nivel) {
+        marCampo = -1;
+        for (GrietaNovilisEntity b : bocas) {
+            b.discard();
+        }
+        bocas.clear();
+    }
+
+    /**
+     * En el salto de la Furia Infernal vuela con su propia gravedad; en la
+     * embestida va en linea recta a su velocidad (sube escalones de dos bloques
+     * y cae si hay hueco); en el resto, como cualquiera.
+     */
+    @Override
+    public void travel(Vec3 entrada) {
+        if (saltando) {
+            Vec3 v = getDeltaMovement();
+            move(MoverType.SELF, v);
+            setDeltaMovement(v.x, v.y - gravedadSalto, v.z);
+            return;
+        }
+        if (velCarga > 0.0) {
+            double vy = onGround() ? -0.08 : getDeltaMovement().y - 0.08;
+            Vec3 antes = position();
+            move(MoverType.SELF, new Vec3(dirCarga.x * velCarga, vy, dirCarga.z * velCarga));
+            avanceCarga = horizontal(antes, position());
+            setDeltaMovement(0, onGround() ? 0 : vy * 0.98, 0);
+            return;
+        }
+        super.travel(entrada);
     }
 
     // ------------------------------------------------------------------
@@ -1816,16 +2127,17 @@ public class NovilisEntity extends Monster {
     private void tickGrito(ServerLevel nivel) {
         fijarRumbo(yBodyRot);
         if (cruza(NovilisGeometria.GRITO_RUGE)) {
-            sonido(tieneGrito() ? AtalayaSonidos.NOVILIS_GRITO : AtalayaSonidos.NOVILIS_RUGIDO, 8.0F);
+            sonido(AtalayaSonidos.NOVILIS_GRITO, 8.0F);
             golpeSuelo(nivel, position(), 2.4F, 16.0F, 0);
             anillo(nivel, tieneFuria() ? AtalayaParticulas.NOVILIS_AZUL : AtalayaParticulas.NOVILIS_CARMESI, 6.0, 40, 0.5);
         }
     }
 
-    /** Derribado: cae de rodilla, con dano doble; la Furia y el Grito se le van. */
+    /** Derribado: cae de rodilla, con dano doble; la Furia se le va. */
     private void aturdir(ServerLevel nivel, int ticks) {
         ponerFuria(nivel, false);
-        ponerGrito(nivel, false);
+        velCarga = 0.0;
+        saltando = false;
         ponerEstado(ATURDIDO, ticks);
         sonido(AtalayaSonidos.NOVILIS_ATURDIDO, 6.0F);
     }
@@ -1853,18 +2165,6 @@ public class NovilisEntity extends Monster {
         }
     }
 
-    /** El Grito de guerra (Supernova): con el, el Dios de la Guerra mata a todos los que pille. */
-    private void ponerGrito(ServerLevel nivel, boolean si) {
-        if (tieneGrito() == si) {
-            return;
-        }
-        entityData.set(DATA_GRITO, si);
-        if (si) {
-            Vec3 c = puntoMundo(NovilisGeometria.PECHO);
-            nivel.sendParticles(AtalayaParticulas.NOVILIS_CARMESI, true, true, c.x, c.y, c.z, 70, 3.0, 5.0, 3.0, 0.2);
-        }
-    }
-
     /** Pasa de fase: la armadura se raja mas y las grietas cambian de color; se tambalea. */
     private void alCambiarFase(ServerLevel nivel, int nueva) {
         entityData.set(DATA_FASE, nueva);
@@ -1880,9 +2180,8 @@ public class NovilisEntity extends Monster {
         if (e == OFRENDA) {
             soltarCaptivo(nivel, false);
         }
-        if (e == FUENTES) {
-            quitarFuentes(nivel);
-        }
+        velCarga = 0.0;
+        saltando = false;
         entityData.set(DATA_MARCA, -1);
         presa = null;
         if (e != TAMBALEO) {
@@ -1894,9 +2193,10 @@ public class NovilisEntity extends Monster {
             enfTrompetas = Math.min(enfTrompetas, 500);
             enfSombra = Math.min(enfSombra, 900);
         } else if (nueva == 3) {
-            enfFuentes = Math.min(enfFuentes, 600);
+            enfInfernal = Math.min(enfInfernal, 200);
             enfOfrenda = Math.min(enfOfrenda, 300);
         } else if (nueva == 4) {
+            enfMar = Math.min(enfMar, 240);
             enfDios = Math.min(enfDios, 200);
         }
     }
@@ -1924,9 +2224,15 @@ public class NovilisEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (e == DESPERTAR || escena > 0 || e == OFRENDA || (e == FUENTES && ta() >= NovilisGeometria.FUENTES_CLAVA)) {
-            // Mientras ofrece a alguien a su sol o carga la Supernova no recibe dano:
-            // lo que sirve es la secuencia de teclas o romper las fuentes.
+        if (e == DESPERTAR || escena > 0 || e == OFRENDA) {
+            // Mientras ofrece a alguien a su sol no recibe dano: lo que sirve es la
+            // secuencia de teclas.
+            avisoInmune(nivel, causante);
+            return false;
+        }
+        if (e == TROMPETAS || melodia >= 0) {
+            // Las Trompetas: mientras alza a los angeles y suena su melodia no se le
+            // puede pegar (Juan, 08-10-2026): lo que sirve es romper las estatuas.
             avisoInmune(nivel, causante);
             return false;
         }
@@ -1997,12 +2303,12 @@ public class NovilisEntity extends Monster {
         super.remove(motivo);
     }
 
-    /** Suelta al atrapado y quita estatuas, fuentes y la melodia. */
+    /** Suelta al atrapado y quita estatuas, la melodia, el sol del cielo y las bocas de fuego. */
     private void limpiar(ServerLevel nivel) {
         if (captivo != null) {
             soltarCaptivo(nivel, false);
         }
-        quitarFuentes(nivel);
+        acabarMar(nivel);
         acabarMelodia(nivel, false);
         acabarSombra(nivel, false, false);
         entityData.set(DATA_MARCA, -1);
@@ -2253,7 +2559,6 @@ public class NovilisEntity extends Monster {
         salida.putInt("fase", fase());
         salida.putBoolean("furia", tieneFuria());
         salida.putInt("furia_queda", furiaQueda);
-        salida.putBoolean("grito", tieneGrito());
     }
 
     @Override
@@ -2266,7 +2571,6 @@ public class NovilisEntity extends Monster {
         entityData.set(DATA_FURIA, entrada.getBooleanOr("furia", false));
         furiaQueda = tieneFuria() ? entrada.getIntOr("furia_queda", PresasJefe.FURIA_TICKS) : 0;
         entityData.set(DATA_FURIA_FIN, furiaQueda > 0 ? level().getGameTime() + furiaQueda : 0L);
-        entityData.set(DATA_GRITO, entrada.getBooleanOr("grito", false));
         ponerEstado(entrada.getBooleanOr("dormido", true) ? DORMIDO : LIBRE, 0);
     }
 }

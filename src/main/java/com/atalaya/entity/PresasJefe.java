@@ -41,18 +41,6 @@ public final class PresasJefe {
      */
     public static final int RESPIRO_PRESENTACION = ESCENA_QUIETO + 30;
 
-    /**
-     * La alerta al empezar un ataque peligroso (testers, 07-10-2026: "un sonido
-     * especial para los que no alcancen a ver"): sale del jefe, asi se oye tambien
-     * de donde viene, y es la misma en todos (se aprende una vez). Los que matan
-     * llevan la suya, mas grave. "tono" la hace un poco mas aguda o grave por jefe.
-     */
-    public static void alerta(net.minecraft.world.entity.LivingEntity jefe, boolean mortal, float tono) {
-        jefe.level().playSound(null, jefe.getX(), jefe.getEyeY(), jefe.getZ(),
-                mortal ? com.atalaya.sonido.AtalayaSonidos.JEFE_ALERTA_MORTAL : com.atalaya.sonido.AtalayaSonidos.JEFE_ALERTA,
-                net.minecraft.sounds.SoundSource.HOSTILE, mortal ? 8.0F : 5.0F, tono);
-    }
-
 
     /**
      * Lo que dura la Furia de los cuatro jefes: 30 s, y mientras dura es inmune
@@ -65,7 +53,7 @@ public final class PresasJefe {
     public static void avisarFuria(ServerLevel nivel, LivingEntity jefe, boolean empieza) {
         net.minecraft.network.chat.Component texto = net.minecraft.network.chat.Component
                 .translatable(empieza ? "hud.atalaya.jefe.furia" : "hud.atalaya.jefe.furia_fin")
-                .withStyle(empieza ? net.minecraft.ChatFormatting.RED : net.minecraft.ChatFormatting.GOLD);
+                .withStyle(empieza ? net.minecraft.ChatFormatting.GOLD : net.minecraft.ChatFormatting.YELLOW);
         for (Player p : nivel.getEntitiesOfClass(Player.class, jefe.getBoundingBox().inflate(64))) {
             if (!p.isCreative() && !p.isSpectator() && p.isAlive()) {
                 p.sendOverlayMessage(texto);

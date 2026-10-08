@@ -53,4 +53,10 @@ public class RajangRenderState extends LivingEntityRenderState {
     public boolean tumbaAnillo;
     /** El despertar: ticks desde que empezo (negativo: no esta despertando). Le enciende los ojos y la cresta. */
     public float tiempoDespertar = -1.0F;
+    /** El Idolo de Oro en la cabeza de quien lo lleva: donde, respecto a sus pies (null si nadie lo lleva). */
+    public net.minecraft.world.phys.@org.jspecify.annotations.Nullable Vec3 idoloCabeza;
+    /** Hacia donde mira el portador (grados): el idolo mira igual. */
+    public float idoloRumbo;
+    public final net.minecraft.client.renderer.item.ItemStackRenderState idolo =
+            new net.minecraft.client.renderer.item.ItemStackRenderState();
 }

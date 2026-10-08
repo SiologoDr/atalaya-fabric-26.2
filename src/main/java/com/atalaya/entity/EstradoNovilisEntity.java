@@ -19,10 +19,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * Un escalon del estrado de un angel de las Trompetas: una losa de marmol con
  * filo de oro que se pisa como el suelo (es una entidad con su caja de choque,
- * como las piedras del Sello de Rajang). Cada angel esta sobre dos: la de abajo,
- * ancha y de un bloque, y la de arriba, mas estrecha y de dos. Desde el suelo no
- * se llega a golpear al angel: hay que subirse, y cada 5 s su pulso de fuego tira
- * abajo a quien este encima (salvo que salte a tiempo).
+ * como las piedras del Sello de Rajang). Cada angel esta sobre cinco, de uno a
+ * cinco bloques de alto y cada uno mas estrecho (EstatuaNovilisEntity.ESTRADO_ANCHOS):
+ * hay que subirlos todos para pegarle, y cada 5 s su pulso de fuego baja por
+ * todos y expulsa dos o tres bloques a quien este subiendo (salvo que salte a tiempo).
  *
  * Sale del suelo a la vez que el angel y se va con el al acabar la melodia. No
  * se guarda con el mundo.

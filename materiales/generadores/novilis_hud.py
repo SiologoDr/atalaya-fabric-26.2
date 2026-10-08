@@ -24,10 +24,11 @@ Escribe en textures/gui (todas con el prefijo novilis_):
   barra_nombre.png         NOVILIS (46x10)
   barra_fase_1..4.png, barra_furia.png, barra_libre.png
                            los rotulos, en gris para tenirlos (64x10)
-  barra_cuerno.png         el cuerno del Grito de guerra (16x15)
-  barra_fuente*.png        la fuente solar: entera, rajada_1..3 y rota (11x18)
-  barra_carga_losa.png, barra_carga.png, barra_estallido.png
-                           la carga del sol (134x7, 132x5) y el estallido (13x13)
+  barra_carga_losa.png, barra_carga.png
+                           la losa y el relleno del sol de la Sombra del Escudo (134x7, 132x5)
+  (el cuerno del Grito de guerra, las fuentes solares y el estallido ya no
+  salen: las Fuentes y el Grito se quitaron el 08-10-2026; sus dibujos siguen
+  aqui por si vuelven)
   barra_estatua*.png       el angel: entero, rajada_1..2 y rota (14x16)
   barra_melodia.png, barra_melodia_luz.png
                            el pentagrama apagado y encendido (116x13)
@@ -1405,16 +1406,9 @@ def escribir():
     for clave, texto in ROTULOS.items():
         nombre = f'novilis_barra_fase_{clave}' if isinstance(clave, int) else f'novilis_barra_{clave}'
         pieza(nombre, palabra(texto, gris, ancho=64, derecha=True))
-    im, q = lienzo(16, 15)
-    cuerno(q, 0, 0)
-    pieza('novilis_barra_cuerno', im)
-    # -- las fuentes
-    for nombre, filas in (('fuente', FUENTE), ('fuente_rajada_1', FUENTE_RAJADA_1), ('fuente_rajada_2', FUENTE_RAJADA_2),
-                          ('fuente_rajada_3', FUENTE_RAJADA_3), ('fuente_rota', FUENTE_ROTA)):
-        pieza('novilis_barra_' + nombre, dibujo(filas, PAL_FUENTE))
+    # -- la losa y el relleno de la carga: los usa el sol de la Sombra del Escudo
     pieza('novilis_barra_carga_losa', carga_losa())
     pieza('novilis_barra_carga', carga_relleno())
-    pieza('novilis_barra_estallido', estallido())
     # -- las trompetas
     pieza('novilis_barra_estatua', angel())
     pieza('novilis_barra_estatua_rajada_1', angel(grietas=1))
@@ -1506,7 +1500,7 @@ ALTO = 56
 COLOR_ROTULO = {1: 0xFF8A1E, 2: 0xFFC23A, 3: 0xFFF0B0, 4: 0xFF2A3A, 'furia': 0x5AD8FF, 'libre': 0xFFD77A}
 
 
-def montar(clave, vida, rastro=None, grito=False, fuentes=None, carga=0.0, estatuas=None, melodia_k=0.0,
+def montar(clave, vida, rastro=None, estatuas=None, melodia_k=0.0,
            ofrenda=None, cautivo_=True):
     R = rampa(clave)
     im = Image.new('RGBA', (NW, ALTO), (0, 0, 0, 0))
@@ -1535,23 +1529,10 @@ def montar(clave, vida, rastro=None, grito=False, fuentes=None, carga=0.0, estat
     pegar(im, P('novilis_barra_nombre'), NOMBRE_X, 9)
     rot = f'novilis_barra_fase_{clave}' if isinstance(clave, int) else f'novilis_barra_{clave}'
     pegar(im, P(rot), ROTULO_X, 8, COLOR_ROTULO[clave])
-    if grito:
-        pegar(im, P('novilis_barra_cuerno'), ROTULO_X + 64 - (ancho_texto(ROTULOS[clave]) - 1) - 16, 2)
-    if fuentes is not None:
-        for k, golpes in enumerate(fuentes):
-            n = ('fuente_rota' if golpes >= 10 else 'fuente' if golpes <= 0
-                 else f'fuente_rajada_{1 + min(2, (golpes - 1) * 3 // 9)}')
-            pegar(im, P('novilis_barra_' + n), HX0 + k * 13, 36)
-        pegar(im, P('novilis_barra_carga_losa'), CARGA_X, CARGA_Y)
-        n = redondo((CARGA_ANCHO - 2) * carga)
-        pegar(im, P('novilis_barra_carga'), CARGA_X + 1, CARGA_Y + 1, ancho=n)
-        if n > 1:
-            rect(im, CARGA_X + n, CARGA_Y + 1, CARGA_X + n + 1, CARGA_Y + 6, hexc('fff4e0'))
-        pegar(im, P('novilis_barra_estallido'), CARGA_X + CARGA_ANCHO - 1, CARGA_Y - 3)
     if estatuas is not None:
         for k, golpes in enumerate(estatuas):
-            n = ('estatua_rota' if golpes >= 10 else 'estatua' if golpes <= 0
-                 else f'estatua_rajada_{1 + min(1, (golpes - 1) * 2 // 9)}')
+            n = ('estatua_rota' if golpes >= 15 else 'estatua' if golpes <= 0
+                 else f'estatua_rajada_{1 + min(1, (golpes - 1) * 2 // 14)}')
             pegar(im, P('novilis_barra_' + n), HX0 - 2 + k * 15, 36)
         pegar(im, P('novilis_barra_melodia'), MELODIA_X, MELODIA_Y)
         sonadas = int(melodia_k * 16 + 1e-4)
@@ -1651,13 +1632,11 @@ ESTADOS = [
     ('fase1', lambda: montar(1, 0.85, 0.91)),
     ('fase2', lambda: montar(2, 0.62, 0.69)),
     ('fase3', lambda: montar(3, 0.38, 0.45)),
-    ('fase4', lambda: montar(4, 0.15, 0.22, grito=True)),
-    ('furia', lambda: montar('furia', 0.3, 0.36, grito=True)),
+    ('fase4', lambda: montar(4, 0.15, 0.22)),
+    ('furia', lambda: montar('furia', 0.3, 0.36)),
     ('libre', lambda: montar('libre', 0.0)),
-    ('fuentes', lambda: montar(3, 0.38, 0.44, fuentes=(10, 5, 0), carga=0.7)),
-    ('fuentes_pasos', lambda: montar(3, 0.38, None, fuentes=(2, 8, 9), carga=0.92)),
-    ('trompetas', lambda: montar(2, 0.62, None, estatuas=(10, 3, 7, 0), melodia_k=0.6)),
-    ('trompetas_furia', lambda: montar(2, 0.55, None, estatuas=(10, 10, 6, 1), melodia_k=0.85)),
+    ('trompetas', lambda: montar(2, 0.62, None, estatuas=(15, 4, 10, 0), melodia_k=0.6)),
+    ('trompetas_furia', lambda: montar(2, 0.55, None, estatuas=(15, 15, 9, 1), melodia_k=0.85)),
     ('ofrenda', lambda: montar(1, 0.8, None, ofrenda=0.45)),
 ]
 for nombre, hacer in ESTADOS:
@@ -1691,8 +1670,7 @@ for n in ('novilis_qte_letras_grandes', 'novilis_qte_letras_pequenas'):
 
 # Las piezas pequenas de debajo y la quemadura, a x8 sobre pizarra
 PIZARRA = (0x2a, 0x2a, 0x2e, 255)
-fila = ['novilis_barra_fuente', 'novilis_barra_fuente_rajada_1', 'novilis_barra_fuente_rajada_2',
-        'novilis_barra_fuente_rajada_3', 'novilis_barra_fuente_rota', 'novilis_barra_estatua',
+fila = ['novilis_barra_estatua',
         'novilis_barra_estatua_rajada_1', 'novilis_barra_estatua_rajada_2', 'novilis_barra_estatua_rota',
         'novilis_quemadura_1', 'novilis_quemadura_2', 'novilis_quemadura_3', 'quemadura']
 hoja = Image.new('RGBA', (4 + sum(P(n).width + 4 for n in fila), 26), PIZARRA)

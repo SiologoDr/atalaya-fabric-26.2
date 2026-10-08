@@ -80,17 +80,45 @@ def sumar(base, extra):
     return out
 
 
-def ik(base, izq=None, der=None, espada=None, giro_filo=0.0):
-    """Coloca los punos (px de modelo) y apunta la espada."""
+# Lo que no llega: con NOVILIS_IK_SIGUE=1 se apunta y se sigue (para corregir
+# todas las poses de una vez); si no, se para en la primera.
+NO_LLEGA = []
+# La cinematica inversa es lo lento (minutos): con NOVILIS_CACHE_IK=<archivo>
+# se guarda cada solucion y la siguiente vez sale al momento.
+_CACHE_IK = os.environ.get('NOVILIS_CACHE_IK')
+_IK = {}
+if _CACHE_IK and os.path.exists(_CACHE_IK):
+    import pickle
+    with open(_CACHE_IK, 'rb') as fh:
+        _IK = pickle.load(fh)
+
+
+def _guardar_cache_ik():
+    if _CACHE_IK:
+        import pickle
+        with open(_CACHE_IK, 'wb') as fh:
+            pickle.dump(_IK, fh)
+
+
+def ik(base, izq=None, der=None, espada=None, giro_filo=0.0, codo_der=None):
+    """Coloca los punos (px de modelo) y apunta la espada. codo_der: hacia donde
+    sacar el codo derecho (fm.alcanzar), cuando el puno queda cerca del hombro."""
+    clave = repr((sorted((k, sorted(v.items())) for k, v in base.items()), izq, der, espada, giro_filo)
+                 + ((codo_der,) if codo_der is not None else ()))
+    if clave in _IK:
+        return copy.deepcopy(_IK[clave])
     p = copy.deepcopy(base)
-    if der is not None:
-        p, err = fm.alcanzar(p, 'der', der)
-        assert err < 6.0, ('puno der no llega', der, err)
-    if izq is not None:
-        p, err = fm.alcanzar(p, 'izq', izq)
-        assert err < 6.0, ('puno izq no llega', izq, err)
+    for lado, objetivo in (('der', der), ('izq', izq)):
+        if objetivo is None:
+            continue
+        p, err = fm.alcanzar(p, lado, objetivo, codo=codo_der if lado == 'der' else None)
+        if err >= 6.0:
+            NO_LLEGA.append((lado, objetivo, round(err, 1), tuple(round(float(v), 1) for v in fm.mano(p, lado))))
+            assert os.environ.get('NOVILIS_IK_SIGUE'), ('puno ' + lado + ' no llega', objetivo, err)
     if espada is not None:
         p = fm.apuntar_espada(p, espada, giro_filo)
+    _IK[clave] = copy.deepcopy(p)
+    _guardar_cache_ik()
     return p
 
 
@@ -98,7 +126,13 @@ def ik(base, izq=None, der=None, espada=None, giro_filo=0.0):
 #  La postura de reposo (horneada en la malla)
 # ----------------------------------------------------------------------
 # Hombros en (+-21, -86, 0); de hombro a puno caben 49 px.
-GUARDIA = ik({}, izq=(26, -44, -6), der=(-25, -46, -20), espada=(-0.14, 0.55, -0.82))
+# La guardia (Juan, 08-10-2026: "como sostiene la espada no parece de una
+# persona"): antes llevaba la espada por delante, tiesa como una lanza; luego,
+# caida a su derecha con la punta hacia atras, y tampoco ("la sostiene para
+# atras, no para adelante, eso se ve raro"). Ahora, la guardia baja: el puno a
+# la altura de la cadera, un poco adelantado, y la hoja por delante, con la
+# punta hacia el suelo a unos pasos de el; el brazo suelto, sin tension.
+GUARDIA = ik({}, izq=(25, -43, -8), der=(-26, -46, -12), espada=(-0.2, 0.6, -0.77))
 HORNEADAS = ['brazo_izq', 'antebrazo_izq', 'brazo_der', 'antebrazo_der', 'agarre']
 # De pie: la pelvis 2,5 px mas baja (rodillas algo dobladas), el pie izquierdo un
 # poco adelantado y el derecho atras, las puntas un poco hacia fuera.
@@ -158,8 +192,14 @@ ARRODILLADO_CLAVA = ik(mezcla(RODILLA, {'torso': r(12), 'cabeza': r(10)}), der=(
                        espada=(0, 1, 0.05))
 ARRODILLADO_SOL = ik(mezcla(RODILLA, {'torso': r(8), 'cabeza': r(-30)}), der=(0, -20, -30), izq=(0, -30, -30),
                      espada=(0, 1, 0.05))
-DORMIDO = ik(mezcla(RODILLA, {'torso': r(18), 'cuello': r(8), 'cabeza': r(26)}), der=(0, -14, -30), izq=(0, -24, -30),
-             espada=(0, 1, 0.05))
+# Dormido (08-10-2026, Juan: "su espada deberia estar a un lado y el la agarra"):
+# de rodilla, con las dos manos sobre la rodilla de delante y la cabeza gacha;
+# la espada, clavada a su derecha (la suelta, donde la deja CLAVA_LADO). Al
+# despertar la busca con la mirada, la agarra, se apoya en ella para ponerse en
+# pie y la arranca.
+PUNO_CLAVADO = (-34, -48, -14)              # el puno en la empunadura de la espada clavada (el de CLAVA_LADO)
+HOJA_CLAVADA = (-0.12, 1, -0.08)
+DORMIDO = ik(mezcla(RODILLA, {'torso': r(18), 'cuello': r(8), 'cabeza': r(26)}), der=(4, -14, -30), izq=(12, -16, -28))
 GRITO = ik(mezcla({'cabeza': r(-30), 'torso': r(-12), 'pelvis': P(0, 4, 0)}, CAPA_VIENTO,
                   pies(izq=(14, -10), der=(-14, 10))),
            izq=(42, -52, -14), der=(-42, -52, -14), espada=(-0.5, 0.3, -0.8))
@@ -318,7 +358,7 @@ T_REPOSO = 3.2
 
 def pose_reposo(s):
     a = 2 * math.pi * s / T_REPOSO
-    return mezcla(G, {'torso': r(-1.6 * math.sin(a), 1.2 * math.sin(a * 0.5), 0.6 * math.sin(a * 0.5)),
+    return mezcla(G, {'torso': r(3.0 - 1.6 * math.sin(a), 1.2 * math.sin(a * 0.5), 0.6 * math.sin(a * 0.5)),
                       'cabeza': r(1.2 * math.sin(a + 0.6), -3 * math.sin(a * 0.5 + 0.4)),
                       'pelvis': {'pos': (1.2 * math.sin(a * 0.5), 0.6 * (1 - math.cos(a)), 0), 'rot': (0, 0, -0.8 * math.sin(a * 0.5))},
                       'brazo_der': {'rot': tuple(G['brazo_der']['rot'][i] + (1.8 * math.sin(a + 1.0), 0, 0)[i] for i in range(3))},
@@ -358,23 +398,30 @@ def _pie_andar(fase, lado):
 
 
 def pose_andar(s):
+    # (08-10-2026) Antes iba tieso: los brazos casi quietos, el cuerpo echado
+    # atras y las rodillas siempre dobladas. Ahora el torso va algo adelantado,
+    # la cadera sube al pasar el pie (la pierna de apoyo se estira), los hombros
+    # giran contra la cadera y el brazo libre se balancea contra su pierna; el de
+    # la espada, menos, que pesa.
     f = s / T_ANDAR
     a = 2 * math.pi * f
     pi_ = _pie_andar(f % 1.0, 'izq')
     pd = _pie_andar((f + 0.5) % 1.0, 'der')
-    baja = 1.2 + 1.8 * math.cos(2 * a)            # mas baja con los dos pies en el suelo, arriba al pasar
-    lado = 2.4 * math.sin(a + 0.5)                # hacia el pie que carga
-    giro = 7.0 * math.cos(a)                      # la pelvis gira con la pierna que avanza
+    baja = 0.4 + 2.0 * math.cos(2 * a)            # mas baja con los dos pies en el suelo, arriba al pasar
+    lado = 2.8 * math.sin(a + 0.5)                # hacia el pie que carga
+    giro = 8.0 * math.cos(a)                      # la pelvis gira con la pierna que avanza
     bi = G['brazo_izq']['rot']
     bd = G['brazo_der']['rot']
+    adelante = max(0.0, -math.cos(a))             # el brazo libre por delante: el codo se dobla
     return mezcla(G, {
-        'pelvis': {'pos': (lado, baja, 0), 'rot': (2.0, giro, -2.2 * math.sin(a))},
-        'torso': r(5.0 + 1.5 * math.cos(2 * a), -giro * 1.4, 1.6 * math.sin(a)),
-        'cabeza': r(-3.0 - 1.2 * math.cos(2 * a), giro * 0.5, -1.0 * math.sin(a)),
-        'brazo_izq': {'rot': (bi[0] - 18 * math.cos(a), bi[1], bi[2] + 2 * math.sin(a))},
-        'antebrazo_izq': {'rot': tuple(G['antebrazo_izq']['rot'][i] + (-8 * max(0.0, -math.cos(a)), 0, 0)[i] for i in range(3))},
-        'brazo_der': {'rot': (bd[0] + 7 * math.cos(a), bd[1], bd[2])},
-        'capa_1': r(10), 'capa_2': r(4), 'capa_3': r(4),
+        'pelvis': {'pos': (lado, baja, 0), 'rot': (3.0, giro, -2.6 * math.sin(a))},
+        'torso': r(7.0 + 1.5 * math.cos(2 * a), -giro * 1.6, 2.4 * math.sin(a)),
+        'cabeza': r(-6.0 - 1.2 * math.cos(2 * a), giro * 0.7, -1.4 * math.sin(a)),
+        'brazo_izq': {'rot': (bi[0] - 30 * math.cos(a), bi[1], bi[2] + 3 * math.sin(a))},
+        'antebrazo_izq': {'rot': tuple(G['antebrazo_izq']['rot'][i] + (-6 - 16 * adelante, 0, 0)[i] for i in range(3))},
+        'brazo_der': {'rot': (bd[0] + 12 * math.cos(a), bd[1], bd[2] - 2 * math.sin(a))},
+        'antebrazo_der': {'rot': tuple(G['antebrazo_der']['rot'][i] + (-4 * max(0.0, math.cos(a)), 0, 0)[i] for i in range(3))},
+        'capa_1': r(12), 'capa_2': r(5), 'capa_3': r(5),
     }, pies(izq=(pi_[0], pi_[1], pi_[3], -6, pi_[2]), der=(pd[0], pd[1], pd[3], 6, pd[2])))
 
 
@@ -384,13 +431,14 @@ anim('ANDAR', T_ANDAR, muestreada(pose_andar, T_ANDAR, 32), loop=True, auto_paso
 # Cada pie apoya solo el 35 % de la vuelta: entre pisada y pisada no toca nadie
 # el suelo (el vuelo). La pelvis se hunde al recibir el peso y sube en el aire;
 # el torso va echado adelante y gira contra la pelvis; el brazo libre bombea y
-# el de la espada la lleva baja y hacia atras, para no clavarla al correr.
+# el de la espada la lleva baja y por delante, con la punta hacia el suelo
+# (como en la guardia), sin rozarlo.
 T_CORRER = 1.1
 ZANCADA_CORRER_PX = 130.0
 APOYO_CORRER = 0.35
-_c_espada = ik(mezcla({'torso': r(14)}), der=(-30, -46, 14), espada=(-0.15, 0.45, 0.88))
-_c_izq_delante = ik(mezcla({'torso': r(14)}), izq=(24, -64, -34))
-_c_izq_atras = ik(mezcla({'torso': r(14)}), izq=(30, -50, 22))
+_c_espada = ik(mezcla({'torso': r(14)}), der=(-28, -46, -6), espada=(-0.25, 0.5, -0.83))
+_c_izq_delante = ik(mezcla({'torso': r(14)}), izq=(22, -70, -36))
+_c_izq_atras = ik(mezcla({'torso': r(14)}), izq=(30, -48, 26))
 
 
 def _pie_correr(fase, lado):
@@ -421,7 +469,7 @@ def pose_correr(s):
     a = 2 * math.pi * f
     pi_ = _pie_correr(f % 1.0, 'izq')
     pd = _pie_correr((f + 0.5) % 1.0, 'der')
-    baja = 5.0 + 4.0 * math.cos(2 * math.pi * (2 * f - APOYO_CORRER))     # lo mas bajo a mitad de cada pisada
+    baja = 2.0 + 3.2 * math.cos(2 * math.pi * (2 * f - APOYO_CORRER))     # lo mas bajo a mitad de cada pisada
     giro = 9.0 * math.cos(a)
     k_brazo = 0.5 + 0.5 * math.cos(a)               # el brazo libre va contra la pierna izquierda
     brazos = _mezcla_rot(_c_izq_atras, _c_izq_delante, k_brazo, ('brazo_izq', 'antebrazo_izq'))
@@ -430,8 +478,8 @@ def pose_correr(s):
     ed['brazo_der'] = {'rot': (bd[0] + 6 * math.cos(a), bd[1], bd[2])}
     return mezcla(G, {
         'pelvis': {'pos': (1.6 * math.sin(a + 0.4), baja, 0), 'rot': (8.0, giro, -2.5 * math.sin(a))},
-        'torso': r(8.0 + 2.0 * math.cos(2 * a), -giro * 1.5, 2.0 * math.sin(a)),
-        'cabeza': r(-14.0 - 2.0 * math.cos(2 * a), giro * 0.6, -1.5 * math.sin(a)),
+        'torso': r(12.0 + 2.0 * math.cos(2 * a), -giro * 1.6, 2.4 * math.sin(a)),
+        'cabeza': r(-16.0 - 2.0 * math.cos(2 * a), giro * 0.7, -1.5 * math.sin(a)),
         'capa_1': r(38), 'capa_2': r(14), 'capa_3': r(14), 'tabardo': r(-18),
     }, brazos, ed, pies(izq=(pi_[0], pi_[1], pi_[3], -4, pi_[2]), der=(pd[0], pd[1], pd[3], 4, pd[2])))
 
@@ -452,16 +500,32 @@ anim('DORMIDO', 6.0, muestreada(lambda s: sumar(DORMIDO, {'torso': r(2.5 * math.
 #   178-190 vuelve a la guardia
 T_DESPERTAR_ABRE = 2.0
 T_DESPERTAR_SE_ALZA = 3.5
+T_DESPERTAR_AGARRA = 3.85           # pone la mano en la empunadura de la espada clavada
+T_DESPERTAR_SACA = 5.75             # la saca del suelo: desde aqui se ve la de la mano (mientras se apoya, la clavada no se mueve)
 T_DESPERTAR_ALZADO = 6.0
 T_DESPERTAR_RUGE = 7.25
 _respira = sumar(DORMIDO, {'torso': r(-4), 'cabeza': r(-3), 'pelvis': P(0, -1, 0)})
 _tiembla = sumar(DORMIDO, {'torso': r(2, 3), 'cabeza': r(4, -4)})
 _mira = sumar(DORMIDO, {'cabeza': r(-40), 'cuello': r(-8), 'torso': r(-8)})
-_mira_lado = sumar(_mira, {'cabeza': r(2, 14)})
-_empuja = ik(mezcla(RODILLA, {'torso': r(26), 'cabeza': r(-24), 'pelvis': P(0, 22, -2)}), der=(0, -16, -30), izq=(0, -26, -30),
-             espada=(0, 1, 0.05))
-_de_pie = ik(mezcla({'pelvis': P(0, 8, -2), 'torso': r(14), 'cabeza': r(-10)},
-                    pies(izq=(11, -22), der=(-11, 10))), der=(-4, -30, -30), izq=(18, -40, -20), espada=(0, 1, 0.1))
+_mira_espada = sumar(_mira, {'cabeza': r(14, 30), 'cuello': r(0, 8)})
+# (08-10-2026, Juan: "arregla el movimiento de mano cuando quiere agarrar la
+# espada") El puno de la empunadura le queda cerca del hombro estando de
+# rodilla: sin decirle nada, el IK sacaba el codo por arriba y el brazo se
+# retorcia de una pose a otra. Ahora el codo va siempre abajo y hacia fuera
+# (CODO_EMPUNA), y la mano sube de la rodilla por fuera, a la altura de la
+# cadera, antes de ir a la empunadura.
+CODO_EMPUNA = (-0.6, 1.0, 0.4)
+_suelta_rodilla = ik(mezcla(RODILLA, {'torso': r(16, 12), 'cuello': r(0, 6), 'cabeza': r(-10, 24)}), der=(-16, -22, -30),
+                     izq=(12, -16, -28), codo_der=CODO_EMPUNA)
+_busca = ik(mezcla(RODILLA, {'torso': r(14, 16), 'cuello': r(0, 8), 'cabeza': r(-8, 26)}), der=(-32, -36, -22), izq=(12, -16, -28),
+            codo_der=CODO_EMPUNA)
+_agarra = ik(mezcla(RODILLA, {'torso': r(12, 18), 'cabeza': r(-12, 22)}), der=PUNO_CLAVADO, izq=(12, -16, -28),
+             espada=HOJA_CLAVADA, codo_der=CODO_EMPUNA)
+_empuja = ik(mezcla(RODILLA, {'torso': r(22, 10), 'cabeza': r(-22, 8), 'pelvis': P(0, 18, -2)}), der=PUNO_CLAVADO,
+             izq=(14, -18, -26), espada=HOJA_CLAVADA, codo_der=CODO_EMPUNA)
+_de_pie = ik(mezcla({'pelvis': P(-2, 7, 0), 'torso': r(8, 8), 'cabeza': r(-12, 4)},
+                    pies(izq=(12, -16), der=(-16, 2, 0, 14))), der=PUNO_CLAVADO, izq=(24, -44, -6), espada=HOJA_CLAVADA,
+             codo_der=CODO_EMPUNA)
 _arranca = ik(mezcla({'cabeza': r(-22), 'torso': r(-8), 'pelvis': P(0, 2, 0)}, CAPA_VIENTO,
                      pies(izq=(12, -12), der=(-12, 9))), der=(-14, -126, -10), izq=(40, -56, -12), espada=(-0.1, -1, 0.05))
 _al_sol = mezcla(ALZA, pies(izq=(12, -10), der=(-12, 9)))
@@ -470,8 +534,10 @@ _carga_grito = ik(mezcla({'torso': r(24), 'cabeza': r(20), 'pelvis': P(0, 9, 0)}
                   izq=(18, -52, -26), der=(-18, -52, -26), espada=(-0.4, 0.5, -0.75))
 _grito = mezcla(GRITO, pies(izq=(14, -10), der=(-14, 10)))
 anim('DESPERTAR', 9.5, [(0, DORMIDO, 'e'), (0.9, _respira, 'e'), (1.4, _tiembla, 'o'), (1.7, DORMIDO, 'e'),
-                        (T_DESPERTAR_ABRE, DORMIDO, 'e'), (2.7, _mira, 'o'), (3.2, _mira_lado, 'e'),
-                        (T_DESPERTAR_SE_ALZA, _mira, 'e'), (4.3, _empuja, 'e'), (5.2, _de_pie, 'o'),
+                        (T_DESPERTAR_ABRE, DORMIDO, 'e'), (2.7, _mira, 'o'), (3.1, _mira_espada, 'e'),
+                        (3.3, _suelta_rodilla, 'e'), (T_DESPERTAR_SE_ALZA, _busca, 'e'), (T_DESPERTAR_AGARRA, _agarra, 'i'),
+                        (4.0, _agarra, 'b'), (4.6, _empuja, 'e'),
+                        (5.2, _de_pie, 'o'),
                         (5.7, sumar(_de_pie, {'torso': r(6), 'pelvis': P(0, 3, 0)}), 'e'), (T_DESPERTAR_ALZADO, _arranca, 'i'),
                         (6.35, _al_sol, 'o'), (6.75, _al_sol_tiembla, 'e'), (7.0, _carga_grito, 'e'),
                         (T_DESPERTAR_RUGE, _grito, 'i'), (7.55, sumar(_grito, {'cabeza': r(-6, 5), 'torso': r(-3)}), 'o'),
@@ -528,14 +594,31 @@ anim('CASTIGO_ONDA', 3.0, [(0, G, 'e'), (0.14, _previa, 'e'), (T_CASTIGO_ALZA, _
                            (2.5, sumar(ARRODILLADO_CLAVA, {'cabeza': r(-8)}), 'e'), (3.0, G, 'e')],
      sin_fisica=())
 
-# --- Sol Abrasador: el sol se le forma en la mano en alto y lo lanza; tres veces ---
+# --- Sol Abrasador: el sol se le forma en la mano en alto y lo lanza; tres veces.
+#     Y la Supernova (08-10-2026): alza la espada y, en la otra mano, un cuarto
+#     sol que crece mas tiempo; echa el brazo atras y lo lanza con todo el cuerpo ---
 T_SOL_LANZA = (0.6, 1.2, 1.8)
+T_NOVA_FORMA = 2.2           # el sol grande ya esta en su mano: crece hasta lanzarlo
+T_NOVA_LANZA = 3.35
 _sol_alto = mezcla(SOL_ARRIBA, pies(izq=(12, -6), der=(-13, 12)))
 _sol_tira = mezcla(SOL_LANZA, pies(izq=(13, -20), der=(-13, 12)))
 _sol_sigue = sumar(_sol_tira, {'torso': r(4, 6), 'cabeza': r(2)})
-anim('SOL', 2.5, [(0, G, 'e'), (0.36, _sol_alto, 'e'), (T_SOL_LANZA[0], _sol_tira, 'i'), (0.72, _sol_sigue, 'o'),
+NOVA_ALZA = ik(mezcla({'cabeza': r(-30, 8), 'torso': r(-12, -10), 'pelvis': P(0, 4, 2)}, CAPA_VIENTO,
+                      pies(izq=(14, -8), der=(-14, 12))),
+               izq=(30, -130, 6), der=(-34, -108, -6), espada=(-0.2, -0.95, 0.1))
+_nova_crece = sumar(NOVA_ALZA, {'torso': r(-3, -4), 'cabeza': r(-4, 3), 'pelvis': P(0, -1, 0)})
+NOVA_ATRAS = ik(mezcla({'cabeza': r(-18, 16), 'torso': r(-10, -26), 'pelvis': P(0, 6, 4)}, CAPA_VIENTO,
+                       pies(izq=(14, -10), der=(-15, 16))),
+                izq=(36, -112, 30), der=(-36, -96, -10), espada=(-0.25, -0.9, 0.2))
+NOVA_LANZA = ik(mezcla({'cabeza': r(8, -12), 'torso': r(20, 28), 'pelvis': P(0, 9, -6)}, CAPA_VIENTO,
+                       pies(izq=(14, -28), der=(-14, 14))),
+                izq=(8, -64, -50), der=(-32, -50, -4), espada=(-0.3, 0.5, -0.8))
+_nova_sigue = sumar(NOVA_LANZA, {'torso': r(5, 6), 'cabeza': r(3), 'pelvis': P(0, 1, -1)})
+anim('SOL', 4.1, [(0, G, 'e'), (0.36, _sol_alto, 'e'), (T_SOL_LANZA[0], _sol_tira, 'i'), (0.72, _sol_sigue, 'o'),
                   (0.98, _sol_alto, 'e'), (T_SOL_LANZA[1], _sol_tira, 'i'), (1.32, _sol_sigue, 'o'),
-                  (1.58, _sol_alto, 'e'), (T_SOL_LANZA[2], _sol_tira, 'i'), (1.94, _sol_sigue, 'o'), (2.5, G, 'e')])
+                  (1.58, _sol_alto, 'e'), (T_SOL_LANZA[2], _sol_tira, 'i'), (1.94, _sol_sigue, 'o'),
+                  (T_NOVA_FORMA, NOVA_ALZA, 'e'), (2.6, _nova_crece, 'e'), (2.95, NOVA_ALZA, 'e'),
+                  (3.15, NOVA_ATRAS, 'e'), (T_NOVA_LANZA, NOVA_LANZA, 'i'), (3.5, _nova_sigue, 'o'), (4.1, G, 'e')])
 
 # --- Trompetas: se agacha y alza la espada al cielo de golpe; las estatuas salen del suelo ---
 T_TROMPETAS_ALZA = 0.7
@@ -546,19 +629,6 @@ _carga_invoca = ik(mezcla({'cabeza': r(12), 'torso': r(16, 10), 'pelvis': P(0, 9
 anim('TROMPETAS', 1.8, [(0, G, 'e'), (0.4, _carga_invoca, 'e'), (T_TROMPETAS_ALZA, _invoca, 'i'),
                         (0.86, sumar(_invoca, {'cabeza': r(-6), 'torso': r(-3)}), 'o'), (1.3, _invoca, 'e'), (1.8, G, 'e')])
 
-# --- Fuentes solares: salta, clava la espada de rodilla y carga el sol (luego, en bucle) ---
-T_FUENTES_CLAVA = 0.55
-anim('FUENTES', 1.2, [(0, G, 'e'), (0.18, _agacha, 'e'), (0.36, _salta, 'o'), (T_FUENTES_CLAVA, ARRODILLADO_CLAVA, 'i'),
-                      (0.7, sumar(ARRODILLADO_CLAVA, {'pelvis': P(0, 2, 0)}), 'o'), (1.2, ARRODILLADO_SOL, 'e')])
-
-
-def pose_fuentes_carga(s):
-    a = 2 * math.pi * s / 2.0
-    return sumar(ARRODILLADO_SOL, {'torso': r(3 * math.sin(a), 2 * math.sin(a * 0.5)), 'cabeza': r(-4 * math.sin(a + 0.5), 3 * math.sin(a * 0.5)),
-                                   'pelvis': P(0, 1.2 * math.sin(a), 0)})
-
-
-anim('FUENTES_CARGA', 2.0, muestreada(pose_fuentes_carga, 2.0, 12), loop=True)
 
 # --- Ofrenda al Sol: clava la espada, se lanza a por el elegido, lo coge y lo alza ---
 T_OFRENDA_SUELTA = 0.4       # suelta la espada: desde aqui se ve la clavada
@@ -585,6 +655,107 @@ for t in T_DIOS_LANZA:
     claves_dios += [(t - 0.26, sumar(DIOS, {'torso': r(-4), 'pelvis': P(0, -1, 2)}), 'e'), (t, _dios_tira, 'i'), (t + 0.14, _dios_sigue, 'o')]
 claves_dios += [(T_DIOS_RECOGE, CLAVA_LADO, 'e'), (4.0, G, 'e')]
 anim('DIOS', 4.0, claves_dios)
+
+
+def a_dos_manos(der, hoja, k=9.0):
+    """Donde va el puno izquierdo para coger la espada con las dos manos: por
+    encima del derecho en el puno (hacia el pomo, al reves que la hoja)."""
+    d = np.array(hoja, float)
+    d /= np.linalg.norm(d)
+    return tuple(float(v) for v in np.array(der, float) - d * k)
+
+
+def dos_manos(base, der, hoja):
+    return ik(base, der=der, izq=a_dos_manos(der, hoja), espada=hoja)
+
+
+# --- Espada del Fuego (la embestida, 08-10-2026): se planta en zancada baja,
+#     la espada atras rozando el suelo y la otra mano apuntando a su presa; 3 s
+#     cargando (el fuego le sube por la hoja); sale disparado 40 bloques
+#     arrastrando la punta, que deja un camino de llamas; frena derrapando y
+#     remata con un tajo hacia arriba ---
+T_ESPADA_SALE = 3.0
+T_ESPADA_PARA = 3.95
+T_ESPADA_TAJO = 4.15
+ESP_PLANTA = ik(mezcla({'pelvis': {'pos': (0, 13, 2), 'rot': (6, 12, 0)}, 'torso': r(18, 22, 0), 'cabeza': r(-16, -22, 0)},
+                       CAPA_VIENTO, pies(izq=(13, -28, -4, -10), der=(-13, 24, 26, 12))),
+                izq=(20, -70, -44), der=(-36, -38, 20), espada=(-0.3, 0.62, 0.72))
+_esp_tiembla = sumar(ESP_PLANTA, {'torso': r(2, 3), 'cabeza': r(-2, -2), 'pelvis': P(0, 1, 0)})
+_esp_hunde = sumar(ESP_PLANTA, {'torso': r(5, 4), 'cabeza': r(-4, -3), 'pelvis': P(0, 3, 1)})
+ESP_SALE = ik(mezcla({'pelvis': {'pos': (0, 8, -6), 'rot': (14, 4, 0)}, 'torso': r(26, 8, 0), 'cabeza': r(-24, -8, 0)},
+                     CAPA_VIENTO, pies(izq=(13, -18, 10, -6), der=(-13, 34, 40, 8))),
+              izq=(26, -58, 11), der=(-30, -46, 15), espada=(-0.2, 0.6, 0.78))
+ESP_CORRE_A = ik(mezcla({'pelvis': {'pos': (0, 9, -4), 'rot': (14, 8, 0)}, 'torso': r(28, -6, 0), 'cabeza': r(-26, 4, 0),
+                         'capa_1': r(48), 'capa_2': r(18), 'capa_3': r(18), 'tabardo': r(-26)},
+                        pies(izq=(12, -26, -6, -6), der=(-12, 26, 30, 6, 18))),
+                 izq=(24, -72, -36), der=(-28, -44, 13), espada=(-0.2, 0.62, 0.76))
+ESP_CORRE_B = ik(mezcla({'pelvis': {'pos': (0, 9, -4), 'rot': (14, -8, 0)}, 'torso': r(28, 6, 0), 'cabeza': r(-26, -4, 0),
+                         'capa_1': r(48), 'capa_2': r(18), 'capa_3': r(18), 'tabardo': r(-26)},
+                        pies(izq=(12, 26, 30, -6, 18), der=(-12, -26, -6, 6))),
+                 izq=(29, -51, 16), der=(-28, -46, 12), espada=(-0.2, 0.62, 0.76))
+ESP_FRENA = ik(mezcla({'pelvis': {'pos': (0, 15, 6), 'rot': (-4, 16, 0)}, 'torso': r(8, 26, 0), 'cabeza': r(-12, -24, 0),
+                       'capa_1': r(30), 'capa_2': r(16), 'capa_3': r(16)},
+                      pies(izq=(15, -34, -10, -14), der=(-14, 22, 30, 14))),
+               izq=(30, -62, -24), der=(-38, -40, 24), espada=(-0.4, 0.55, 0.73))
+ESP_TAJO = ik(mezcla({'pelvis': {'pos': (0, 6, -2), 'rot': (0, -14, 0)}, 'torso': r(-8, -28, 0), 'cabeza': r(-14, 18, 0),
+                      'capa_1': r(26), 'capa_2': r(12), 'capa_3': r(12)},
+                     pies(izq=(15, -30, -6, -14), der=(-14, 20, 20, 14))),
+              izq=(34, -58, 20), der=(-2, -118, -34), espada=(0.25, -0.75, -0.6))
+_esp_remata = sumar(ESP_TAJO, {'torso': r(-3, -6), 'cabeza': r(-3)})
+anim('ESPADA', 4.85, [(0, G, 'e'), (0.45, ESP_PLANTA, 'o'), (1.1, _esp_tiembla, 'e'), (1.7, ESP_PLANTA, 'e'),
+                      (2.3, _esp_tiembla, 'e'), (2.8, _esp_hunde, 'e'), (T_ESPADA_SALE, ESP_SALE, 'i'),
+                      (3.15, ESP_CORRE_A, 'o'), (3.31, ESP_CORRE_B, 'l'), (3.47, ESP_CORRE_A, 'l'),
+                      (3.63, ESP_CORRE_B, 'l'), (3.79, ESP_CORRE_A, 'l'),
+                      (T_ESPADA_PARA, ESP_FRENA, 'o'), (T_ESPADA_TAJO, ESP_TAJO, 'i'), (4.3, _esp_remata, 'o'),
+                      (4.85, G, 'e')])
+
+# --- Furia Infernal (08-10-2026): se agacha con la espada a dos manos detras
+#     de la cabeza, salta sobre su presa, cae clavandola en el suelo; la grieta
+#     escupe lava y fuego mientras empuja, y al arrancarla todo revienta ---
+T_INF_DESPEGA = 0.55
+T_INF_ATERRIZA = 1.3
+T_INF_EXPLOTA = 2.35
+_inf_hoja_atras = (0.0, -0.7, 0.7)
+INF_AGACHA = dos_manos(mezcla({'pelvis': P(0, 18, 4), 'torso': r(24, 6), 'cabeza': r(-22, -4)}, CAPA_VIENTO,
+                              pies(izq=(15, -12, 0, -8), der=(-15, 12, 0, 8))),
+                       (-10, -100, 14), _inf_hoja_atras)
+INF_IMPULSO = dos_manos(mezcla({'pelvis': P(0, -4, 0), 'torso': r(-4, 2), 'cabeza': r(-16)}, CAPA_VIENTO,
+                               pies(izq=(14, -6, 30, -6), der=(-14, 10, 34, 6))),
+                        (-8, -116, 10), (0.0, -0.8, 0.6))
+INF_VUELO = dos_manos(mezcla({'pelvis': P(0, 2, 0), 'torso': r(-10), 'cabeza': r(-8),
+                              'capa_1': r(-10), 'capa_2': r(-14), 'capa_3': r(-14)},
+                             pies(izq=(14, -18, 24, -6, 26), der=(-14, 12, 24, 6, 20))),
+                      (-4, -126, 6), (0.0, -0.85, 0.5))
+_inf_alto = sumar(INF_VUELO, {'torso': r(-4), 'cabeza': r(-2)})
+INF_GOLPE = dos_manos(mezcla({'pelvis': P(0, 22, -4), 'torso': r(34), 'cabeza': r(-26), 'capa_1': r(30), 'capa_2': r(20),
+                              'capa_3': r(24)},
+                             pies(izq=(18, -18, 0, -16), der=(-18, 14, 22, 16))),
+                      (-2, -32, -42), (0.0, 1.0, -0.12))
+_inf_empuja = sumar(INF_GOLPE, {'torso': r(3, 2), 'cabeza': r(-3, 2), 'pelvis': P(0, 2, 0)})
+INF_ARRANCA = ik(mezcla({'cabeza': r(-30), 'torso': r(-12), 'pelvis': P(0, 6, 0)}, CAPA_VIENTO,
+                        pies(izq=(16, -14), der=(-16, 12))),
+                 der=(-6, -128, -12), izq=(40, -60, -10), espada=(0.05, -1, 0.1))
+anim('INFERNAL', 3.1, [(0, G, 'e'), (0.42, INF_AGACHA, 'e'), (T_INF_DESPEGA, INF_IMPULSO, 'i'), (0.8, INF_VUELO, 'o'),
+                       (1.05, _inf_alto, 'e'), (T_INF_ATERRIZA, INF_GOLPE, 'i'),
+                       (1.42, sumar(INF_GOLPE, {'pelvis': P(0, 3, 0), 'torso': r(4)}), 'b'), (1.8, _inf_empuja, 'e'),
+                       (2.15, INF_GOLPE, 'e'), (T_INF_EXPLOTA, INF_ARRANCA, 'i'),
+                       (2.55, sumar(INF_ARRANCA, {'cabeza': r(-5, 6), 'torso': r(-3)}), 'o'), (3.1, G, 'e')])
+
+# --- Mar de Llamas (08-10-2026): alza la espada a dos manos sobre la cabeza y
+#     la hunde de rodilla en el suelo; el suelo se raja por toda la arena y por
+#     las grietas sale fuego. Se levanta arrancandola ---
+T_MAR_CLAVA = 0.9
+_mar_hoja_alta = (0.0, -0.8, 0.6)
+MAR_ALZA = dos_manos(mezcla({'cabeza': r(-26), 'torso': r(-8), 'pelvis': P(0, 2, 0)}, CAPA_VIENTO,
+                            pies(izq=(13, -14), der=(-13, 10))),
+                     (-8, -126, 4), _mar_hoja_alta)
+_mar_tiembla = sumar(MAR_ALZA, {'torso': r(-3, 2), 'cabeza': r(-4, -3)})
+MAR_CLAVA = dos_manos(mezcla(RODILLA, {'torso': r(22), 'cabeza': r(-8), 'capa_1': r(20), 'capa_2': r(28), 'capa_3': r(44)}),
+                      (0, -20, -36), (0.0, 1.0, 0.06))
+_mar_empuja = sumar(MAR_CLAVA, {'torso': r(5, 3), 'cabeza': r(-6, 4), 'pelvis': P(0, 2, 0)})
+anim('MAR', 3.2, [(0, G, 'e'), (0.55, MAR_ALZA, 'e'), (0.72, _mar_tiembla, 'e'), (T_MAR_CLAVA, MAR_CLAVA, 'i'),
+                  (1.0, sumar(MAR_CLAVA, {'pelvis': P(0, 2, 0)}), 'b'), (1.6, _mar_empuja, 'e'), (2.2, MAR_CLAVA, 'e'),
+                  (2.6, sumar(MAR_CLAVA, {'torso': r(-6), 'cabeza': r(-10)}), 'e'), (3.2, G, 'e')])
 
 # --- Grito de guerra: se encoge y estalla rugiendo al cielo ---
 T_GRITO = 0.55
@@ -919,8 +1090,10 @@ def java_geometria():
         'HALO': p_bloques(None, 0, 'halo'),
         'PUNTA_ALZA': p_bloques('CASTIGO', T_CASTIGO_MARCA, 'espada', PUNTA),
         'PUNTA_CLAVA': p_bloques('CASTIGO_ONDA', T_ONDA_CLAVA, 'espada', PUNTA),
-        'PUNTA_FUENTES': p_bloques('FUENTES', ANIMS['FUENTES']['dur'], 'espada', PUNTA),
-        'PECHO_FUENTES': p_bloques('FUENTES_CARGA', 0.0, 'torso', (0, -34, -16)),
+        'PUNTA_INFERNAL': p_bloques('INFERNAL', T_INF_ATERRIZA, 'espada', PUNTA),
+        'PUNTA_MAR': p_bloques('MAR', T_MAR_CLAVA, 'espada', PUNTA),
+        'MANO_NOVA': p_bloques('SOL', 2.6, 'mano_izq', (0, 6, 0)),
+        'MANO_LANZA_4': p_bloques('SOL', T_NOVA_LANZA, 'mano_izq', (0, 6, 0)),
         'MANO_SOL': p_bloques('SOL', T_SOL_LANZA[0] - 0.24, 'mano_izq', (0, 6, 0)),
         'MANO_INVOCA': p_bloques('TROMPETAS', T_TROMPETAS_ALZA, 'espada', PUNTA),
         'OFRENDA_ALZADO_P': tuple(np.mean([p_bloques('OFRENDA_SOSTIENE', 0.0, 'mano_' + l, (0, 6, 0)) for l in ('izq', 'der')], axis=0)),
@@ -942,12 +1115,17 @@ def java_geometria():
     tiempos.update({
         'DESPERTAR_RUGE': tick(T_DESPERTAR_RUGE), 'DESPERTAR_ABRE': tick(T_DESPERTAR_ABRE),
         'DESPERTAR_SE_ALZA': tick(T_DESPERTAR_SE_ALZA), 'DESPERTAR_ALZADO': tick(T_DESPERTAR_ALZADO),
+        'DESPERTAR_AGARRA': tick(T_DESPERTAR_AGARRA), 'DESPERTAR_SACA': tick(T_DESPERTAR_SACA),
         'TAJO_1': tick(T_TAJOS[0]), 'TAJO_2': tick(T_TAJOS[1]), 'TAJO_3': tick(T_TAJOS[2]), 'TAJO_4': tick(T_TAJOS[3]),
         'CASTIGO_ALZA': tick(T_CASTIGO_ALZA), 'CASTIGO_MARCA': tick(T_CASTIGO_MARCA), 'CASTIGO_RAYO': tick(T_CASTIGO_RAYO),
         'ONDA_CLAVA': tick(T_ONDA_CLAVA),
         'SOL_LANZA_1': tick(T_SOL_LANZA[0]), 'SOL_LANZA_2': tick(T_SOL_LANZA[1]), 'SOL_LANZA_3': tick(T_SOL_LANZA[2]),
         'TROMPETAS_ALZA': tick(T_TROMPETAS_ALZA),
-        'FUENTES_CLAVA': tick(T_FUENTES_CLAVA),
+        'SOL_NOVA_FORMA': tick(T_NOVA_FORMA), 'SOL_LANZA_4': tick(T_NOVA_LANZA),
+        'ESPADA_SALE': tick(T_ESPADA_SALE), 'ESPADA_PARA': tick(T_ESPADA_PARA), 'ESPADA_TAJO': tick(T_ESPADA_TAJO),
+        'INFERNAL_DESPEGA': tick(T_INF_DESPEGA), 'INFERNAL_ATERRIZA': tick(T_INF_ATERRIZA),
+        'INFERNAL_EXPLOTA': tick(T_INF_EXPLOTA),
+        'MAR_CLAVA': tick(T_MAR_CLAVA),
         'OFRENDA_SUELTA': tick(T_OFRENDA_SUELTA), 'OFRENDA_AGARRA': tick(T_OFRENDA_AGARRA), 'OFRENDA_ALZADO': tick(T_OFRENDA_ALZADO),
         'DIOS_SUELTA': tick(T_DIOS_SUELTA), 'DIOS_MARCA': tick(T_DIOS_MARCA), 'DIOS_RECOGE': tick(T_DIOS_RECOGE),
         'DIOS_LANZA_1': tick(T_DIOS_LANZA[0]), 'DIOS_LANZA_2': tick(T_DIOS_LANZA[1]), 'DIOS_LANZA_3': tick(T_DIOS_LANZA[2]),
@@ -1037,7 +1215,8 @@ def java_geometria():
 #  La estela de la hoja: por donde pasan la base y la punta, en cada animacion
 #  con espada en la mano, cada 1/30 s (bloques, espacio del cuerpo)
 # ----------------------------------------------------------------------
-ESTELAS = ['BARRIDO', 'CASTIGO', 'CASTIGO_ONDA', 'DESPERTAR', 'TAMBALEO', 'GRITO', 'TROMPETAS', 'FUENTES', 'SOL']
+ESTELAS = ['BARRIDO', 'CASTIGO', 'CASTIGO_ONDA', 'DESPERTAR', 'TAMBALEO', 'GRITO', 'TROMPETAS', 'SOL', 'ESPADA', 'INFERNAL',
+           'MAR']
 HZ_ESTELA = 30
 
 
@@ -1103,7 +1282,8 @@ def java_estelas():
 def pose_hoja(nombre, s):
     pose = pose_en(nombre, s)
     suelta = (nombre == 'OFRENDA' and s >= T_OFRENDA_SUELTA) or nombre == 'OFRENDA_SOSTIENE' or \
-             (nombre == 'DIOS' and T_DIOS_SUELTA <= s < T_DIOS_RECOGE)
+             (nombre == 'DIOS' and T_DIOS_SUELTA <= s < T_DIOS_RECOGE) or nombre == 'DORMIDO' or \
+             (nombre == 'DESPERTAR' and s < T_DESPERTAR_SACA)
     if suelta:
         pose['espada'] = {**pose.get('espada', {}), 'oculto': True}
     else:
@@ -1111,10 +1291,11 @@ def pose_hoja(nombre, s):
     return pose
 
 
-MARCAS = {'BARRIDO': T_TAJOS, 'SOL': T_SOL_LANZA, 'DIOS': T_DIOS_LANZA, 'CASTIGO': (T_CASTIGO_MARCA, T_CASTIGO_RAYO),
+MARCAS = {'BARRIDO': T_TAJOS, 'SOL': (*T_SOL_LANZA, T_NOVA_LANZA), 'DIOS': T_DIOS_LANZA, 'CASTIGO': (T_CASTIGO_MARCA, T_CASTIGO_RAYO),
           'CASTIGO_ONDA': (T_CASTIGO_RAYO, T_ONDA_CLAVA), 'TAMBALEO': (T_TAMBALEO_RUGE,), 'GRITO': (T_GRITO,),
-          'OFRENDA': (T_OFRENDA_AGARRA,), 'TROMPETAS': (T_TROMPETAS_ALZA,), 'FUENTES': (T_FUENTES_CLAVA,),
-          'DESPERTAR': (T_DESPERTAR_RUGE,)}
+          'OFRENDA': (T_OFRENDA_AGARRA,), 'TROMPETAS': (T_TROMPETAS_ALZA,), 'ESPADA': (T_ESPADA_SALE, T_ESPADA_PARA, T_ESPADA_TAJO),
+          'INFERNAL': (T_INF_DESPEGA, T_INF_ATERRIZA, T_INF_EXPLOTA), 'MAR': (T_MAR_CLAVA,),
+          'DESPERTAR': (T_DESPERTAR_AGARRA, T_DESPERTAR_RUGE)}
 
 
 def tiempos_hoja(nombre):

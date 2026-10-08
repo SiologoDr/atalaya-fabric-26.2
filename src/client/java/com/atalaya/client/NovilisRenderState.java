@@ -30,17 +30,14 @@ public class NovilisRenderState extends LivingEntityRenderState {
     public float ritmo = 1.0F;
     /** Segundos de ANIMACION desde que empezo el estado actual (con el ritmo). */
     public float segundosEstado;
-    /** La Furia (fuego azul) y el Grito de guerra. */
+    /** La Furia (fuego azul). */
     public boolean furia;
-    public boolean grito;
     /** Muerto del todo y con su sol ya en oro. */
     public boolean libre;
     /** Segundos desde que empezo la liberacion. */
     public float segundosLibera;
     /** De 0 a 1 mientras se deshace en brasas al final de la liberacion. */
     public float disolver;
-    /** La carga de su sol en las Fuentes (0 a 1). */
-    public float carga;
     /** Su sol esta en el cielo (la Sombra del Escudo). */
     public boolean solFuera;
 
@@ -51,6 +48,10 @@ public class NovilisRenderState extends LivingEntityRenderState {
     public @Nullable Vec3 punta;
     /** El haz que senala a quien va a coger en la Ofrenda, o al que tiene en las manos. */
     public @Nullable Vec3 marca;
-    /** El sol que se le forma en la mano en el Sol x3. */
+    /** El sol que se le forma en la mano en el Sol Abrasador, y su radio (el cuarto, la Supernova, crece). */
     public @Nullable Vec3 solMano;
+    public float solManoRadio = 1.1F;
+    /** El carril de la Espada del Fuego mientras carga (se ve en el suelo) y lo que lleva cargado (0 a 1). */
+    public boolean carril;
+    public float cargaEspada;
 }

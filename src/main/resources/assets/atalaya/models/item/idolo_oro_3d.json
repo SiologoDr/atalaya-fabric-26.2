@@ -1,0 +1,833 @@
+{
+  "textures": {
+    "idolo": "atalaya:item/idolo_oro_3d",
+    "particle": "atalaya:item/idolo_oro"
+  },
+  "elements": [
+    {
+      "name": "base",
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        2,
+        14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.0,
+            4.5,
+            7.0,
+            5.0
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            7.0,
+            4.5,
+            10.0,
+            5.0
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            10.0,
+            4.5,
+            13.0,
+            5.0
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            13.0,
+            4.5,
+            16.0,
+            5.0
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            0.0,
+            3.0,
+            3.0
+          ],
+          "texture": "#idolo"
+        },
+        "down": {
+          "uv": [
+            3.0,
+            0.0,
+            6.0,
+            3.0
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "grada",
+      "from": [
+        3,
+        2,
+        3
+      ],
+      "to": [
+        13,
+        3,
+        13
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.5,
+            5.5,
+            13.0,
+            5.75
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            13.0,
+            5.5,
+            15.5,
+            5.75
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            6.0,
+            2.5,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            6.0,
+            5.0,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            6.0,
+            0.0,
+            8.5,
+            2.5
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "cuerpo",
+      "from": [
+        5,
+        3,
+        5
+      ],
+      "to": [
+        11,
+        9,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.0,
+            0.0,
+            12.5,
+            1.5
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            12.5,
+            0.0,
+            14.0,
+            1.5
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            14.0,
+            0.0,
+            15.5,
+            1.5
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            0.0,
+            3.0,
+            1.5,
+            4.5
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            1.5,
+            3.0,
+            3.0,
+            4.5
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "pata_izq",
+      "from": [
+        5,
+        3,
+        3
+      ],
+      "to": [
+        7,
+        7,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.0,
+            4.5,
+            0.5,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            0.5,
+            4.5,
+            1.0,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            1.0,
+            4.5,
+            1.5,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            1.5,
+            4.5,
+            2.0,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            0.0,
+            5.5,
+            0.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "pata_der",
+      "from": [
+        9,
+        3,
+        3
+      ],
+      "to": [
+        11,
+        7,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.0,
+            4.5,
+            2.5,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            2.5,
+            4.5,
+            3.0,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            3.0,
+            4.5,
+            3.5,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            4.5,
+            4.0,
+            5.5
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            1.0,
+            5.5,
+            1.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "cabeza",
+      "from": [
+        4,
+        9,
+        3
+      ],
+      "to": [
+        12,
+        14,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9.0,
+            3.0,
+            11.0,
+            4.25
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            11.0,
+            3.0,
+            13.0,
+            4.25
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            13.0,
+            3.0,
+            14.5,
+            4.25
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            14.5,
+            3.0,
+            16.0,
+            4.25
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            3.0,
+            6.5,
+            4.5
+          ],
+          "texture": "#idolo"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            3.0,
+            8.5,
+            4.5
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "hocico",
+      "from": [
+        6,
+        9,
+        2
+      ],
+      "to": [
+        10,
+        11,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.0,
+            5.5,
+            3.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            3.0,
+            5.5,
+            4.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            4.0,
+            5.5,
+            4.25,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            4.25,
+            5.5,
+            4.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            5.0,
+            6.0,
+            6.0,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "down": {
+          "uv": [
+            6.0,
+            6.0,
+            7.0,
+            6.25
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "oreja_izq",
+      "from": [
+        4,
+        14,
+        5
+      ],
+      "to": [
+        6,
+        16,
+        7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            5.5,
+            5.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            5.0,
+            5.5,
+            5.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            5.5,
+            6.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            6.0,
+            5.5,
+            6.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            5.5,
+            7.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "oreja_der",
+      "from": [
+        10,
+        14,
+        5
+      ],
+      "to": [
+        12,
+        16,
+        7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.5,
+            5.5,
+            8.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            8.0,
+            5.5,
+            8.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            8.5,
+            5.5,
+            9.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            9.0,
+            5.5,
+            9.5,
+            6.0
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            9.5,
+            5.5,
+            10.0,
+            6.0
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "cola",
+      "from": [
+        11,
+        3,
+        6
+      ],
+      "to": [
+        12,
+        4,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.0,
+            6.0,
+            7.25,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            7.25,
+            6.0,
+            7.5,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            7.5,
+            6.0,
+            9.0,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            9.0,
+            6.0,
+            10.5,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            8.5,
+            3.0,
+            8.75,
+            4.5
+          ],
+          "texture": "#idolo"
+        }
+      }
+    },
+    {
+      "name": "cola_punta",
+      "from": [
+        8,
+        3,
+        11
+      ],
+      "to": [
+        11,
+        4,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.5,
+            6.0,
+            11.25,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "south": {
+          "uv": [
+            11.25,
+            6.0,
+            12.0,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "east": {
+          "uv": [
+            12.0,
+            6.0,
+            12.25,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "west": {
+          "uv": [
+            12.25,
+            6.0,
+            12.5,
+            6.25
+          ],
+          "texture": "#idolo"
+        },
+        "up": {
+          "uv": [
+            12.5,
+            6.0,
+            13.25,
+            6.25
+          ],
+          "texture": "#idolo"
+        }
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        135,
+        0
+      ],
+      "translation": [
+        1,
+        0,
+        0
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "translation": [
+        1,
+        0,
+        0
+      ],
+      "scale": [
+        0.3,
+        0.3,
+        0.3
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "gui": {
+      "rotation": [
+        20,
+        160,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.75,
+        0.75,
+        0.75
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        13,
+        0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

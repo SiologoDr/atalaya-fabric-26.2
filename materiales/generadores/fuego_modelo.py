@@ -801,13 +801,31 @@ def mano(pose, lado, local=(0, 6, 0)):
     return (matrices(_ESQ_IK[VARIANTE_IK], pose)['mano_' + lado] @ np.array([*local, 1.0]))[:3]
 
 
-def alcanzar(pose, lado, objetivo, semilla=(-40, 0, 0, -30)):
+def codo_hacia(pose, lado):
+    """Hacia donde sale el codo (unitario), apartado de la recta del hombro al puno."""
+    if VARIANTE_IK not in _ESQ_IK:
+        _ESQ_IK[VARIANTE_IK] = esqueleto(VARIANTE_IK, con_espada=False)
+    M = matrices(_ESQ_IK[VARIANTE_IK], pose)
+    hombro = M['brazo_' + lado][:3, 3]
+    codo = M['antebrazo_' + lado][:3, 3]
+    eje = mano(pose, lado) - hombro
+    eje = eje / max(1e-6, np.linalg.norm(eje))
+    e = codo - hombro
+    e = e - (e @ eje) * eje
+    n = np.linalg.norm(e)
+    return e / n if n > 1e-6 else np.zeros(3)
+
+
+def alcanzar(pose, lado, objetivo, semilla=(-40, 0, 0, -30), codo=None):
     """Busca el giro del brazo (x, y, z) y del antebrazo (x) que lleva el puno
     a 'objetivo' (px de modelo). Devuelve la pose con los dos huesos puestos y
-    el error que queda (px)."""
+    el error que queda (px). Con 'codo' (una direccion), de las soluciones que
+    llegan prefiere la que saca el codo hacia alli: si no, con el puno cerca del
+    hombro sale cualquiera (el codo en alto, el brazo retorcido)."""
     from scipy.optimize import minimize
     obj = np.array(objetivo, float)
     base = {k: dict(v) for k, v in pose.items()}
+    hacia = None if codo is None else np.array(codo, float) / np.linalg.norm(codo)
 
     def con(xs):
         p = {k: dict(v) for k, v in base.items()}
@@ -816,9 +834,13 @@ def alcanzar(pose, lado, objetivo, semilla=(-40, 0, 0, -30)):
         return p
 
     def coste(xs):
-        d = mano(con(xs), lado) - obj
+        p = con(xs)
+        d = mano(p, lado) - obj
         doblez = max(0.0, xs[3]) ** 2 * 0.05        # el codo no se dobla al reves
-        return float(d @ d) + doblez + 0.0005 * (xs[1] ** 2)
+        c = float(d @ d) + doblez + 0.0005 * (xs[1] ** 2)
+        if hacia is not None:
+            c += 12.0 * (1.0 - float(codo_hacia(p, lado) @ hacia))
+        return c
 
     mejor = None
     for s0 in (semilla, (-90, 0, 0, -20), (-150, 0, 0, -10), (-20, 0, 30, -40), (-20, 0, -30, -40)):

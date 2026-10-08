@@ -59,9 +59,9 @@ import java.util.List;
  *                                    aturdido, paralizado, estampado, furia, fase,
  *                                    liberar).
  *   /atalaya novilis &lt;orden&gt;       -> lo mismo con el Novilis mas cercano (despertar,
- *                                    barrido, castigo, onda, sol, trompetas, estatua,
- *                                    fuentes, fuente, ofrenda, dios, aturdido, furia,
- *                                    grito, fase, liberar).
+ *                                    barrido, castigo, onda, sol, espada, trompetas,
+ *                                    estatua, sombra, infernal, ofrenda, mar, dios,
+ *                                    aturdido, furia, perseguir, fase, liberar).
  *
  *   /atalaya habilidad            -> lanza la habilidad de tu armadura, como la tecla R
  *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
@@ -281,8 +281,8 @@ public final class AtalayaCommand {
         return 1;
     }
 
-    private static final String[] ORDENES_NOVILIS = {"despertar", "barrido", "castigo", "onda", "sol", "trompetas", "sombra",
-            "estatua", "fuentes", "fuente", "ofrenda", "dios", "aturdido", "furia", "grito", "fase", "liberar", "perseguir"};
+    private static final String[] ORDENES_NOVILIS = {"despertar", "barrido", "castigo", "onda", "sol", "espada", "trompetas",
+            "sombra", "estatua", "infernal", "ofrenda", "mar", "dios", "aturdido", "furia", "fase", "liberar", "perseguir"};
 
     /** Fuerza al Novilis mas cercano (en 80 bloques) a hacer algo ya. */
     private static int probarNovilis(CommandSourceStack fuente, String orden) {

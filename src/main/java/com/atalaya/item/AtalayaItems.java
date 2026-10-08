@@ -299,8 +299,9 @@ public final class AtalayaItems {
                 .rarity(Rarity.EPIC)));
         HUEVO_RAJANG = registrar("huevo_rajang",
                 props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.RAJANG)));
+        // Sin el brillo de encantamiento: el morado de vanilla le tapaba el oro al idolo en 3D.
         IDOLO_ORO = registrar("idolo_oro", props -> new IdoloOroItem(props.stacksTo(1).fireResistant()
-                .rarity(Rarity.EPIC).component(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)));
+                .rarity(Rarity.EPIC)));
         COLMILLO_JADE = registrar("colmillo_jade", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
         HUEVO_NOVILIS = registrar("huevo_novilis",

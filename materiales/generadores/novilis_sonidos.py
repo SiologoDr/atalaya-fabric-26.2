@@ -1067,7 +1067,9 @@ def respiro(dur, sale=True, f0=52.0, voz=0.35, fuerza=1.0):
 LARGOS = {'despertar': 7.6, 'paso': 1.5, 'ambiente': 6.0, 'herido': 1.5, 'rugido': 5.0, 'tajo': 0.9, 'tajo_fuego': 2.2,
           'castigo_alza': 1.65, 'castigo_aviso': 0.95, 'castigo_rayo': 3.6, 'castigo_clava': 3.8, 'onda': 2.4,
           'sol_forma': 1.15, 'sol_lanza': 1.3, 'sol_explota': 4.2, 'lava': 3.0, 'estatuas': 5.0, 'estatua_golpe': 1.5,
-          'estatua_rota': 3.6, 'fuentes': 3.4, 'fuente_golpe': 1.5, 'fuente_rota': 3.2, 'carga': 15.0, 'supernova': 8.5,
+          'estatua_rota': 3.6, 'carga': 15.0, 'supernova': 8.5,
+          'embestida': 2.6, 'camino': 2.8, 'infernal_salto': 1.8, 'infernal_golpe': 3.8, 'grieta': 2.6, 'geiser': 2.2,
+          'infernal_explota': 5.0, 'mar': 6.0,
           'sol_apaga': 4.2, 'ofrenda_marca': 2.2, 'ofrenda_agarra': 1.8, 'ofrenda_tecla': 0.35, 'ofrenda_fallo': 0.8,
           'ofrenda_libre': 2.3, 'dios': 4.8, 'dios_aviso': 1.8, 'dios_explosion': 2.9, 'grito': 2.6, 'furia': 3.9,
           'aturdido': 4.5, 'tambaleo': 4.6, 'inmune': 1.2, 'liberacion': 6.5, 'disolver': 3.8}
@@ -1413,10 +1415,10 @@ for i in range(2):
                                     en(0.04, pico(reverb(trompeta, 0.35, 2.4, 7000), 0.8))), i + 1, limite=0.5)
 
 # ======================================================================
-#  FUENTES SOLARES: tres fuentes revientan el suelo una tras otra (la losa
-#  que se raja, el golpe, el chorro de fuego que sube y la nota del sol que
-#  se queda); los golpes (piedra y energia que chisporrotea); y la fuente
-#  que se rompe (un fogonazo de energia que cae de tono y la piedra).
+#  FUENTES SOLARES: ya no estan (Juan, 08-10-2026). Sus recetas se siguen
+#  calculando sin guardarse, para que los numeros al azar que gastan sean
+#  los mismos y los sonidos de despues (la carga, la supernova, la Ofrenda,
+#  el Dios...) no cambien ni un pelo.
 # ======================================================================
 d = 3.2
 capas = []
@@ -1430,14 +1432,13 @@ for k, (s, f) in enumerate(((0.0, 110.0), (0.38, 138.6), (0.74, 164.8))):
     nota = zumbido_solar(dk, f, 0.55, 3.0, 0.4) * np.interp(tk, [0, 0.15, 1.0, dk], [0, 1, 0.45, 0])
     capas.append(en(s, mezclar(pico(rompe, 0.8), pico(chorro, 0.7), en(0.05, pico(nota, 0.35)),
                                pico(escombros(1.2, 0.5, 0.3, (0.4, 4.0)), 0.3))))
-guardar('fuentes', reverb(mezclar(*capas), 0.3, 2.4), limite=0.55)
+_ = reverb(mezclar(*capas), 0.3, 2.4)
 
 for i in range(3):
     toc = canto(rng.uniform(18, 24), 1.0, False, 1.2)
     zas = crepitar(0.35, 2500 * np.exp(-t_(0.35) / 0.06), curva(n_(0.35), [(0, 4000), (1, 1500)]), 1.0)
     hipo = zumbido_solar(0.5, curva(n_(0.5), [(0, 150 + 10 * i), (1, 110)]), 0.7, 6.0, 0.2) * caida(0.5, 0.12, 0.005)
-    guardar('fuente_golpe', reverb(mezclar(pico(toc, 1.0), pico(zas, 0.35), pico(hipo, 0.45), pico(rajar_roca(5, 0.03), 0.4)), 0.22, 1.5),
-            i + 1, limite=0.55, techo=-18.0)
+    _ = reverb(mezclar(pico(toc, 1.0), pico(zas, 0.35), pico(hipo, 0.45), pico(rajar_roca(5, 0.03), 0.4)), 0.22, 1.5)
 
 for i in range(2):
     d = 3.0
@@ -1447,8 +1448,8 @@ for i in range(2):
     cae = zumbido_solar(d, curva(n, [(0, 220 - 20 * i), (0.4, 80), (1, 40)]), curva(n, [(0, 1.0), (1, 0.1)]), 8.0, 0.5) * np.exp(-t / 0.6)
     zas = crepitar(0.8, 3000 * np.exp(-t_(0.8) / 0.12), curva(n_(0.8), [(0, 5000), (1, 1200)]), 1.0)
     piedra = mezclar(pico(golpe_tierra(1.0, 1.4, 1.0, 2.5), 1.0), pico(rodar(1.4, 12, 5), 0.4))
-    guardar('fuente_rota', reverb(mezclar(pico(destello, 0.5), pico(cae, 0.7), pico(zas, 0.4), pico(piedra, 0.75),
-                                          pico(destellos(1.0, 200 * np.exp(-t_(1.0) / 0.25)), 0.15)), 0.3, 2.4), i + 1, limite=0.5)
+    _ = reverb(mezclar(pico(destello, 0.5), pico(cae, 0.7), pico(zas, 0.4), pico(piedra, 0.75),
+                       pico(destellos(1.0, 200 * np.exp(-t_(1.0) / 0.25)), 0.15)), 0.3, 2.4)
 
 # ======================================================================
 #  LA CARGA DEL SOL (15 s): el sol se hincha. El zumbido sube una octava
@@ -1737,6 +1738,109 @@ for k, x in enumerate(voces_mel):
     x = pa(x, 25)
     guardar('melodia_%d' % (k + 1), x * (ALTO * 10 ** (RECORTE[k] / 20) / np.max(np.abs(x))), exacto=LARGO_MELODIA, normalizar=False)
     STREAM.add('melodia_%d' % (k + 1))
+
+# ======================================================================
+#  LOS ATAQUES DE OCTUBRE (08-10-2026): Espada del Fuego, Furia Infernal y
+#  Mar de Llamas. Con su propia semilla y al final: no tocan los de arriba.
+# ======================================================================
+rng = np.random.default_rng(20261008)
+
+# EMBESTIDA: sale disparado. El pie que empuja el suelo, el aire que se abre
+# (una pasada larga que sube y se va), el fuego de la hoja que ruge al pasar
+# y la armadura que traquetea con la carrera.
+for i in range(2):
+    d = 2.4
+    n = n_(d)
+    t = t_(d)
+    empuja = golpe_tierra(1.2, 0.8, 0.6, 1.6)
+    aire = pasada(1.6, 900 + 100 * i, 4200, 1.6, 0.35)
+    ruge = llama(d, 1.2, curva(n, [(0, 0.6), (0.2, 1.6), (1, 0.5)]), 14.0, 1.4) * np.interp(t, [0, 0.08, 0.7, d], [0, 1, 0.5, 0])
+    traqueteo = placas(1.2, 140 * np.exp(-t_(1.2) / 0.5), 1.0)
+    voz = en(0.02, quejido(0.6, 96 + 8 * i, 1.0))
+    guardar('embestida', reverb(mezclar(pico(empuja, 0.8), en(0.03, pico(aire, 0.85)), en(0.05, pico(ruge, 0.6)),
+                                        en(0.05, pico(traqueteo, 0.25)), pico(voz, 0.45)), 0.25, 1.8), i + 1, limite=0.5)
+
+# EL CAMINO DE LLAMAS: prende detras de el, a golpes seguidos (bocanadas que
+# se van alejando), y se queda chisporroteando.
+d = 2.8
+t = t_(d)
+prenden = mezclar(*[en(0.06 * k, ignicion(0.8, 1.0 - 0.06 * k, 2600, 50)) for k in range(9)])
+arde = llama(d, 1.0, 0.8, 10.0, 1.6) * np.interp(t, [0, 0.3, 1.5, d], [0, 1, 0.7, 0])
+brasas = chasquidos(d, 300 * np.exp(-t / 1.2) + 30)
+guardar('camino', reverb(mezclar(pico(prenden, 0.9), pico(arde, 0.55), pico(brasas, 0.25)), 0.25, 1.8), limite=0.55)
+
+# FURIA INFERNAL. El salto: el esfuerzo por el yelmo, el suelo que cede bajo
+# su peso, el aire que se abre hacia arriba y las placas.
+for i in range(2):
+    d = 1.6
+    esfuerzo = respiro(0.7, True, 58 + 6 * i, 0.6, 1.2)
+    suelo = golpe_tierra(1.0, 0.7, 0.8, 1.2)
+    sube = pasada(1.1, 700, 2600 + 300 * i, 1.4, 0.3)
+    chapa = placas(0.8, 220 * np.exp(-t_(0.8) / 0.25), 1.0)
+    guardar('infernal_salto', reverb(mezclar(pico(esfuerzo, 0.55), pico(suelo, 0.75), en(0.05, pico(sube, 0.7)),
+                                             pico(chapa, 0.3)), 0.25, 1.8), i + 1, limite=0.5)
+
+# La caida: dieciseis bloques de acero contra la piedra con la espada por
+# delante. El golpe mas hondo, la hoja que se clava (una barra que vibra), la
+# roca que revienta en abanico y la lava que ya asoma.
+d = 3.8
+t = t_(d)
+golpe = golpe_tierra(2.8, 2.0, 1.6, 3.4)
+hondo = saturar(boom(46, 18, 0.7, d), 2.6)
+hoja = metal(118.0, 2.8, 1.2, BARRA, 0.9, 0.003, 0.5)
+raja = mezclar(*[en(s, rajar_roca(int(rng.integers(10, 18)), 0.08, 1.1, 0.9)) for s in np.sort(rng.uniform(0.04, 0.9, 7))])
+asoma = en(0.5, lava_charco(2.8, 10.0, 0.8) * np.interp(t_(2.8), [0, 0.4, 2.0, 2.8], [0, 1, 0.7, 0]))
+guardar('infernal_golpe', reverb(mezclar(pico(golpe, 1.0), pico(hondo, 0.7), en(0.02, pico(hoja, 0.3)), en(0.05, pico(raja, 0.55)),
+                                         pico(asoma, 0.3)), 0.3, 2.8, 4800), limite=0.42)
+
+# LA GRIETA: la roca se va rajando a tirones (de cerca a lejos), cruje, y por
+# la raja sube el siseo del calor y el borboteo de la lava.
+for i in range(3):
+    d = 2.4
+    t = t_(d)
+    raja = mezclar(*[en(s, rajar_roca(int(rng.integers(6, 12)), 0.05, 1.0, 0.9 - 0.1 * i)) for s in np.sort(rng.uniform(0.0, 1.1, 6))])
+    cruje = crepitar(1.8, 700 * np.exp(-t_(1.8) / 0.6), curva(n_(1.8), [(0, 3000), (1, 900)]), 1.2)
+    calor = en(0.3, siseo(2.0, 2000, 8000) * np.interp(t_(2.0), [0, 0.5, 1.4, 2.0], [0, 1, 0.6, 0]))
+    borbotea = en(0.5, lava_charco(1.9, 8.0, 0.4) * np.interp(t_(1.9), [0, 0.4, 1.2, 1.9], [0, 1, 0.6, 0]))
+    guardar('grieta', reverb(mezclar(pico(raja, 0.9), pico(cruje, 0.35), pico(calor, 0.15), pico(borbotea, 0.35)), 0.25, 2.0),
+            i + 1, limite=0.55)
+
+# EL GEISER: la grieta escupe: la bocanada del fuego que prende, el chorro de
+# lava que sube y salpica, la lluvia de gotas y el borboteo que queda.
+for i in range(3):
+    d = 2.0
+    t = t_(d)
+    prende = ignicion(1.1, 1.0, 3200 + 300 * i, 50 - 4 * i)
+    chorro = filtro_mov(llama(1.3, 1.2, 1.6, 16.0, 1.2), curva(n_(1.3), [(0, 500), (0.15, 3200), (1, 700)]), 'band', 0.8)
+    chorro *= np.interp(t_(1.3), [0, 0.05, 0.6, 1.3], [0, 1, 0.5, 0])
+    salpica = en(0.08, salpicadura(1.0 + 0.2 * i))
+    queda = en(0.4, lava_charco(1.6, 9.0, 0.6) * np.interp(t_(1.6), [0, 0.3, 1.6], [0, 1, 0]))
+    guardar('geiser', reverb(mezclar(pico(prende, 0.8), pico(chorro, 0.75), pico(salpica, 0.5), pico(queda, 0.3)), 0.28, 2.0),
+            i + 1, limite=0.5)
+
+# LA GRIETA REVIENTA: arranca la espada y todo estalla: la mayor explosion de
+# lava, la piedra que sale volando y el retumbo que rueda por el altar.
+for i in range(2):
+    d = 4.6
+    t = t_(d)
+    grande = explosion(1.9 + 0.1 * i, 4.2, 1.6, 1.3, 0.85 - 0.06 * i, 1.2)
+    arranca = metal(150.0 + 12 * i, 1.2, 0.5, BARRA, 1.0, 0.003, 0.7)
+    rueda = retumbo(d, 110, 1.0, 0.5, 0.5) * np.interp(t, [0, 0.3, 1.6, d], [0, 1, 0.6, 0])
+    guardar('infernal_explota', reverb(mezclar(pico(arranca, 0.3), en(0.04, pico(grande, 1.0)), en(0.06, pico(rueda, 0.45))),
+                                       0.32, 3.0, 4800), i + 1, limite=0.42)
+
+# MAR DE LLAMAS: hunde la espada y el suelo de toda la arena se raja: un
+# retumbo largo que viene de lejos, grietas por todas partes que se alejan,
+# y el fuego que empieza a rugir por debajo.
+d = 6.0
+n = n_(d)
+t = t_(d)
+golpe = golpe_tierra(2.4, 1.8, 1.4, 3.0)
+viene = retumbo(d, 95, 0.8, 0.6, 0.5) * np.interp(t, [0, 0.2, 2.5, d], [0, 1, 0.8, 0])
+grietas = mezclar(*[en(s, rajar_roca(int(rng.integers(8, 16)), 0.06, 1.0 - 0.5 * s / d, 0.8)) for s in np.sort(rng.uniform(0.1, 4.5, 16))])
+ruge = llama(d, 1.0, curva(n, [(0, 0.3), (0.5, 1.2), (1, 0.8)]), 8.0, 1.4, 1.6) * np.interp(t, [0, 0.8, 3.0, d], [0, 0.6, 1, 0])
+guardar('mar', reverb(mezclar(pico(golpe, 1.0), pico(viene, 0.6), pico(grietas, 0.55), pico(ruge, 0.5)), 0.32, 3.0, 4800), limite=0.45)
+
 largos = {len(z) for nombre, z in GUARDADOS if nombre.startswith('melodia_')}
 assert len(largos) == 1, f'las melodias no miden lo mismo: {largos}'
 
@@ -1769,10 +1873,7 @@ SUBTITULOS = {
     'melodia_4': ('Tocan las trompetas de los ángeles', 'Angelic trumpets play'),
     'estatua_golpe': ('Cruje una estatua', 'A statue cracks'),
     'estatua_rota': ('Se rompe una estatua', 'A statue shatters'),
-    'fuentes': ('Brotan las fuentes solares', 'Solar fonts erupt'),
-    'fuente_golpe': ('Chisporrotea una fuente solar', 'A solar font crackles'),
-    'fuente_rota': ('Se rompe una fuente solar', 'A solar font breaks'),
-    'carga': ('El sol de Novilis se carga', "Novilis's sun charges"),
+    'carga': ('Novilis carga su fuego', 'Novilis gathers his fire'),
     'supernova': ('Estalla una supernova', 'A supernova explodes'),
     'sol_apaga': ('El sol se apaga', 'The sun fizzles out'),
     'ofrenda_marca': ('Un rayo de sol te marca', 'A sunbeam marks you'),
@@ -1789,6 +1890,14 @@ SUBTITULOS = {
     'tambaleo': ('Novilis se tambalea', 'Novilis staggers'),
     'liberacion': ('Novilis queda libre', 'Novilis is freed'),
     'disolver': ('Novilis se deshace en brasas', 'Novilis dissolves into embers'),
+    'embestida': ('Novilis embiste con la espada en llamas', 'Novilis charges with his flaming sword'),
+    'camino': ('Arde un camino de llamas', 'A trail of flames burns'),
+    'infernal_salto': ('Novilis salta', 'Novilis leaps'),
+    'infernal_golpe': ('Novilis cae clavando la espada', 'Novilis lands, driving his sword down'),
+    'grieta': ('El suelo se raja', 'The ground cracks'),
+    'geiser': ('Brota lava de la grieta', 'Lava erupts from the crack'),
+    'infernal_explota': ('Revienta la grieta', 'The crack explodes'),
+    'mar': ('El suelo se raja en llamas', 'The ground cracks into flame'),
 }
 faltan = [ev for ev in EVENTOS if ev not in SUBTITULOS]
 assert not faltan, f'eventos sin subtitulo: {faltan}'

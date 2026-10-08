@@ -28,6 +28,7 @@ import com.atalaya.client.AeralisParticula;
 import com.atalaya.client.AeralisRenderer;
 import com.atalaya.client.PlataformaSelloRenderer;
 import com.atalaya.client.FragmentoJadeRenderer;
+import com.atalaya.client.AltarIdoloRenderer;
 import com.atalaya.client.PicoTierraRenderer;
 import com.atalaya.client.PilarTierraRenderer;
 import com.atalaya.client.RajangMalla;
@@ -157,9 +158,11 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.TOTEM_SELLO, TotemSelloRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.PLATAFORMA_SELLO, PlataformaSelloRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.FRAGMENTO_JADE, FragmentoJadeRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.ALTAR_IDOLO, AltarIdoloRenderer::new);
 
         // Novilis: malla y animaciones generadas desde novilis_juego*.py, y lo
-        // que lanza (medias lunas, sellos, la onda, los soles, estatuas y fuentes).
+        // que lanza (medias lunas, sellos, la onda, los soles, las estatuas, el camino de
+        // llamas y las grietas).
         ModelLayerRegistry.registerModelLayer(NovilisModel.CAPA, NovilisMalla::crear);
         EntityRendererRegistry.register(AtalayaEntities.NOVILIS, NovilisRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.TAJO_NOVILIS, com.atalaya.client.TajoNovilisRenderer::new);
@@ -169,9 +172,8 @@ public class AtalayaClient implements ClientModInitializer {
         ModelLayerRegistry.registerModelLayer(com.atalaya.client.EstatuaNovilisRenderer.CAPA, com.atalaya.client.EstatuaNovilisMalla::crear);
         ModelLayerRegistry.registerModelLayer(com.atalaya.client.EstatuaNovilisRenderer.CAPA_ROTA, com.atalaya.client.EstatuaNovilisMalla::crearRota);
         EntityRendererRegistry.register(AtalayaEntities.ESTATUA_NOVILIS, com.atalaya.client.EstatuaNovilisRenderer::new);
-        ModelLayerRegistry.registerModelLayer(com.atalaya.client.FuenteSolarRenderer.CAPA, com.atalaya.client.FuenteSolarMalla::crear);
-        ModelLayerRegistry.registerModelLayer(com.atalaya.client.FuenteSolarRenderer.CAPA_ROTA, com.atalaya.client.FuenteSolarMalla::crearRota);
-        EntityRendererRegistry.register(AtalayaEntities.FUENTE_SOLAR, com.atalaya.client.FuenteSolarRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CAMINO_LLAMAS, com.atalaya.client.CaminoLlamasRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.GRIETA_NOVILIS, com.atalaya.client.GrietaNovilisRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.ESTRADO_NOVILIS, com.atalaya.client.EstradoNovilisRenderer::new);
 
         // El aviso de la tecla va DESPUES de la hotbar para quedar por encima:
@@ -282,11 +284,6 @@ public class AtalayaClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NovilisEfectosCliente::tick);
         // La Ofrenda al Sol: la secuencia de teclas de quien Novilis tiene en las manos.
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.OfrendaCliente::tick);
-        // De donde vino el golpe: un arco rojo alrededor de la mira (IndicadorGolpe).
-        HudElementRegistry.attachElementAfter(
-                VanillaHudElements.CROSSHAIR,
-                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "indicador_golpe"),
-                oculto(new com.atalaya.client.IndicadorGolpe()));
         // La musica de cada jefe mientras pelea cerca (y la de vanilla calla: MusicaJefesMixin).
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MusicaJefes::tick);
         HudElementRegistry.attachElementAfter(

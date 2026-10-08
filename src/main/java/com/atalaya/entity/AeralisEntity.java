@@ -325,7 +325,6 @@ public class AeralisEntity extends Monster {
     private int enfLadrona = 300;
     /** A quien le va a quitar el arma la Rafaga Ladrona (al soltarla). */
     private final List<LivingEntity> elegidosLadrona = new ArrayList<>();
-    private boolean pistaLadrona;
     /** El Picado: rumbo, largo de la linea, lo que lleva y a quien ya ha golpeado. */
     private Vec3 dirPicado = new Vec3(0, 0, 1);
     private double largoPicado;
@@ -365,9 +364,6 @@ public class AeralisEntity extends Monster {
     /** El planeo de la pasada: lo que le queda y si ya lo ha hecho en esta. */
     private int planeo;
     private boolean planeado;
-    /** Las pistas de la barra de accion: cada una sale una vez por combate. */
-    private boolean pistaAleteo;
-    private boolean pistaViento;
     /** El Juicio de entrar en la fase III: sale el primero (testers: casi no se veia). */
     private boolean juicioPendiente;
     /** El giro de los nucleos alrededor del ciclon. */
@@ -503,11 +499,6 @@ public class AeralisEntity extends Monster {
         ritmoEstado = ritmo(estado, fase(), isAcelerada(), tieneFuria());
         avisoEstado = aviso(estado);
         duracion = (int) Math.ceil(dur / ritmoEstado) + avisoEstado;
-        // La alerta de los jefes: al empezar un ataque peligroso (la de los que matan, aparte).
-        if (estado == ALETEO || estado == TORNADOS || estado == MARCA || estado == PICADO_AVISO || estado == ESCAMAS || estado == JUICIO_SUBE
-                || estado == LADRONA) {
-            PresasJefe.alerta(this, estado == PICADO_AVISO || estado == JUICIO_SUBE, 1.12F);
-        }
     }
 
     /**
@@ -1124,21 +1115,11 @@ public class AeralisEntity extends Monster {
             case ALETEO -> {
                 enfAleteo = (int) (70 * k);
                 ponerEstado(ALETEO, AeralisGeometria.DURACION_ALETEO);
-                if (!pistaAleteo) {
-                    pistaAleteo = true;
-                    avisar(nivel, Component.translatable("hud.atalaya.aeralis.aleteo_aviso").withStyle(ChatFormatting.AQUA));
-                }
             }
             case TORNADOS -> {
                 enfTornados = (int) (300 * k);
                 ponerEstado(TORNADOS, AeralisGeometria.DURACION_TORNADOS);
                 sonido(AtalayaSonidos.AERALIS_CHILLIDO, 4.0F);
-                // La primera vez que cuentan: como se la derriba.
-                if (fase() >= 2 && !pistaViento) {
-                    pistaViento = true;
-                    avisar(nivel, Component.translatable("hud.atalaya.aeralis.viento_aviso", getVientoNecesario())
-                            .withStyle(ChatFormatting.AQUA));
-                }
             }
             case MARCA -> {
                 if (presaElegida == null) {
@@ -1174,12 +1155,6 @@ public class AeralisEntity extends Monster {
                 elegidosLadrona.addAll(todos.subList(0, (todos.size() + 2) / 3));
                 ponerEstado(LADRONA, AeralisGeometria.DURACION_RAFAGA);
                 sonido(AtalayaSonidos.AERALIS_CHILLIDO, 5.0F);
-                if (!pistaLadrona) {
-                    pistaLadrona = true;
-                    for (Player p : jugadores(nivel, 64, 0)) {
-                        p.sendOverlayMessage(Component.translatable("hud.atalaya.aeralis.ladrona_aviso").withStyle(ChatFormatting.AQUA));
-                    }
-                }
             }
             case ESCAMAS -> {
                 enfEscamas = (int) (500 * k);
@@ -1938,7 +1913,6 @@ public class AeralisEntity extends Monster {
             nucleosJuicio[i] = NucleoVientoEntity.crear(nivel, this, sitioNucleo(i), aguanta);
             nucleos.add(nucleosJuicio[i]);
         }
-        avisar(nivel, Component.translatable("hud.atalaya.aeralis.juicio_aviso").withStyle(ChatFormatting.AQUA));
     }
 
     /** Los golpes de cada nucleo: 5 hasta 11 jugadores, uno mas por cada 6, hasta 10. */

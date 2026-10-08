@@ -4,14 +4,14 @@ Las piezas de Novilis, el Caballero Solar, para el juego:
   - las cuatro ESTATUAS de angel de las Trompetas del Apocalipsis (la misma
     malla para las cuatro: el renderer las gira hacia el centro), enteras y
     rotas;
-  - las tres FUENTES SOLARES del ataque cooperativo, enteras y rotas.
+  - las tres FUENTES SOLARES del ataque cooperativo, enteras y rotas. Ese
+    ataque ya no esta en el juego (Juan, 08-10-2026): la fuente se sigue
+    construyendo para los renders de la ficha, pero ya no se exporta.
 
 Es la UNICA fuente de su geometria. De aqui salen:
   - src/client/.../EstatuaNovilisMalla.java   crear() y crearRota()
-  - src/client/.../FuenteSolarMalla.java      crear() y crearRota()
   - textures/entity/novilis/estatua.png y estatua_brillo.png   (un atlas para
     la entera y la rota: la rota no usa nada que brille)
-  - textures/entity/novilis/fuente.png y fuente_brillo.png      (igual)
 y, si se le da carpeta, los renders de comprobacion y la presentacion.
 
 Unidades: pixeles de modelo, 16 = 1 bloque, Y hacia abajo, el frente mira a
@@ -1307,31 +1307,32 @@ def generar(raiz):
     java_dir = os.path.join(raiz, 'src/client/java/com/atalaya/client')
     os.makedirs(tex_dir, exist_ok=True)
     out = {}
-    for nombre, hacer, clase, ramas, coment in (
+    for nombre, hacer, clase, ramas, coment, exportar in (
             ('estatua', estatua, 'EstatuaNovilisMalla',
              (['pedestal', 'falda', 'ala_izq', 'ala_der', 'cabeza'], ['pedestal', 'falda', 'ala_rota']),
              ['Las estatuas de angel de Novilis (Trompetas del Apocalipsis). GENERADO por',
               'materiales/generadores/novilis_props.py: no se edita a mano.', '',
               'Escala x1 (un texel por pixel), la base en y = 24: mide 120 px = 7,5 bloques.',
               'Textura: textures/entity/novilis/estatua.png (y estatua_brillo.png, la luz de',
-              'la campana de la trompeta). La entera y la rota comparten el atlas.']),
+              'la campana de la trompeta). La entera y la rota comparten el atlas.'], True),
             ('fuente', fuente, 'FuenteSolarMalla',
              ([], []),
              ['Las fuentes solares de Novilis. GENERADO por materiales/generadores/novilis_props.py:',
               'no se edita a mano.', '',
               f'Escala x1, la base en y = 24: mide 80 px = 5 bloques. El sol flota con su centro en',
               f'y = {SOL_FUENTE_Y:g} (lo pinta el renderer aparte). Textura: textures/entity/novilis/',
-              'fuente.png y fuente_brillo.png (las bandas de sol). La entera y la rota comparten el atlas.'])):
+              'fuente.png y fuente_brillo.png (las bandas de sol). La entera y la rota comparten el atlas.'], False)):
         entera, rota = hacer(False), hacer(True)
         registrar_cajas([entera, rota])
         uv, alto = empaquetar([entera, rota])
         base, brillo = pintar_atlas(uv, alto)
-        Image.fromarray(base).save(os.path.join(tex_dir, nombre + '.png'))
-        Image.fromarray(brillo).save(os.path.join(tex_dir, nombre + '_brillo.png'))
-        java = java_malla(clase, coment, [('crear', 'entera', entera, ramas[0]), ('crearRota', 'rota', rota, ramas[1])],
-                          uv, alto)
-        with open(os.path.join(java_dir, clase + '.java'), 'w', encoding='utf-8', newline='\n') as fh:
-            fh.write(java)
+        if exportar:
+            Image.fromarray(base).save(os.path.join(tex_dir, nombre + '.png'))
+            Image.fromarray(brillo).save(os.path.join(tex_dir, nombre + '_brillo.png'))
+            java = java_malla(clase, coment, [('crear', 'entera', entera, ramas[0]), ('crearRota', 'rota', rota, ramas[1])],
+                              uv, alto)
+            with open(os.path.join(java_dir, clase + '.java'), 'w', encoding='utf-8', newline='\n') as fh:
+                fh.write(java)
         piezas = len(entera.orden), len(rota.orden)
         cajas = sum(len(entera.partes[n].cajas) for n in entera.orden), sum(len(rota.partes[n].cajas) for n in rota.orden)
         print(f'{nombre}: atlas {ANCHO_ATLAS}x{alto}, piezas {piezas}, cajas {cajas}')

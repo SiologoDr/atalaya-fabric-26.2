@@ -91,13 +91,15 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_TOTEM_SELLO = clave("totem_sello");
     public static final ResourceKey<EntityType<?>> CLAVE_PLATAFORMA_SELLO = clave("plataforma_sello");
     public static final ResourceKey<EntityType<?>> CLAVE_FRAGMENTO_JADE = clave("fragmento_jade");
+    public static final ResourceKey<EntityType<?>> CLAVE_ALTAR_IDOLO = clave("altar_idolo");
     public static final ResourceKey<EntityType<?>> CLAVE_NOVILIS = clave("novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_TAJO_NOVILIS = clave("tajo_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_SELLO_SOL = clave("sello_sol");
     public static final ResourceKey<EntityType<?>> CLAVE_ONDA_FUEGO = clave("onda_fuego");
     public static final ResourceKey<EntityType<?>> CLAVE_SOL_NOVILIS = clave("sol_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_ESTATUA_NOVILIS = clave("estatua_novilis");
-    public static final ResourceKey<EntityType<?>> CLAVE_FUENTE_SOLAR = clave("fuente_solar");
+    public static final ResourceKey<EntityType<?>> CLAVE_CAMINO_LLAMAS = clave("camino_llamas");
+    public static final ResourceKey<EntityType<?>> CLAVE_GRIETA_NOVILIS = clave("grieta_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_ESTRADO_NOVILIS = clave("estrado_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_TRIDENTE_MAREAS = clave("tridente_mareas");
     public static final ResourceKey<EntityType<?>> CLAVE_FLECHA_VENDAVAL = clave("flecha_vendaval");
@@ -127,6 +129,8 @@ public final class AtalayaEntities {
     public static EntityType<PlataformaSelloEntity> PLATAFORMA_SELLO;
     /** Los fragmentos del Cataclismo de Jade. */
     public static EntityType<FragmentoJadeEntity> FRAGMENTO_JADE;
+    /** El pilar del altar donde se pone el Idolo de Oro. */
+    public static EntityType<AltarIdoloEntity> ALTAR_IDOLO;
 
     /** Novilis, el Caballero Solar: el jefe elemental del fuego. */
     public static EntityType<NovilisEntity> NOVILIS;
@@ -145,7 +149,8 @@ public final class AtalayaEntities {
     /** Las estatuas de las Trompetas del Apocalipsis. */
     public static EntityType<EstatuaNovilisEntity> ESTATUA_NOVILIS;
     /** Las fuentes solares. */
-    public static EntityType<FuenteSolarEntity> FUENTE_SOLAR;
+    public static EntityType<CaminoLlamasEntity> CAMINO_LLAMAS;
+    public static EntityType<GrietaNovilisEntity> GRIETA_NOVILIS;
     public static EntityType<EstradoNovilisEntity> ESTRADO_NOVILIS;
 
     private AtalayaEntities() {
@@ -256,7 +261,7 @@ public final class AtalayaEntities {
                 EntityType.Builder.<SolNovilisEntity>of(SolNovilisEntity::new, MobCategory.MISC)
                         .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
                         .build(CLAVE_SOL_NOVILIS));
-        // Las estatuas y las fuentes se pegan: cajas de su tamano.
+        // Las estatuas se pegan: cajas de su tamano.
         ESTATUA_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_ESTATUA_NOVILIS,
                 EntityType.Builder.<EstatuaNovilisEntity>of(EstatuaNovilisEntity::new, MobCategory.MISC)
                         .sized(2.6F, 7.5F).fireImmune().noSummon().clientTrackingRange(16)
@@ -266,10 +271,16 @@ public final class AtalayaEntities {
                 EntityType.Builder.<EstradoNovilisEntity>of(EstradoNovilisEntity::new, MobCategory.MISC)
                         .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16)
                         .build(CLAVE_ESTRADO_NOVILIS));
-        FUENTE_SOLAR = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_FUENTE_SOLAR,
-                EntityType.Builder.<FuenteSolarEntity>of(FuenteSolarEntity::new, MobCategory.MISC)
-                        .sized(2.2F, 5.6F).fireImmune().noSummon().clientTrackingRange(16)
-                        .build(CLAVE_FUENTE_SOLAR));
+        // El camino de llamas de la Espada del Fuego y las grietas de la Furia
+        // Infernal y del Mar de Llamas: no se mueven, el cliente las pinta.
+        CAMINO_LLAMAS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CAMINO_LLAMAS,
+                EntityType.Builder.<CaminoLlamasEntity>of(CaminoLlamasEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 0.2F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_CAMINO_LLAMAS));
+        GRIETA_NOVILIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_GRIETA_NOVILIS,
+                EntityType.Builder.<GrietaNovilisEntity>of(GrietaNovilisEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 0.2F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_GRIETA_NOVILIS));
     }
 
     private static void registrarAeralis() {
@@ -379,6 +390,15 @@ public final class AtalayaEntities {
                         .clientTrackingRange(16)
                         .updateInterval(1)
                         .build(CLAVE_FRAGMENTO_JADE));
+        // El pilar del altar del Idolo: se pisa, no se mueve.
+        ALTAR_IDOLO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_ALTAR_IDOLO,
+                EntityType.Builder.<AltarIdoloEntity>of(AltarIdoloEntity::new, MobCategory.MISC)
+                        .sized(AltarIdoloEntity.ANCHO, AltarIdoloEntity.ALTO)
+                        .fireImmune()
+                        .noSummon()
+                        .clientTrackingRange(16)
+                        .updateInterval(20)
+                        .build(CLAVE_ALTAR_IDOLO));
     }
 
     private static void registrarNerea() {

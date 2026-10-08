@@ -17,7 +17,8 @@ import net.minecraft.util.Mth;
  * Una cupula de refugio de la Marea Alta: media esfera de agua celeste apoyada
  * en el suelo (Juan: "celeste y como una cupula"), con la red de reflejos de
  * nerea_cupula.py que gira despacio y un aro de espuma donde toca el suelo. Se
- * ve por dentro y por fuera. Llena se tine de rojo. Lo que cabe ("1/2") lo pone
+ * ve por dentro y por fuera. Llena se tine de rojo y se cierra: le sale una
+ * segunda capa roja que late (y ya no deja entrar a nadie). Lo que cabe ("1/2") lo pone
  * el nombre de la entidad encima.
  */
 public class RefugioNereaRenderer extends EntityRenderer<RefugioNereaEntity, RefugioNereaRenderer.Estado> {
@@ -67,6 +68,21 @@ public class RefugioNereaRenderer extends EntityRenderer<RefugioNereaEntity, Ref
         float giro = s.edad * 0.004F;
         int color = s.llena ? LLENA : CELESTE;
         int alfa = (int) (235 * nace);
+        cascaron(pose, colector, radio, alto, giro, color, alfa);
+        if (s.llena) {
+            // Cerrada: una segunda capa roja por fuera que late y gira al reves.
+            int late = (int) (70 + 60 * Mth.sin(s.edad * 0.35F));
+            cascaron(pose, colector, radio * 1.06F, alto * 1.06F, -giro * 3.0F, LLENA, (int) (late * nace));
+        }
+        colector.submitCustomGeometry(pose, NereaDibujo.ARO, (p, buf) ->
+                NereaDibujo.suelo(buf, p, 0.0, 0.06, 0.0, (radio + 0.3F) / NereaDibujo.ARO_EN_TEXTURA, s.edad * 0.04F,
+                        s.llena ? LLENA : 0xBFF2FF, alfa));
+        super.submit(s, pose, colector, camara);
+    }
+
+    /** La media esfera de agua, por dentro y por fuera. */
+    private static void cascaron(PoseStack pose, SubmitNodeCollector colector, float radio, float alto, float giro, int color,
+                                 int alfa) {
         colector.submitCustomGeometry(pose, CUPULA, (p, buf) -> {
             for (int j = 0; j < ANILLOS; j++) {
                 float la0 = Mth.HALF_PI * j / ANILLOS;
@@ -85,10 +101,6 @@ public class RefugioNereaRenderer extends EntityRenderer<RefugioNereaEntity, Ref
                 }
             }
         });
-        colector.submitCustomGeometry(pose, NereaDibujo.ARO, (p, buf) ->
-                NereaDibujo.suelo(buf, p, 0.0, 0.06, 0.0, (radio + 0.3F) / NereaDibujo.ARO_EN_TEXTURA, s.edad * 0.04F,
-                        s.llena ? LLENA : 0xBFF2FF, alfa));
-        super.submit(s, pose, colector, camara);
     }
 
     /** Un vertice de la media esfera (latitud desde el suelo, longitud alrededor). */

@@ -3,7 +3,9 @@ package com.atalaya.entity;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -11,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -30,12 +33,12 @@ import org.jspecify.annotations.Nullable;
  * Una cupula de refugio de la Marea Alta (Nerea, octubre de 2026): media esfera
  * de agua celeste apoyada en el suelo (Juan: "celeste y como una cupula"), donde
  * caben "aforo" jugadores. Al acabar
- * la cuenta atras, quien no este dentro de una (de los primeros en entrar, hasta
- * llenarla) revienta el totem. Encima lleva cuantos caben ("1/2"); llena se
- * pone roja.
+ * la cuenta atras, quien no este dentro de una revienta el totem. Encima lleva
+ * cuantos caben ("1/2"); llena se pone roja y se cierra: echa hacia fuera a
+ * quien intente entrar, hasta que salga alguno de los de dentro.
  *
  * Hay las justas: una por cada "aforo" jugadores, repartidas por la arena. Hay
- * que repartirse: si se mete uno de mas, ese no esta a salvo.
+ * que repartirse: el que llega tarde a una llena tiene que buscar otra.
  */
 public class RefugioNereaEntity extends Entity {
 
@@ -50,6 +53,10 @@ public class RefugioNereaEntity extends Entity {
     private @Nullable NereaEntity duena;
     /** Los de dentro, por orden de llegada: los primeros "aforo" estan a salvo. */
     private final List<UUID> dentro = new ArrayList<>();
+    /** A quien ha echado y cuando (el aviso y el sonido, no mas de uno cada 0,75 s). */
+    private final Map<UUID, Integer> avisados = new HashMap<>();
+    /** Lo fuerte que echa la cupula llena (bloques/tick, hacia fuera). */
+    private static final double EMPUJE = 0.55;
     private int vida = 260;
 
     public RefugioNereaEntity(EntityType<? extends RefugioNereaEntity> tipo, Level nivel) {
@@ -93,10 +100,43 @@ public class RefugioNereaEntity extends Entity {
         return position().add(0, RADIO * 0.5, 0);
     }
 
-    /** Esta dentro y le toca sitio (de los primeros "aforo" en entrar). */
+    /** Esta dentro y le toca sitio: con la cupula llena no entra nadie mas. */
     public boolean protege(LivingEntity v) {
-        int i = dentro.indexOf(v.getUUID());
-        return i >= 0 && i < getAforo();
+        return dentro.contains(v.getUUID());
+    }
+
+    /** Los pies a menos de "r" del centro (en planta) y a la altura de la cupula. */
+    private boolean bajo(LivingEntity v, double r) {
+        double dx = v.getX() - getX();
+        double dz = v.getZ() - getZ();
+        return dx * dx + dz * dz <= r * r && v.getY() >= getY() - 0.5 && v.getY() <= getY() + RADIO + 0.5;
+    }
+
+    /** La cupula llena echa hacia fuera al que intenta entrar, y le dice que busque otra. */
+    private void echar(ServerLevel nivel, LivingEntity v) {
+        double dx = v.getX() - getX();
+        double dz = v.getZ() - getZ();
+        double d = Math.sqrt(dx * dx + dz * dz);
+        if (d < 1.0E-3) {
+            double a = random.nextDouble() * Math.PI * 2;
+            dx = Math.cos(a);
+            dz = Math.sin(a);
+            d = 1.0;
+        }
+        v.setDeltaMovement(dx / d * EMPUJE, Math.max(v.getDeltaMovement().y, 0.12), dz / d * EMPUJE);
+        v.hurtMarked = true;
+        int ahora = tickCount;
+        Integer antes = avisados.get(v.getUUID());
+        if (antes == null || ahora - antes >= 15) {
+            avisados.put(v.getUUID(), ahora);
+            Vec3 p = position().add(dx / d * RADIO, Math.min(v.getY() - getY() + 1.0, RADIO), dz / d * RADIO);
+            nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, p.x, p.y, p.z, 10, 0.3, 0.4, 0.3, 0.05);
+            nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_BURBUJA_POMPA, SoundSource.HOSTILE, 1.0F, 0.6F);
+            if (v instanceof ServerPlayer jugador) {
+                jugador.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.refugio_lleno")
+                        .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+            }
+        }
     }
 
     @Override
@@ -110,23 +150,37 @@ public class RefugioNereaEntity extends Entity {
             reventar(nivel, false);
             return;
         }
-        // Quien esta dentro: los pies bajo la cupula. El orden de llegada se guarda.
+        // Quien esta dentro: los pies bajo la cupula. Entran por orden de llegada
+        // hasta llenarla; llena, se cierra y a los demas los echa (Juan, 08-10-2026:
+        // "si ya se llego a un cupo que no deje pasar a otra persona").
         Vec3 c = centro();
+        double muro = RADIO + 0.9;
+        List<LivingEntity> cerca = nivel.getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(muro + 0.5, RADIO + 1.0,
+                muro + 0.5), PresasJefe::presa);
         List<UUID> ahora = new ArrayList<>();
-        for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, new AABB(c, c).inflate(RADIO + 0.5),
-                PresasJefe::presa)) {
-            double dx = v.getX() - getX();
-            double dz = v.getZ() - getZ();
-            if (dx * dx + dz * dz <= (RADIO + 0.2) * (RADIO + 0.2) && v.getY() >= getY() - 0.5 && v.getY() <= getY() + RADIO) {
+        for (LivingEntity v : cerca) {
+            if (bajo(v, RADIO + 0.2)) {
                 ahora.add(v.getUUID());
             }
         }
         dentro.removeIf(u -> !ahora.contains(u));
-        for (UUID u : ahora) {
-            if (!dentro.contains(u)) {
-                dentro.add(u);
-                nivel.playSound(null, c.x, c.y, c.z, AtalayaSonidos.NEREA_BURBUJA_POMPA, SoundSource.HOSTILE, 1.0F, 1.2F);
+        boolean llenaAntes = dentro.size() >= getAforo();
+        for (LivingEntity v : cerca) {
+            if (dentro.contains(v.getUUID())) {
+                continue;
             }
+            if (ahora.contains(v.getUUID()) && dentro.size() < getAforo()) {
+                dentro.add(v.getUUID());
+                nivel.playSound(null, c.x, c.y, c.z, AtalayaSonidos.NEREA_BURBUJA_POMPA, SoundSource.HOSTILE, 1.0F, 1.2F);
+            } else if (dentro.size() >= getAforo() && bajo(v, muro)) {
+                echar(nivel, v);
+            }
+        }
+        if (!llenaAntes && dentro.size() >= getAforo()) {
+            // Se cierra: la pompa se endurece con un golpe sordo.
+            nivel.playSound(null, c.x, c.y, c.z, AtalayaSonidos.NEREA_REFUGIO, SoundSource.HOSTILE, 1.6F, 0.7F);
+            nivel.sendParticles(AtalayaParticulas.NEREA_ESPUMA, true, true, c.x, getY() + 0.1, c.z, 24, RADIO * 0.7, 0.05,
+                    RADIO * 0.7, 0.04);
         }
         if (dentro.size() != getDentro()) {
             entityData.set(DATA_DENTRO, dentro.size());

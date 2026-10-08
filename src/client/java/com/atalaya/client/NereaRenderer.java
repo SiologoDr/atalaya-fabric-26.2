@@ -100,6 +100,13 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         s.encadenar.copyFrom(n.encadenar);
         s.liberacion.copyFrom(n.liberacion);
         s.estado = n.getEstado();
+        if (s.estado == NereaEntity.MAREA) {
+            // La Gran Marea: el cuerpo y el paso marcado, fijos hacia donde ira la
+            // ola. El cuerpo del cliente sigue a la cabeza con retraso y hacia
+            // girar el camino del suelo mientras avisaba.
+            s.bodyRot = n.getYRot(parcial);
+            s.yRot = 0.0F;
+        }
         s.pesoLibre = Mth.lerp(parcial, n.pesoLibreAnt, n.pesoLibre);
         s.cadenas = n.getCadenas();
         s.fase = n.fase();
@@ -369,14 +376,16 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         if (ticks > lanza + 2) {
             return;
         }
-        float k = Mth.clamp(ticks / 8.0F, 0.0F, 1.0F);
+        // Sale desde la espera de aviso, con ella quieta, hasta que suelta la ola.
+        float desde = -NereaEntity.aviso(NereaEntity.MAREA) * s.ritmo;
+        float k = Mth.clamp((ticks - desde) / 8.0F, 0.0F, 1.0F);
         float b = s.bodyRot * Mth.DEG_TO_RAD;
         Vec3 dir = new Vec3(-Mth.sin(b), 0, Mth.cos(b));
         Vec3 lado = OlaNereaEntity.lado(dir);
         Vec3 a = dir.scale(1.0).add(lado.scale(s.hueco)).add(0, 0.07, 0);
         Vec3 z = dir.scale(NereaEntity.MAREA_LARGO).add(lado.scale(s.hueco)).add(0, 0.07, 0);
         // Parpadea mas deprisa cuanto menos queda.
-        float prisa = 0.25F + 0.5F * Mth.clamp(ticks / lanza, 0.0F, 1.0F);
+        float prisa = 0.25F + 0.5F * Mth.clamp((ticks - desde) / (lanza - desde), 0.0F, 1.0F);
         int brillo = (int) ((165 + 75 * Mth.sin(s.ageInTicks * prisa)) * k);
         float corre = s.ageInTicks * 0.02F;
         colector.submitCustomGeometry(pose, NereaDibujo.SENDERO, (p, buf) ->
