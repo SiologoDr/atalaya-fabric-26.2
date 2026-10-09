@@ -14,7 +14,12 @@
     "ManosPresentacionCuerpoMixin",
     "ClientInputAccesor",
     "CorazonesJefeMixin",
-    "IconosArmaduraMixin"
+    "IconosArmaduraMixin",
+    "BalaBrazosMixin",
+    "BalaCuerpoMixin",
+    "BalaManosMixin",
+    "CanonZoomMixin",
+    "CanonPunteriaMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -56,6 +56,10 @@ public final class AtalayaItems {
     public static Item LAGRIMA_NEREA;
     /** El Idolo de Oro de Rajang: solo existe mientras el lo busca (IdoloOroItem). */
     public static Item IDOLO_ORO;
+    /** Los objetos de los minijuegos de Nerea: solo existen mientras dura el suyo. */
+    public static Item CANA_ABISMO;
+    public static Item PERLA_ABISMO;
+    public static Item BALA_CANON;
 
     /** Huevo generador de Nerea: nace dormido y encadenado hasta que ve a alguien. */
     public static Item HUEVO_NEREA;
@@ -302,6 +306,11 @@ public final class AtalayaItems {
         // Sin el brillo de encantamiento: el morado de vanilla le tapaba el oro al idolo en 3D.
         IDOLO_ORO = registrar("idolo_oro", props -> new IdoloOroItem(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
+        CANA_ABISMO = registrar("cana_abismo", props -> new CanaAbismoItem(props.stacksTo(1).fireResistant()
+                .rarity(Rarity.RARE)));
+        PERLA_ABISMO = registrar("perla_abismo", props -> new PerlaAbismoItem(props.stacksTo(8).fireResistant()
+                .rarity(Rarity.RARE)));
+        BALA_CANON = registrar("bala_canon", props -> new BalaCanonItem(props.stacksTo(1).fireResistant()));
         COLMILLO_JADE = registrar("colmillo_jade", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
         HUEVO_NOVILIS = registrar("huevo_novilis",

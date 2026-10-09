@@ -81,6 +81,12 @@ public final class AtalayaParticulas {
     public static SimpleParticleType NEREA_ROCA;
     /** Polvo de arena que levantan las pisadas y las caidas. */
     public static SimpleParticleType NEREA_POLVO;
+    /** Las notas de su canto (el Canto de Sirena y el Duelo de Canto): una nota de musica de colores. */
+    public static SimpleParticleType NEREA_NOTA;
+    /** El humo de polvora de los Canones del Naufragio. */
+    public static SimpleParticleType NEREA_HUMO;
+    /** El fogonazo de un canonazo y del impacto de la bala. */
+    public static SimpleParticleType NEREA_FOGONAZO;
 
     // --- Las de Aeralis (aeralis_extras.py). Ninguna es de vanilla. ---
 
@@ -213,6 +219,9 @@ public final class AtalayaParticulas {
         NEREA_ONDA = registrar("nerea_onda", true);
         NEREA_ROCA = registrar("nerea_roca", false);
         NEREA_POLVO = registrar("nerea_polvo", false);
+        NEREA_NOTA = registrar("nerea_nota", true);
+        NEREA_HUMO = registrar("nerea_humo", false);
+        NEREA_FOGONAZO = registrar("nerea_fogonazo", true);
 
         // Las de aviso de Aeralis (donde nace un tornado, la marca, el circulo
         // del Juicio, la onda) siempre visibles.

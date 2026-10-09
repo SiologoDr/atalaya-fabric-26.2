@@ -2,11 +2,11 @@ package com.atalaya.entity;
 
 import com.atalaya.effect.BendicionMareasEffect;
 import com.atalaya.effect.CorrienteAbismalEffect;
+import com.atalaya.item.AtalayaItems;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundStopSoundPacket;
@@ -37,6 +37,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
@@ -116,6 +117,34 @@ public class NereaEntity extends Monster {
     public static final int CANTO = 16;
     public static final int MAREA_ALTA = 17;
     public static final int ENCADENAR = 18;
+    /**
+     * Los minijuegos (octubre de 2026, Juan: "a la gente le gustan los
+     * minijuegos"): el arranque de cada uno, con la animacion del Geiser (clava
+     * el tridente y sale lo suyo). Despues el minijuego corre aparte del estado
+     * (MinijuegosNerea) y ella se queda quieta sin atacar.
+     */
+    public static final int PESCA = 19;
+    public static final int CANONES = 20;
+    public static final int MORENAS = 21;
+    /** El Duelo de Canto (fase IV): canta a uno, que tiene que seguir el ritmo; mientras, es inmune. */
+    public static final int DUELO = 22;
+    /** Los 3 s para prepararse antes de las notas del Duelo. */
+    public static final int DUELO_PREPARA = 60;
+    public static final int DUELO_NOTAS = 16;
+    /** Las que hay que acertar del Duelo para volverle el canto en contra. */
+    public static final int DUELO_ACIERTOS = 12;
+    /** Cuando cae la primera nota (ticks tras acabar la preparacion). */
+    public static final int DUELO_PRIMERA = 36;
+    private static final int DUELO_ATURDIDA = 100;
+    /** Lo que dura cada minijuego (ticks) y lo que queda aturdida si sale bien. */
+    private static final int PESCA_TICKS = 500;
+    private static final int CANONES_TICKS = 600;
+    private static final int MORENAS_TICKS = 400;
+    private static final int ATURDIDA_PESCA = 120;
+    private static final int ATURDIDA_CANONES = 100;
+    private static final int ATURDIDA_MORENAS = 120;
+    /** Lo que le quita cada bala de canon que le da (de su vida). */
+    private static final float DANO_CANON = 0.03F;
 
     /**
      * Vida EFECTIVA: 12 500, la misma con cualquier numero de jugadores. La de
@@ -179,6 +208,8 @@ public class NereaEntity extends Monster {
             // La Gran Marea ya no espera quieta: su animacion entera es el aviso
             // (4,5 s antes de soltar la ola, los mismos que antes), y ruge y alza el
             // tridente desde el principio (Juan, 09-10-2026: quieta no se enteraban).
+            // El Duelo de Canto: 3 s para prepararse antes de la primera nota.
+            case DUELO -> DUELO_PREPARA;
             default -> 0;
         };
     }
@@ -261,6 +292,23 @@ public class NereaEntity extends Monster {
     /** Donde cae el hueco de la Gran Marea (bloques a un lado de su rumbo): el cliente lo marca en el suelo. */
     private static final EntityDataAccessor<Float> DATA_HUECO =
             SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.FLOAT);
+    /** El minijuego en marcha: el tipo (4 bits), la cuenta (10 bits) y lo que hace falta (10 bits). */
+    private static final EntityDataAccessor<Integer> DATA_MINI =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.INT);
+    /** Cuando se acaba el minijuego (tiempo del mundo; 0 si no hay). */
+    private static final EntityDataAccessor<Long> DATA_MINI_FIN =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.LONG);
+    /**
+     * El Duelo de Canto: a quienes canta (sus ids, separados por comas; vacio si a
+     * nadie), la semilla de las notas y la cuenta: los que ya lo han superado | los
+     * duelistas << 8 | las notas que van << 16.
+     */
+    private static final EntityDataAccessor<String> DATA_DUELO =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Integer> DATA_DUELO_SEMILLA =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_DUELO_CUENTA =
+            SynchedEntityData.defineId(NereaEntity.class, EntityDataSerializers.INT);
 
     // --- Solo cliente ---
     public final AnimationState reposo = new AnimationState();
@@ -325,6 +373,28 @@ public class NereaEntity extends Monster {
     private int enfCanto = 200;
     private int enfCadenas = 160;
     private int enfMareaAlta = 300;
+    // Los minijuegos: uno cada vez, y entre uno y otro al menos 25 s
+    private int miniTipo = MinijuegosNerea.NINGUNO;
+    private int miniT;
+    private int miniDura;
+    private int miniCuenta;
+    private int miniNecesario;
+    private int miniPorOla = 1;
+    private int enfMinijuego = 300;
+    private int enfPesca = 200;
+    private int enfCanones = 400;
+    private int enfMorenas = 200;
+    private int enfDuelo = 200;
+    private final List<PozaAbismoEntity> pozas = new ArrayList<>();
+    private final List<MorenaNereaEntity> morenas = new ArrayList<>();
+    private final List<CanonNaufragioEntity> canones = new ArrayList<>();
+    /** Los del Duelo de Canto (un tercio de los que pelean) y, de cada uno, las notas juzgadas y los aciertos. */
+    private final List<LivingEntity> duelistas = new ArrayList<>();
+    private final Map<UUID, java.util.BitSet> dueloJuzgadas = new HashMap<>();
+    private final Map<UUID, Integer> dueloAciertos = new HashMap<>();
+    /** En el cliente: los ids de los duelistas, leidos de DATA_DUELO. */
+    private String dueloLeido = "";
+    private int[] dueloIds = new int[0];
     /** Canto de Sirena: los elegidos (al empezar a cantar quedan en trance) y lo que lleva cada hechizado para salir. */
     private final List<LivingEntity> elegidosCanto = new ArrayList<>();
     private final java.util.Map<UUID, Integer> trance = new java.util.HashMap<>();
@@ -386,6 +456,11 @@ public class NereaEntity extends Monster {
         datos.define(DATA_FURIA, false);
         datos.define(DATA_FURIA_FIN, 0L);
         datos.define(DATA_HUECO, 0.0F);
+        datos.define(DATA_MINI, 0);
+        datos.define(DATA_MINI_FIN, 0L);
+        datos.define(DATA_DUELO, "");
+        datos.define(DATA_DUELO_SEMILLA, 0);
+        datos.define(DATA_DUELO_CUENTA, 0);
     }
 
     @Override
@@ -440,6 +515,92 @@ public class NereaEntity extends Monster {
     /** Donde cae el hueco de la Gran Marea, en bloques a un lado de su rumbo (como OlaNereaEntity.lado). */
     public float getHueco() {
         return entityData.get(DATA_HUECO);
+    }
+
+    /** El minijuego en marcha (MinijuegosNerea.PESCA, CANONES, MORENAS) o NINGUNO; en los dos lados. */
+    public int minijuego() {
+        return entityData.get(DATA_MINI) & 15;
+    }
+
+    /** Lo que lleva el minijuego: perlas, aciertos seguidos o morenas. */
+    public int getMiniCuenta() {
+        return (entityData.get(DATA_MINI) >> 4) & 1023;
+    }
+
+    public int getMiniNecesario() {
+        return (entityData.get(DATA_MINI) >> 14) & 1023;
+    }
+
+    /** Cuando se acaba el minijuego (tiempo del mundo). */
+    public long getMiniFin() {
+        return entityData.get(DATA_MINI_FIN);
+    }
+
+    /** Si le canta el Duelo de Canto a esta entidad (en el cliente: si soy uno de los duelistas). */
+    public boolean esDuelista(int id) {
+        String s = entityData.get(DATA_DUELO);
+        if (!s.equals(dueloLeido)) {
+            dueloLeido = s;
+            dueloIds = s.isEmpty() ? new int[0] : java.util.Arrays.stream(s.split(",")).mapToInt(Integer::parseInt).toArray();
+        }
+        for (int x : dueloIds) {
+            if (x == id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getSemillaDuelo() {
+        return entityData.get(DATA_DUELO_SEMILLA);
+    }
+
+    /** Los duelistas que ya llevan los aciertos que hacen falta. */
+    public int getGanadosDuelo() {
+        return entityData.get(DATA_DUELO_CUENTA) & 255;
+    }
+
+    public int getDuelistas() {
+        return (entityData.get(DATA_DUELO_CUENTA) >> 8) & 255;
+    }
+
+    /** Las notas que van (las del que mas lleva): para la barra que se vacia. */
+    public int getJuzgadasDuelo() {
+        return (entityData.get(DATA_DUELO_CUENTA) >> 16) & 255;
+    }
+
+    /**
+     * Las notas del Duelo de Canto: [tick desde que acaba la preparacion,
+     * carril 0-3 (A, S, D, F)]. Las saca cada lado de la misma semilla, como las
+     * teclas de la Ofrenda de Novilis: por la red solo va la semilla.
+     */
+    public static int[][] notasDuelo(int semilla) {
+        java.util.Random r = new java.util.Random(semilla);
+        int[][] out = new int[DUELO_NOTAS][2];
+        int tk = DUELO_PRIMERA;
+        int antes = -1;
+        for (int i = 0; i < DUELO_NOTAS; i++) {
+            int carril;
+            do {
+                carril = r.nextInt(4);
+            } while (carril == antes && r.nextInt(3) != 0);
+            out[i][0] = tk;
+            out[i][1] = carril;
+            antes = carril;
+            tk += 8 + r.nextInt(5);
+        }
+        return out;
+    }
+
+    /** Lo que dura cada minijuego (ticks), para la barra. */
+    public static int duracionMinijuego(int tipo) {
+        return tipo == MinijuegosNerea.PESCA ? PESCA_TICKS : tipo == MinijuegosNerea.CANONES ? CANONES_TICKS : MORENAS_TICKS;
+    }
+
+    /** Lo que dura el Duelo despues de la preparacion (ticks): hasta la ultima nota y un poco. */
+    public static int dueloDura(int semilla) {
+        int[][] n = notasDuelo(semilla);
+        return n[n.length - 1][0] + 16;
     }
 
     /** Los ids de a quienes mira la Mirada. */
@@ -554,9 +715,9 @@ public class NereaEntity extends Monster {
             case ATURDIDO -> aturdido;
             case TAMBALEO -> tambaleo;
             case AGOTADO -> agotado;
-            case GEISER -> geiser;
+            case GEISER, PESCA, CANONES, MORENAS -> geiser;
             case MAREA -> marea;
-            case CANTO -> canto;
+            case CANTO, DUELO -> canto;
             case MAREA_ALTA -> mareaAlta;
             case ENCADENAR -> encadenar;
             default -> null;
@@ -597,6 +758,12 @@ public class NereaEntity extends Monster {
         AnimationState actual = animacionDe(getEstado());
         if (!muriendo && actual != null && !actual.isStarted()) {
             arrancarAnimacion();
+        }
+        if (!muriendo && getEstado() == ATURDIDO && tickCount - inicioEstado >= NereaGeometria.DURACION_ATURDIDO) {
+            // Aturdida mas tiempo que su animacion (tras un minijuego): la repite.
+            aturdido.stop();
+            inicioEstado = tickCount;
+            aturdido.start(tickCount);
         }
         pesoLibreAnt = pesoLibre;
         float objetivoPeso = getEstado() == LIBRE && !muriendo ? 1.0F : 0.0F;
@@ -720,7 +887,13 @@ public class NereaEntity extends Monster {
         if (enfCanto > 0) enfCanto--;
         if (enfCadenas > 0) enfCadenas--;
         if (enfMareaAlta > 0) enfMareaAlta--;
+        if (enfMinijuego > 0 && miniTipo == MinijuegosNerea.NINGUNO) enfMinijuego--;
+        if (enfPesca > 0) enfPesca--;
+        if (enfCanones > 0) enfCanones--;
+        if (enfMorenas > 0) enfMorenas--;
+        if (enfDuelo > 0) enfDuelo--;
         limpiarCooperativas(nivel);
+        tickMinijuego(nivel);
 
         int e = getEstado();
         t++;
@@ -744,6 +917,8 @@ public class NereaEntity extends Monster {
             case CANTO -> tickCanto(nivel);
             case MAREA_ALTA -> tickMareaAlta(nivel);
             case ENCADENAR -> tickEncadenar(nivel);
+            case PESCA, CANONES, MORENAS -> tickArranqueMinijuego(nivel, e);
+            case DUELO -> tickDuelo(nivel);
             default -> {
             }
         }
@@ -758,6 +933,10 @@ public class NereaEntity extends Monster {
     /** Vuelve a LIBRE y deja un respiro antes del siguiente ataque. */
     private void terminar(ServerLevel nivel) {
         int e = getEstado();
+        if (e == DUELO) {
+            resolverDuelo(nivel);
+            return;
+        }
         if (e == MIRADA || e == ATURDIDO || e == ARPON_TIRAR || e == ARPON_ESPERA) {
             entityData.set(DATA_OBJETIVO, -1);
             olvidarMirada();
@@ -808,6 +987,22 @@ public class NereaEntity extends Monster {
             return;
         }
         getLookControl().setLookAt(objetivo, 20.0F, 20.0F);
+        if (miniTipo != MinijuegosNerea.NINGUNO) {
+            // Mientras dura un minijuego ni anda ni ataca: el minijuego es lo que importa. Con
+            // los canones se defiende: de vez en cuando, un Rompeolas hacia un artillero.
+            getNavigation().stop();
+            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+            setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+            if (miniTipo == MinijuegosNerea.CANONES && respiro <= 0 && enfRompeolas <= 0) {
+                LivingEntity blanco = artilleroAlAzar();
+                if (blanco != null) {
+                    setTarget(blanco);
+                    iniciar(nivel, ROMPEOLAS, null);
+                    enfRompeolas = 140;
+                }
+            }
+            return;
+        }
         if (fase() == 4 && --relojAgotado <= 0) {
             empezarAgotado();
             return;
@@ -847,6 +1042,13 @@ public class NereaEntity extends Monster {
         if (fase >= 2 && enfCanto <= 0 && !tercio(nivel, 48).isEmpty()) opciones.add(new int[]{CANTO, 3});
         if (fase >= 2 && enfCadenas <= 0 && !tercio(nivel, 40).isEmpty()) opciones.add(new int[]{ENCADENAR, 3});
         if (fase >= 3 && enfMareaAlta <= 0 && !jugadores(nivel, 48, 0).isEmpty()) opciones.add(new int[]{MAREA_ALTA, 3});
+        // Los minijuegos (Juan, 09-10-2026): la Pesca y los Canones desde la I, las Morenas desde
+        // la II y el Duelo de Canto en la IV. Uno cada vez y con 25 s entre uno y otro.
+        boolean mini = miniTipo == MinijuegosNerea.NINGUNO && enfMinijuego <= 0;
+        if (mini && enfPesca <= 0 && !tercio(nivel, 48).isEmpty()) opciones.add(new int[]{PESCA, 4});
+        if (mini && enfCanones <= 0 && !tercio(nivel, 48).isEmpty()) opciones.add(new int[]{CANONES, 4});
+        if (mini && fase >= 2 && enfMorenas <= 0 && !tercio(nivel, 40).isEmpty()) opciones.add(new int[]{MORENAS, 4});
+        if (mini && fase >= 4 && enfDuelo <= 0 && !jugadores(nivel, 40, 0).isEmpty()) opciones.add(new int[]{DUELO, 4});
         // No encadena dos de area: tras uno, si puede, otro que no lo sea.
         if (AREA.contains(ultimoAtaque)) {
             List<int[]> otros = new ArrayList<>();
@@ -1005,6 +1207,46 @@ public class NereaEntity extends Monster {
                 ponerEstado(MAREA_ALTA, NereaGeometria.DURACION_MAREA_ALTA);
                 sonido(AtalayaSonidos.NEREA_MAREA_ALZA, 6.0F);
             }
+            case PESCA, CANONES, MORENAS -> {
+                if (ataque == PESCA) {
+                    enfPesca = (int) (1500 * k);
+                } else if (ataque == CANONES) {
+                    enfCanones = (int) (1800 * k);
+                } else {
+                    enfMorenas = (int) (1400 * k);
+                }
+                // Mientras arranca y dura, no sale otro.
+                enfMinijuego = 500;
+                ponerEstado(ataque, NereaGeometria.DURACION_GEISER);
+                sonido(AtalayaSonidos.NEREA_ROMPEOLAS_ALZAR, 4.0F);
+            }
+            case DUELO -> {
+                // A un tercio de los que pelean, al azar (minimo uno; jugando solo, a ti). Juan, 09-10-2026:
+                // "que este minijuego lo hagan 1/3; si no lo completan, el que pierde popea totems".
+                List<LivingEntity> todos = new ArrayList<>(tercio(nivel, 40));
+                if (todos.isEmpty()) {
+                    return;
+                }
+                Collections.shuffle(todos, new java.util.Random(random.nextLong()));
+                if (presaElegida != null && todos.remove(presaElegida)) {
+                    todos.add(0, presaElegida);
+                }
+                enfDuelo = (int) (1600 * k);
+                enfMinijuego = 500;
+                acabarDuelo();
+                duelistas.addAll(todos.subList(0, (todos.size() + 2) / 3));
+                StringBuilder ids = new StringBuilder();
+                for (LivingEntity v : duelistas) {
+                    ids.append(ids.isEmpty() ? "" : ",").append(v.getId());
+                }
+                int semilla = random.nextInt();
+                entityData.set(DATA_DUELO, ids.toString());
+                entityData.set(DATA_DUELO_SEMILLA, semilla);
+                entityData.set(DATA_DUELO_CUENTA, duelistas.size() << 8);
+                girarHacia(duelistas.get(0).position(), 180.0F);
+                ponerEstado(DUELO, dueloDura(semilla));
+                sonido(AtalayaSonidos.NEREA_RUGIDO, 5.0F);
+            }
             case GEISER -> {
                 enfGeiser = (int) (260 * k);
                 ponerEstado(GEISER, NereaGeometria.DURACION_GEISER);
@@ -1092,6 +1334,98 @@ public class NereaEntity extends Monster {
                 }
                 return true;
             }
+            case "cana", "cana_auto" -> {
+                // Pruebas de la Pesca: el jugador mas cercano lanza o recoge su cana (o la lanza y recoge sola al picar).
+                Player p = jugadorCercano(nivel);
+                if (p != null && miniTipo == MinijuegosNerea.PESCA) {
+                    CorchoAbismoEntity c = MinijuegosNerea.corcho(p);
+                    if (c == null) {
+                        c = CorchoAbismoEntity.lanzar(nivel, p, this);
+                    } else if (!orden.equals("cana_auto")) {
+                        c.recoger(nivel, p);
+                        return true;
+                    }
+                    c.autoRecoger = orden.equals("cana_auto");
+                }
+                return true;
+            }
+            case "perla" -> {
+                // El jugador mas cercano lanza una perla de las suyas (si mira a Nerea).
+                Player p = jugadorCercano(nivel);
+                if (p != null && miniTipo == MinijuegosNerea.PESCA) {
+                    net.minecraft.world.entity.player.Inventory inv = p.getInventory();
+                    for (int i = 0; i < inv.getContainerSize(); i++) {
+                        if (inv.getItem(i).is(AtalayaItems.PERLA_ABISMO) && lanzarPerla(nivel, p)) {
+                            inv.getItem(i).shrink(1);
+                            break;
+                        }
+                    }
+                }
+                return true;
+            }
+            case "canon", "cargar", "disparo" -> {
+                // Pruebas de los Canones: subirse al mas cercano, cargarlos todos o disparar el que monta.
+                Player p = jugadorCercano(nivel);
+                if (miniTipo != MinijuegosNerea.CANONES) {
+                    return true;
+                }
+                if (orden.equals("cargar")) {
+                    for (CanonNaufragioEntity canon : canones) {
+                        canon.cargarPrueba();
+                    }
+                } else if (p != null && orden.equals("canon")) {
+                    CanonNaufragioEntity cerca = null;
+                    for (CanonNaufragioEntity canon : canones) {
+                        if (cerca == null || canon.distanceToSqr(p) < cerca.distanceToSqr(p)) {
+                            cerca = canon;
+                        }
+                    }
+                    if (cerca != null) {
+                        p.startRiding(cerca);
+                    }
+                } else if (p instanceof ServerPlayer sp && sp.getVehicle() instanceof CanonNaufragioEntity canon) {
+                    canon.dispararPrueba(nivel, sp);
+                }
+                return true;
+            }
+            case "bala" -> {
+                // Pruebas de los Canones: el jugador mas cercano coge una bala (como de la pila).
+                Player p = jugadorCercano(nivel);
+                if (p != null && miniTipo == MinijuegosNerea.CANONES) {
+                    p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, MinijuegosNerea.crear(this, AtalayaItems.BALA_CANON));
+                }
+                return true;
+            }
+            case "morena_ver" -> {
+                // Pruebas de las Morenas: asoma un rato largo la del agujero mas cercano al jugador.
+                Player p = jugadorCercano(nivel);
+                MorenaNereaEntity cerca = null;
+                for (MorenaNereaEntity m : morenas) {
+                    if (p != null && m.oculta() && (cerca == null || m.distanceToSqr(p) < cerca.distanceToSqr(p))) {
+                        cerca = m;
+                    }
+                }
+                if (cerca != null) {
+                    cerca.asomar(60);
+                }
+                return true;
+            }
+            case "duelo_bien" -> {
+                // Pruebas del Duelo: como si todos los duelistas acertaran todas.
+                if (getEstado() == DUELO) {
+                    for (LivingEntity v : duelistas) {
+                        java.util.BitSet b = dueloJuzgadas.computeIfAbsent(v.getUUID(), u -> new java.util.BitSet());
+                        for (int i = 0; i < DUELO_NOTAS; i++) {
+                            if (!b.get(i)) {
+                                b.set(i);
+                                dueloAciertos.merge(v.getUUID(), 1, Integer::sum);
+                            }
+                        }
+                    }
+                    anotarDuelo();
+                }
+                return true;
+            }
             case "ojo" -> {
                 // Un impacto en el primer ojo que siga encendido, como una flecha (solo durante la Mirada).
                 if (getEstado() == MIRADA) {
@@ -1116,6 +1450,10 @@ public class NereaEntity extends Monster {
             case "canto" -> CANTO;
             case "marea_alta" -> MAREA_ALTA;
             case "cadenas" -> ENCADENAR;
+            case "pesca" -> PESCA;
+            case "canones" -> CANONES;
+            case "morenas" -> MORENAS;
+            case "duelo" -> DUELO;
             default -> -1;
         };
         if (ataque < 0) {
@@ -1129,6 +1467,10 @@ public class NereaEntity extends Monster {
         soltarGancho();
         entityData.set(DATA_OBJETIVO, -1);
         olvidarMirada();
+        if (ataque == PESCA || ataque == CANONES || ataque == MORENAS || ataque == DUELO) {
+            acabarMinijuego(nivel, false, false);
+            acabarDuelo();
+        }
         // Pasa por LIBRE para que el cliente vea el cambio aunque repita ataque.
         ponerEstado(LIBRE, 0);
         if (ataque == AGOTADO) {
@@ -1873,8 +2215,9 @@ public class NereaEntity extends Monster {
         if (t % 3 == 0) {
             Vec3 boca = puntoMundo(NereaGeometria.BOCA).add(0, 1.0, 0);
             double a = random.nextDouble() * Math.PI * 2;
-            nivel.sendParticles(ParticleTypes.NOTE, true, true, boca.x + Math.cos(a) * 1.6, boca.y + random.nextDouble(),
-                    boca.z + Math.sin(a) * 1.6, 0, 0.65 + random.nextDouble() * 0.25, 0, 0, 1.0);
+            // Las notas de su canto (propias, no las de vanilla): suben de su boca.
+            nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, boca.x + Math.cos(a) * 1.6, boca.y + random.nextDouble(),
+                    boca.z + Math.sin(a) * 1.6, 0, Math.cos(a) * 0.3, 1.0, Math.sin(a) * 0.3, 0.07);
         }
         if (t >= NereaGeometria.CANTO_EMPIEZA) {
             tickTrance(nivel);
@@ -1915,10 +2258,8 @@ public class NereaEntity extends Monster {
                 v.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.CANTO, this, this), dano(DANO_CANTO));
             }
             if (t % 4 == 0) {
-                nivel.sendParticles(ParticleTypes.NOTE, true, true, v.getX(), v.getY() + v.getBbHeight() + 0.4, v.getZ(), 0,
-                        0.8 + random.nextDouble() * 0.15, 0, 0, 1.0);
-                nivel.sendParticles(ParticleTypes.HEART, true, true, v.getX(), v.getY() + v.getBbHeight() + 0.2, v.getZ(), 1,
-                        0.3, 0.1, 0.3, 0.0);
+                nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, v.getX(), v.getY() + v.getBbHeight() + 0.4, v.getZ(), 2,
+                        0.3, 0.1, 0.3, 0.02);
             }
             if (t % 10 == 0 && v instanceof Player p) {
                 p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.trance", trance.getOrDefault(v.getUUID(), 0),
@@ -1990,6 +2331,452 @@ public class NereaEntity extends Monster {
             }
             refugios.clear();
         }
+    }
+
+    // ------------------------------------------------------------------
+    //  Los minijuegos (octubre de 2026; Juan eligio de la segunda ficha la
+    //  Pesca del Abismo, los Canones del Naufragio, las Morenas de las Pozas y
+    //  el Duelo de Canto, uno o dos por fase). Ningun jefe se cura: lo que
+    //  hacen los minijuegos que salen mal es pegar, no curarla.
+    // ------------------------------------------------------------------
+
+    /** Clava el tridente (la animacion del Geiser) y al clavarlo sale lo del minijuego. */
+    private void tickArranqueMinijuego(ServerLevel nivel, int e) {
+        fijarRumbo(yBodyRot);
+        if (cruza(NereaGeometria.GEISER_GOLPE)) {
+            Vec3 p = puntoMundo(NereaGeometria.PUNTA_GEISER);
+            golpeSuelo(nivel, p, 2.2F, 12.0F, 18, 20);
+            empezarMinijuego(nivel, e == PESCA ? MinijuegosNerea.PESCA : e == CANONES ? MinijuegosNerea.CANONES
+                    : MinijuegosNerea.MORENAS);
+        }
+    }
+
+    /** El suelo en (x, z), cerca de su altura (si es una cueva o un tejado, a su altura). */
+    private Vec3 sueloEn(ServerLevel nivel, double x, double z) {
+        int y = nivel.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Mth.floor(x), Mth.floor(z));
+        return Math.abs(y - getY()) > 6 ? new Vec3(x, getY(), z) : new Vec3(x, y, z);
+    }
+
+    private void empezarMinijuego(ServerLevel nivel, int tipo) {
+        acabarMinijuego(nivel, false, false);
+        int n = Math.max(1, jugadores(nivel, 48, 0).size());
+        miniTipo = tipo;
+        miniT = 0;
+        miniCuenta = 0;
+        MinijuegosNerea.activar(this);
+        Vec3 c = position();
+        double giro = random.nextDouble() * Math.PI * 2;
+        switch (tipo) {
+            case MinijuegosNerea.PESCA -> {
+                int cuantas = Mth.clamp(3 + n / 4, 4, 6);
+                for (int i = 0; i < cuantas; i++) {
+                    double a = giro + Math.PI * 2 * i / cuantas + (random.nextDouble() - 0.5) * 0.5;
+                    double r = 10.0 + random.nextDouble() * 8.0;
+                    pozas.add(PozaAbismoEntity.abrir(nivel, this, sueloEn(nivel, c.x + Math.cos(a) * r, c.z + Math.sin(a) * r)));
+                }
+                // La cana, a un tercio de los que pelean (minimo uno; jugando solo, a ti).
+                List<Player> js = new ArrayList<>(jugadores(nivel, 48, 0));
+                Collections.shuffle(js, new java.util.Random(random.nextLong()));
+                int canas = Math.max(1, (js.size() + 2) / 3);
+                for (int i = 0; i < js.size(); i++) {
+                    Player p = js.get(i);
+                    if (i < canas) {
+                        MinijuegosNerea.dar(p, MinijuegosNerea.crear(this, AtalayaItems.CANA_ABISMO));
+                        p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.pesca_cana").withStyle(ChatFormatting.AQUA));
+                    } else {
+                        p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.pesca_aviso").withStyle(ChatFormatting.AQUA));
+                    }
+                }
+                miniNecesario = Math.max(2, (n + 1) / 2);
+                miniDura = PESCA_TICKS;
+            }
+            case MinijuegosNerea.CANONES -> {
+                int cuantos = Mth.clamp(3 + (n - 1) / 8, 3, 5);
+                for (int i = 0; i < cuantos; i++) {
+                    double a = giro + Math.PI * 2 * i / cuantos;
+                    Vec3 donde = sueloEn(nivel, c.x + Math.cos(a) * 16.0, c.z + Math.sin(a) * 16.0);
+                    float rumbo = (float) (Mth.atan2(c.z - donde.z, c.x - donde.x) * Mth.RAD_TO_DEG) - 90.0F;
+                    CanonNaufragioEntity canon = CanonNaufragioEntity.alzar(nivel, this, donde, rumbo);
+                    canones.add(canon);
+                    // La pila, a un lado del canon.
+                    Vec3 lado = new Vec3(-Math.sin(a), 0, Math.cos(a)).scale(2.4);
+                    PilaBalasEntity.poner(nivel, this, canon, sueloEn(nivel, donde.x + lado.x, donde.z + lado.z));
+                }
+                avisar(nivel, Component.translatable("hud.atalaya.nerea.canones_aviso").withStyle(ChatFormatting.GOLD));
+                miniNecesario = 3;
+                miniDura = CANONES_TICKS;
+                enfRompeolas = 160;
+            }
+            default -> {
+                int cuantas = 8;
+                for (int i = 0; i < cuantas; i++) {
+                    double a = giro + Math.PI * 2 * i / cuantas;
+                    Vec3 donde = sueloEn(nivel, c.x + Math.cos(a) * 11.0, c.z + Math.sin(a) * 11.0);
+                    // Mirando hacia fuera: a los que vienen a por ella.
+                    float rumbo = (float) (Mth.atan2(donde.z - c.z, donde.x - c.x) * Mth.RAD_TO_DEG) - 90.0F;
+                    morenas.add(MorenaNereaEntity.abrir(nivel, this, donde, rumbo));
+                }
+                avisar(nivel, Component.translatable("hud.atalaya.nerea.morenas_aviso").withStyle(ChatFormatting.AQUA));
+                miniNecesario = Mth.clamp(8 + 2 * n, 10, 30);
+                miniPorOla = Mth.clamp(1 + n / 5, 1, 3);
+                miniDura = MORENAS_TICKS;
+            }
+        }
+        anotarMinijuego();
+        entityData.set(DATA_MINI_FIN, nivel.getGameTime() + miniDura);
+    }
+
+    private void anotarMinijuego() {
+        entityData.set(DATA_MINI, miniTipo == MinijuegosNerea.NINGUNO ? 0
+                : miniTipo | (Math.min(1023, miniCuenta) << 4) | (Math.min(1023, miniNecesario) << 14));
+    }
+
+    private void tickMinijuego(ServerLevel nivel) {
+        if (miniTipo == MinijuegosNerea.NINGUNO) {
+            return;
+        }
+        miniT++;
+        switch (miniTipo) {
+            case MinijuegosNerea.PESCA -> pozas.removeIf(Entity::isRemoved);
+            case MinijuegosNerea.CANONES -> canones.removeIf(Entity::isRemoved);
+            default -> {
+                morenas.removeIf(Entity::isRemoved);
+                // Cada segundo asoman unas cuantas (en la segunda mitad, una mas).
+                if (miniT % 20 == 1) {
+                    int cuantas = miniPorOla + (miniT > miniDura / 2 ? 1 : 0);
+                    List<MorenaNereaEntity> libres = new ArrayList<>();
+                    for (MorenaNereaEntity m : morenas) {
+                        if (m.oculta()) {
+                            libres.add(m);
+                        }
+                    }
+                    Collections.shuffle(libres, new java.util.Random(random.nextLong()));
+                    for (int i = 0; i < Math.min(cuantas, libres.size()); i++) {
+                        libres.get(i).asomar(16);
+                    }
+                }
+            }
+        }
+        if (miniT >= miniDura) {
+            acabarMinijuego(nivel, false, true);
+        }
+    }
+
+    /**
+     * Se acaba el minijuego: fuera lo que salio y los objetos repartidos. Si salio
+     * bien, queda aturdida (dano doble); si no, la Pesca revienta sus pozas en
+     * geiseres. Sin avisar (un cambio de fase, la muerte, una orden), sin mas.
+     */
+    private void acabarMinijuego(ServerLevel nivel, boolean exito, boolean avisar) {
+        int tipo = miniTipo;
+        if (tipo == MinijuegosNerea.NINGUNO) {
+            return;
+        }
+        miniTipo = MinijuegosNerea.NINGUNO;
+        entityData.set(DATA_MINI, 0);
+        entityData.set(DATA_MINI_FIN, 0L);
+        for (PozaAbismoEntity poza : pozas) {
+            if (!exito && avisar && !poza.isRemoved()) {
+                GeiserNereaEntity.brotar(nivel, this, poza.position(), dano(DANO_GEISER), fase());
+            }
+            poza.cerrar();
+        }
+        pozas.clear();
+        for (MorenaNereaEntity m : morenas) {
+            m.cerrar();
+        }
+        morenas.clear();
+        for (CanonNaufragioEntity canon : canones) {
+            canon.hundir();
+        }
+        canones.clear();
+        MinijuegosNerea.quitarTodo(nivel, this);
+        MinijuegosNerea.desactivar(this);
+        enfMinijuego = 500;
+        if (!avisar || isDeadOrDying()) {
+            return;
+        }
+        String clave = tipo == MinijuegosNerea.PESCA ? "pesca" : tipo == MinijuegosNerea.CANONES ? "canones" : "morenas";
+        avisar(nivel, Component.translatable("hud.atalaya.nerea." + clave + (exito ? "_exito" : "_fallo"))
+                .withStyle(exito ? ChatFormatting.AQUA : ChatFormatting.GRAY));
+        if (exito) {
+            aturdirMinijuego(nivel, tipo == MinijuegosNerea.PESCA ? ATURDIDA_PESCA : tipo == MinijuegosNerea.CANONES
+                    ? ATURDIDA_CANONES : ATURDIDA_MORENAS);
+        }
+    }
+
+    /** Aturdida tras un minijuego bien hecho: de rodillas, con dano doble. */
+    private void aturdirMinijuego(ServerLevel nivel, int ticks) {
+        int e = getEstado();
+        if (e == DORMIDO || e == DESPERTAR || e == TAMBALEO || isDeadOrDying()) {
+            return;
+        }
+        soltarGancho();
+        ponerEstado(ATURDIDO, ticks);
+        sonido(AtalayaSonidos.NEREA_ATURDIDO, 4.0F);
+    }
+
+    // --- Pesca del Abismo ---
+
+    /** La poza donde cae un punto (el corcho), o null. */
+    @Nullable PozaAbismoEntity pozaEn(Vec3 p) {
+        for (PozaAbismoEntity poza : pozas) {
+            if (!poza.isRemoved() && poza.getCierra() < 0 && poza.dentro(p)) {
+                return poza;
+            }
+        }
+        return null;
+    }
+
+    /** El jugador (supervivencia o aventura) mas cercano a 64 bloques, para las ordenes de prueba. */
+    private @Nullable Player jugadorCercano(ServerLevel nivel) {
+        Player mejor = null;
+        for (Player p : jugadores(nivel, 64, 0)) {
+            if (mejor == null || p.distanceToSqr(this) < mejor.distanceToSqr(this)) {
+                mejor = p;
+            }
+        }
+        return mejor;
+    }
+
+    /** Clic derecho con la Cana del Abismo: la lanza o, si ya estaba lanzada, la recoge. */
+    public void usarCana(ServerLevel nivel, Player p) {
+        if (miniTipo != MinijuegosNerea.PESCA) {
+            return;
+        }
+        CorchoAbismoEntity c = MinijuegosNerea.corcho(p);
+        if (c != null) {
+            c.recoger(nivel, p);
+        } else {
+            CorchoAbismoEntity.lanzar(nivel, p, this);
+        }
+    }
+
+    /** Clic derecho con una Perla del Abismo: si la mira de cerca, la perla vuela a su corazon. */
+    public boolean lanzarPerla(ServerLevel nivel, Player p) {
+        Vec3 corazon = puntoMundo(NereaGeometria.CORAZON);
+        Vec3 d = corazon.subtract(p.getEyePosition());
+        if (horizontal(p.position(), position()) > 18.0) {
+            p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.perla_lejos").withStyle(ChatFormatting.GRAY));
+            return false;
+        }
+        if (p.getLookAngle().dot(d.normalize()) < 0.75) {
+            p.sendOverlayMessage(Component.translatable("hud.atalaya.nerea.perla_mira").withStyle(ChatFormatting.GRAY));
+            return false;
+        }
+        PerlaLanzadaEntity.lanzar(nivel, p, this);
+        return true;
+    }
+
+    /** Le ha llegado una perla al corazon. */
+    void alRecibirPerla(ServerLevel nivel) {
+        if (miniTipo != MinijuegosNerea.PESCA) {
+            return;
+        }
+        miniCuenta++;
+        anotarMinijuego();
+        sonido(AtalayaSonidos.NEREA_HERIDO, 3.0F);
+        if (miniCuenta >= miniNecesario) {
+            acabarMinijuego(nivel, true, true);
+        }
+    }
+
+    // --- Canones del Naufragio ---
+
+    /** Uno al azar de los que estan en un canon o junto a uno (para su Rompeolas). */
+    private @Nullable LivingEntity artilleroAlAzar() {
+        List<LivingEntity> cerca = new ArrayList<>();
+        for (CanonNaufragioEntity canon : canones) {
+            if (canon.getFirstPassenger() instanceof LivingEntity v && esPresa(v)) {
+                cerca.add(v);
+            }
+        }
+        if (cerca.isEmpty() && getTarget() != null && esPresa(getTarget())) {
+            cerca.add(getTarget());
+        }
+        return cerca.isEmpty() ? null : cerca.get(random.nextInt(cerca.size()));
+    }
+
+    /** Una bala le ha dado: un 3 % de su vida, se tambalea y suma a la racha; tres seguidas, aturdida. */
+    void alImpactoCanon(ServerLevel nivel, Vec3 donde) {
+        if (miniTipo != MinijuegosNerea.CANONES || isDeadOrDying()) {
+            return;
+        }
+        setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * DANO_CANON));
+        miniCuenta++;
+        anotarMinijuego();
+        sonido(AtalayaSonidos.NEREA_HERIDO, 5.0F);
+        Vec3 c = puntoMundo(NereaGeometria.CORAZON);
+        nivel.sendParticles(AtalayaParticulas.NEREA_CHISPA, true, true, c.x, c.y, c.z, 30, 1.0, 1.0, 1.0, 0.3);
+        nivel.sendParticles(AtalayaParticulas.NEREA_ONDA, true, true, getX(), getY() + 0.12, getZ(), 0, 1.6, 8.0, 0.0, 1.0);
+        if (miniCuenta >= miniNecesario) {
+            acabarMinijuego(nivel, true, true);
+        } else {
+            avisar(nivel, Component.translatable("hud.atalaya.nerea.canon_impacto", miniCuenta, miniNecesario)
+                    .withStyle(ChatFormatting.GOLD));
+        }
+    }
+
+    /** Una bala se ha perdido: la racha vuelve a cero. */
+    void alFallarCanon(ServerLevel nivel) {
+        if (miniTipo != MinijuegosNerea.CANONES || miniCuenta == 0) {
+            return;
+        }
+        miniCuenta = 0;
+        anotarMinijuego();
+        avisar(nivel, Component.translatable("hud.atalaya.nerea.canon_racha").withStyle(ChatFormatting.GRAY));
+    }
+
+    // --- Morenas de las Pozas ---
+
+    /** Un acierto a una morena. */
+    void alAcertarMorena(ServerLevel nivel) {
+        if (miniTipo != MinijuegosNerea.MORENAS) {
+            return;
+        }
+        miniCuenta++;
+        anotarMinijuego();
+        if (miniCuenta >= miniNecesario) {
+            acabarMinijuego(nivel, true, true);
+        }
+    }
+
+    // --- Duelo de Canto ---
+
+    /**
+     * Canta a los duelistas: el canto suena al acabar la preparacion (3 s de
+     * cuenta atras) y las notas les salen de la boca. Mientras, es inmune. Se
+     * acaba cuando todos han tocado todas.
+     */
+    private void tickDuelo(ServerLevel nivel) {
+        duelistas.removeIf(v -> !esPresa(v));
+        if (duelistas.isEmpty()) {
+            acabarDuelo();
+            ponerEstado(LIBRE, 0);
+            respiro = 20;
+            return;
+        }
+        girarHacia(duelistas.get(0).position(), 8.0F);
+        if (t == 1) {
+            Component nombres = nombres(duelistas);
+            for (Player p : jugadores(nivel, 64, 0)) {
+                p.sendOverlayMessage((duelistas.contains(p) ? Component.translatable("hud.atalaya.nerea.duelo_tu")
+                        : Component.translatable("hud.atalaya.nerea.duelo_otro", nombres)).withStyle(ChatFormatting.LIGHT_PURPLE));
+            }
+        }
+        if (t == avisoEstado) {
+            sonido(AtalayaSonidos.NEREA_CANTO, 7.0F);
+        }
+        if (t > avisoEstado && t % 6 == 0) {
+            // Para los que miran: notas que vuelan de su boca a los duelistas (cada duelista ve ademas las suyas, a ritmo).
+            Vec3 boca = puntoMundo(NereaGeometria.BOCA);
+            for (LivingEntity v : duelistas) {
+                Vec3 hacia = v.getEyePosition().subtract(boca).normalize();
+                nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, boca.x + hacia.x * 2, boca.y + hacia.y * 2,
+                        boca.z + hacia.z * 2, 0, hacia.x, hacia.y, hacia.z, 0.6);
+            }
+        }
+        boolean todas = true;
+        for (LivingEntity v : duelistas) {
+            java.util.BitSet b = dueloJuzgadas.get(v.getUUID());
+            if (b == null || b.cardinality() < DUELO_NOTAS) {
+                todas = false;
+                break;
+            }
+        }
+        if (todas && t < duracion) {
+            // Ya han tocado todas: se acaba ya.
+            t = duracion;
+        }
+    }
+
+    /** Los nombres, separados por comas. */
+    private static Component nombres(List<LivingEntity> quienes) {
+        net.minecraft.network.chat.MutableComponent c = Component.empty();
+        for (int i = 0; i < quienes.size(); i++) {
+            if (i > 0) {
+                c.append(", ");
+            }
+            c.append(quienes.get(i).getDisplayName());
+        }
+        return c;
+    }
+
+    /** Llega una nota de un duelista (AtalayaRed.DueloNota). */
+    public static void alNotaDuelo(ServerPlayer p, int jefe, int indice, boolean bien) {
+        if (!(p.level() instanceof ServerLevel nivel) || !(nivel.getEntity(jefe) instanceof NereaEntity n)) {
+            return;
+        }
+        if (n.getEstado() != DUELO || !n.duelistas.contains(p) || indice < 0 || indice >= DUELO_NOTAS) {
+            return;
+        }
+        java.util.BitSet b = n.dueloJuzgadas.computeIfAbsent(p.getUUID(), u -> new java.util.BitSet());
+        if (b.get(indice)) {
+            return;
+        }
+        b.set(indice);
+        if (bien) {
+            n.dueloAciertos.merge(p.getUUID(), 1, Integer::sum);
+        }
+        n.anotarDuelo();
+    }
+
+    /** Pone la cuenta a la vista: los que ya lo superan, los duelistas y las notas que van. */
+    private void anotarDuelo() {
+        int ganados = 0;
+        int van = 0;
+        for (LivingEntity v : duelistas) {
+            if (dueloAciertos.getOrDefault(v.getUUID(), 0) >= DUELO_ACIERTOS) {
+                ganados++;
+            }
+            java.util.BitSet b = dueloJuzgadas.get(v.getUUID());
+            van = Math.max(van, b == null ? 0 : b.cardinality());
+        }
+        entityData.set(DATA_DUELO_CUENTA, ganados | (duelistas.size() << 8) | (van << 16));
+    }
+
+    /**
+     * Se acaba el Duelo. Cada duelista que no llega a los 12 aciertos cae en su
+     * canto: la muerte, salvo totem (Juan: "el que pierde popea totems"). Si
+     * todos lo superan, el canto se le vuelve en contra: aturdida.
+     */
+    private void resolverDuelo(ServerLevel nivel) {
+        List<LivingEntity> quienes = new ArrayList<>(duelistas);
+        Map<UUID, Integer> aciertos = new HashMap<>(dueloAciertos);
+        acabarDuelo();
+        quienes.removeIf(v -> !esPresa(v));
+        if (quienes.isEmpty()) {
+            ponerEstado(LIBRE, 0);
+            respiro = 20;
+            return;
+        }
+        List<LivingEntity> caidos = new ArrayList<>();
+        DamageSource fuente = NereaDanos.fuente(nivel, NereaDanos.DUELO, this, this);
+        for (LivingEntity v : quienes) {
+            if (aciertos.getOrDefault(v.getUUID(), 0) < DUELO_ACIERTOS) {
+                caidos.add(v);
+                nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, v.getX(), v.getY() + v.getBbHeight() + 0.3, v.getZ(),
+                        12, 0.4, 0.3, 0.4, 0.05);
+                v.hurtServer(nivel, fuente, MORTAL);
+            }
+        }
+        if (caidos.isEmpty()) {
+            avisar(nivel, Component.translatable("hud.atalaya.nerea.duelo_exito", nombres(quienes)).withStyle(ChatFormatting.AQUA));
+            ponerEstado(ATURDIDO, DUELO_ATURDIDA);
+            sonido(AtalayaSonidos.NEREA_ATURDIDO, 4.0F);
+        } else {
+            avisar(nivel, Component.translatable("hud.atalaya.nerea.duelo_fallo", nombres(caidos)).withStyle(ChatFormatting.LIGHT_PURPLE));
+            ponerEstado(LIBRE, 0);
+            respiro = 20;
+        }
+    }
+
+    private void acabarDuelo() {
+        duelistas.clear();
+        dueloJuzgadas.clear();
+        dueloAciertos.clear();
+        entityData.set(DATA_DUELO, "");
+        entityData.set(DATA_DUELO_CUENTA, 0);
     }
 
     // --- Encadenados ---
@@ -2207,6 +2994,8 @@ public class NereaEntity extends Monster {
         presa = null;
         entityData.set(DATA_OBJETIVO, -1);
         olvidarMirada();
+        acabarMinijuego(nivel, false, false);
+        acabarDuelo();
         if (e != TAMBALEO) {
             ponerEstado(TAMBALEO, NereaGeometria.DURACION_TAMBALEO);
             sonido(AtalayaSonidos.NEREA_TAMBALEO, 6.0F);
@@ -2227,6 +3016,7 @@ public class NereaEntity extends Monster {
         super.remove(motivo);
         soltarGancho();
         if (level() instanceof ServerLevel nivelFuera) {
+            acabarMinijuego(nivelFuera, false, false);
             liberarTrance(nivelFuera);
             for (RefugioNereaEntity r : refugios) {
                 r.reventar(nivelFuera, false);
@@ -2261,6 +3051,11 @@ public class NereaEntity extends Monster {
         if (e == MIRADA && ta() >= NereaGeometria.MIRADA_FIJA - 6 && fuente.getDirectEntity() instanceof Projectile proyectil
                 && impactoEnOjo(nivel, proyectil)) {
             return true;
+        }
+        if (e == DUELO) {
+            // El Duelo de Canto es cosa del elegido: nadie le puede pegar ni frenar el canto.
+            avisoInmune(nivel, causante);
+            return false;
         }
         if (e == CANTO) {
             // Mientras canta no se le puede pegar: hay que sacar a los hechizados.
@@ -2323,6 +3118,7 @@ public class NereaEntity extends Monster {
     @Override
     public void kill(ServerLevel nivel) {
         soltarGancho();
+        acabarMinijuego(nivel, false, false);
         discard();
     }
 
@@ -2332,6 +3128,10 @@ public class NereaEntity extends Monster {
         entityData.set(DATA_OBJETIVO, -1);
         entityData.set(DATA_MIRADA, "");
         soltarGancho();
+        if (level() instanceof ServerLevel nivel) {
+            acabarMinijuego(nivel, false, false);
+            acabarDuelo();
+        }
     }
 
     @Override

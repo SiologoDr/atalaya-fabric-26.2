@@ -33,6 +33,29 @@ los jugadores; Novilis queda al fondo o cortado:
               quemado; detras, los jugadores lo golpean (chispas) hacia las
               piernas de Novilis (la flecha de puntos); uno salta para esquivarlo
 
+Tercera ficha (minijuegos, octubre de 2026: "a la gente le gustaron los
+minijuegos de los jefes"). Camara cerca de los jugadores, como la segunda:
+
+  choque   Choque de Espadas: por encima del hombro de un jugador, Novilis
+           baja la espada en diagonal con la hoja encendida de oro (el
+           destello); la punta choca contra el escudo alzado, chispas y
+           "PARADA"; detras, otro con el escudo listo; el contador 2/3
+  forja    Forja del Juramento: tres yunques de piedra con una hoja al rojo
+           y un herrero con maza en cada uno; en el de cerca el aro de luz se
+           ha cerrado sobre la hoja ("PERFECTO", con los aros por donde ha
+           pasado); encima, los golpes buenos (4/6); Novilis de rodillas al
+           fondo con la espada clavada
+  justa    Justa del Sol: un jugador a lomos de un caballo de fuego (el de
+           vanilla, oscuro con grietas de lava y la crin en llamas) con la
+           lanza de luz; Novilis carga agachado tras un escudo grande con el
+           sol en medio y la punta da en el emblema, que se enciende; el
+           pasillo, dos lineas de fuego de vanilla; fuera, los demas
+  brasas   Lluvia de Brasas: brasas doradas y rojas caen con estela, cada una
+           con un hilo de luz a su marca del suelo; dos corren a la dorada,
+           otro se aparta de una roja que estalla; Novilis ruge al fondo con
+           su sol agitado; arriba, su barra del juego (las texturas de
+           textures/gui) con la Corona del Sol al 60 %
+
 Uso: python novilis_mecanicas_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
 """
 import io, math, os, random, sys, zipfile
@@ -1509,8 +1532,862 @@ def sol_caido(W=1600, H=900, fase=3):
     guardar(img, 'sol_caido')
 
 
+# ======================================================================
+#  Tercera ficha (minijuegos): ayudas comunes
+# ======================================================================
+K_NOV = ESCALA / 16.0                             # bloques por px del modelo de Novilis
+
+
+def _vanilla_tex(ruta):
+    """Una textura de vanilla (bajo assets/minecraft/textures/), del jar del cliente que deja loom (si esta)."""
+    jar = os.path.join(os.path.expanduser('~'), '.gradle/caches/fabric-loom/26.2/minecraft-client-only.jar')
+    try:
+        with zipfile.ZipFile(jar) as z:
+            return Image.open(io.BytesIO(z.read('assets/minecraft/textures/' + ruta))).convert('RGBA')
+    except (OSError, KeyError):
+        return None
+
+
+def frente(guinada):
+    """Hacia donde mira (por el suelo) una entidad con esta guinada (el frente del modelo es -Z)."""
+    g = math.radians(guinada)
+    return np.array([-math.sin(g), 0.0, -math.cos(g)])
+
+
+def _hombro(p, lado):
+    return fm.matrices(fe.esq(V), p)['brazo_' + lado][:3, 3]
+
+
+def _alcance(p, lado, direccion, largo=38.0):
+    """Un punto a 'largo' px del hombro, hacia 'direccion' (px de modelo): donde llevar el puno."""
+    d = np.array(direccion, float)
+    return tuple(_hombro(p, lado) + d / np.linalg.norm(d) * largo)
+
+
+def dir_a_modelo(guinada, d):
+    """Una direccion del mundo al espacio del modelo de Novilis (para apuntar la espada)."""
+    m = (vr.Ry(-math.radians(guinada))[:3, :3] @ np.array(d, float)) * np.array([-1.0, -1.0, 1.0])
+    return m / np.linalg.norm(m)
+
+
+def tex_destello(n=128, color=ORO):
+    """El destello del filo: una estrella de cuatro puntas (y cuatro mas cortas), el alma blanca."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    x, y = (xx + 0.5 - n / 2) / (n / 2), (yy + 0.5 - n / 2) / (n / 2)
+
+    def rayo(a, b, largo, ancho):
+        w = ancho * np.clip(1 - np.abs(a) / largo, 0, 1) ** 1.6 + 1e-6
+        return np.clip(1 - np.abs(b) / w, 0, 1) * np.clip(1 - np.abs(a) / largo, 0, 1)
+
+    u, v = (x + y) / math.sqrt(2), (x - y) / math.sqrt(2)
+    a = np.maximum.reduce([rayo(x, y, 1.0, 0.09), rayo(y, x, 1.0, 0.09), rayo(u, v, 0.45, 0.06), rayo(v, u, 0.45, 0.06)])
+    r = np.hypot(x, y)
+    a = np.clip(a + np.clip(1 - r / 0.32, 0, 1) ** 1.5, 0, 1)
+    k = np.clip(1 - r / 0.22, 0, 1)[..., None]
+    col = np.array(color) * (1 - k) + np.array([255, 255, 246]) * k
+    return _rgba(col, a)
+
+
+def tex_moteado(colores, semilla, n=16):
+    r = random.Random(semilla)
+    t = np.zeros((n, n, 4), np.uint8)
+    for y in range(n):
+        for x in range(n):
+            t[y, x] = (*r.choice(colores), 255)
+    return t
+
+
+def tex_chispas_huecas(n=128, semilla=9, color=ORO):
+    """Chispas que saltan hacia fuera, sin el nucleo blanco (para no tapar lo que golpea)."""
+    r = random.Random(semilla)
+    im = Image.new('L', (n, n), 0)
+    d = ImageDraw.Draw(im)
+    c = n / 2
+    for k in range(14):
+        a = TAU * k / 14 + r.uniform(-0.2, 0.2)
+        l0, l1 = n * r.uniform(0.16, 0.22), n * r.uniform(0.32, 0.48)
+        d.line([(c + math.cos(a) * l0, c + math.sin(a) * l0), (c + math.cos(a) * l1, c + math.sin(a) * l1)],
+               fill=255, width=max(2, n // 48))
+    for _ in range(12):
+        a, l = r.uniform(0, TAU), n * r.uniform(0.22, 0.47)
+        q = (c + math.cos(a) * l, c + math.sin(a) * l)
+        d.ellipse((q[0] - 1.5, q[1] - 1.5, q[0] + 1.5, q[1] + 1.5), fill=255)
+    m = np.array(im.filter(ImageFilter.GaussianBlur(0.7))).astype(float) / 255
+    halo = np.array(im.filter(ImageFilter.GaussianBlur(n / 30))).astype(float) / 255
+    col = np.ones((n, n, 3)) * np.array(fe._mez(color, (255, 255, 255), 0.45))
+    return _rgba(col, np.clip(m + halo * 0.4, 0, 1))
+
+
+DESTELLO = tex_destello()
+DESTELLO_ROJO = tex_destello(color=ROJO)
+CHISPAS = tex_chispas()
+CHISPAS_HUECAS = tex_chispas_huecas()
+
+
+def _escudo_tex():
+    """Las dos caras del escudo de vanilla (12 x 22 texeles), o unas tablas con el canto de hierro."""
+    im = _vanilla_tex('entity/shield/shield_base_nopattern.png')
+    if im is None:
+        im = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        for x0 in (1, 14):
+            d.rectangle((x0, 1, x0 + 11, 22), fill=(120, 124, 130, 255))
+            d.rectangle((x0 + 1, 2, x0 + 10, 21), fill=(122, 86, 48, 255))
+    a = np.array(im)
+    return a[1:23, 1:13].copy(), a[1:23, 14:26].copy()
+
+
+_FRENTE_E, _DORSO_E = _escudo_tex()
+fm.registrar('escudo_frente', _FRENTE_E)
+fm.registrar('escudo_dorso', _DORSO_E)
+fm.registrar('escudo_canto', fe._loseta(61, nm._rampa('5a5c62', '6e7076', '80838a', '94979e', 'a8abb2'), (1, 2, 2, 3)))
+nm.ESTIRADOS.update({'escudo_frente', 'escudo_dorso'})
+fm.ESTIRA.update({'escudo_frente', 'escudo_dorso'})
+
+
+def escudo_modelo():
+    """El escudo de vanilla (12 x 22 px), el centro en el origen y la cara hacia -Z."""
+    return nm.nodo('escudo', (0, 0, 0), (0, 0, 0), [
+        ((-6, -11, -0.55, 12, 22, 0.1), 'escudo_frente'),
+        ((-6, -11, 0.45, 12, 22, 0.1), 'escudo_dorso'),
+        ((-6, -11, -0.45, 12, 22, 0.9), 'escudo_canto'),
+        ((-1, -3, 0.55, 2, 6, 2.5), 'escudo_canto')])
+
+
+ESCUDO_V = escudo_modelo()
+BLOQUEO = {'bi': {'rot': (-80, -28, 0)}, 'bd': {'rot': (18, 0, 6)}, 'pi': {'rot': (-20, 0, 0)}, 'pd': {'rot': (20, 0, 0)}}
+
+
+def escudo_en(lz, cam, c, guinada, inclina, niebla, fase=1):
+    """El escudo de vanilla con el centro en c, de cara a 'guinada' e inclinado hacia arriba."""
+    fm.dibujar(lz, cam, nm.quads(ESCUDO_V, {}, modelo_en(c[0], c[1], c[2], guinada, inclina)), fe.LUCES, fe.AMB, niebla, 1.0,
+               fase)
+
+
+def mano_izq_local(guinada, p, delante=0.24):
+    """Donde cae el centro del escudo (la mano izquierda y un poco delante) de un jugador en el origen."""
+    M0 = ne.jugador_a_mundo(0.0, 0.0, guinada)
+    return punto_jugador(M0, p, 'bi', (0, 10, 0)) + frente(guinada) * delante
+
+
+def item_hacia(lz, cam, Mj, pj, tex, objetivo, tam=None, luz=1.1, alcance=1.0):
+    """Un objeto en la mano derecha (el mango en la mano) con la cabeza hacia 'objetivo' (en la foto)."""
+    mano = punto_jugador(Mj, pj, 'bd', (0, 10.5, 0))
+    d = np.array(objetivo, float) - mano
+    phi = math.atan2(d @ cam.u, d @ cam.r)
+    g = phi - math.pi / 4
+    if tam is None:
+        dist = math.hypot(d @ cam.u, d @ cam.r)
+        tam = min(0.5, max(0.3, dist * alcance / 1.56))
+    rr = cam.r * math.cos(g) + cam.u * math.sin(g)
+    uu = -cam.r * math.sin(g) + cam.u * math.cos(g)
+    sprite(lz, cam, mano + (rr + uu) * tam * 0.5, tam, tex, g, luz)
+    return mano
+
+
+def contador(img, x, y, cifra_txt, texto, color=ORO_CLARO):
+    """El contador de la esquina (como el de la Armadura al Rojo): la cifra grande y debajo que cuenta."""
+    d = ImageDraw.Draw(img)
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', 64)
+    for o in ((3, 3), (2, 2)):
+        d.text((x + o[0], y + o[1]), cifra_txt, font=f, fill=(*SOMBRA, 255))
+    d.text((x, y), cifra_txt, font=f, fill=(*color, 255))
+    f2 = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', 26)
+    for o in ((2, 2),):
+        d.text((x + 2 + o[0], y + 80 + o[1]), texto, font=f2, fill=(*SOMBRA, 255))
+    d.text((x + 2, y + 80), texto, font=f2, fill=(*BLANCO, 255))
+
+
+# ======================================================================
+#  9. Choque de Espadas
+#
+#  En el Barrido, justo antes del tajo, la hoja da un destello de oro. Cerca,
+#  un jugador alza el escudo a tiempo: la hoja choca contra el, saltan chispas
+#  y sale "PARADA". Detras, otro espera con el escudo listo y otro con la espada.
+#  Arriba a la izquierda, las paradas que lleva este Barrido (2/3).
+# ======================================================================
+ESTOCADA = {'pelvis': {'pos': (0, 14, 0)}, 'tabardo': {'rot': (-36, 0, 0)},
+            'pierna_izq': {'rot': (-55, 0, -6)}, 'espinilla_izq': {'rot': (62, 0, 0)}, 'pie_izq': {'rot': (-7, 0, 0)},
+            'pierna_der': {'rot': (38, 0, 8)}, 'espinilla_der': {'rot': (16, 0, 0)}, 'pie_der': {'rot': (-46, 0, 0)}}
+
+
+def _pose_tajo():
+    if 'TAJO_BAJO' not in _POSES:
+        p = fe._une(ESTOCADA, fe.CAPA_VIENTO, {'torso': {'rot': (30, -18, 0)}, 'cabeza': {'rot': (-10, 14, 0)}})
+        p, _ = fm.alcanzar(p, 'der', _alcance(p, 'der', (-0.05, 0.75, -0.66), 42))
+        p, _ = fm.alcanzar(p, 'izq', _alcance(p, 'izq', (0.55, 0.7, 0.3), 34))
+        _POSES['TAJO_BAJO'] = p
+    return {k: dict(v) for k, v in _POSES['TAJO_BAJO'].items()}
+
+
+def choque(W=1600, H=900, fase=1):
+    N = np.array([5.0, 0.0, 8.0])
+    hacia = np.array([-0.58, 0.0, -0.81])
+    hacia /= np.linalg.norm(hacia)
+    g_nov = fe.guinada_hacia(N[0], N[2], N[0] + hacia[0], N[2] + hacia[2])
+    M = fm.entidad_a_mundo(N[0], 0, N[2], g_nov, ESCALA)
+    p = _pose_tajo()
+    # el escudo del que para: a la altura de su mano; la hoja le da en la mitad de arriba
+    g0 = fe.guinada_hacia(0, 0, -hacia[0], -hacia[2])
+    alto_escudo = mano_izq_local(g0, BLOQUEO)[1]
+    alto_choque = alto_escudo + 0.3
+    agarre = fe.mundo_de(M, V, p, 'agarre')
+    LC = 23 + 0.95 * fm.LARGO_HOJA                        # el punto de la hoja que choca (px de la espada)
+    largo = LC * K_NOV
+    caida = agarre[1] - alto_choque
+    llano = math.sqrt(max(0.1, largo ** 2 - caida ** 2))
+    giro = math.radians(10)
+    hz = np.array([hacia[0] * math.cos(giro) - hacia[2] * math.sin(giro), 0, hacia[0] * math.sin(giro) + hacia[2] * math.cos(giro)])
+    d_w = hz * llano - np.array([0, caida, 0])
+    p = fm.apuntar_espada(p, dir_a_modelo(g_nov, d_w))
+    C = fe.mundo_de(M, V, p, 'espada', (0, LC, 0))
+    # el jugador: de cara a la hoja, con el centro del escudo justo detras del choque
+    f_p = np.array([N[0] - C[0], 0, N[2] - C[2]])
+    f_p /= np.linalg.norm(f_p)
+    g_p = fe.guinada_hacia(0, 0, f_p[0], f_p[2])
+    S = C - f_p * 0.08 - np.array([0, 0.3, 0])
+    o = mano_izq_local(g_p, BLOQUEO)
+    P = np.array([S[0] - o[0], 0.0, S[2] - o[2]])
+    izq = np.array([f_p[2], 0.0, -f_p[0]])                # la izquierda del jugador
+    ojo = P + izq * 5.4 - f_p * 6.4 + np.array([0, 1.75, 0])
+    mira = P + f_p * 6.0 - izq * 0.5 + np.array([0, 4.7, 0])
+    cam = vr.Camara(ojo=tuple(ojo), objetivo=tuple(mira), fov=56, ancho=W * SS, alto=H * SS)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    # los de detras: uno con el escudo listo (espera su destello) y otro con la espada
+    Q1 = P + f_p * 0.8 - izq * 3.2
+    Q2 = P + f_p * 2.2 - izq * 5.2
+    for q, pz in ((Q1, BLOQUEO), (Q2, GUARDIA)):
+        gq = fe.guinada_hacia(q[0], q[2], N[0], N[2])
+        Mq, pq = jugador(lz, cam, q[0], q[2], (N[0], N[2]), pz, niebla=niebla)
+        if pz is BLOQUEO:
+            escudo_en(lz, cam, punto_jugador(Mq, pq, 'bi', (0, 10, 0)) + frente(gq) * 0.24, gq, 14, niebla, fase)
+        else:
+            en_mano(lz, cam, Mq, pq, 'espada', 0.4, giro=math.radians(30), luz=1.1)
+    # el que para
+    Mj, pj = jugador(lz, cam, P[0], P[2], (N[0], N[2]), BLOQUEO, niebla=niebla)
+    en_mano(lz, cam, Mj, pj, 'espada', 0.38, giro=math.radians(-60), luz=1.05)
+    escudo_en(lz, cam, S, g_p, 12, niebla, fase)
+    # Novilis, con el tajo que baja
+    caballero(lz, cam, N[0], N[2], g_nov, p, fase, niebla)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, espada=False, k=0.8)
+    # el destello de oro: la hoja entera se enciende y un brillo corre por el filo
+    qs = [q for q in quads_por_pieza(p, M) if q[3] == 'espada_hoja']
+    capa_sobre(lz, cam, qs, fe.tex_plano((255, 200, 70)), 'aditivo', brillo=0.6)
+    base = fe.mundo_de(M, V, p, 'espada', (0, 14, 0))
+    punta = fe.mundo_de(M, V, p, 'espada', (0, fm.PUNTA_ESPADA, 0))
+    haz_oro(lz, cam, [base + (punta - base) * t for t in np.linspace(0, 0.9, 12)], 0.2, 0.55, ORO, ORO_CLARO)
+    filo = fe.mundo_de(M, V, p, 'espada', (0, 23 + 0.38 * fm.LARGO_HOJA, 0))
+    fe.aditivo(lz, cam, [fe.billboard(filo, 2.3, cam, 0.25)], DESTELLO, 2.0)
+    resplandor(lz, cam, filo, 2.4, ORO, 0.45)
+    # el choque: chispas y el resplandor delante del escudo
+    hacia_cam = (cam.ojo - C) / np.linalg.norm(cam.ojo - C)
+    imp = C + hacia_cam * 0.25
+    resplandor(lz, cam, imp, 1.0, ORO_CLARO, 0.35)
+    fe.aditivo(lz, cam, [fe.billboard(imp, 1.0, cam, 0.3)], CHISPAS, 1.15)
+    fe.aditivo(lz, cam, [fe.billboard(imp, 0.6, cam, 1.1)], CHISPAS, 0.8)
+    img = acabar(lz, cam, W, H, fase, 101)
+    cifra(img, cam, imp + np.array([0, 1.5, 0]) - izq * 2.2, '¡PARADA!', 96, (255, 226, 130))
+    rotulo(img, cam, filo, 'DESTELLO DE ORO', 90, -150, 50, ORO_CLARO)
+    rotulo(img, cam, S - f_p * 0.1 - np.array([0, 0.45, 0]), 'ESCUDO EN ALTO', -160, 90, 44, BLANCO)
+    contador(img, 60, 50, '2/3', 'PARADAS EN ESTE BARRIDO')
+    guardar(img, 'choque')
+
+
+# ======================================================================
+#  10. Forja del Juramento
+#
+#  Novilis, de rodillas al fondo con la espada clavada. Delante, tres yunques
+#  de piedra con una hoja al rojo encima y un herrero en cada uno. En el de
+#  cerca, el golpe en el momento justo: el aro de luz se ha cerrado sobre la
+#  hoja, saltan chispas y sale "PERFECTO". Encima de cada yunque, los golpes
+#  buenos que lleva (de 6). En los otros dos, el aro aun se esta cerrando.
+# ======================================================================
+fm.registrar('hoja_roja', tex_moteado(((255, 150, 40), (255, 112, 30), (240, 84, 24), (255, 186, 70), (226, 66, 20)), 71),
+             pleno=True)
+fm.registrar('hoja_espiga', tex_moteado(((150, 44, 22), (120, 34, 20), (176, 60, 26)), 72),
+             tex_moteado(((150, 44, 22), (120, 34, 20), (176, 60, 26)), 72))
+
+
+def yunque_modelo():
+    """Un yunque de piedra como el de vanilla (px de bloque: el pie en y = 0, Y hacia abajo, lo largo en Z),
+    con su hoja al rojo encima."""
+    hoja = [((-2.2, -16.8, -12, 4.4, 0.8, 22), 'hoja_roja')]
+    for i in range(5):                                    # el filo ondulado, como el de su espada
+        o = 0.6 if i % 2 == 0 else -0.6
+        hoja.append(((-3.0 + o, -16.7, -11 + 4.4 * i, 6.0, 0.7, 4.4), 'hoja_roja'))
+    hoja += [((-1.5, -16.8, 10, 3.0, 0.8, 3), 'hoja_roja'), ((-0.7, -16.8, 13, 1.4, 0.8, 2), 'hoja_roja'),
+             ((-0.9, -16.7, -18, 1.8, 0.7, 6), 'hoja_espiga')]
+    return nm.nodo('yunque', (0, 0, 0), (0, 0, 0), [
+        ((-6, -4, -6, 12, 4, 12), 'basalto_j'),
+        ((-6.3, -4.6, -6.3, 12.6, 0.8, 12.6), 'oro_bloque'),
+        ((-4, -5, -5, 8, 1, 10), 'negra'),
+        ((-2, -10, -4, 4, 5, 8), 'basalto_j'),
+        ((-5, -16, -8, 10, 6, 16), 'basalto'),
+        ((-5.3, -11, -8.3, 10.6, 1.0, 16.6), 'oro_bloque')] + hoja)
+
+
+YUNQUE = yunque_modelo()
+ESC_YUNQUE = 1.25
+MARTILLA = {'bd': {'rot': (-58, -12, 0)}, 'bi': {'rot': (-20, 0, -12)}, 'pi': {'rot': (-16, 0, 0)}, 'pd': {'rot': (16, 0, 0)}}
+ALZA_MAZA = {'bd': {'rot': (-165, -10, 0)}, 'bi': {'rot': (-24, 0, -14)}, 'pi': {'rot': (-14, 0, 0)}, 'pd': {'rot': (14, 0, 0)}}
+
+
+def sprite_maza():
+    im = _vanilla_tex('item/mace.png')
+    if im is None:
+        im = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.line([(2, 13), (10, 5)], fill=(90, 70, 110, 255), width=2)
+        d.rectangle((9, 1, 14, 6), fill=(70, 72, 80, 255))
+    return np.array(im)
+
+
+def yunque(lz, cam, x, z, eje, niebla, fase):
+    """Dibuja un yunque en (x, z) con lo largo hacia 'eje' (x, z); devuelve el punto de golpe de la hoja."""
+    g = fe.guinada_hacia(x, z, x + eje[0], z + eje[1])
+    M = modelo_en(x, 0, z, g, 0, ESC_YUNQUE)
+    qs = nm.quads(YUNQUE, {}, M)
+    fm.dibujar(lz, cam, qs, fe.LUCES, fe.AMB, niebla, 0.5, fase)
+    # la hoja brilla por encima (que se lea entera, no solo el filo)
+    fe.aditivo(lz, cam, [(P, UV) for P, UV, mat in qs if mat == 'hoja_roja'], fe.tex_plano((255, 70, 10)), 0.25)
+    return (M @ np.array([0, -16.8, -1, 1.0]))[:3], (M @ np.array([0, -16.8, -9, 1.0]))[:3]
+
+
+def aro_golpe(lz, cam, c, R, k=1.0, fantasmas=(), grueso=0.08, halo=0.1):
+    """El aro de luz que se cierra sobre la hoja (de cara a la camara) y, mas grandes y
+    apagados, los aros por donde ha pasado."""
+    for (Rf, kf) in fantasmas:
+        fe.aditivo(lz, cam, [fe.billboard(c, Rf, cam)], fe.tex_aro(ORO, 256, grueso * 0.7), kf)
+    fe.aditivo(lz, cam, [fe.billboard(c, R, cam)], fe.tex_aro((255, 226, 130), 256, grueso), k)
+    if halo:
+        resplandor(lz, cam, c, R * 1.3, ORO, halo * k)
+
+
+def chevrones(img, cam, c, R, n=4, tam=12, color=ORO_CLARO, giro=0.785):
+    """Unos angulos que apuntan al centro, por fuera del aro: el aro se cierra."""
+    sx, sy, z = cam.proyectar(c)
+    sx, sy = sx / SS, sy / SS
+    rp = cam.foco / SS * R / z
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    for k in range(n):
+        a = giro + TAU * k / n
+        u = np.array([math.cos(a), math.sin(a)])
+        nrm = np.array([-u[1], u[0]])
+        p = np.array([sx, sy]) + u * (rp + tam * 1.4)
+        pts = [tuple(p + u * tam + nrm * tam), tuple(p), tuple(p + u * tam - nrm * tam)]
+        d.line(pts, fill=(*SOMBRA, 170), width=8, joint='curve')
+        d.line(pts, fill=(*color, 255), width=4, joint='curve')
+    img.alpha_composite(capa)
+
+
+def pips(img, cam, p, buenos, total=6, lado=18, dy=0):
+    """Los golpes buenos que lleva un yunque: cuadraditos de oro (encendidos) y huecos."""
+    sx, sy, z = cam.proyectar(p)
+    sx, sy = sx / SS, sy / SS + dy
+    paso = lado * 1.35
+    x0 = sx - paso * total / 2 + (paso - lado) / 2
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    for i in range(total):
+        x = x0 + i * paso
+        caja = (x, sy - lado / 2, x + lado, sy + lado / 2)
+        d.rectangle((caja[0] + 2, caja[1] + 2, caja[2] + 2, caja[3] + 2), fill=(*SOMBRA, 180))
+        if i < buenos:
+            d.rectangle(caja, fill=(*ORO, 255), outline=(*ORO_CLARO, 255), width=max(1, lado // 8))
+        else:
+            d.rectangle(caja, fill=(40, 22, 14, 220), outline=(*ORO, 255), width=max(1, lado // 8))
+    halo = capa.filter(ImageFilter.GaussianBlur(lado / 4))
+    img.alpha_composite(halo)
+    img.alpha_composite(capa)
+    return x0 + total * paso, sy
+
+
+def forja(W=1600, H=900, fase=2):
+    A1 = np.array([-4.0, 0.0, -8.5])
+    D = np.array([0.32, 0.0, 0.95])
+    D /= np.linalg.norm(D)
+    cam = vr.Camara(ojo=tuple(A1 - D * 5.6 + np.array([0, 4.0, 0])), objetivo=tuple(A1 + D * 5.0 + np.array([0, 2.3, 0])),
+                    fov=58, ancho=W * SS, alto=H * SS)
+    F, R = marco_camara(cam)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    A2 = A1 + F * 6.0 + R * 5.8
+    A3 = A1 + F * 7.5 - R * 6.0
+    N = A1 + F * 27.0 + R * 6.0
+    # Novilis de rodillas, la espada clavada delante
+    p = pose('CASTIGO_CLAVA')
+    M = caballero(lz, cam, N[0], N[2], fe.guinada_hacia(N[0], N[2], A1[0], A1[2]), p, fase, niebla, con_espada=False)
+    fe.espada_clavada(lz, cam, M, 0, -30, V, fase, niebla, inclina=0.0)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, espada=False, k=0.6)
+    maza = sprite_maza()
+    golpes = []
+    # los yunques: lo largo de lado a la camara; el herrero, en el lado largo
+    for i, (A, pz, buenos) in enumerate(((A1, MARTILLA, 4), (A2, ALZA_MAZA, 2), (A3, MARTILLA, 5))):
+        eje = (R[0], R[2])
+        golpe, punta = yunque(lz, cam, A[0], A[2], eje, niebla, fase)
+        if i == 0:                                       # el de cerca: detras del yunque, de cara a la camara
+            q, mira = A + F * 1.05 + R * 0.3, np.array([cam.ojo[0], 0, cam.ojo[2]])
+        else:                                            # los otros: detras y a un lado, de cara a la hoja
+            q, mira = A + F * 0.95 + R * 0.85, golpe
+        Mj, pj = jugador(lz, cam, q[0], q[2], (mira[0], mira[2]), pz, niebla=niebla)
+        if pz is MARTILLA:
+            item_hacia(lz, cam, Mj, pj, maza, golpe + np.array([0, 0.25, 0]), luz=1.1)
+        else:
+            arriba = punto_jugador(Mj, pj, 'bd', (0, 10.5, 0)) + np.array([0, 1.0, 0]) - R * 0.3
+            item_hacia(lz, cam, Mj, pj, maza, arriba, 0.42, luz=1.1)
+        golpes.append((golpe, buenos))
+        # el calor de la hoja
+        resplandor(lz, cam, golpe + np.array([0, 0.1, 0]), 0.9, BRASA, 0.3)
+    # el yunque de cerca: el aro justo encima de la hoja, las chispas del golpe
+    g1 = golpes[0][0]
+    aro_golpe(lz, cam, g1 + np.array([0, 0.05, 0]), 0.58, 2.4, ((0.86, 0.6), (1.14, 0.35), (1.42, 0.2)), 0.11, halo=0.0)
+    aro_golpe(lz, cam, g1 + np.array([0, 0.05, 0]), 0.58, 1.2, (), 0.05, halo=0.0)
+    hacia_cam = (cam.ojo - g1) / np.linalg.norm(cam.ojo - g1)
+    fe.aditivo(lz, cam, [fe.billboard(g1 + hacia_cam * 0.3 + np.array([0, 0.1, 0]), 0.75, cam, 0.4)], CHISPAS_HUECAS, 1.1)
+    # los otros dos: el aro aun grande, cerrandose
+    aro_golpe(lz, cam, golpes[1][0] + np.array([0, 0.05, 0]), 1.1, 0.9, ((1.6, 0.3),), 0.07)
+    aro_golpe(lz, cam, golpes[2][0] + np.array([0, 0.05, 0]), 0.75, 0.9, ((1.2, 0.3),), 0.07)
+    img = acabar(lz, cam, W, H, fase, 102)
+    cifra(img, cam, g1 + np.array([0, 1.5, 0]) + R * 0.6, '¡PERFECTO!', 84, (255, 226, 130))
+    for (g, b), Ra in zip(golpes[1:], (1.1, 0.75)):
+        chevrones(img, cam, g + np.array([0, 0.05, 0]), Ra, 4, 13)
+    fin, y = pips(img, cam, golpes[0][0] + np.array([0, 2.35, 0]) - R * 0.5, 4, 6, 22)
+    d = ImageDraw.Draw(img)
+    for (g, b) in golpes[1:]:
+        pips(img, cam, g + np.array([0, 2.6, 0]), b, 6, 14)
+    rotulo(img, cam, golpes[0][0] - R * 0.95 + np.array([0, -0.05, 0]), 'HOJA AL ROJO', -60, 80, 44, (255, 190, 120))
+    rotulo(img, cam, golpes[1][0] + R * 1.1 + np.array([0, 0.3, 0]), 'EL ARO SE CIERRA', 60, -10, 40, ORO_CLARO)
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', 30)
+    for o in ((2, 2), (1, 1)):
+        d.text((fin + 10 + o[0], y - 20 + o[1]), '4/6', font=f, fill=(*SOMBRA, 255))
+    d.text((fin + 10, y - 20), '4/6', font=f, fill=(*ORO_CLARO, 255))
+    guardar(img, 'forja')
+
+
+# ======================================================================
+#  11. Justa del Sol
+#
+#  Un pasillo marcado por dos lineas de llamas. Por el, el retado carga a
+#  lomos de un caballo de fuego con la lanza de luz bajo el brazo; de frente,
+#  Novilis carga agachado tras un escudo grande con el sol en medio. La punta
+#  de la lanza llega al emblema, que se enciende. Fuera de las llamas, los demas.
+# ======================================================================
+def _tex_caballo(semilla=81):
+    """La piel del caballo de fuego: brasa oscura (para que se lea la forma) con grietas de lava que brillan."""
+    r = random.Random(semilla)
+    t = np.zeros((16, 16, 4), np.uint8)
+    e = np.zeros((16, 16, 4), np.uint8)
+    for y in range(16):
+        for x in range(16):
+            t[y, x] = (*r.choice(((92, 30, 16), (110, 38, 18), (128, 44, 20), (84, 26, 14))), 255)
+    for _ in range(3):                                  # las grietas: caminos que bajan en zigzag
+        x, y = r.randrange(16), 0
+        while y < 16:
+            c = (255, 196, 70) if r.random() < 0.5 else (255, 140, 40)
+            t[y % 16, x % 16] = (*c, 255)
+            e[y % 16, x % 16] = (*c, 255)
+            x += r.choice((-1, 0, 1))
+            y += 1
+    for _ in range(10):
+        x, y = r.randrange(16), r.randrange(16)
+        t[y, x] = (240, 110, 30, 255)
+        e[y, x] = (240, 110, 30, 160)
+    return t, e
+
+
+_tc, _ec = _tex_caballo()
+fm.registrar('caballo_fuego', _tc, _ec)
+fm.registrar('casco_fuego', tex_moteado(((255, 244, 200), (255, 226, 150)), 82), pleno=True)
+fm.registrar('crin_fuego', tex_moteado(((236, 104, 28), (255, 150, 44), (212, 76, 22), (255, 186, 70)), 83), pleno=True)
+fm.registrar('ojo_fuego', tex_moteado(((255, 255, 236),), 84), pleno=True)
+fm.registrar('lanza_luz', tex_moteado(((255, 246, 210), (255, 232, 160), (255, 252, 236)), 85), pleno=True)
+
+
+def caballo_modelo():
+    """El caballo de vanilla (AbstractHorseModel), en px, con su silla: el pie en y = 24, el frente en -Z."""
+    n = nm.nodo
+
+    def pata(nombre, x, z, x0, z0):
+        return n(nombre, (x, 14, z), (0, 0, 0), [((x0, -1, z0, 4, 11, 4), 'caballo_fuego'),
+                                                ((x0 - 0.2, 7.5, z0 - 0.2, 4.4, 2.6, 4.4), 'casco_fuego')])
+
+    silla = [((-5.5, -8.7, -9, 11, 3, 9), 'cuero'), ((-5.6, -9.4, -9.6, 11.2, 1.4, 1.6), 'oro'),
+             ((-5.6, -9.6, -1.4, 11.2, 1.8, 1.8), 'oro'), ((-5.7, -6, -6, 0.6, 8, 2), 'cuero'), ((5.1, -6, -6, 0.6, 8, 2), 'cuero'),
+             ((-6.0, 1.5, -6.5, 1.0, 1.6, 3), 'oro'), ((5.0, 1.5, -6.5, 1.0, 1.6, 3), 'oro')]
+    return n('raiz', (0, 0, 0), (0, 0, 0), [], [
+        n('cuerpo', (0, 11, 5), (0, 0, 0), [((-5, -8, -17, 10, 10, 22), 'caballo_fuego')] + silla, [
+            n('cola', (0, -5, 2), (30, 0, 0), [((-1.5, 0, 0, 3, 14, 4), 'crin_fuego')])]),
+        n('cuello', (0, 4, -12), (30, 0, 0), [((-2.05, -6, -2, 4, 12, 7), 'caballo_fuego')], [
+            n('cabeza_c', (0, 0, 0), (0, 0, 0), [
+                ((-3, -11, -2, 6, 5, 7), 'caballo_fuego'), ((-2, -11, -7, 4, 5, 5), 'caballo_fuego'),
+                ((0.55, -13, 4, 2, 3, 1), 'caballo_fuego'), ((-2.55, -13, 4, 2, 3, 1), 'caballo_fuego'),
+                ((-3.3, -10, -0.5, 0.5, 1.4, 1.4), 'ojo_fuego'), ((2.8, -10, -0.5, 0.5, 1.4, 1.4), 'ojo_fuego')]),
+            n('crin', (0, 0, 0), (0, 0, 0), [((-1, -11, 5.01, 2, 16, 2), 'crin_fuego')])]),
+        pata('pata_ti', 4, 7, -3, -1), pata('pata_td', -4, 7, -1, -1),
+        pata('pata_di', 4, -10, -3, -1.9), pata('pata_dd', -4, -10, -1, -1.9)])
+
+
+CABALLO = caballo_modelo()
+ESC_CABALLO = 1.4
+GALOPE = {'pata_di': {'rot': (-52, 0, 0)}, 'pata_dd': {'rot': (-18, 0, 0)}, 'pata_ti': {'rot': (40, 0, 0)},
+          'pata_td': {'rot': (14, 0, 0)}, 'cuello': {'rot': (-14, 0, 0)}, 'cola': {'rot': (46, 0, 0)}}
+JINETE = {'pi': {'rot': (-81, -18, -4.5)}, 'pd': {'rot': (-81, 18, 4.5)}, 'bd': {'rot': (-24, 0, 6)},
+          'bi': {'rot': (-58, 0, -8)}, 'cabeza': {'rot': (6, 0, 0)}}
+
+
+def caballo(lz, cam, x, z, guinada, p, niebla, fase):
+    """Dibuja el caballo de fuego (con llamas en la crin, la cola y los cascos); devuelve su matriz."""
+    M = vr.entidad_a_mundo(x, 0, z, guinada, ESC_CABALLO)
+    fm.dibujar(lz, cam, nm.quads(CABALLO, p, M), fe.LUCES, fe.AMB, niebla, 1.0, fase)
+    for i, t in enumerate(np.linspace(-10, 4, 6)):          # la crin, de la nuca a la cruz
+        fe.llamas_en(lz, cam, punto_de(CABALLO, M, p, 'crin', (0, t, 6)), 0.55, 1, 2, 120 + i, 0.9)
+    for i, t in enumerate((2, 6, 10, 14)):                   # la cola
+        fe.llamas_en(lz, cam, punto_de(CABALLO, M, p, 'cola', (0, t, 2)), 0.5, 1, 2, 130 + i, 0.9)
+    for i, t in enumerate(np.linspace(-15, 3, 5)):           # el lomo arde
+        fe.llamas_en(lz, cam, punto_de(CABALLO, M, p, 'cuerpo', (0, -8, t)), 0.4, 1, 2, 150 + i, 0.6)
+    resplandor(lz, cam, punto_de(CABALLO, M, p, 'cuerpo', (0, -3, -6)), 2.4, BRASA, 0.18)
+    return M
+
+
+def eje_a_mundo(a, b):
+    """La matriz que lleva px de un modelo con Y a lo largo (0 en a) al tramo a -> b; y lo largo en px."""
+    a, b = np.array(a, float), np.array(b, float)
+    d = b - a
+    L = float(np.linalg.norm(d))
+    y = d / L
+    x = np.cross(y, [0.0, 1.0, 0.0])
+    if np.linalg.norm(x) < 1e-6:
+        x = np.array([1.0, 0, 0])
+    x /= np.linalg.norm(x)
+    z = np.cross(x, y)
+    R = np.eye(4)
+    R[:3, 0], R[:3, 1], R[:3, 2] = x, y, z
+    return vr.T(*a) @ R @ vr.S(1 / 16), L * 16
+
+
+def lanza(lz, cam, culata, punta, niebla, fase):
+    """La lanza de luz: la empunadura de cuero, la arandela de oro y el asta de luz que se afina."""
+    M, L = eje_a_mundo(culata, punta)
+    cajas = [((-1.3, 0, -1.3, 2.6, 22, 2.6), 'cuero')]
+    for i, (w, h) in enumerate(((9, 1.6), (7, 1.6), (5, 1.6))):
+        cajas.append(((-w / 2, 22 + 1.6 * i, -w / 2, w, h, w), 'oro'))
+    y0, n = 26.8, 6
+    for i in range(n):
+        w = 3.2 - 2.2 * i / n
+        cajas.append(((-w / 2, y0 + (L - y0) * i / n, -w / 2, w, (L - y0) / n + 0.2, w), 'lanza_luz'))
+    fm.dibujar(lz, cam, nm.quads(nm.nodo('lanza', (0, 0, 0), (0, 0, 0), cajas), {}, M), fe.LUCES, fe.AMB, niebla, 0.8, fase)
+    a = (M @ np.array([0, y0, 0, 1.0]))[:3]
+    haz_oro(lz, cam, [a + (np.array(punta) - a) * t for t in np.linspace(0, 1, 10)], lambda t: 0.16 - 0.08 * t, 0.6, ORO,
+            ORO_CLARO)
+    return a
+
+
+def escudo_sol_modelo():
+    """El escudo de Novilis (px de su modelo): acero quemado en forma de blason, el canto de oro y el sol
+    en medio. El centro en el origen, la cara hacia -Z."""
+    n = nm.nodo
+    cajas = [((-22, -30, -1.5, 44, 38, 3), 'placa'), ((-19, 8, -1.5, 38, 8, 3), 'placa'),
+             ((-14, 16, -1.5, 28, 7, 3), 'placa'), ((-8, 23, -1.5, 16, 6, 3), 'placa'), ((-3, 29, -1.5, 6, 4, 3), 'placa'),
+             ((-23.5, -31.5, -2.4, 47, 3, 4.5), 'oro'), ((-23.5, -31.5, -2.4, 3, 41, 4.5), 'oro'),
+             ((20.5, -31.5, -2.4, 3, 41, 4.5), 'oro')]
+    for (x, y) in ((-20.5, 8), (17.5, 8), (-15.5, 15), (12.5, 15), (-9.5, 22), (6.5, 22), (-4.5, 28), (1.5, 28)):
+        cajas.append(((x, y, -2.4, 3, 9, 4.5), 'oro'))
+    cajas += [((-3, 31, -2.4, 6, 3, 4.5), 'oro'), ((-1.5, -28, -2.0, 3, 56, 1), 'oro')]
+    sol = [((-7, -7, -4.4, 14, 14, 2.4), 'nucleo')]
+    for a in range(12):
+        ang = TAU * a / 12
+        sol.append(((math.cos(ang) * 10.5 - 1.6, math.sin(ang) * 10.5 - 1.6, -3.8, 3.2, 3.2, 1.6), 'oro'))
+    return n('escudo_sol', (0, 0, 0), (0, 0, 0), cajas, [
+        n('emblema', (0, -6, 0), (0, 0, 0), sol, [fm.rayos_pecho(14, 8, -3.6, 12, 2.6)[k] for k in range(12)])])
+
+
+ESCUDO_SOL = escudo_sol_modelo()
+CARGA = {'pelvis': {'pos': (0, 22, 0)}, 'tabardo': {'rot': (-56, 0, 0)},
+         'pierna_izq': {'rot': (-74, 0, -8)}, 'espinilla_izq': {'rot': (80, 0, 0)}, 'pie_izq': {'rot': (-6, 0, 0)},
+         'pierna_der': {'rot': (46, 0, 10)}, 'espinilla_der': {'rot': (36, 0, 0)}, 'pie_der': {'rot': (-30, 0, 0)}}
+
+
+def _pose_carga():
+    if 'CARGA' not in _POSES:
+        p = fe._une(CARGA, fe.CAPA_VIENTO, {'torso': {'rot': (38, 8, 0)}, 'cabeza': {'rot': (-30, -6, 0)},
+                                            'capa_1': {'rot': (46, 0, 0)}, 'capa_2': {'rot': (16, 0, 0)}})
+        p, _ = fm.alcanzar(p, 'izq', _alcance(p, 'izq', (-0.2, 0.86, -0.46), 42))
+        p, _ = fm.alcanzar(p, 'der', _alcance(p, 'der', (-0.45, -0.25, 0.5), 36))
+        p = fm.apuntar_espada(p, (-0.35, -0.7, 0.62))
+        _POSES['CARGA'] = p
+    return {k: dict(v) for k, v in _POSES['CARGA'].items()}
+
+
+def pared_recta(a, b, alto, n=24, rep=8.0):
+    """Una pared de llamas en linea recta de a a b (por el suelo), u a lo largo."""
+    a, b = np.array(a, float), np.array(b, float)
+    out = []
+    for i in range(n):
+        p0, p1 = a + (b - a) * i / n, a + (b - a) * (i + 1) / n
+        P = [(p0[0], 0.0, p0[2]), (p1[0], 0.0, p1[2]), (p1[0], alto, p1[2]), (p0[0], alto, p0[2])]
+        u0, u1 = i / n * rep, (i + 1) / n * rep
+        out.append((P, [(u0, 1), (u1, 1), (u1, 0), (u0, 0)]))
+    return out
+
+
+def linea_llamas(lz, cam, a, b, fase, semilla=0):
+    """Una linea de fuego de vanilla (un fuego por bloque) por el suelo de a a b, y el suelo que arde debajo."""
+    r = random.Random(semilla)
+    a, b = np.array(a, float), np.array(b, float)
+    L = np.linalg.norm(b - a)
+    d = (b - a) / L
+    lado = np.array([-d[2], 0, d[0]]) * 0.28
+    P = [tuple(a - lado + [0, 0.06, 0]), tuple(b - lado + [0, 0.06, 0]), tuple(b + lado + [0, 0.06, 0]), tuple(a + lado + [0, 0.06, 0])]
+    fe.aditivo(lz, cam, [(P, [(0, 1), (1, 1), (1, 0), (0, 0)])], tex_banda(BRASA), 0.5)
+    fuegos = sprites_fuego(2)
+    for i in range(int(L)):
+        q = a + d * (i + 0.5)
+        llama_plana(lz, cam, q, 0.5, 0.95 + 0.25 * r.random(), fuegos[i % 2], 0.45)
+
+
+def justa_geo(giro_nov=-0.6, alcance=7.0):
+    """Donde va cada cosa de la Justa: el pasillo (D), Novilis y su escudo, el emblema y el caballo."""
+    D = np.array([0.9, 0.0, 0.44])
+    D /= np.linalg.norm(D)
+    der = np.array([-D[2], 0.0, D[0]])                       # la derecha del jinete
+    N = np.array([6.0, 0.0, 4.0])
+    gira = -D + der * giro_nov                              # carga por el pasillo, con el escudo vuelto hacia la lanza
+    g_nov = fe.guinada_hacia(N[0], N[2], N[0] + gira[0], N[2] + gira[2])
+    Mn = fm.entidad_a_mundo(N[0], 0, N[2], g_nov, ESCALA)
+    p = _pose_carga()
+    mano = fe.mundo_de(Mn, V, p, 'mano_izq', (0, 6, 0))
+    # la mano agarra el escudo por arriba (por detras): el escudo cuelga por delante de las piernas
+    asa = (modelo_en(0, 0, 0, g_nov, -4, ESCALA) @ np.array([0, -16, 3.5, 1.0]))[:3]
+    C = mano - asa
+    Ms = modelo_en(C[0], C[1], C[2], g_nov, -4, ESCALA)
+    E = (Ms @ np.array([0, -6, -4.4, 1.0]))[:3]              # el centro del emblema
+    # el caballo: la mano del jinete (con la lanza) a 'alcance' del emblema
+    g_c = fe.guinada_hacia(0, 0, D[0], D[2])
+    M0 = vr.entidad_a_mundo(0, 0, 0, g_c, ESC_CABALLO)
+    silla0 = (M0 @ np.array([0, 2.3, 0.5, 1.0]))[:3]
+    Mj0 = vr.T(0, silla0[1] - 0.75, 0) @ ne.jugador_a_mundo(silla0[0], silla0[2], g_c)
+    agarre0 = punto_jugador(Mj0, JINETE, 'bd', (0, 10.5, 0))
+    Hc = np.array([E[0], 0, E[2]]) - D * alcance - np.array([agarre0[0], 0, agarre0[2]])
+    return dict(D=D, der=der, N=N, g_nov=g_nov, Mn=Mn, p=p, Ms=Ms, E=E, g_c=g_c, Hc=Hc)
+
+
+JUSTA_CAM = ((-3.0, -7.0, 2.6), (4.6, 0.0, 4.2), 64)         # (ojo, mira) en (D, der, alto) desde el caballo; fov
+
+
+def justa(W=1600, H=900, fase=3):
+    G = justa_geo()
+    D, der, N, g_nov, Mn, p, Ms, E, g_c, Hc = (G[k] for k in ('D', 'der', 'N', 'g_nov', 'Mn', 'p', 'Ms', 'E', 'g_c', 'Hc'))
+    (oa, ob, oc), (ma, mb, mc), fov = JUSTA_CAM
+    ojo = Hc + D * oa + der * ob + np.array([0, oc, 0])
+    mira = Hc + D * ma + der * mb + np.array([0, mc, 0])
+    cam = vr.Camara(ojo=tuple(ojo), objetivo=tuple(mira), fov=fov, ancho=W * SS, alto=H * SS)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    # los de fuera del pasillo
+    for q, pz in ((Hc - D * 1.6 + der * 10.0, MIRAR), (Hc - D * 2.8 + der * 11.5, QUIETO), (Hc + D * 10.5 + der * 10.5, MIRAR)):
+        jugador(lz, cam, q[0], q[2], (Hc[0] + D[0] * 4, Hc[2] + D[2] * 4), pz, niebla=niebla)
+    # Novilis y su escudo
+    caballero(lz, cam, N[0], N[2], g_nov, p, fase, niebla)
+    fe.fuego_cuerpo(lz, cam, Mn, V, p, fase, k=0.7)
+    fm.dibujar(lz, cam, nm.quads(ESCUDO_SOL, {}, Ms), fe.LUCES, fe.AMB, niebla, 1.4, fase)
+    # el caballo, el jinete y la lanza
+    Mh = caballo(lz, cam, Hc[0], Hc[2], g_c, GALOPE, niebla, fase)
+    silla = (Mh @ np.array([0, 2.3, 0.5, 1.0]))[:3]
+    Mj, pj = jugador(lz, cam, silla[0], silla[2], (silla[0] + D[0], silla[2] + D[2]), JINETE, y=silla[1] - 0.75, niebla=niebla)
+    agarre = punto_jugador(Mj, pj, 'bd', (0, 10.5, 0))
+    d = (E - agarre) / np.linalg.norm(E - agarre)
+    mitad = lanza(lz, cam, agarre - d * 1.3, E - d * 0.1, niebla, fase)
+    # el pasillo: dos lineas de llamas
+    for s_, sem in ((-1, 1), (1, 2)):
+        a = Hc - D * 8.0 + der * 8.0 * s_
+        b = N + D * 9.0 + der * 8.0 * s_
+        linea_llamas(lz, cam, a, b, fase, sem)
+    # el choque: el emblema se enciende
+    hacia_cam = (cam.ojo - E) / np.linalg.norm(cam.ojo - E)
+    resplandor(lz, cam, E + hacia_cam * 0.3, 3.0, ORO_CLARO, 0.8)
+    fe.aditivo(lz, cam, [fe.billboard(E + hacia_cam * 0.4, 1.6, cam, 0.2)], DESTELLO, 1.6)
+    fe.aditivo(lz, cam, [fe.billboard(E + hacia_cam * 0.4, 1.3, cam)], CHISPAS_HUECAS, 1.2)
+    img = acabar(lz, cam, W, H, fase, 103)
+    rotulo(img, cam, E + hacia_cam * 0.4, '¡CLIC EN EL EMBLEMA!', -120, -200, 50, ORO_CLARO)
+    rotulo(img, cam, punto_de(CABALLO, Mh, GALOPE, 'cuerpo', (0, 0, -8)), 'CABALLO DE FUEGO', -240, 100, 44, (255, 190, 120))
+    rotulo(img, cam, mitad + (E - mitad) * 0.45, 'LANZA DE LUZ', 30, -110, 40, BLANCO)
+    q = Hc - D * 1.2 + der * 8.0 + np.array([0, 0.6, 0])
+    rotulo(img, cam, q, 'PASILLO DE LLAMAS', 0, -190, 40, (255, 200, 150))
+    cola = punto_de(CABALLO, Mh, GALOPE, 'cuerpo', (0, -3, 4))
+    estelas(img, cam, cola, cola - D * 3.0, 4, (255, 226, 170))
+    guardar(img, 'justa')
+
+
+# ======================================================================
+#  12. Lluvia de Brasas
+#
+#  Al fondo, Novilis ruge y su sol se agita (crece y echa rayos). Del cielo caen
+#  brasas con estela: doradas y rojas, cada una con su marca en el suelo (un
+#  aro de oro donde caera la dorada, el sello rojo donde caera la roja). Dos
+#  jugadores corren a ponerse debajo de una dorada; otro salta para apartarse
+#  de una roja que acaba de estallar en llamas. Arriba, la barra del jefe con
+#  la Corona del Sol al 60 %.
+# ======================================================================
+ROJA = (236, 52, 32)
+ROJA_CLARA = (255, 160, 120)
+fm.registrar('brasa_oro', tex_moteado(((255, 236, 150), (255, 214, 90), (255, 250, 210)), 91), pleno=True)
+fm.registrar('brasa_roja', tex_moteado(((226, 40, 24), (186, 24, 16), (255, 96, 44)), 92), pleno=True)
+
+
+def brasa(lz, cam, p, dorada, cola, tam=0.5, k=1.0):
+    """Una brasa que cae: un cubo encendido, su resplandor y la estela (de p hacia p + cola)."""
+    p = np.array(p, float)
+    color, claro, mat = (ORO, ORO_CLARO, 'brasa_oro') if dorada else (ROJA, ROJA_CLARA, 'brasa_roja')
+    pts = [p + np.array(cola, float) * t for t in np.linspace(0, 1, 14)]
+    haz_oro(lz, cam, pts, lambda t: tam * 0.5 * (1 - 0.85 * t), 0.85 * k, color, claro)
+    h = tam / 2
+    fm.dibujar(lz, cam, fe.caja_mundo(p[0] - h, p[1] - h, p[2] - h, tam, tam, tam, mat), fe.LUCES, fe.AMB, None, 0.7, 2)
+    resplandor(lz, cam, p, tam * 2.6, color, 0.55 * k)
+
+
+def marca(lz, cam, x, z, dorada, R=1.25):
+    """Donde va a caer: un aro de oro (ponte debajo) o el sello rojo (apartate)."""
+    if dorada:
+        aro_suelo(lz, cam, x, z, R, ORO, 0.9, 0.7, 0.09, 12, 70)
+    else:
+        fe.trans(lz, cam, fe.suelo_cuad(x, z, R, 0.08), fe.tex_sello(ROJA, relleno=80), 0.85, None, 0.6)
+
+
+def rayos_sol(img, cam, p, R, n=18, largo=2.2, color=ORO_CLARO, semilla=0):
+    """Los rayos del sol que se agita: rayas que salen del disco (sobre la foto)."""
+    sx, sy, z = cam.proyectar(p)
+    sx, sy = sx / SS, sy / SS
+    rp = cam.foco / SS * R / z
+    r = random.Random(semilla)
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    for k in range(n):
+        a = TAU * k / n + r.uniform(-0.08, 0.08)
+        l = rp * (1.0 + largo * r.uniform(0.5, 1.0) * (1.0 if k % 2 == 0 else 0.55))
+        d.line([(sx + math.cos(a) * rp * 0.95, sy + math.sin(a) * rp * 0.95), (sx + math.cos(a) * l, sy + math.sin(a) * l)],
+               fill=(*color, 200), width=max(3, int(rp * 0.14)))
+    halo = capa.filter(ImageFilter.GaussianBlur(max(2, rp * 0.12)))
+    img.alpha_composite(halo)
+    img.alpha_composite(halo)
+    img.alpha_composite(capa.filter(ImageFilter.GaussianBlur(1)))
+
+
+def barra_jefe(img, cx, y0, esc=2, vida=0.62, corona=0.6):
+    """La barra de Novilis del juego (las texturas de textures/gui, como las monta NovilisBarraHud,
+    fase II) y debajo, en la fila de las vistas, la Corona del Sol llenandose de oro."""
+    gui = os.path.join(fe.TEX, 'gui')
+
+    def t(nombre):
+        return Image.open(os.path.join(gui, nombre + '.png')).convert('RGBA')
+
+    base = Image.new('RGBA', (240, 58), (0, 0, 0, 0))
+    base.alpha_composite(t('novilis_barra_marco_2'), (0, 0))
+    rell = t('novilis_barra_relleno_2')
+    lleno, x = round(190 * vida), 0
+    while x < lleno:
+        w = min(64, lleno - x)
+        base.alpha_composite(rell.crop((0, 0, w, 9)), (40 + x, 22))
+        x += w
+    for corte in (0.75, 0.5, 0.25):
+        base.alpha_composite(t('novilis_barra_rayo_roto' if vida < corte else 'novilis_barra_rayo_2'),
+                             (40 + round(190 * corte) - 3, 17))
+    base.alpha_composite(t('novilis_barra_nucleo_2'), (7, 14))
+    base.alpha_composite(t('novilis_barra_nombre'), (92, 9))
+    rot = np.array(t('novilis_barra_fase_2')).astype(float)
+    rot[..., :3] = rot[..., :3] * np.array([0xFF, 0xC2, 0x3A]) / 255.0
+    base.alpha_composite(Image.fromarray(np.clip(rot, 0, 255).astype(np.uint8)), (167, 8))
+    base.alpha_composite(t('novilis_barra_ofrenda_sol'), (40, 35))
+    base.alpha_composite(t('novilis_barra_carga_losa'), (84, 42))
+    w = round(132 * corona)
+    oro = np.zeros((5, w, 4), np.uint8)
+    for fila, c in enumerate(((255, 246, 200), (255, 226, 120), (255, 200, 70), (240, 168, 46), (206, 130, 34))):
+        oro[fila, :] = (*c, 255)
+    oro[:, -1] = (255, 252, 236, 255)
+    base.alpha_composite(Image.fromarray(oro), (85, 43))
+    grande = base.resize((240 * esc, 58 * esc), Image.NEAREST)
+    x0 = int(cx - 120 * esc)
+    img.alpha_composite(grande, (x0, y0))
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', 11 * esc)
+    d = ImageDraw.Draw(img)
+    tx, ty = x0 + (84 + 134 + 5) * esc, y0 + 37 * esc
+    texto = 'Corona del Sol 60 %'
+    d.text((tx + esc, ty + esc), texto, font=f, fill=(40, 24, 10, 255))
+    d.text((tx, ty), texto, font=f, fill=(255, 224, 122, 255))
+
+
+def brasas_escena(W=1600, H=900, fase=2):
+    cam = vr.Camara(ojo=(-7.0, 3.0, -21.0), objetivo=(-1.0, 5.6, -7.0), fov=60, ancho=W * SS, alto=H * SS)
+    F, R = marco_camara(cam)
+    lz = fe.Lienzo(W * SS, H * SS)
+    niebla = fe.Niebla(30, 70)
+    fe.suelo(lz, cam, niebla, fase)
+    fe.braseros(lz, cam, niebla, fase)
+    base = np.array([cam.ojo[0], 0.0, cam.ojo[2]])
+    G = base + F * 9.5 - R * 1.6                       # donde cae la dorada que van a coger
+    G2 = base + F * 17.0 - R * 7.5                     # otra dorada, mas lejos
+    Rj = base + F * 10.5 + R * 4.6                     # la roja que acaba de estallar
+    Rj2 = base + F * 16.0 + R * 1.5                    # otra roja que llega
+    N = base + F * 34.0 + R * 9.0
+    # Novilis ruge al fondo
+    p = pose('GRITO')
+    M = caballero(lz, cam, N[0], N[2], fe.guinada_hacia(N[0], N[2], G[0], G[2]), p, fase, niebla)
+    fe.fuego_cuerpo(lz, cam, M, V, p, fase, k=0.8)
+    sol = fe.mundo_de(M, V, p, 'halo')
+    # los jugadores: dos corren a la dorada, otro salta lejos de la roja
+    for q, mira in ((G - R * 2.6 - F * 1.2, G), (G + R * 2.2 + F * 1.6, G)):
+        jugador(lz, cam, q[0], q[2], (mira[0], mira[2]), CORRER, niebla=niebla)
+    salta = Rj - R * 2.4 - F * 1.6
+    jugador_inclinado(lz, cam, salta + np.array([0, 0.7, 0]), fe.guinada_hacia(salta[0], salta[2], Rj[0], Rj[2]), -28, SALTO,
+                      niebla)
+    # las marcas del suelo
+    marca(lz, cam, G[0], G[2], True)
+    marca(lz, cam, G2[0], G2[2], True, 1.1)
+    marca(lz, cam, Rj2[0], Rj2[2], False, 1.2)
+    # la roja que ha caido: estalla en llamas
+    fe.explosion(lz, cam, Rj + np.array([0, 0.05, 0]), 1.5, 4, 7, lava=False, k=0.9)
+    fuegos = sprites_fuego(2)
+    for i, (a, b) in enumerate(((-0.6, 0.2), (0.5, -0.3), (0.1, 0.6), (-0.2, -0.7))):
+        llama_plana(lz, cam, Rj + R * a + F * b, 0.45, 1.0 + 0.3 * (i % 2), fuegos[i % 2], 0.55)
+    # el sol se agita: crece, arde y escupe brasas
+    resplandor(lz, cam, sol, 9.0, BRASA, 0.5)
+    fe.sol_mini(lz, cam, sol, 2.4, fase, 5, 1.0)
+    # las brasas: la estela apunta de vuelta hacia su sol
+    r = random.Random(12)
+    caen = [(G + np.array([0, 2.3, 0]), True, 0.6), (G2 + np.array([0, 6.5, 0]), True, 0.5), (Rj2 + np.array([0, 5.0, 0]), False, 0.5)]
+    # la guia: un hilo de luz de cada brasa a su marca
+    for q, c, cc in ((G + np.array([0, 2.3, 0]), ORO, ORO_CLARO), (G2 + np.array([0, 6.5, 0]), ORO, ORO_CLARO),
+                     (Rj2 + np.array([0, 5.0, 0]), ROJA, ROJA_CLARA)):
+        haz_oro(lz, cam, [q + (np.array([q[0], 0.1, q[2]]) - q) * t for t in np.linspace(0, 1, 8)], 0.035, 0.6, c, cc)
+    for _ in range(9):
+        q = base + F * r.uniform(10, 28) + R * r.uniform(-12, 12) + np.array([0, r.uniform(7, 15), 0])
+        caen.append((q, r.random() < 0.5, 0.45))
+    for k in range(4):                                  # recien salidas del sol, subiendo
+        a = TAU * k / 4 + 0.4
+        q = sol + np.array([math.cos(a) * 3.2, 2.0 + 1.5 * abs(math.sin(a)), math.sin(a) * 1.5])
+        caen.append((q, k % 2 == 0, 0.45))
+    for q, dorada, tam in caen:
+        hacia = (sol - q) * 0.25 + np.array([0, 2.2, 0])
+        brasa(lz, cam, q, dorada, hacia / np.linalg.norm(hacia) * 2.8, tam)
+    img = acabar(lz, cam, W, H, fase, 104)
+    rayos_sol(img, cam, sol, 2.6, 20, 2.0, ORO_CLARO, 3)
+    barra_jefe(img, W / 2, 8, 2, 0.62, 0.6)
+    rotulo(img, cam, G + np.array([0, 2.3, 0]), 'DORADA: ¡CÓGELA!', -60, -150, 48, ORO_CLARO)
+    rotulo(img, cam, Rj + np.array([0, 0.8, 0]), 'ROJA: ¡APÁRTATE!', 80, -120, 48, ROJA_CLARA)
+    rotulo(img, cam, sol, 'SU SOL SE AGITA', -120, 40, 40, (255, 200, 150))
+    guardar(img, 'brasas')
+
+
 ESCENAS = {'duelo': duelo, 'armadura': armadura, 'espejos': espejos, 'llama': llama,
-           'sombra': sombra, 'estandarte': estandarte, 'escuderos': escuderos, 'sol_caido': sol_caido}
+           'sombra': sombra, 'estandarte': estandarte, 'escuderos': escuderos, 'sol_caido': sol_caido,
+           'choque': choque, 'forja': forja, 'justa': justa, 'brasas': brasas_escena}
 
 if __name__ == '__main__':
     pedidas = sys.argv[3].split(',') if len(sys.argv) > 3 else list(ESCENAS)

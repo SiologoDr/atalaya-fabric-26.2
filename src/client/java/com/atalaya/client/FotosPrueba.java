@@ -22,6 +22,8 @@ public final class FotosPrueba {
     private static final String PREFIJO = "FOTO ";
     /** "VISTA 0|1|2": primera persona, tercera por detras o por delante (para ver lo que lleva uno encima). */
     private static final String VISTA = "VISTA ";
+    /** "DUELO_AUTO 1|0": el Duelo de Canto se toca solo (acierta casi todas y falla una de cada cinco), para las fotos. */
+    private static final String DUELO_AUTO = "DUELO_AUTO ";
 
     private FotosPrueba() {
     }
@@ -36,6 +38,10 @@ public final class FotosPrueba {
             if (texto.startsWith(VISTA)) {
                 int v = Math.clamp(Integer.parseInt(texto.substring(VISTA.length()).trim()), 0, 2);
                 Minecraft.getInstance().options.setCameraType(net.minecraft.client.CameraType.values()[v]);
+                return false;
+            }
+            if (texto.startsWith(DUELO_AUTO)) {
+                DueloCantoCliente.auto = texto.substring(DUELO_AUTO.length()).trim().equals("1");
                 return false;
             }
             if (!texto.startsWith(PREFIJO)) {

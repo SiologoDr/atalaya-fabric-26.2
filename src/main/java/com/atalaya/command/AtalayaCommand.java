@@ -255,7 +255,7 @@ public final class AtalayaCommand {
     }
 
     private static final String[] ORDENES_NEREA = {"despertar", "rompeolas", "remolino", "burbujas", "molino",
-            "arpon", "lejano", "mirada", "ojo", "geiser", "marea", "furia", "aturdido", "agotado", "fase", "canto", "clic", "cadenas", "marea_alta", "liberar"};
+            "arpon", "lejano", "mirada", "ojo", "geiser", "marea", "furia", "aturdido", "agotado", "fase", "canto", "clic", "cadenas", "marea_alta", "pesca", "cana", "cana_auto", "perla", "canones", "canon", "cargar", "disparo", "bala", "morenas", "morena_ver", "duelo", "duelo_bien", "liberar"};
 
     /** Fuerza a la Nerea mas cercana (en 64 bloques) a hacer algo ya. */
     private static int probarNerea(CommandSourceStack fuente, String orden) {

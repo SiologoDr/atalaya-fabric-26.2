@@ -1632,5 +1632,184 @@
     "sounds": [
       "atalaya:novilis/mar"
     ]
+  },
+  "nerea.pesca_lanzar": {
+    "subtitle": "subtitles.atalaya.nerea.pesca_lanzar",
+    "sounds": [
+      "atalaya:nerea/pesca_lanzar"
+    ]
+  },
+  "nerea.pesca_cae": {
+    "subtitle": "subtitles.atalaya.nerea.pesca_cae",
+    "sounds": [
+      "atalaya:nerea/pesca_cae"
+    ]
+  },
+  "nerea.pesca_pica": {
+    "subtitle": "subtitles.atalaya.nerea.pesca_pica",
+    "sounds": [
+      "atalaya:nerea/pesca_pica"
+    ]
+  },
+  "nerea.pesca_recoger": {
+    "subtitle": "subtitles.atalaya.nerea.pesca_recoger",
+    "sounds": [
+      "atalaya:nerea/pesca_recoger"
+    ]
+  },
+  "nerea.pesca_escapa": {
+    "subtitle": "subtitles.atalaya.nerea.pesca_escapa",
+    "sounds": [
+      "atalaya:nerea/pesca_escapa"
+    ]
+  },
+  "nerea.perla_pescada": {
+    "subtitle": "subtitles.atalaya.nerea.perla_pescada",
+    "sounds": [
+      "atalaya:nerea/perla_pescada"
+    ]
+  },
+  "nerea.perla_lanzar": {
+    "subtitle": "subtitles.atalaya.nerea.perla_lanzar",
+    "sounds": [
+      "atalaya:nerea/perla_lanzar"
+    ]
+  },
+  "nerea.perla_corazon": {
+    "subtitle": "subtitles.atalaya.nerea.perla_corazon",
+    "sounds": [
+      "atalaya:nerea/perla_corazon"
+    ]
+  },
+  "nerea.morena_sale": {
+    "subtitle": "subtitles.atalaya.nerea.morena_sale",
+    "sounds": [
+      "atalaya:nerea/morena_sale1",
+      "atalaya:nerea/morena_sale2",
+      "atalaya:nerea/morena_sale3"
+    ]
+  },
+  "nerea.morena_aviso": {
+    "subtitle": "subtitles.atalaya.nerea.morena_aviso",
+    "sounds": [
+      "atalaya:nerea/morena_aviso"
+    ]
+  },
+  "nerea.morena_mordisco": {
+    "subtitle": "subtitles.atalaya.nerea.morena_mordisco",
+    "sounds": [
+      "atalaya:nerea/morena_mordisco1",
+      "atalaya:nerea/morena_mordisco2"
+    ]
+  },
+  "nerea.morena_golpe": {
+    "subtitle": "subtitles.atalaya.nerea.morena_golpe",
+    "sounds": [
+      "atalaya:nerea/morena_golpe1",
+      "atalaya:nerea/morena_golpe2",
+      "atalaya:nerea/morena_golpe3"
+    ]
+  },
+  "nerea.morena_baja": {
+    "subtitle": "subtitles.atalaya.nerea.morena_baja",
+    "sounds": [
+      "atalaya:nerea/morena_baja"
+    ]
+  },
+  "nerea.canon_sale": {
+    "subtitle": "subtitles.atalaya.nerea.canon_sale",
+    "sounds": [
+      "atalaya:nerea/canon_sale"
+    ]
+  },
+  "nerea.bala_coger": {
+    "subtitle": "subtitles.atalaya.nerea.bala_coger",
+    "sounds": [
+      "atalaya:nerea/bala_coger"
+    ]
+  },
+  "nerea.canon_cargar": {
+    "subtitle": "subtitles.atalaya.nerea.canon_cargar",
+    "sounds": [
+      "atalaya:nerea/canon_cargar"
+    ]
+  },
+  "nerea.canon_vacio": {
+    "subtitle": "subtitles.atalaya.nerea.canon_vacio",
+    "sounds": [
+      "atalaya:nerea/canon_vacio"
+    ]
+  },
+  "nerea.canon_disparo": {
+    "subtitle": "subtitles.atalaya.nerea.canon_disparo",
+    "sounds": [
+      "atalaya:nerea/canon_disparo"
+    ]
+  },
+  "nerea.bala_impacto": {
+    "subtitle": "subtitles.atalaya.nerea.bala_impacto",
+    "sounds": [
+      "atalaya:nerea/bala_impacto"
+    ]
+  },
+  "nerea.bala_cae": {
+    "subtitle": "subtitles.atalaya.nerea.bala_cae",
+    "sounds": [
+      "atalaya:nerea/bala_cae"
+    ]
+  },
+  "nerea.duelo_nota1": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_nota1",
+    "sounds": [
+      "atalaya:nerea/duelo_nota1"
+    ]
+  },
+  "nerea.duelo_nota2": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_nota2",
+    "sounds": [
+      "atalaya:nerea/duelo_nota2"
+    ]
+  },
+  "nerea.duelo_nota3": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_nota3",
+    "sounds": [
+      "atalaya:nerea/duelo_nota3"
+    ]
+  },
+  "nerea.duelo_nota4": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_nota4",
+    "sounds": [
+      "atalaya:nerea/duelo_nota4"
+    ]
+  },
+  "nerea.duelo_fallo": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_fallo",
+    "sounds": [
+      "atalaya:nerea/duelo_fallo"
+    ]
+  },
+  "nerea.duelo_perfecto": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_perfecto",
+    "sounds": [
+      "atalaya:nerea/duelo_perfecto"
+    ]
+  },
+  "nerea.duelo_cuenta": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_cuenta",
+    "sounds": [
+      "atalaya:nerea/duelo_cuenta"
+    ]
+  },
+  "nerea.duelo_gana": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_gana",
+    "sounds": [
+      "atalaya:nerea/duelo_gana"
+    ]
+  },
+  "nerea.duelo_pierde": {
+    "subtitle": "subtitles.atalaya.nerea.duelo_pierde",
+    "sounds": [
+      "atalaya:nerea/duelo_pierde"
+    ]
   }
 }

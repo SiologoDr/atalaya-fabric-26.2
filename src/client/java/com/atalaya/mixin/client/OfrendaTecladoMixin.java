@@ -1,5 +1,6 @@
 package com.atalaya.mixin.client;
 
+import com.atalaya.client.DueloCantoCliente;
 import com.atalaya.client.OfrendaCliente;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
@@ -28,7 +29,9 @@ public abstract class OfrendaTecladoMixin {
 
     @Inject(method = "keyPress", at = @At("HEAD"), cancellable = true)
     private void atalaya$ofrenda(long ventana, int accion, KeyEvent evento, CallbackInfo ci) {
-        if (!OfrendaCliente.activo() || Minecraft.getInstance().gui.screen() != null) {
+        // Lo mismo para el Duelo de Canto de Nerea (las teclas A, S, D y F de sus carriles).
+        boolean duelo = DueloCantoCliente.activo();
+        if ((!OfrendaCliente.activo() && !duelo) || Minecraft.getInstance().gui.screen() != null) {
             return;
         }
         int tecla = evento.key();
@@ -45,7 +48,11 @@ public abstract class OfrendaTecladoMixin {
         }
         char c = Character.toUpperCase(nombre.charAt(0));
         if (c >= 'A' && c <= 'Z') {
-            OfrendaCliente.pulsar(c);
+            if (duelo) {
+                DueloCantoCliente.pulsar(c);
+            } else {
+                OfrendaCliente.pulsar(c);
+            }
         }
     }
 }

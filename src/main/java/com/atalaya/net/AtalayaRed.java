@@ -67,6 +67,30 @@ public final class AtalayaRed {
     }
 
     /**
+     * Una nota del Duelo de Canto de Nerea (el elegido sigue el ritmo): que jefe,
+     * que nota y si la acerto. Las notas las saca cada lado de la misma semilla;
+     * el cliente juzga al momento (el lag no hace fallar) y el servidor cuenta.
+     */
+    public record DueloNota(int jefe, int indice, boolean bien) implements CustomPacketPayload {
+
+        public static final Type<DueloNota> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "duelo_nota"));
+
+        public static final StreamCodec<FriendlyByteBuf, DueloNota> CODEC = StreamCodec.of(
+                (buf, t) -> {
+                    buf.writeVarInt(t.jefe());
+                    buf.writeVarInt(t.indice());
+                    buf.writeBoolean(t.bien());
+                },
+                buf -> new DueloNota(buf.readVarInt(), buf.readVarInt(), buf.readBoolean()));
+
+        @Override
+        public Type<DueloNota> type() {
+            return TIPO;
+        }
+    }
+
+    /**
      * "He pulsado la tecla de la habilidad" (R por defecto). Sin datos: el
      * servidor mira que conjunto lleva y si la tiene lista.
      */
@@ -92,6 +116,7 @@ public final class AtalayaRed {
         PayloadTypeRegistry.serverboundPlay().register(Salto.TIPO, Salto.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(OfrendaTecla.TIPO, OfrendaTecla.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Habilidad.TIPO, Habilidad.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(DueloNota.TIPO, DueloNota.CODEC);
     }
 
     /** Y esto solo en el servidor: quien atiende el aviso. */
@@ -100,6 +125,8 @@ public final class AtalayaRed {
                 AturdimientoManager.alSaltar(contexto.player()));
         ServerPlayNetworking.registerGlobalReceiver(OfrendaTecla.TIPO, (carga, contexto) ->
                 com.atalaya.entity.NovilisEntity.alPulsarTecla(contexto.player(), carga.jefe(), carga.indice(), carga.bien()));
+        ServerPlayNetworking.registerGlobalReceiver(DueloNota.TIPO, (carga, contexto) ->
+                com.atalaya.entity.NereaEntity.alNotaDuelo(contexto.player(), carga.jefe(), carga.indice(), carga.bien()));
         ServerPlayNetworking.registerGlobalReceiver(Habilidad.TIPO, (carga, contexto) ->
                 com.atalaya.habilidad.Habilidades.activar(contexto.player()));
     }

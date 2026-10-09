@@ -58,6 +58,14 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_REMOLINO_LADRON = clave("remolino_ladron");
     public static final ResourceKey<EntityType<?>> CLAVE_SOL_CENIT = clave("sol_cenit");
     public static final ResourceKey<EntityType<?>> CLAVE_EGIDA_NOVILIS = clave("egida_novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_POZA_ABISMO = clave("poza_abismo");
+    public static final ResourceKey<EntityType<?>> CLAVE_CORCHO_ABISMO = clave("corcho_abismo");
+    public static final ResourceKey<EntityType<?>> CLAVE_PERLA_LANZADA = clave("perla_lanzada");
+    public static final ResourceKey<EntityType<?>> CLAVE_MORENA_NEREA = clave("morena_nerea");
+    public static final ResourceKey<EntityType<?>> CLAVE_MORENA_SALTO = clave("morena_salto");
+    public static final ResourceKey<EntityType<?>> CLAVE_CANON_NAUFRAGIO = clave("canon_naufragio");
+    public static final ResourceKey<EntityType<?>> CLAVE_PILA_BALAS = clave("pila_balas");
+    public static final ResourceKey<EntityType<?>> CLAVE_BALA_CANON = clave("bala_canon");
 
     /** Nerea, Guardian de los Mares: el jefe elemental del agua. */
     public static EntityType<NereaEntity> NEREA;
@@ -78,6 +86,22 @@ public final class AtalayaEntities {
     public static EntityType<SolCenitEntity> SOL_CENIT;
     /** La Egida de la Sombra del Escudo: el escudo que da sombra. */
     public static EntityType<EgidaNovilisEntity> EGIDA_NOVILIS;
+    /** Una poza de la Pesca del Abismo de Nerea. */
+    public static EntityType<PozaAbismoEntity> POZA_ABISMO;
+    /** El corcho de la Cana del Abismo. */
+    public static EntityType<CorchoAbismoEntity> CORCHO_ABISMO;
+    /** Una Perla del Abismo que vuela al corazon de Nerea. */
+    public static EntityType<PerlaLanzadaEntity> PERLA_LANZADA;
+    /** Un agujero (y su morena) de las Morenas de las Pozas. */
+    public static EntityType<MorenaNereaEntity> MORENA_NEREA;
+    /** La morena que salta de una poza de la Pesca si recoges antes de tiempo. */
+    public static EntityType<MorenaSaltoEntity> MORENA_SALTO;
+    /** Un Canon del Naufragio (se sube y se dispara). */
+    public static EntityType<CanonNaufragioEntity> CANON_NAUFRAGIO;
+    /** La pila de balas de un Canon del Naufragio. */
+    public static EntityType<PilaBalasEntity> PILA_BALAS;
+    /** La bala de un Canon del Naufragio. */
+    public static EntityType<BalaCanonEntity> BALA_CANON;
 
     public static final ResourceKey<EntityType<?>> CLAVE_AERALIS = clave("aeralis");
     public static final ResourceKey<EntityType<?>> CLAVE_CUCHILLA_VIENTO = clave("cuchilla_viento");
@@ -481,6 +505,39 @@ public final class AtalayaEntities {
                 EntityType.Builder.<EgidaNovilisEntity>of(EgidaNovilisEntity::new, MobCategory.MISC)
                         .sized(0.5F, 0.5F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
                         .build(CLAVE_EGIDA_NOVILIS));
+        // Los minijuegos de Nerea (octubre de 2026).
+        POZA_ABISMO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_POZA_ABISMO,
+                EntityType.Builder.<PozaAbismoEntity>of(PozaAbismoEntity::new, MobCategory.MISC)
+                        .sized(3.6F, 0.3F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(20)
+                        .build(CLAVE_POZA_ABISMO));
+        CORCHO_ABISMO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CORCHO_ABISMO,
+                EntityType.Builder.<CorchoAbismoEntity>of(CorchoAbismoEntity::new, MobCategory.MISC)
+                        .sized(0.25F, 0.25F).fireImmune().noSummon().clientTrackingRange(8).updateInterval(1)
+                        .build(CLAVE_CORCHO_ABISMO));
+        PERLA_LANZADA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_PERLA_LANZADA,
+                EntityType.Builder.<PerlaLanzadaEntity>of(PerlaLanzadaEntity::new, MobCategory.MISC)
+                        .sized(0.4F, 0.4F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
+                        .build(CLAVE_PERLA_LANZADA));
+        MORENA_NEREA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_MORENA_NEREA,
+                EntityType.Builder.<MorenaNereaEntity>of(MorenaNereaEntity::new, MobCategory.MISC)
+                        .sized(1.2F, 2.4F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(20)
+                        .build(CLAVE_MORENA_NEREA));
+        MORENA_SALTO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_MORENA_SALTO,
+                EntityType.Builder.<MorenaSaltoEntity>of(MorenaSaltoEntity::new, MobCategory.MISC)
+                        .sized(0.8F, 0.8F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(20)
+                        .build(CLAVE_MORENA_SALTO));
+        CANON_NAUFRAGIO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CANON_NAUFRAGIO,
+                EntityType.Builder.<CanonNaufragioEntity>of(CanonNaufragioEntity::new, MobCategory.MISC)
+                        .sized(1.6F, 1.4F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
+                        .build(CLAVE_CANON_NAUFRAGIO));
+        PILA_BALAS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_PILA_BALAS,
+                EntityType.Builder.<PilaBalasEntity>of(PilaBalasEntity::new, MobCategory.MISC)
+                        .sized(1.2F, 0.9F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(20)
+                        .build(CLAVE_PILA_BALAS));
+        BALA_CANON = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_BALA_CANON,
+                EntityType.Builder.<BalaCanonEntity>of(BalaCanonEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.5F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
+                        .build(CLAVE_BALA_CANON));
     }
 
     private static void registrarVigia() {

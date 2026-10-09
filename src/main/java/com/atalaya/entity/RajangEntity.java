@@ -990,9 +990,9 @@ public class RajangEntity extends Monster {
             }
             case CATACLISMO_BAJA -> {
                 if (mato) {
-                    // Se ha cobrado una vida: recupera un 5 %.
-                    heal(getMaxHealth() * 0.05F);
-                    sonido(AtalayaSonidos.RAJANG_CURA, 5.0F);
+                    // Se ha cobrado una vida: ruge y sigue (ya no se cura: ningun jefe se cura con
+                    // sus ataques, Juan, 09-10-2026).
+                    sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);
                     Vec3 c = puntoMundo(RajangGeometria.PECHO);
                     nivel.sendParticles(AtalayaParticulas.RAJANG_CHISPA, true, true, c.x, c.y, c.z, 40, 2.0, 2.0, 2.0, 0.08);
                     terminar();
@@ -2522,11 +2522,10 @@ public class RajangEntity extends Monster {
             // Solo si ya esta en el suelo y paso el margen: al lanzarlo sale de su pecho.
             if (idoloAgarra <= 0 && idoloSuelo.onGround()
                     && horizontal(position(), idoloSuelo.position()) < getBbWidth() * 0.5 + 2.0) {
-                // Lo recoge del suelo con la boca: lo recupera y se cura.
+                // Lo recoge del suelo con la boca: lo recupera (sin curarse).
                 Vec3 p = idoloSuelo.position();
-                heal(getMaxHealth() * 0.03F);
                 nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, p.x, p.y + 0.5, p.z, 30, 0.5, 0.5, 0.5, 0.2);
-                sonido(AtalayaSonidos.RAJANG_CURA, 5.0F);
+                sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);
                 acabarIdolo(nivel);
                 return;
             }
@@ -2645,12 +2644,10 @@ public class RajangEntity extends Monster {
         sonido(AtalayaSonidos.RAJANG_ATURDIDO, 7.0F);
     }
 
-    /** Su Garra ha pillado al portador: recupera el idolo y se cura un 3 %. */
+    /** Su Garra ha pillado al portador: recupera el idolo (sin curarse). */
     private void recuperarIdolo(ServerLevel nivel, Player p) {
         IdoloOro.quitar(p, this);
-        heal(getMaxHealth() * 0.03F);
         sonido(AtalayaSonidos.RAJANG_ZARPAZO, 6.0F);
-        sonido(AtalayaSonidos.RAJANG_CURA, 4.0F);
         nivel.sendParticles(AtalayaParticulas.RAJANG_ORO, true, true, p.getX(), p.getY() + 1.0, p.getZ(), 30, 0.5, 0.8, 0.5, 0.25);
         acabarIdolo(nivel);
     }

@@ -36,6 +36,23 @@ propuestas). Camaras mas cerca de los jugadores, para que se lean bien:
                 patas a 8 bloques del suelo; abajo, tres arqueros tiran a los
                 hilos: uno se rompe y otras dos flechas van de camino
 
+Tercera ficha: minijuegos (a la gente le gustaron los de los otros jefes:
+las cupulas de la Marea Alta, teclear en la Ofrenda, llevar el Idolo):
+
+  ocelos        Ocelos ("luz roja, luz verde"): posada en el centro con las alas
+                abiertas y los ocelos hechos ojos que miran; cuatro jugadores
+                quietos como estatuas y uno que se ha movido recibe un rayo de
+                un ocelo; la leyenda roja y verde arriba
+  polillas      Caza de Polillas: su cria de polillas de luz revolotea por la
+                cima; uno salta con la red cazamariposas a por una y otro ya
+                tiene una apagada en la bolsa; arriba, las que quedan (7 de 10)
+  pararrayos    Pararrayos: circulos violetas donde va a caer un rayo; uno
+                levanta el pararrayos y el rayo cae en el (queda cargado, con
+                el contorno claro); otro le descarga el suyo en el pecho (1/3)
+  veletas       Veletas del Vendaval: tres veletas encendidas apuntan a ella con
+                su linea de puntos; la de delante esta 45 grados desviada y un
+                jugador la gira con un clic derecho (la flecha curva); 3/4
+
 Uso: python aeralis_mecanicas_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
 """
 import math, os, random, sys
@@ -1463,8 +1480,703 @@ def hilos(W=1600, H=900, fase=3):
     guardar(img, 'hilos')
 
 
+# ======================================================================
+#  Tercera ficha (octubre de 2026): minijuegos. A la gente le gustaron los
+#  minijuegos de los jefes (las cupulas de la Marea Alta, teclear en la
+#  Ofrenda, llevar el Idolo); cuatro mas para Aeralis, distintos de los de
+#  los otros jefes y de las dos fichas anteriores.
+# ======================================================================
+nm.MAT.update({
+    'cobre': _plano('c76a3e', 'b25b34', 340),          # el pararrayos
+    'cobre_claro': _plano('ef9d66', 'df8a54', 341),
+    'bronce': _plano('c0943e', 'a87f34', 342),         # las veletas
+    'bronce_osc': _plano('6e5426', '5e4720', 343),
+    'veleta_luz': _plano('b48cff', 'a47cf4', 344),     # la flecha encendida
+    'red_palo': _plano('b07e4c', '9c6c40', 345),       # el palo de la red
+})
+nm.EMISIVOS.add('veleta_luz')
+
+
+def marcos(raiz, pose, M):
+    """Las matrices de mundo de cada nodo de un modelo de nm (como nm.quads),
+    para colgar de una mano lo que no son cajas (la bolsa de la red)."""
+    out = {}
+
+    def visitar(n, Mp):
+        nombre, off, rot, cajas, hijos = n
+        ex = pose.get(nombre, {})
+        r = [rot[i] + ex.get('rot', (0, 0, 0))[i] for i in range(3)]
+        p = [off[i] + ex.get('pos', (0, 0, 0))[i] for i in range(3)]
+        Mn = Mp @ vr.T(*p) @ vr.Rz(r[2] * vr.D2R) @ vr.Ry(r[1] * vr.D2R) @ vr.Rx(r[0] * vr.D2R) \
+            @ vr.S(ex.get('esc', 1.0))
+        out[nombre] = M @ Mn
+        for h in hijos:
+            visitar(h, Mn)
+    visitar(raiz, np.eye(4))
+    return out
+
+
+def matriz_jugador(x, y, z, guinada, inclina=0.0, alabeo=0.0):
+    """La del jugador de las fichas (como en jugador2)."""
+    return vr.T(x, y, z) @ vr.Ry(guinada * vr.D2R) @ vr.T(0, 1.0, 0) @ vr.Rz(alabeo * vr.D2R) \
+        @ vr.Rx(inclina * vr.D2R) @ vr.T(0, -1.0, 0) @ vr.T(0, 1.5, 0) @ np.diag([-1 / 16, -1 / 16, 1 / 16, 1])
+
+
+def jugador3(lz, cam, x, z, guinada, y=0.0, pose=None, mano=(), mano_izq=(), espada=False, rot_espada=(0, 0, 0),
+             niebla=None, inclina=0.0, alabeo=0.0, lienzo_extra=None):
+    """Como jugador2(), con lo que se quiera en las manos (nodos colgados del
+    brazo derecho, 'mano', o del izquierdo). Devuelve las matrices de mundo de
+    sus nodos."""
+    raiz = ne.jugador()
+    if espada:
+        _buscar(raiz, 'bd')[4].append(nodo_espada(rot=rot_espada))
+    _buscar(raiz, 'bd')[4].extend(mano)
+    _buscar(raiz, 'bi')[4].extend(mano_izq)
+    M = matriz_jugador(x, y, z, guinada, inclina, alabeo)
+    pose = pose or {}
+    qs = nm.quads(raiz, pose, M)
+    nm.dibujar(lz, cam, qs, LUCES, AMB, niebla)
+    if lienzo_extra is not None:
+        nm.dibujar(lienzo_extra, cam, qs, LUCES, AMB, None)
+    return marcos(raiz, pose, M)
+
+
+def en(Mn, p):
+    """Un punto local de un nodo (pixeles de modelo) en el mundo."""
+    return (Mn @ np.array([*p, 1.0]))[:3]
+
+
+def quad_plano(c, eu, ev, h, hv=None):
+    """Un cuadrado centrado en c en el plano de (eu, ev), de medio lado h."""
+    hv = h if hv is None else hv
+    P = [c - eu * h - ev * hv, c + eu * h - ev * hv, c + eu * h + ev * hv, c - eu * h + ev * hv]
+    return [([tuple(q) for q in P], [(0, 0), (1, 0), (1, 1), (0, 1)])]
+
+
+def relampago(lz, cam, a, b, col, semilla, ancho=0.1, pasos=12, sacude=0.6, ramas=3, niebla=None, glow=1.0,
+              contraste=False):
+    """Un rayo de a a b: un velo ancho del color, el nucleo casi blanco y unas
+    ramas cortas; con 'contraste', una sombra oscura debajo para que se lea
+    sobre algo claro. Devuelve los puntos del camino."""
+    r = random.Random(semilla)
+    a, b = np.array(a, float), np.array(b, float)
+    pts = rayo(a, b, semilla, pasos, sacude)
+    if contraste:
+        trans(lz, cam, cinta3d(pts, ancho * 2.6, cam), tex_plano(SOMBRA), 0.55, niebla, 0.0)
+    trans(lz, cam, cinta3d(pts, ancho * 4.5, cam), tex_plano(col, 60), 0.5, niebla, 0.45 * glow)
+    trans(lz, cam, cinta3d(pts, ancho * 1.8, cam), tex_plano(claro(col, 0.45)), 0.85, niebla, 0.8 * glow)
+    trans(lz, cam, cinta3d(pts, ancho * 0.7, cam), tex_plano(claro(col, 0.92)), 1.0, niebla, 1.3 * glow)
+    L = np.linalg.norm(b - a)
+    for k in range(ramas):
+        i = r.randrange(1, len(pts) - 2)
+        p0 = np.array(pts[i], float)
+        q = p0 + (b - a) * r.uniform(0.06, 0.14) + np.array([r.uniform(-1, 1), r.uniform(-0.4, 0.4),
+                                                               r.uniform(-1, 1)]) * L * 0.09
+        rp = rayo(p0, q, semilla * 7 + k, 5, sacude * 0.45)
+        trans(lz, cam, cinta3d(rp, ancho * 1.2, cam), tex_plano(claro(col, 0.3), 150), 0.7, niebla, 0.45 * glow)
+        trans(lz, cam, cinta3d(rp, ancho * 0.4, cam), tex_plano(claro(col, 0.85)), 1.0, niebla, 0.8 * glow)
+    return pts
+
+
+def chispas_cuerpo(lz, cam, c, col, semilla, n=7, radio=0.75, alto=1.7, niebla=None):
+    """Arcos electricos pequenos alrededor de un cuerpo (cargado o paralizado)."""
+    r = random.Random(semilla)
+    for k in range(n):
+        a = TAU * k / n + r.uniform(-0.3, 0.3)
+        y = c[1] + r.uniform(-alto / 2, alto / 2)
+        p0 = np.array([c[0] + radio * math.cos(a), y, c[2] + radio * math.sin(a)])
+        p1 = p0 + np.array([r.uniform(-0.4, 0.4), r.uniform(-0.5, 0.5), r.uniform(-0.4, 0.4)])
+        pts = rayo(p0, p1, semilla * 13 + k, 4, 0.14)
+        trans(lz, cam, cinta3d(pts, 0.05, cam), tex_plano(claro(col, 0.4), 160), 0.8, niebla, 0.6)
+        trans(lz, cam, cinta3d(pts, 0.018, cam), tex_plano(claro(col, 0.9)), 1.0, niebla, 1.2)
+
+
+def leyenda(img, cx, y, partes, tam=30):
+    """Una fila de avisos en una pastilla oscura: cada parte es (texto, color
+    del punto o None)."""
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', tam)
+    d = ImageDraw.Draw(img)
+    hueco, punto = 46, tam * 0.62
+    anchos = [d.textlength(t, font=f) + (punto + 12 if c else 0) for t, c in partes]
+    total = sum(anchos) + hueco * (len(partes) - 1)
+    x = cx - total / 2
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(capa).rounded_rectangle((x - 24, y - 10, x + total + 24, y + tam * 1.45), 18, fill=(8, 10, 30, 195),
+                                           outline=(150, 160, 230, 170), width=2)
+    img.alpha_composite(capa)
+    d = ImageDraw.Draw(img)
+    for (t, c), w in zip(partes, anchos):
+        if c:
+            cy = y + tam * 0.72
+            d.ellipse((x, cy - punto / 2, x + punto, cy + punto / 2), fill=(*c, 255), outline=(*SOMBRA, 255), width=2)
+            texto_sombra(img, (x + punto + 12, y), t, f, BLANCO)
+        else:
+            texto_sombra(img, (x, y), t, f, BLANCO)
+        x += w + hueco
+
+
+def leyenda_columna(img, x, y, partes, tam=30):
+    """Los avisos uno debajo de otro en una pastilla oscura, desde (x, y)."""
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', tam)
+    d = ImageDraw.Draw(img)
+    punto, paso = tam * 0.62, tam * 1.5
+    w = max(d.textlength(t, font=f) for t, c in partes) + punto + 12
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(capa).rounded_rectangle((x - 20, y - 12, x + w + 22, y + paso * len(partes) + 2), 18,
+                                           fill=(8, 10, 30, 195), outline=(150, 160, 230, 170), width=2)
+    img.alpha_composite(capa)
+    d = ImageDraw.Draw(img)
+    for k, (t, c) in enumerate(partes):
+        yy = y + paso * k
+        cy = yy + tam * 0.72
+        d.ellipse((x, cy - punto / 2, x + punto, cy + punto / 2), fill=(*c, 255), outline=(*SOMBRA, 255), width=2)
+        texto_sombra(img, (x + punto + 12, yy), t, f, BLANCO)
+
+
+def tex_mancha(n=64):
+    """La sombra en el suelo de alguien que esta en el aire."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    d = np.hypot(xx + 0.5 - n / 2, yy + 0.5 - n / 2) / (n / 2)
+    return _rgba(np.zeros((n, n, 3)), np.clip(1 - d, 0, 1) ** 0.7 * 0.6)
+
+
+def titular(img, cx, cy, texto, tam, color, borde=None):
+    """Un texto grande centrado en (cx, cy), con un velo del color detras."""
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', tam)
+    d = ImageDraw.Draw(img)
+    w = d.textlength(texto, font=f)
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(capa).text((cx - w / 2, cy - tam * 0.6), texto, font=f, fill=(*(borde or color), 255))
+    img.alpha_composite(capa.filter(ImageFilter.GaussianBlur(tam * 0.18)))
+    img.alpha_composite(capa.filter(ImageFilter.GaussianBlur(tam * 0.08)))
+    texto_sombra(img, (cx - w / 2, cy - tam * 0.6), texto, f, color)
+
+
+# ----------------------------------------------------------------------
+#  9. Ocelos ("luz roja, luz verde")
+#
+#  Se posa en el centro y abre las alas: los ocelos de las alas son ojos
+#  abiertos que miran. Los jugadores, a distintas distancias, se han quedado
+#  quietos como estatuas a medio paso; uno se ha movido y un rayo le sale de
+#  un ocelo: dano y Paralisis.
+# ----------------------------------------------------------------------
+OCELOS = dict(rm.POSADA)
+OCELOS.update(rm._alas(45, 60, -8, 0))
+OCELOS.update({'abdomen': {'rot': (-60, 0, 0)}, 'cabeza': {'rot': (30, 0, 0)}})
+
+# Estatuas: tiesos, los pies juntos; uno con las manos arriba, otro con la
+# espada pegada al cuerpo
+ESTATUA_FIRME = {'cabeza': {'rot': (-6, 0, 0)}, 'bi': {'rot': (0, 0, -3)}, 'bd': {'rot': (-12, 0, 3)}}
+ESTATUA_MANOS = {'cabeza': {'rot': (-10, 0, 0)}, 'bi': {'rot': (-172, 0, -14)}, 'bd': {'rot': (-172, 0, 14)}}
+ESTATUA_BRAZO = {'cabeza': {'rot': (-14, 0, 0)}, 'bi': {'rot': (-150, 0, -16)}, 'bd': {'rot': (-10, 0, 4)}}
+# El que se ha movido: a la carrera, sacudido por el rayo
+SACUDIDO = {'cabeza': {'rot': (-24, 0, 10)}, 'bi': {'rot': (-40, 0, -58)}, 'bd': {'rot': (-24, 0, 62)},
+            'pi': {'rot': (-48, 0, 0)}, 'pd': {'rot': (44, 0, 0)}}
+
+
+def ocelos_mundo(x, y, z, guinada, pose, adelante=1.5):
+    """Los ocelos de las alas en el mundo: (centro, eje u, eje v, radio en
+    bloques, si es grande) de cada uno, algo por delante del ala."""
+    M = vr.T(0, y, 0) @ vr.entidad_a_mundo(x, 0, z, guinada)
+    Ms = rm.matrices(pose)
+    out = []
+    for ala, (Wa, Ha), y0, ojos in (('sup', rm.TAM_SUP, -rm.TAM_SUP[1] * 0.36, rm.OJOS_SUP),
+                                    ('inf', rm.TAM_INF, -rm.TAM_INF[1] * 0.04, rm.OJOS_INF)):
+        for s, lado in ((1, 'izq'), (-1, 'der')):
+            Mw = M @ Ms['ala_%s_%s' % (ala, lado)]
+            for i, (u, v, rr) in enumerate(ojos):
+                c = (Mw @ np.array([s * u * Wa, y0 + v * Ha, -adelante, 1.0]))[:3]
+                eu = (Mw @ np.array([s, 0, 0, 0.0]))[:3]
+                ev = (Mw @ np.array([0, 1, 0, 0.0]))[:3]
+                k = np.linalg.norm(eu)
+                out.append((c, eu / k, ev / k, rr * Wa * k, i == 0))
+    return out
+
+
+def tex_ojo(color, n=128):
+    """Un ojo abierto para un ocelo: los parpados encendidos, el blanco oscuro,
+    el iris del color que se aclara hacia dentro y la pupila en rendija."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    u = (xx + 0.5) / n * 2 - 1
+    v = (yy + 0.5) / n * 2 - 1
+    medio = 0.6 * np.clip(1 - u ** 2, 0, 1) ** 0.8          # medio alto de la almendra en u
+    dentro = np.abs(v) < medio
+    borde = dentro & (np.abs(v) > medio - 0.1)
+    d = np.hypot(u, v)
+    iris = dentro & (d < 0.46) & ~borde
+    pupila = iris & (np.abs(u) < 0.16 * np.sqrt(np.clip(1 - (v / 0.46) ** 2, 0, 1)) + 0.015)
+    col = np.zeros((n, n, 3))
+    a = np.zeros((n, n))
+    col[dentro] = (16, 12, 40)
+    a[dentro] = 0.94
+    k = np.clip(d / 0.46, 0, 1)[..., None]
+    ci = np.array(claro(color, 0.75), float) * (1 - k) + np.array(oscuro(color, 0.15), float) * k
+    col[iris] = ci[iris]
+    col[pupila] = (6, 4, 14)
+    col[borde] = claro(color, 0.8)
+    a[borde] = 1.0
+    return _rgba(col, a)
+
+
+def ocelos(W=1600, H=900, fase=2):
+    col = COLOR_FASE[fase]
+    luz = claro(col, 0.35)
+    # la camara mira hacia +z desde un lado y bajo: en la foto, +x queda a la izquierda
+    cam = vr.Camara(ojo=(5.0, 2.6, -5.5), objetivo=(-0.5, 6.6, 14.0), fov=62, ancho=W * SS, alto=H * SS)
+    lz = vr.Lienzo(W * SS, H * SS)
+    niebla = ve.NieblaCielo(26, 60)
+    ve.suelo(lz, cam, niebla=niebla)
+    for i, (x, z, alto, rota) in enumerate(((-17, 18, 5, True), (17, 20, 3, True), (-20, 6, 4, False))):
+        nm.dibujar(lz, cam, ve.columna(x, z, alto, rota, i), LUCES, AMB, niebla)
+    ax_, ay_, az_ = 0.0, -3.9, 15.0
+    g_ae = guinada_hacia(cam.ojo[0] - ax_, cam.ojo[2] - az_)
+    # las estatuas, de cara a ella, repartidas para que ninguna tape a otra
+    estatuas = [(7.0, 3.6, ESTATUA_FIRME), (-1.0, 2.6, ESTATUA_MANOS), (-2.8, 8.5, ESTATUA_BRAZO),
+                (6.6, 10.5, ESTATUA_FIRME)]
+    for x, z, pose in estatuas:
+        jugador3(lz, cam, x, z, guinada_hacia(ax_ - x, az_ - z), pose=pose, espada=True, niebla=niebla)
+    # el que se ha movido, solo en el medio
+    mov = np.array([2.8, 0.0, 4.4])
+    jugador3(lz, cam, mov[0], mov[2], guinada_hacia(ax_ - mov[0], az_ - mov[2]) + 10, pose=SACUDIDO, espada=True,
+             inclina=-8, niebla=niebla)
+    aeralis(lz, cam, 'despues', ax_, ay_, az_, g_ae, pose=OCELOS, fase=fase, niebla=niebla)
+    # los ocelos abiertos: un halo suave, el ojo y algo de luz en el iris
+    oc = ocelos_mundo(ax_, ay_, az_, g_ae, OCELOS)
+    ojo_t = tex_ojo(luz)
+    for c, eu, ev, R_, grande in oc:
+        brillo(lz, cam, [billboard(c, R_ * (2.0 if grande else 2.4), cam)], tex_halo(col), 0.35 if grande else 0.4)
+        if grande:
+            trans(lz, cam, quad_plano(c, eu, ev, R_ * 1.3), ojo_t, 1.0, None, 0.0)
+            brillo(lz, cam, quad_plano(c, eu, ev, R_ * 0.45), tex_halo(col, 64, 1.4), 0.3)
+    # el rayo: del ocelo grande de abajo que cae del lado del que se ha movido
+    pecho = mov + np.array([0.0, 1.25, 0.0])
+    sx = pantalla(cam, pecho)[0]
+    lado = [q for q in oc if q[4] and (pantalla(cam, q[0])[0] < W / 2) == (sx < W / 2)]
+    fuente = min(lado, key=lambda q: q[0][1])
+    relampago(lz, cam, fuente[0], pecho, claro(col, 0.25), 7, ancho=0.12, pasos=12, sacude=0.9, ramas=4, glow=0.5,
+              contraste=True)
+    chispazo(lz, cam, pecho, claro(col, 0.3), 0.7)
+    chispas_cuerpo(lz, cam, mov + np.array([0, 0.95, 0]), claro(col, 0.3), 3, n=12, radio=0.75)
+    img = componer(lz, cam, W, H, 111, fase, rayos=0.4, estelas=40)
+    titular(img, W / 2, 96, '¡QUIETOS!', 110, BLANCO, borde=col)
+    arriba = max([q for q in oc if q[4] and pantalla(cam, q[0])[0] < W / 2], key=lambda q: q[0][1])
+    rotulo(img, cam, arriba[0], 'LOS OCELOS MIRAN', -190, 40, 42, luz)
+    rotulo(img, cam, mov + np.array([-0.2, 1.6, 0]), 'SE MOVIÓ: RAYO Y PARÁLISIS', 70, -150, 38, claro(ROJO, 0.4))
+    leyenda_columna(img, 36, 34, [('OJOS ABIERTOS: QUIETOS', (255, 92, 92)), ('CERRADOS: ¡A POR ELLA!', (110, 230, 130))])
+    guardar(img, 'ocelos')
+
+
+# ----------------------------------------------------------------------
+#  10. Caza de Polillas
+#
+#  Sacude las alas y suelta su cria: polillas de luz que revolotean por la
+#  cima. Uno salta con la red cazamariposas a por una; otro ya tiene una en
+#  la red (se apaga con un destello); arriba, las que quedan.
+# ----------------------------------------------------------------------
+R_ARO = 8.0          # el radio del aro de la red (pixeles de modelo)
+L_PALO = 22.0        # el palo, desde la mano
+
+
+def nodo_red(nombre='red', giro=0.0):
+    """El palo de la red cazamariposas en la mano derecha: sigue al brazo (+y,
+    mas alla del puno), girado 'giro' grados sobre si mismo. El aro y la bolsa
+    se dibujan aparte (red_mundo)."""
+    return nm.nodo(nombre, (0, 9, 0), (0, giro, 0), [((-0.7, -3.0, -0.7, 1.4, L_PALO + 3.0, 1.4), 'red_palo'),
+                                                     ((-1.0, L_PALO - 1.0, -1.0, 2.0, 2.0, 2.0), 'hierro')])
+
+
+def giro_red(cam, x, y, z, guinada, pose, objetivo=0.7):
+    """El giro del palo para que el aro se vea de tres cuartos desde la camara
+    (el coseno entre su normal y la vista, cerca de 'objetivo')."""
+    M = matriz_jugador(x, y, z, guinada)
+    mejor = None
+    for g in range(0, 180, 6):
+        raiz = ne.jugador()
+        _buscar(raiz, 'bd')[4].append(nodo_red(giro=g))
+        Mr = marcos(raiz, pose, M)['red']
+        c = en(Mr, (0, L_PALO + R_ARO, 0))
+        n = Mr[:3, 2] / np.linalg.norm(Mr[:3, 2])
+        v = (cam.ojo - c) / np.linalg.norm(cam.ojo - c)
+        e = abs(abs(n @ v) - objetivo)
+        if mejor is None or e < mejor[0]:
+            mejor = (e, g)
+    return mejor[1]
+
+
+def tex_red(n=64, celdas=7, color=(236, 240, 250)):
+    """La malla de la red: hilos claros en rombos y un velo muy tenue."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    u, v = (xx + 0.5) / n * celdas, (yy + 0.5) / n * celdas
+    a1 = np.abs(((u + v) % 1.0) - 0.5)
+    a2 = np.abs(((u - v) % 1.0) - 0.5)
+    hilo = np.clip(1 - np.minimum(0.5 - a1, 0.5 - a2) / 0.07, 0, 1)
+    a = np.maximum(0.12, hilo * 0.95)
+    return _rgba(np.ones((n, n, 3)) * np.array(color), a)
+
+
+def red_mundo(lz, cam, Mred, bolsa=-1.0, hondo=14.0, caida=0.25, niebla=None, color=(236, 240, 250)):
+    """El aro (en el plano del palo) y la bolsa conica de la red, desde la
+    matriz de mundo del nodo del palo. 'bolsa' dice hacia que lado (z del
+    nodo) cuelga; 'caida', cuanto la dobla la gravedad (bloques).
+    Devuelve (centro del aro, centro de la bolsa)."""
+    yc = L_PALO + R_ARO
+    aro = [en(Mred, (R_ARO * math.cos(t), yc + R_ARO * math.sin(t), 0.0)) for t in np.linspace(0, TAU, 33)]
+    centro = en(Mred, (0, yc, 0))
+    fondo = en(Mred, (0, yc, bolsa * hondo)) + np.array([0, -caida, 0])
+    capas = []
+    ns = 6
+    for j in range(ns):
+        s0, s1 = j / ns, (j + 1) / ns
+        anillo = []
+        for s in (s0, s1):
+            rr = (1 - s) ** 0.75
+            cs = centro + (fondo - centro) * s + np.array([0, -caida * 2.0 * s * (1 - s), 0])
+            anillo.append([cs + (q - centro) * rr for q in aro])
+        for i in range(len(aro) - 1):
+            P = [anillo[0][i], anillo[0][i + 1], anillo[1][i + 1], anillo[1][i]]
+            capas.append(([tuple(q) for q in P], [(i / 8, s0 * 3), ((i + 1) / 8, s0 * 3), ((i + 1) / 8, s1 * 3),
+                                                  (i / 8, s1 * 3)]))
+    tr = tex_red(color=color)
+    # la bolsa: se repite la malla (uv por encima de 1) con un muestreo propio
+    for P, UV in sorted(capas, key=lambda q: -cam.proyectar(np.mean(q[0], axis=0))[2]):
+        for tri in ((0, 1, 2), (0, 2, 3)):
+            lz.triangulo(cam, [P[i] for i in tri], [UV[i] for i in tri], tr, np.ones(3), None, niebla,
+                         translucido=0.85, envolver=True)
+    trans(lz, cam, cinta3d(aro, 0.05, cam), tex_plano((226, 230, 238)), 1.0, niebla, 0.3)
+    return centro, centro + (fondo - centro) * 0.45
+
+
+def polilla_luz(lz, cam, p, col, tam=0.42, giro=0.0, apagada=False, niebla=None):
+    """Una polilla de luz de su cria: el cuerpo y las cuatro alas de luz, con
+    su halo. Apagada, gris y sin luz."""
+    if apagada:
+        trans(lz, cam, [billboard(p, tam, cam, giro)], R.tex_polilla((96, 92, 128), 32), 1.0, niebla, 0.0)
+        return
+    brillo(lz, cam, [billboard(p, tam * 1.7, cam)], tex_halo(col, 64, 1.6), 0.4)
+    trans(lz, cam, [billboard(p, tam, cam, giro)], R.tex_polilla(claro(col, 0.2), 32), 1.0, niebla, 0.55)
+
+
+def estela_polilla(lz, cam, p, col, semilla, largo=3.0, niebla=None, dirc=None):
+    """La estela de una polilla que revolotea: una curva que se enrosca detras."""
+    r = random.Random(semilla)
+    d = np.array(dirc if dirc is not None else (r.uniform(-1, 1), r.uniform(-0.4, 0.4), r.uniform(-1, 1)), float)
+    d /= np.linalg.norm(d)
+    lado = np.cross(d, [0, 1, 0])
+    lado /= np.linalg.norm(lado) + 1e-9
+    f0 = r.uniform(0, TAU)
+    pts = [np.array(p) + d * largo * t + lado * 0.45 * math.sin(f0 + t * 9) * t + np.array([0, 0.35 * math.cos(f0 + t * 7) * t, 0])
+           for t in np.linspace(0.05, 1, 24)]
+    trans(lz, cam, cinta3d(pts, 0.05, cam), tex_cuchilla(claro(col, 0.3), 96, 16, semilla), 0.75, niebla, 0.55)
+
+
+def polillas(W=1600, H=900, fase=2):
+    cian, violeta = (120, 226, 255), (196, 160, 255)
+    # la camara mira hacia +z: en la foto, +x queda a la izquierda
+    cam = vr.Camara(ojo=(-0.6, 2.7, -6.0), objetivo=(0.6, 3.9, 10.0), fov=60, ancho=W * SS, alto=H * SS)
+    lz = vr.Lienzo(W * SS, H * SS)
+    niebla = ve.NieblaCielo(24, 60)
+    ve.suelo(lz, cam, niebla=niebla)
+    for i, (x, z, alto, rota) in enumerate(((-15, 16, 5, True), (16, 14, 3, True), (-20, 4, 4, False))):
+        nm.dibujar(lz, cam, ve.columna(x, z, alto, rota, i), LUCES, AMB, niebla)
+    ax_, ay_, az_ = -1.5, Y_VUELO_NUEVA + 2.0, 32.0
+    # el que salta con la red en alto, de perfil hacia la derecha de la foto
+    sal = (2.9, 3.6)
+    y_sal = 1.25
+    g_sal = guinada_hacia(-1.0, 0.35)
+    SALTO = {'cabeza': {'rot': (-30, 0, 0)}, 'bd': {'rot': (-150, 0, 8)}, 'bi': {'rot': (-40, 0, -34)},
+             'pi': {'rot': (-40, 0, 0)}, 'pd': {'rot': (30, 0, 0)}}
+    gr = giro_red(cam, sal[0], y_sal, sal[1], g_sal, SALTO, 0.75)
+    m_sal = jugador3(lz, cam, sal[0], sal[1], g_sal, y=y_sal, pose=SALTO, mano=[nodo_red(giro=gr)], niebla=niebla)
+    trans(lz, cam, cuadrado_suelo(sal[0], sal[1], 0.85, y=0.05), tex_mancha(), 1.0, None, 0.0)
+    trans(lz, cam, cuadrado_suelo(sal[0], sal[1], 0.55, y=0.055), tex_mancha(), 1.0, None, 0.0)
+    # la polilla a la que va: justo delante de la boca del aro
+    Mr = m_sal['red']
+    n_boca = Mr[:3, 2] / np.linalg.norm(Mr[:3, 2])
+    blanco = en(Mr, (0, L_PALO + R_ARO, 0)) + n_boca * 0.55
+    # el que ya la tiene: la red delante y la bolsa colgando con la polilla
+    caz = (-2.9, 4.0)
+    g_caz = guinada_hacia(cam.ojo[0] - caz[0] + 3.0, cam.ojo[2] - caz[1])
+    CAZA = {'cabeza': {'rot': (6, 0, 0)}, 'bd': {'rot': (-112, 0, -6)}, 'bi': {'rot': (-30, 0, -10)},
+            'pi': {'rot': (-10, 0, 0)}, 'pd': {'rot': (10, 0, 0)}}
+    m_caz = jugador3(lz, cam, caz[0], caz[1], g_caz, pose=CAZA, mano=[nodo_red()], niebla=niebla)
+    # dos mas: uno con espada que mira arriba y otro con red al fondo
+    jugador3(lz, cam, 5.6, 9.5, guinada_hacia(-1.0, 1.0), pose=MIRAR_ARRIBA, espada=True, niebla=niebla)
+    jugador3(lz, cam, -6.5, 12.5, guinada_hacia(1.0, 0.6), pose=GOLPE_ALTO, mano=[nodo_red()], niebla=niebla)
+    aeralis(lz, cam, 'despues', ax_, ay_, az_, guinada_hacia(cam.ojo[0] - ax_, cam.ojo[2] - az_), pose=rm.ESCAMAS,
+            fase=fase, niebla=ve.NieblaCielo(40, 120))
+    # la cria: polillas que revolotean (de lejos a cerca), con sus estelas
+    r = random.Random(21)
+    sueltas = [(-0.8, 2.3, 6.8), (4.6, 1.7, 7.0), (-4.6, 3.4, 8.6), (0.4, 5.6, 9.8), (6.4, 4.2, 12.0),
+               (-2.6, 6.8, 14.5), (2.8, 8.4, 19.0), (-5.0, 9.6, 22.0), (0.2, 11.5, 26.0)]
+    todas = sorted([(p, i) for i, p in enumerate(sueltas)] + [(tuple(blanco), 99)],
+                   key=lambda q: -np.linalg.norm(np.array(q[0]) - cam.ojo))
+    for p, i in todas:
+        c = cian if i % 2 == 0 else violeta
+        dirc = None
+        if p[2] > 18:                       # las que acaban de salir de ella: la estela viene de sus alas
+            dirc = np.array([ax_, ay_ + 9.0, az_]) - np.array(p)
+        estela_polilla(lz, cam, p, c, 30 + i, largo=3.2 if p[2] > 18 else 2.4, niebla=niebla, dirc=dirc)
+        polilla_luz(lz, cam, np.array(p), c, tam=0.4 if p[2] < 12 else 0.55, giro=r.uniform(-0.4, 0.4), niebla=niebla)
+    # las redes
+    centro_sal, _ = red_mundo(lz, cam, m_sal['red'], bolsa=-1.0, hondo=12.0, caida=0.15, niebla=niebla)
+    _, dentro = red_mundo(lz, cam, m_caz['red'], bolsa=1.0, hondo=13.0, caida=0.3, niebla=niebla)
+    # la cazada: dentro de la bolsa, apagada, con lo que queda de su luz
+    polilla_luz(lz, cam, dentro, cian, tam=0.36, apagada=True, niebla=niebla)
+    brillo(lz, cam, [billboard(dentro, 0.8, cam)], tex_onda(claro(cian, 0.4), grueso=0.05), 0.6)
+    motas = [billboard(dentro + np.array([r.uniform(-0.6, 0.6), r.uniform(0.0, 1.0), r.uniform(-0.4, 0.4)]), 0.035,
+                       cam, r.uniform(0, 3)) for _ in range(14)]
+    brillo(lz, cam, motas, tex_halo(claro(cian, 0.5), 16, 1.0), 1.0)
+    img = componer(lz, cam, W, H, 121, fase, rayos=0.3, estelas=40)
+    # la cria que queda, arriba: diez polillas, tres ya apagadas
+    pol_on = Image.fromarray(R.tex_polilla(claro(cian, 0.35), 32)).resize((44, 44), Image.NEAREST)
+    pol_off = Image.fromarray(R.tex_polilla((92, 96, 120), 32)).resize((44, 44), Image.NEAREST)
+    f = ImageFont.truetype(FUENTE + 'Oswald-Bold.ttf', 30)
+    d = ImageDraw.Draw(img)
+    titulo = 'SU CRÍA: QUEDAN 7'
+    wt = d.textlength(titulo, font=f)
+    paso = 46
+    ancho = wt + 24 + paso * 10
+    x0, y0 = (W - ancho) / 2, 24
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(capa).rounded_rectangle((x0 - 22, y0, x0 + ancho + 10, y0 + 64), 18, fill=(8, 10, 30, 190),
+                                           outline=(150, 160, 230, 170), width=2)
+    img.alpha_composite(capa)
+    texto_sombra(img, (x0, y0 + 11), titulo, f, BLANCO)
+    for k in range(10):
+        img.alpha_composite(pol_off if k >= 7 else pol_on, (int(x0 + wt + 24 + paso * k), int(y0 + 10)))
+    rotulo(img, cam, centro_sal, '¡CÁZALAS CON LA RED!', -90, -150, 44, BLANCO)
+    rotulo(img, cam, dentro, 'CAZADA: SE APAGA', 70, 70, 40, claro(cian, 0.5))
+    rotulo(img, cam, sueltas[7], 'SU CRÍA', 130, -20, 40, claro(violeta, 0.4))
+    guardar(img, 'polillas')
+
+
+# ----------------------------------------------------------------------
+#  11. Pararrayos
+#
+#  Con la tormenta marca circulos violetas donde va a caer un rayo. Uno
+#  levanta el pararrayos dentro de su circulo: el rayo cae en el y queda
+#  cargado (brilla). Otro, ya cargado, descarga en ella un rayo con el
+#  pararrayos por delante.
+# ----------------------------------------------------------------------
+def nodo_pararrayos(nombre='pararrayos'):
+    """El pararrayos de Minecraft en la mano derecha: la varilla de cobre sigue
+    al brazo (+y, mas alla del puno) y acaba en su remate."""
+    return nm.nodo(nombre, (0, 9, 0), (0, 0, 0), [((-1.0, -3.0, -1.0, 2.0, 24.0, 2.0), 'cobre'),
+                                                  ((-2.4, 20.0, -2.4, 4.8, 4.8, 4.8), 'cobre_claro')])
+
+
+PUNTA_PARARRAYOS = (0.0, 25.0, 0.0)
+
+
+def pararrayos(W=1600, H=900, fase=3):
+    col = COLOR_FASE[fase]
+    rayo_c = (206, 160, 255)
+    # la camara, baja, mira hacia +z y algo arriba: en la foto, +x queda a la izquierda
+    cam = vr.Camara(ojo=(-1.4, 1.7, -5.6), objetivo=(1.0, 5.6, 12.0), fov=64, ancho=W * SS, alto=H * SS)
+    lz = vr.Lienzo(W * SS, H * SS)
+    lz_carga = vr.Lienzo(W * SS, H * SS)
+    niebla = ve.NieblaCielo(24, 60)
+    ve.suelo(lz, cam, niebla=niebla)
+    for i, (x, z, alto, rota) in enumerate(((-15, 16, 5, True), (16, 14, 3, True), (-20, 4, 4, False))):
+        nm.dibujar(lz, cam, ve.columna(x, z, alto, rota, i), LUCES, AMB, niebla)
+    ax_, ay_, az_ = -4.5, Y_VUELO_NUEVA + 2.5, 27.0
+    g_ae = guinada_hacia(cam.ojo[0] - ax_, cam.ojo[2] - az_) + 10
+    # el que se lleva el rayo: el pararrayos en alto, dentro de su circulo
+    car = (2.2, 3.8)
+    LEVANTA = {'cabeza': {'rot': (-30, 0, 0)}, 'bd': {'rot': (-174, 0, 6)}, 'bi': {'rot': (-24, 0, -30)},
+               'pi': {'rot': (-8, 0, 0)}, 'pd': {'rot': (10, 0, 0)}}
+    m_car = jugador3(lz, cam, car[0], car[1], guinada_hacia(cam.ojo[0] - car[0] - 2.0, cam.ojo[2] - car[1]),
+                     pose=LEVANTA, mano=[nodo_pararrayos()], niebla=niebla, lienzo_extra=lz_carga)
+    punta = en(m_car['pararrayos'], PUNTA_PARARRAYOS)
+    # el que descarga: el pararrayos por delante, hacia ella
+    des = (-2.6, 5.4)
+    pecho_ae = None
+    APUNTA = {'cabeza': {'rot': (-24, 0, 0)}, 'bd': {'rot': (-128, 0, 0)}, 'bi': {'rot': (10, 0, -16)},
+              'pi': {'rot': (-20, 0, 0)}, 'pd': {'rot': (18, 0, 0)}}
+    M_ae = vr.T(0, ay_, 0) @ vr.entidad_a_mundo(ax_, 0, az_, g_ae)
+    pecho_ae = (M_ae @ rm.matrices(rm.HEROICA)['nucleo'] @ np.array([0, 0, -2.0, 1.0]))[:3]
+    m_des = jugador3(lz, cam, des[0], des[1], guinada_hacia(pecho_ae[0] - des[0], pecho_ae[2] - des[1]), pose=APUNTA,
+                     mano=[nodo_pararrayos()], niebla=niebla, lienzo_extra=lz_carga)
+    punta_des = en(m_des['pararrayos'], PUNTA_PARARRAYOS)
+    # dos mas al fondo, esperando su circulo
+    jugador3(lz, cam, 6.6, 11.0, guinada_hacia(-1.0, 1.0), pose=MIRAR_ARRIBA, espada=True, niebla=niebla)
+    aeralis(lz, cam, 'despues', ax_, ay_, az_, g_ae, pose=rm.HEROICA, fase=fase, niebla=ve.NieblaCielo(40, 120))
+    # los circulos donde va a caer: el suyo encendido y los demas esperando
+    circulos = [(car[0], car[1], True), (-5.2, 9.5, False), (6.2, 13.0, False), (0.8, 16.0, False)]
+    for x, z, suyo in sorted(circulos, key=lambda q: -q[1]):
+        trans(lz, cam, cuadrado_suelo(x, z, 1.7), tex_aro(rayo_c, 128, 0.08, 16, 70 if suyo else 34), 0.95, None,
+              1.0 if suyo else 0.6)
+        brillo(lz, cam, cuadrado_suelo(x, z, 1.6, y=0.09), tex_halo(col, 128, 1.4), 0.6 if suyo else 0.3)
+        if not suyo:
+            # las chispas del rayo que va a caer, sobre el circulo
+            r = random.Random(int(x * 10 + z))
+            mot = [billboard((x + r.uniform(-1.3, 1.3), r.uniform(0.2, 2.5), z + r.uniform(-1.3, 1.3)), 0.05, cam,
+                             r.uniform(0, 3)) for _ in range(14)]
+            brillo(lz, cam, mot, tex_halo(claro(rayo_c, 0.4), 16, 1.0), 1.3)
+    # el rayo del cielo al pararrayos
+    relampago(lz, cam, (punta[0] + 3.0, 30.0, punta[2] + 14.0), punta, rayo_c, 11, ancho=0.085, pasos=18, sacude=0.9,
+              ramas=5, glow=1.0)
+    chispazo(lz, cam, punta, claro(rayo_c, 0.3), 0.6)
+    r = random.Random(4)
+    chisp = [billboard(punta + np.array([r.uniform(-0.9, 0.9), r.uniform(-0.6, 0.7), r.uniform(-0.6, 0.6)]), 0.045,
+                       cam, r.uniform(0, 3)) for _ in range(26)]
+    brillo(lz, cam, chisp, tex_halo(claro(rayo_c, 0.6), 16, 1.0), 1.6)
+    chispas_cuerpo(lz, cam, np.array([car[0], 1.0, car[1]]), rayo_c, 5, n=9, radio=0.65)
+    # la descarga: del pararrayos a su pecho
+    relampago(lz, cam, punta_des, pecho_ae, rayo_c, 23, ancho=0.1, pasos=18, sacude=0.8, ramas=4, glow=1.1)
+    chispazo(lz, cam, punta_des, claro(rayo_c, 0.3), 0.5)
+    chispazo(lz, cam, pecho_ae, claro(rayo_c, 0.3), 1.4)
+    img = componer(lz, cam, W, H, 131, fase, rayos=1.0, estelas=40)
+    contorno(img, lz_carga, (232, 210, 255), grueso=9, difuso=12, fuerza=1.4)
+    rotulo(img, cam, punta, 'PARARRAYOS', 60, 30, 44, BLANCO)
+    rotulo(img, cam, np.array([car[0] - 0.3, 0.9, car[1]]), 'CARGADO: 5 S PARA DESCARGAR', 30, 120, 38,
+           claro(rayo_c, 0.4))
+    rotulo(img, cam, pecho_ae, '¡DESCARGA! −2 %', 190, 30, 48, BLANCO)
+    rotulo(img, cam, (circulos[1][0], 0.1, circulos[1][1]), 'AQUÍ VA A CAER', 80, -120, 32, claro(rayo_c, 0.5))
+    pildora(img, W - 190, 56, 'DESCARGAS 1/3', 34, BLANCO, borde=(*claro(rayo_c, 0.3), 230))
+    guardar(img, 'pararrayos')
+
+
+# ----------------------------------------------------------------------
+#  12. Veletas del Vendaval
+#
+#  Cuatro veletas grandes alrededor de la cima. Tres ya apuntan a Aeralis
+#  (encendidas, con su linea hasta ella); la de delante esta 45 grados
+#  desviada y un jugador la gira con un clic derecho (la flecha curva).
+# ----------------------------------------------------------------------
+ALTO_VELETA = 2.6
+
+
+def veleta(x, z, giro, encendida=False):
+    """Una veleta grande: poste de piedra, el eje, la cruz de los vientos y la
+    flecha de bronce, con la punta hacia -Z del nodo girado 'giro'. Devuelve
+    (quads, la punta de la flecha, el centro de la flecha) en el mundo."""
+    h = ALTO_VELETA * 16
+    poste = [((-9, -5, -9, 18, 5, 18), 'roca_osc'), ((-5, -h, -5, 10, h - 5, 10), 'roca'),
+             ((-7, -h - 3, -7, 14, 3, 14), 'roca_osc'),
+             ((-1, -h - 18, -1, 2, 15, 2), 'hierro'),
+             ((-13, -h - 7, -0.8, 26, 1.6, 1.6), 'bronce_osc'),
+             ((-0.8, -h - 7, -13, 1.6, 1.6, 26), 'bronce_osc')]
+    for sx, sz in ((14, 0), (-14, 0), (0, 14), (0, -14)):
+        poste.append(((sx - 1.8, -h - 9, sz - 1.8, 3.6, 3.6, 3.6), 'bronce_osc'))
+    mat = 'veleta_luz' if encendida else 'bronce'
+    yf = -h - 15
+    flecha = [((-1.2, yf - 1.2, -30, 2.4, 2.4, 58), mat)]                 # el asta
+    for k, w in enumerate((15, 12, 9, 6, 3)):                             # la punta, en escalones
+        flecha.append(((-1.2, yf - w / 2, -30 - 3 * (k + 1), 2.4, w, 3), mat))
+    for k, w in enumerate((6, 9, 12, 15, 18, 18)):                        # la cola, una pluma ancha
+        flecha.append(((-0.8, yf - w * 0.62, 12 + 3 * k, 1.6, w, 3), mat))
+    flecha.append(((-0.8, yf - 11, 30, 1.6, 4, 3), mat))                  # las dos puntas de la cola
+    flecha.append(((-0.8, yf + 3, 30, 1.6, 4, 3), mat))
+    raiz = nm.nodo('veleta', (0, 0, 0), (0, 0, 0), poste, [nm.nodo('flecha', (0, 0, 0), (0, giro, 0), flecha)])
+    M = vr.T(x, 0, z) @ np.diag([1 / 16, -1 / 16, 1 / 16, 1])
+    qs = nm.quads(raiz, {}, M)
+    Mf = marcos(raiz, {}, M)['flecha']
+    return qs, en(Mf, (0, yf, -45)), en(Mf, (0, yf, 0))
+
+
+def tex_flecha_giro(color, n=64):
+    """La punta de la flecha curva: un triangulo lleno con el borde claro."""
+    yy, xx = np.mgrid[0:n, 0:n]
+    u, v = (xx + 0.5) / n, (yy + 0.5) / n
+    dentro = (u > 0.08) & (np.abs(v - 0.5) < (1 - u) * 0.5)
+    borde = dentro & ((u < 0.18) | (np.abs(v - 0.5) > (1 - u) * 0.5 - 0.08))
+    col = np.ones((n, n, 3)) * np.array(color, float)
+    col[borde] = claro(color, 0.7)
+    return _rgba(col, dentro * 1.0)
+
+
+def flecha_curva(lz, cam, c, R_, a0, a1, y, col, niebla=None):
+    """Una flecha curva alrededor de c (el giro de la veleta), de a0 a a1
+    (radianes en el plano xz), a la altura y."""
+    pts = [np.array([c[0] + R_ * math.cos(a), y, c[2] + R_ * math.sin(a)]) for a in np.linspace(a0, a1, 28)]
+    trans(lz, cam, cinta3d(pts[:-4], 0.24, cam), tex_plano(col, 120), 0.6, niebla, 0.5)
+    trans(lz, cam, cinta3d(pts[:-4], 0.11, cam), tex_plano(claro(col, 0.5)), 1.0, niebla, 0.9)
+    fin, ant = pts[-1], pts[-5]
+    t = (fin - ant) / np.linalg.norm(fin - ant)
+    lado = np.cross(t, cam.ojo - fin)
+    lado /= np.linalg.norm(lado)
+    base = ant
+    P = [base - lado * 0.6, fin + t * 0.3, fin + t * 0.3, base + lado * 0.6]
+    trans(lz, cam, [([tuple(q) for q in P], [(0, 0), (1, 0.5), (1, 0.5), (0, 1)])], tex_flecha_giro(col), 1.0,
+          niebla, 1.0)
+
+
+def raton(img, cx, cy, alto, color):
+    """Un raton pequeno con el boton derecho encendido (el clic derecho)."""
+    w = alto * 0.66
+    capa = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    caja = (cx - w / 2, cy - alto / 2, cx + w / 2, cy + alto / 2)
+    d.rounded_rectangle(caja, int(w / 2), fill=(*SOMBRA, 230), outline=(*BLANCO, 255), width=3)
+    d.pieslice((caja[0] + 3, caja[1] + 3, caja[2] - 3, caja[1] + w - 3), 270, 360, fill=(*color, 255))
+    d.rectangle((cx + 1, caja[1] + w / 2, caja[2] - 3, cy - alto * 0.08), fill=(*color, 255))
+    d.line((cx, caja[1] + 2, cx, cy - alto * 0.08), fill=(*BLANCO, 255), width=3)
+    d.line((caja[0] + 2, cy - alto * 0.08, caja[2] - 2, cy - alto * 0.08), fill=(*BLANCO, 255), width=3)
+    img.alpha_composite(capa)
+
+
+def veletas(W=1600, H=900, fase=3):
+    col = COLOR_FASE[fase]
+    luz = (216, 186, 255)
+    # la camara mira hacia +z desde un lado: en la foto, +x queda a la izquierda
+    cam = vr.Camara(ojo=(5.5, 5.4, -7.0), objetivo=(-0.6, 3.8, 16.0), fov=62, ancho=W * SS, alto=H * SS)
+    lz = vr.Lienzo(W * SS, H * SS)
+    niebla = ve.NieblaCielo(26, 60)
+    ve.suelo(lz, cam, niebla=niebla)
+    for i, (x, z, alto, rota) in enumerate(((-17, 18, 5, True), (18, 20, 3, True))):
+        nm.dibujar(lz, cam, ve.columna(x, z, alto, rota, i), LUCES, AMB, niebla)
+    ax_, ay_, az_ = 0.5, Y_VUELO_NUEVA + 1.5, 30.0
+    g_ae = guinada_hacia(cam.ojo[0] - ax_, cam.ojo[2] - az_) - 15
+    M_ae = vr.T(0, ay_, 0) @ vr.entidad_a_mundo(ax_, 0, az_, g_ae)
+    pecho = (M_ae @ rm.matrices(rm.HEROICA)['nucleo'] @ np.array([0, 0, 0, 1.0]))[:3]
+    # las veletas: la de delante, desviada 45 grados; las otras tres apuntan a ella
+    cerca = (1.2, 1.8)
+    g_bien = guinada_hacia(pecho[0] - cerca[0], pecho[2] - cerca[1])
+    lejos = [(-9.0, 13.0), (9.5, 15.0), (-3.5, 21.0)]
+    puntas = []
+    for x, z in lejos:
+        qs, pt, cf = veleta(x, z, guinada_hacia(pecho[0] - x, pecho[2] - z), encendida=True)
+        nm.dibujar(lz, cam, qs, LUCES, AMB, niebla, brillo=0.9)
+        puntas.append((pt, cf))
+    qs, pt_c, cf_c = veleta(cerca[0], cerca[1], g_bien + 45, encendida=False)
+    nm.dibujar(lz, cam, qs, LUCES, AMB, niebla, brillo=1.6)
+    # el que la gira: a su lado, de perfil, con la mano en alto hacia ella
+    gir = (-0.4, 2.2)
+    GIRA = {'cabeza': {'rot': (-26, 0, 0)}, 'bd': {'rot': (-140, 0, 4)}, 'bi': {'rot': (-20, 0, -12)},
+            'pi': {'rot': (-12, 0, 0)}, 'pd': {'rot': (12, 0, 0)}}
+    jugador3(lz, cam, gir[0], gir[1], guinada_hacia(cf_c[0] - gir[0], cf_c[2] - gir[1]), pose=GIRA, niebla=niebla)
+    jugador3(lz, cam, -5.5, 9.0, guinada_hacia(pecho[0] + 5.5, pecho[2] - 9.0), pose=MIRAR_ARRIBA, espada=True,
+             niebla=niebla)
+    aeralis(lz, cam, 'despues', ax_, ay_, az_, g_ae, pose=rm.HEROICA, fase=fase, niebla=ve.NieblaCielo(40, 120))
+    # las encendidas: halo en la flecha y la linea de punteado hasta ella
+    for pt, cf in puntas:
+        brillo(lz, cam, [billboard(cf, 2.6, cam)], tex_halo(col, 64, 1.6), 0.35)
+        d = pecho - pt
+        L = np.linalg.norm(d)
+        motas = [billboard(pt + d * t, 0.09, cam) for t in np.arange(0.6 / L, 0.93, 0.9 / L)]
+        brillo(lz, cam, motas, tex_halo(claro(luz, 0.4), 16, 1.0), 1.4)
+    # la estela de ella, que no para quieta
+    for k in range(4):
+        pts = [pecho + np.array([2.0 + 7.0 * t, -1.5 + 3.0 * k / 3 + 0.4 * math.sin(t * 5), 1.0]) for t in
+               np.linspace(0, 1, 10)]
+        trans(lz, cam, cinta3d(pts, 0.25, cam), tex_cuchilla(rm.paleta(fase)['borde'], 64, 16, k), 0.5, None, 0.3)
+    # la flecha curva del giro: de donde apunta ahora a donde tiene que apuntar
+    a_ahora = math.atan2(pt_c[2] - cf_c[2], pt_c[0] - cf_c[0])
+    a_bien = math.atan2(pecho[2] - cf_c[2], pecho[0] - cf_c[0])
+    da = (a_bien - a_ahora + math.pi) % TAU - math.pi
+    flecha_curva(lz, cam, cf_c, 3.3, a_ahora, a_ahora + da, cf_c[1] + 0.25, (255, 226, 140), niebla)
+    img = componer(lz, cam, W, H, 141, fase, rayos=0.8, estelas=40)
+    tx, ty, w = rotulo(img, cam, pt_c, 'CLIC DERECHO: GIRA 45°', -40, 130, 42, (255, 226, 140))
+    raton(img, tx - 34, ty + 30, 52, (255, 226, 140))
+    rotulo(img, cam, puntas[0][1], 'ENCENDIDA: APUNTA A ELLA', -40, -150, 38, claro(luz, 0.3))
+    pildora(img, 190, 62, 'VELETAS 3/4', 44, BLANCO, borde=(*claro(luz, 0.2), 230))
+    guardar(img, 'veletas')
+
+
 ESCENAS = {'ascenso': ascenso, 'campanas': campanas, 'ojo': ojo, 'desarme': desarme,
-           'rompevientos': rompevientos, 'gemelos': gemelos, 'cegador': cegador, 'hilos': hilos}
+           'rompevientos': rompevientos, 'gemelos': gemelos, 'cegador': cegador, 'hilos': hilos,
+           'ocelos': ocelos, 'polillas': polillas, 'pararrayos': pararrayos, 'veletas': veletas}
 
 if __name__ == '__main__':
     pedidas = sys.argv[3].split(',') if len(sys.argv) > 3 else list(ESCENAS)

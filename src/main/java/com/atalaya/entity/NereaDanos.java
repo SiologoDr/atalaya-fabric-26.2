@@ -48,6 +48,10 @@ public final class NereaDanos {
     public static final ResourceKey<DamageType> MAREA = clave("nerea_marea");
     public static final ResourceKey<DamageType> CANTO = clave("nerea_canto");
     public static final ResourceKey<DamageType> MAREA_ALTA = clave("nerea_marea_alta");
+    /** Perder el Duelo de Canto: mata, salvo totem (pasa la armadura, la resistencia y el escudo). */
+    public static final ResourceKey<DamageType> DUELO = clave("nerea_duelo");
+    /** El mordisco de una morena (las Morenas de las Pozas y la Pesca del Abismo): pasa la armadura. */
+    public static final ResourceKey<DamageType> MORENA = clave("nerea_morena");
 
     private NereaDanos() {
     }

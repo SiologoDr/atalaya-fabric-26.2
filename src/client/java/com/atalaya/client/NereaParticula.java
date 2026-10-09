@@ -1,5 +1,7 @@
 package com.atalaya.client;
 
+import com.atalaya.particula.ParticulaSiguiente;
+
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.state.level.QuadParticleRenderState;
@@ -25,8 +27,11 @@ public class NereaParticula extends SingleQuadParticle {
     private static final int A_PLENA_LUZ = 0xF000F0;
 
     public enum Tipo {
-        BURBUJA, ESPUMA, GOTA, OLA, REMOLINO, CHISPA, OJO, SELLO, CORAZON, LUZ, ONDA, ROCA, POLVO
+        BURBUJA, ESPUMA, GOTA, OLA, REMOLINO, CHISPA, OJO, SELLO, CORAZON, LUZ, ONDA, ROCA, POLVO, NOTA, HUMO, FOGONAZO
     }
+
+    /** Las notas de su canto, si nadie dice otra cosa: cian, violeta, magenta y rosa (los carriles del Duelo). */
+    public static final int[] COLORES_NOTA = {0x4FD8F0, 0x9A7BFF, 0xD45AF0, 0xF06AA8};
 
     private final Tipo tipo;
     private final SpriteSet sprites;
@@ -156,10 +161,36 @@ public class NereaParticula extends SingleQuadParticle {
                 this.friction = 0.97F;
                 this.yd = Math.max(vy, 0.03 + r.nextFloat() * 0.03);
             }
+            case NOTA -> {
+                // Vuela recta con la velocidad que trae (sin frenar): asi llega cuando toca.
+                this.lifetime = ParticulaSiguiente.vida > 0 ? ParticulaSiguiente.vida : 18 + r.nextInt(10);
+                this.quadSize = 0.22F;
+                this.friction = 1.0F;
+                int color = ParticulaSiguiente.color >= 0 ? ParticulaSiguiente.color : COLORES_NOTA[r.nextInt(COLORES_NOTA.length)];
+                setColor(((color >> 16) & 255) / 255.0F, ((color >> 8) & 255) / 255.0F, (color & 255) / 255.0F);
+                setSprite(sprites.get(ParticulaSiguiente.forma >= 0 ? ParticulaSiguiente.forma : r.nextInt(3), 3));
+                giroInicial = (r.nextFloat() - 0.5F) * 0.08F;
+            }
+            case HUMO -> {
+                this.lifetime = 30 + r.nextInt(16);
+                this.quadSize = 0.35F + r.nextFloat() * 0.25F;
+                this.friction = 0.9F;
+                giroInicial = (r.nextFloat() - 0.5F) * 0.05F;
+            }
+            case FOGONAZO -> {
+                this.lifetime = 4 + r.nextInt(3);
+                this.quadSize = 0.6F + r.nextFloat() * 0.35F;
+                this.xd = vx * 0.3;
+                this.yd = vy * 0.3;
+                this.zd = vz * 0.3;
+                this.friction = 0.7F;
+            }
         }
+        this.quadSize *= ParticulaSiguiente.escala;
+        ParticulaSiguiente.olvidar();
         this.tamanoInicial = this.quadSize;
         this.giro = giroInicial;
-        if (tipo != Tipo.SELLO && tipo != Tipo.GOTA && tipo != Tipo.ROCA) {
+        if (tipo != Tipo.SELLO && tipo != Tipo.GOTA && tipo != Tipo.ROCA && tipo != Tipo.NOTA) {
             setSpriteFromAge(sprites);
         } else if (tipo == Tipo.GOTA) {
             setSprite(sprites.get(0, 1));
@@ -174,7 +205,7 @@ public class NereaParticula extends SingleQuadParticle {
     @Override
     protected int getLightCoords(float parcial) {
         return switch (tipo) {
-            case OJO, LUZ, CORAZON, CHISPA, SELLO, ONDA -> A_PLENA_LUZ;
+            case OJO, LUZ, CORAZON, CHISPA, SELLO, ONDA, NOTA, FOGONAZO -> A_PLENA_LUZ;
             default -> super.getLightCoords(parcial);
         };
     }
@@ -224,6 +255,19 @@ public class NereaParticula extends SingleQuadParticle {
             case POLVO -> {
                 this.quadSize = tamanoInicial * (1.0F + 1.2F * vida);
                 this.yd += 0.002;
+                setSpriteFromAge(sprites);
+            }
+            case NOTA -> {
+                // Se mece un poco al volar.
+                this.yd += Mth.sin(this.age * 0.6F + fase) * 0.006;
+            }
+            case HUMO -> {
+                this.quadSize = tamanoInicial * (1.0F + 1.4F * vida);
+                this.yd += 0.003;
+                setSpriteFromAge(sprites);
+            }
+            case FOGONAZO -> {
+                this.quadSize = tamanoInicial * (1.0F + 0.5F * vida);
                 setSpriteFromAge(sprites);
             }
             case SELLO, ROCA -> {

@@ -8,6 +8,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -193,6 +194,48 @@ public class NereaBarraHud implements HudElement {
         }
         g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, y0 + 8,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
+        if (!libre) {
+            minijuego(g, mc, n, x0, y0, parcial);
+        }
+    }
+
+    /**
+     * Un minijuego en marcha (o el Duelo de Canto): bajo la barra, en el sitio de
+     * la marea de la Mirada (no coinciden), lo que le queda de tiempo; debajo, la
+     * cuenta: las perlas, la racha de los canones, las morenas o las notas.
+     */
+    private static void minijuego(GuiGraphicsExtractor g, Minecraft mc, NereaEntity n, int x0, int y0, float parcial) {
+        int tipo = n.minijuego();
+        boolean duelo = n.getEstado() == NereaEntity.DUELO;
+        if ((tipo == 0 && !duelo) || mc.level == null) {
+            return;
+        }
+        float k;
+        Component txt;
+        if (duelo) {
+            k = 1.0F - Mth.clamp(n.getJuzgadasDuelo() / (float) NereaEntity.DUELO_NOTAS, 0.0F, 1.0F);
+            txt = Component.translatable("hud.atalaya.nerea.barra_duelo", n.getGanadosDuelo(), n.getDuelistas());
+        } else {
+            float queda = n.getMiniFin() - (mc.level.getGameTime() + parcial);
+            k = Mth.clamp(queda / NereaEntity.duracionMinijuego(tipo), 0.0F, 1.0F);
+            String clave = tipo == com.atalaya.entity.MinijuegosNerea.PESCA ? "pesca"
+                    : tipo == com.atalaya.entity.MinijuegosNerea.CANONES ? "canones" : "morenas";
+            txt = Component.translatable("hud.atalaya.nerea.barra_" + clave, n.getMiniCuenta(), n.getMiniNecesario());
+        }
+        int mx = x0 + MAREA_X;
+        int my = y0 + MAREA_Y;
+        g.fill(mx - 1, my - 1, mx + MAREA_ANCHO + 1, my + MAREA_ALTO + 1, 0xB0061214);
+        int w = Math.round(MAREA_ANCHO * k);
+        int c = k > 0.25F ? 0xFF4FD8F0 : ((n.tickCount / 3) % 2 == 0 ? 0xFFFF5A3A : 0xFF4FD8F0);
+        int corre = (int) ((n.tickCount + parcial) * 0.6F) % 64;
+        for (int x = 0; x < w; ) {
+            int u = (x + corre) % 64;
+            int ancho = Math.min(64 - u, w - x);
+            g.blit(RenderPipelines.GUI_TEXTURED, MAREA, mx + x, my, u, 0.0F, ancho, MAREA_ALTO, ancho, MAREA_ALTO, 64, MAREA_ALTO, c);
+            x += ancho;
+        }
+        int tw = mc.font.width(txt);
+        g.text(mc.font, txt, mx + MAREA_ANCHO / 2 - tw / 2, my + MAREA_ALTO + 3, 0xFFE8FBFF, true);
     }
 
     /** La calavera de la Mirada con sus dos ojos: rajados con los impactos, reventados al romperse. */

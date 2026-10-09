@@ -136,6 +136,15 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.REMOLINO_LADRON, com.atalaya.client.RemolinoLadronRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.SOL_CENIT, com.atalaya.client.SolCenitRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.EGIDA_NOVILIS, com.atalaya.client.EgidaNovilisRenderer::new);
+        // Los minijuegos de Nerea
+        EntityRendererRegistry.register(AtalayaEntities.POZA_ABISMO, com.atalaya.client.PozaAbismoRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CORCHO_ABISMO, com.atalaya.client.CorchoAbismoRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.PERLA_LANZADA, com.atalaya.client.PerlaLanzadaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.MORENA_NEREA, com.atalaya.client.MorenaNereaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.MORENA_SALTO, com.atalaya.client.MorenaSaltoRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CANON_NAUFRAGIO, com.atalaya.client.CanonNaufragioRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.PILA_BALAS, com.atalaya.client.PilaBalasRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.BALA_CANON, com.atalaya.client.BalaCanonRenderer::new);
 
         // Aeralis: malla y animaciones generadas desde vendaval_juego*.py, y lo
         // suyo: cuchillas, tornados, rafagas y nucleos (dibujados a mano).
@@ -230,6 +239,9 @@ public class AtalayaClient implements ClientModInitializer {
         nerea(AtalayaParticulas.NEREA_ONDA, NereaParticula.Tipo.ONDA);
         nerea(AtalayaParticulas.NEREA_ROCA, NereaParticula.Tipo.ROCA);
         nerea(AtalayaParticulas.NEREA_POLVO, NereaParticula.Tipo.POLVO);
+        nerea(AtalayaParticulas.NEREA_NOTA, NereaParticula.Tipo.NOTA);
+        nerea(AtalayaParticulas.NEREA_HUMO, NereaParticula.Tipo.HUMO);
+        nerea(AtalayaParticulas.NEREA_FOGONAZO, NereaParticula.Tipo.FOGONAZO);
 
         // Las once de Aeralis.
         aeralis(AtalayaParticulas.AERALIS_VIENTO, AeralisParticula.Tipo.VIENTO);
@@ -284,6 +296,8 @@ public class AtalayaClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NovilisEfectosCliente::tick);
         // La Ofrenda al Sol: la secuencia de teclas de quien Novilis tiene en las manos.
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.OfrendaCliente::tick);
+        // El Duelo de Canto de Nerea: las notas de quien ha elegido.
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.DueloCantoCliente::tick);
         // La musica de cada jefe mientras pelea cerca (y la de vanilla calla: MusicaJefesMixin).
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MusicaJefes::tick);
         HudElementRegistry.attachElementAfter(
@@ -318,6 +332,40 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.HOTBAR,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ofrenda"),
                 oculto(new com.atalaya.client.OfrendaHud()));
+        // El catalejo del Canon del Naufragio: en lugar de la cruz mientras se va subido.
+        HudElementRegistry.replaceElement(VanillaHudElements.CROSSHAIR, vanilla -> (g, tiempo) -> {
+            if (com.atalaya.client.CanonMira.activo()) {
+                com.atalaya.client.CanonMiraHud.dibujar(g, tiempo);
+            } else {
+                com.atalaya.client.CanonMiraHud.bajado();
+                vanilla.extractRenderState(g, tiempo);
+            }
+        });
+        // Subido al canon solo se ve el catalejo (Juan: "no deberia aparecer el inventario, ese HUD"): fuera la
+        // barra de objetos, los corazones, la comida, la armadura, la experiencia y los efectos.
+        for (Identifier hud : new Identifier[]{VanillaHudElements.HOTBAR, VanillaHudElements.ARMOR_BAR,
+                VanillaHudElements.HEALTH_BAR, VanillaHudElements.FOOD_BAR, VanillaHudElements.AIR_BAR,
+                VanillaHudElements.MOUNT_HEALTH, VanillaHudElements.INFO_BAR, VanillaHudElements.EXPERIENCE_LEVEL,
+                VanillaHudElements.HELD_ITEM_TOOLTIP, VanillaHudElements.MOB_EFFECTS}) {
+            HudElementRegistry.replaceElement(hud, vanilla -> (g, tiempo) -> {
+                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+                if (mc.player == null || !(mc.player.getVehicle() instanceof com.atalaya.entity.CanonNaufragioEntity)) {
+                    vanilla.extractRenderState(g, tiempo);
+                }
+            });
+        }
+        // La Bala de canon en brazos, vista desde fuera (los brazos: BalaBrazosMixin).
+        net.fabricmc.fabric.api.client.rendering.v1.LivingEntityRenderLayerRegistrationCallback.EVENT.register(
+                (tipo, renderer, ayudante, contexto) -> {
+                    if (renderer instanceof net.minecraft.client.renderer.entity.player.AvatarRenderer<?> avatar) {
+                        ayudante.register(new com.atalaya.client.BalaEnBrazosLayer(avatar));
+                    }
+                });
+        // La pantalla del Duelo de Canto de Nerea (la del elegido), a la izquierda.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "duelo_canto"),
+                oculto(new com.atalaya.client.DueloCantoHud()));
         // El icono de la habilidad de la armadura, a la derecha de la hotbar.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,

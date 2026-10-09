@@ -918,6 +918,11 @@ aventura, y a por los **maniquíes**, que hacen de jugador en las escenas de pru
 (`PresasJefe.presa`). Ni animales, ni aldeanos, ni otros bichos. Y entre ellos no
 se hacen nada: lo de un jefe no le quita vida a otro (`PresasJefe.esJefe`).
 
+**Ninguno se cura.** Juan (9-10-2026): «cualquier ataque o habilidad del boss no
+debe por qué curarlo». Solo lo hacía Rajang: un 5 % por cada muerto del
+Cataclismo de Jade y un 3 % al recuperar el Ídolo de Oro. Se le quitó: ahora ruge
+y sigue.
+
 **Uno de cada jefe por mundo.** Si ya hay una Nerea, no se puede poner otra
 (`JefesUnicos`, guardado con el mundo en `data/atalaya/jefes_unicos.dat`):
 
@@ -1227,10 +1232,10 @@ Ganó la A.
 
 | Fase | Vida | Ritmo | Qué se añade |
 |---|---|---|---|
-| I | 100-75 % | ×1,0 | Rompeolas (1 ola), Remolino, Burbujas bomba |
-| II | 75-50 % | ×1,12 | Molino de anclas, Arpón, **Géiser del Abismo**, **Canto de Sirena**, **Encadenados**; el Rompeolas lanza 3 olas |
+| I | 100-75 % | ×1,0 | Rompeolas (1 ola), Remolino, Burbujas bomba, **Pesca del Abismo**, **Cañones del Naufragio** |
+| II | 75-50 % | ×1,12 | Molino de anclas, Arpón, **Géiser del Abismo**, **Canto de Sirena**, **Encadenados**, **Morenas de las Pozas**; el Rompeolas lanza 3 olas |
 | III | 50-25 % | ×1,25 | Mirada del Abismo, **Gran Marea**, **Marea Alta**; Rompeolas de 5 olas; un ancla más |
-| IV | 25-0 % | ×1,4 | las costillas se abren; cada 25 s cae **agotado** (daño doble) |
+| IV | 25-0 % | ×1,4 | las costillas se abren; cada 25 s cae **agotado** (daño doble); **Duelo de Canto** |
 
 Los ojos van de cian a violeta, a magenta y a rojo.
 
@@ -1265,6 +1270,62 @@ Sonidos de `nerea_cooperativas_sonidos.py` (el canto es una
 vocalización de sirena de 8 s en re menor con una segunda voz y el coro del
 abismo); la textura de la cúpula, de `nerea_cupula.py`; las animaciones (CANTO,
 MAREA_ALTA, ENCADENAR), de `nerea_juego_anim.py`.
+
+**Minijuegos (octubre de 2026).** A los testers les gustó mucho interactuar con
+las mecánicas (las burbujas, teclear, llevar el ídolo al pilar). De la ficha
+(`nerea_mecanicas_escenas.py`) Juan eligió cuatro y las repartió para que **cada
+fase traiga algo con lo que jugar**: dos en la I, uno en la II y uno en la IV (la
+III ya tiene la Mirada y la Marea Alta). Como las fases se suman, en la IV pueden
+salir todos.
+
+- **Uno a la vez**, y al menos **25 s** entre uno y otro.
+- Mientras dura, Nerea **se queda quieta sin atacar** (en los Cañones, de vez en
+  cuando le tira un Rompeolas a un artillero).
+- Bajo su barra sale una fila con la cuenta («Perlas 1/2», «Seguidas 2/3»...) y
+  una barra que se vacía con el tiempo.
+- Los objetos que da (la caña, las perlas, las balas) son **de ese minijuego**:
+  al acabar desaparecen del inventario (`MinijuegosNerea`).
+- Si sale bien, **aturdida** (daño doble). Si sale mal, un castigo.
+
+| Minijuego | Qué hace | Si sale bien | Si sale mal |
+|---|---|---|---|
+| **Pesca del Abismo** (I) | abre de 4 a 6 **pozas** en el suelo, a 10-18 bloques de ella. A un tercio de los que pelean (al menos uno) le da la **Caña del Abismo**. Se lanza a una poza (fuera no pica) y pica **una sola vez**: el corcho se hunde a tirones y sale un **aro dorado que se va cerrando** sobre él durante **1 s** (lo que queda de aro es el tiempo que queda; Juan: «así se mide la agilidad»). Si se recoge a tiempo, sale una **Perla del Abismo**; si no, **se escapa** y hay que recoger y volver a lanzar. Mirando a Nerea (a menos de 18 bloques), clic derecho: la perla **vuela a su corazón**. Hacen falta la mitad de perlas que jugadores (al menos 2), en 25 s. Si se recoge **antes** de que pique, **salta una morena** de la poza en arco hasta el pescador y le muerde (6 / 8 / 9 / 11, pasa la armadura); luego cae y se deshace en agua (`MorenaSaltoEntity`) | aturdida 6 s | las pozas revientan en **géiseres** |
+| **Cañones del Naufragio** (I) | salen de 3 a 5 **cañones** de un barco hundido (más con más gente) a 16 bloques, cada uno con su **pila de balas**. Uno coge una bala de la pila (clic derecho con la mano libre): la **lleva en brazos**, con las dos manos (`BalaBrazosMixin`, `BalaEnBrazosLayer`; en primera persona, `BalaManosMixin`), y **carga** el cañón. Otro se **sube** (clic derecho con la mano libre) y mira por su **catalejo**: la vista se acerca y la puntería va despacio, como con el de vanilla, pero con nuestro catalejo de bronce, la mira en el centro (**dorada y «¡EN EL BLANCO!»** si la bala daría en Nerea) y, en el mundo, el **camino de la bala** en puntos de luz hasta donde caería. Subido, no se ve la barra de objetos ni los corazones. Dispara con **ESPACIO**; con SHIFT se baja. La bala vuela despacio (1,7 bloques por tick) con su estela de humo para **verla llegar**; cada una que le da le quita un **3 %**; una que falla pone la racha a cero. 30 s | **tres seguidas**: aturdida 5 s | los cañones se hunden |
+| **Morenas de las Pozas** (II) | abre **8 agujeros** (un brocal de rocas con musgo) a 11 bloques; las morenas **asoman** 0,8 s, de una a tres a la vez (más con más gente, y una más en la segunda mitad). Antes de salir, el agua **hierve**; sale de golpe con una corona de agua, se mece, abre y cierra la boca y **mira al jugador más cercano**. En su último tercio de segundo **se echa atrás con la boca abierta y sisea**: el aviso. Hay que **golpearlas** antes: se ponen **rojas** como cualquier bicho, dan un respingo y se meten enroscándose. 10 con pocos jugadores, 2 más por cada uno a partir de 2 (hasta 30), en 20 s. La que no recibe un golpe **se lanza a morder** con la segunda mandíbula al que tenga más cerca (5,5 bloques): 8 / 10 / 12 / 15, pasa la armadura. **No la curan** | aturdida 6 s | nada más que los mordiscos |
+| **Duelo de Canto** (IV) | **le canta a un tercio** de los que pelean (al azar; al menos uno), a todos la misma canción y a cada uno en su pantalla: **3 s de cuenta atrás** (3, 2, 1, ¡CANTA!) sin ninguna nota, y luego 16 notas que bajan por cuatro carriles de colores (**A, S, D y F**) hasta la cuerda de oro de un arpa; hay que pulsar cada una al llegar (0,15 s de margen). Cada nota **sale volando de la boca de Nerea** hacia el duelista y llega a la vez que la del panel; si la aciertas, **tu nota le vuelve** con el arpa del abismo (un tono por carril); si la fallas, se rompe delante de ti y la pantalla **se tiñe de violeta**. Las teclas no llegan al juego mientras dura. Las notas se juzgan en el cliente: **el lag no hace fallar**. Mientras canta, **nadie le puede pegar** ni cortarle el canto | si **todos** llegan a **12** aciertos: aturdida 5 s | el que no llega **cae en su canto: muerte, salvo tótem** (Juan: «el que pierde popea tótems»; `nerea_duelo`, pasa armadura, resistencia y escudo) |
+
+**Todo es nuestro** (Juan: «el sonido y todo deben ser nuevos, hechos por
+nosotros; no usar lo de Minecraft»):
+
+- **Sonidos**, de `nerea_minijuegos_sonidos.py`: el latigazo de la caña, el plop,
+  la picada, el carrete, la perla, las morenas (salen, sisean, muerden, gritan,
+  se meten), el cañón (sale, se carga, el cañonazo, el impacto, la bala que se
+  pierde) y el arpa del abismo del Duelo (una cuerda por carril, el fallo, la
+  cuenta atrás, ganar y perder).
+- **Partículas** nuevas: `nerea_nota` (las notas del canto, de colores; también
+  las del Canto de Sirena), `nerea_humo` (pólvora) y `nerea_fogonazo`.
+- **Dibujos**: las morenas, de doce tramos con la piel de la morena reticulada
+  (`MorenaDibujo`, `morena.png`), con la cabeza, las narices de tubo, los
+  colmillos, los ojos cian y la segunda mandíbula que les sale al morder. El
+  cañón (`canon.png`): cureña de tablas mojadas escalonada, ruedas de radios,
+  cañón de bronce verdeado de ocho caras con sus anillos, el brocal, el cascabel,
+  los muñones, percebes, algas que se mecen y un rollo de cabo. Las balas, **de
+  píxeles** como las cosas redondas de Minecraft: tres cajas cruzadas
+  (`BalaDibujo`, `bala.png`; Juan: «muy redondas para lo que es Minecraft»). El
+  panel del Duelo, de bloques de prismarina con los carriles de agua, las teclas
+  y la cara de Nerea (`nerea_duelo_hud.py`). El catalejo y la mira del cañón
+  (`nerea_catalejo.png`, `nerea_mira_canon.png`).
+
+Las piezas: `PozaAbismoEntity`, `CorchoAbismoEntity`, `MorenaSaltoEntity`,
+`PerlaLanzadaEntity`, `MorenaNereaEntity`, `CanonNaufragioEntity`,
+`PilaBalasEntity`, `BalaCanonEntity`; en el cliente, `DueloCantoCliente` y
+`DueloCantoHud` (las teclas, por `OfrendaTecladoMixin`, como la Ofrenda de
+Novilis), `CanonMira` y `CanonMiraHud` (el catalejo; `CanonZoomMixin` acerca la
+vista y `CanonPunteriaMixin` frena el ratón). Texturas: `nerea_minijuegos.py` y
+`nerea_duelo_hud.py`. Para probar: `/atalaya nerea pesca | canones | morenas |
+duelo` (y `cana`, `perla`, `bala`, `cargar`, `canon`, `disparo`, `morena_ver`,
+`duelo_bien`). Con `atalaya_fotos.flag`, el mensaje «DUELO_AUTO 1» hace que el
+Duelo se toque solo, para las fotos.
 
 Mientras mira es inmune, y romper un solo ojo no salva: el disparo sale del punto
 medio entre los dos. Cada ojo lleva un aro de agua que gira y se va rajando con
@@ -1445,9 +1506,9 @@ entre un ataque y otro (enfriamientos ×0,84, ×0,72 y ×0,6).
 | **Embestida de Jade** | va a por el jugador **más lejano** que tenga a tiro (de 10 a 36 bloques, con camino libre): los arqueros de lejos salían casi ilesos. Una **flecha** en el suelo marca por dónde va a cargar y se va llenando: espera quieto **2 s** con ella puesta y luego se agazapa y rasca el suelo (1,15 s en la fase I, 0,75 s en la IV). Solo sigue a su presa el **primer segundo**: después el rumbo y el largo quedan fijos unos 2 s, para que dé tiempo a apartarse. Carga a 26 bloques/s y **se pasa de largo otro tanto**: la flecha mide el doble de lo que hay hasta la presa (24 a 72 bloques, sin salir de 64 de su sitio). A su paso revientan **pinchos a 4,2 bloques de cada lado**. Su cuerpo y los pinchos **matan** y te lanzan unos **15 bloques**. Frena derrapando y jadea 1 s | **mata** (solo salva un tótem) | apartarse unos 7 bloques de la flecha (la franja mortal mide unos 13 de ancho) o ponerse tras un muro: si choca, **se estampa** y queda 2 s aturdido con daño doble |
 | **Sello de la Tierra** | ruge y levanta **cuatro columnas de 26 bloques**, cada una con una escalera de piedras en espiral y un **tótem** arriba. Dura 45 s, y él es inmune. Cada 1,5 s **tiembla un escalón** al azar y, además, **el que se pisa** empieza a temblar a los 0,8 s: tiembla 1 s, se cae (con quien esté encima) y vuelve a los 2 s. Al romperse cada tótem, un **pulso de tierra** pega y te echa de la columna en horizontal | pulso 27 / 40 / 49 / 63 | **subir y romper los cuatro tótems** (**10 golpes** cada uno): cae aturdido 6 s con daño doble y nadie se hace daño al caer. Si no, el **Rugido de Jade** mata a todo lo vivo a unos 64 bloques (solo salva un tótem) y le deja la **Furia** |
 | **Tumba de Raíces** | clava las garras y ruge contra el suelo. Un **círculo de 36 bloques** se llena desde él en **6 s**, siempre igual, con un segundo rugido a mitad, en cualquier fase. Es inmune mientras carga. **Una de cada dos va en anillo** (la segunda, la cuarta...): ruge más agudo, las flechas del borde apuntan hacia dentro, alrededor de él brilla un **círculo dorado de 10 bloques** y lo llenado avanza **del borde hacia él** | al llenarse, **mata** a todo lo que siga dentro (solo salva un tótem) y deja el Peso 5 s. En anillo, a quien esté fuera del círculo dorado | **en anillo, correr hacia él** y meterse en el dorado (desde el borde llegas igual que huyendo de la otra). En círculo, salir: desde el cuerpo a cuerpo hay que correr unos 32 bloques: esprintando sobran 0,3 s, y saltando al esprintar 1,5; quien dude más no llega. El círculo lo pinta su renderer, no una partícula, para que no desaparezca al mirar hacia fuera. No sale hasta 8 s después de un Terremoto, porque con su Peso nadie llegaría |
-| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás **2,2 s**: el fragmento espera 1 s con la marca puesta y luego cae como siempre (1,2 s) | dentro de su marca (4,8 a 5,7 bloques): **mata**; fuera de la marca, nada | apartarse de la marca y separarse del grupo. Si muere alguien, él se cura un 5 %. Si no muere nadie, queda **paralizado** 10 s con daño doble |
+| **Cataclismo de Jade** | ruge al cielo y llueven **seis oleadas** de fragmentos grandes (×2,3 a ×2,7): uno sobre cada jugador y unos pocos al azar, con una marca que cuenta atrás **2,2 s**: el fragmento espera 1 s con la marca puesta y luego cae como siempre (1,2 s) | dentro de su marca (4,8 a 5,7 bloques): **mata**; fuera de la marca, nada | apartarse de la marca y separarse del grupo. Si muere alguien, ruge y sigue (antes se curaba un 5 %; ningún jefe se cura). Si no muere nadie, queda **paralizado** 10 s con daño doble |
 | **Salto** (fase IV) | salta en parábola sobre el jugador **más lejano** a tiro (de 8 a 26 bloques); un aro marca dónde cae | 80 en 6,5 bloques | apartarse cuando despega |
-| **Ídolo de Oro** (II, mecánica cooperativa de octubre de 2026) | ruge, arranca un **ídolo de oro** de su templo y lo lanza a un lado de la arena; al otro sale del suelo un **pilar pequeño** (algo más de un bloque: zócalo y fuste de jade con el jaguar tallado en oro y un capitel de oro con el hueco del ídolo), del que suben chispas de oro para verlo de lejos. Donde va a caer se marca en el suelo y, tirado, tiene encima una columna de oro. El ídolo es una **estatuilla en 3D** (un jaguar de oro sentado en su pedestal, con los ojos y la frente de jade y las manchas del jaguar): así se ve en la mano, tirado en el suelo, encima del pilar y **sentado en la cabeza** de quien lo lleva, mirando hacia donde mira él (lo ven todos; va más lento y brilla). En el suelo, delante del portador, un camino de puntos de oro lleva al pilar. **Sin textos**: solo, al cogerlo, la barra de acción le dice con qué tecla lo lanza. Rajang **solo anda o corre hacia el portador** (o hacia el ídolo tirado): nada de ataques especiales, solo la **Garra** cuando lo tiene a menos de 11 bloques. 25 s | si la Garra pilla al portador, **recupera el ídolo y se cura un 3 %**; si lo recoge del suelo, también se cura | **ponerlo en el pilar** (basta llegar a su lado): el ídolo se queda encima un momento y revientan los dos en oro; le quita **un 5 % de vida** y cae **aturdido** con daño doble. Se pasa de mano en mano: con la **Q** sale **lanzado** unos diez bloques hacia donde mira (se puede coger enseguida), o **un clic a un compañero** se lo da (sin hacerle daño). Si se acaba el tiempo, se deshace en polvo de oro. El ídolo es un objeto de verdad (`IdoloOroItem`; el modelo 3D, su textura, el icono y el pilar salen de `idolo_oro.py`) que se deshace si ya no lo busca su Rajang |
+| **Ídolo de Oro** (II, mecánica cooperativa de octubre de 2026) | ruge, arranca un **ídolo de oro** de su templo y lo lanza a un lado de la arena; al otro sale del suelo un **pilar pequeño** (algo más de un bloque: zócalo y fuste de jade con el jaguar tallado en oro y un capitel de oro con el hueco del ídolo), del que suben chispas de oro para verlo de lejos. Donde va a caer se marca en el suelo y, tirado, tiene encima una columna de oro. El ídolo es una **estatuilla en 3D** (un jaguar de oro sentado en su pedestal, con los ojos y la frente de jade y las manchas del jaguar): así se ve en la mano, tirado en el suelo, encima del pilar y **sentado en la cabeza** de quien lo lleva, mirando hacia donde mira él (lo ven todos; va más lento y brilla). En el suelo, delante del portador, un camino de puntos de oro lleva al pilar. **Sin textos**: solo, al cogerlo, la barra de acción le dice con qué tecla lo lanza. Rajang **solo anda o corre hacia el portador** (o hacia el ídolo tirado): nada de ataques especiales, solo la **Garra** cuando lo tiene a menos de 11 bloques. 25 s | si la Garra pilla al portador, **recupera el ídolo** (antes se curaba un 3 %; ningún jefe se cura); si lo recoge del suelo, también lo recupera | **ponerlo en el pilar** (basta llegar a su lado): el ídolo se queda encima un momento y revientan los dos en oro; le quita **un 5 % de vida** y cae **aturdido** con daño doble. Se pasa de mano en mano: con la **Q** sale **lanzado** unos diez bloques hacia donde mira (se puede coger enseguida), o **un clic a un compañero** se lo da (sin hacerle daño). Si se acaba el tiempo, se deshace en polvo de oro. El ídolo es un objeto de verdad (`IdoloOroItem`; el modelo 3D, su textura, el icono y el pilar salen de `idolo_oro.py`) que se deshace si ya no lo busca su Rajang |
 
 **Las columnas del Sello son entidades, no bloques.** Son pisables a cualquier
 altura gracias a un truco: el juego solo busca choques con entidades cuyo origen
