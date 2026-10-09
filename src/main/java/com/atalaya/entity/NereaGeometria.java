@@ -67,8 +67,8 @@ public final class NereaGeometria {
     public static final int LIBERACION_OJOS_ORO = 70;
     public static final int DURACION_GEISER = 32;
     public static final int GEISER_GOLPE = 11;
-    public static final int DURACION_MAREA = 60;
-    public static final int MAREA_LANZA = 40;
+    public static final int DURACION_MAREA = 110;
+    public static final int MAREA_LANZA = 90;
     public static final int DURACION_CANTO = 160;
     public static final int CANTO_EMPIEZA = 12;
     public static final int DURACION_MAREA_ALTA = 200;

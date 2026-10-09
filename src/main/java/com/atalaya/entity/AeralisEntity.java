@@ -29,7 +29,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -189,6 +188,13 @@ public class AeralisEntity extends Monster {
      * ancho, PICADO_LADO) y lo lanza al cielo (unos 24 bloques).
      */
     private static final double VEL_PICADO = 2.25;
+    /**
+     * Lo que sigue a su presa al empezar el aviso del Picado (ticks reales); luego
+     * el rumbo y el largo de la linea quedan fijos hasta que se lanza, como la
+     * Embestida de Rajang (Juan, 09-10-2026: antes la linea iba girando con la
+     * presa hasta el ultimo momento).
+     */
+    private static final int PICADO_SIGUE = 20;
     private static final double PICADO_MIN = 36.0;
     private static final double PICADO_MAX = 60.0;
     private static final double PICADO_PASA = 14.0;
@@ -407,7 +413,6 @@ public class AeralisEntity extends Monster {
 
     @Override
     protected void registerGoals() {
-        targetSelector.addGoal(1, new HurtByTargetGoal(this));
         targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
@@ -915,7 +920,7 @@ public class AeralisEntity extends Monster {
         // de vanilla pide verlo, y con este tamano el ojo se queda entre las hojas o
         // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
         if (getEstado() != DORMIDA && !isDeadOrDying()) {
-            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72);
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72, getEstado() == LIBRE);
             // La Muralla de Jade: si un tanque le provoca, ese es su objetivo.
             objetivo = com.atalaya.habilidad.Provocacion.objetivo(this, objetivo, com.atalaya.habilidad.Provocacion.ALCANCE);
             if (objetivo != null && getTarget() != objetivo) {
@@ -2134,10 +2139,13 @@ public class AeralisEntity extends Monster {
 
     private void tickPicadoAviso(ServerLevel nivel) {
         LivingEntity b = blancoPicado;
-        if (b != null && b.isAlive() && ta() < AeralisGeometria.DURACION_PICADO_AVISO - 4) {
+        if (b != null && b.isAlive() && t < PICADO_SIGUE) {
             girarHacia(b.position(), 10.0F);
             double d = horizontal(position(), b.position());
             entityData.set(DATA_PICADO, (float) Mth.clamp(d + PICADO_PASA, PICADO_MIN, PICADO_MAX));
+        } else {
+            // Ya apuntado: ni gira ni cambia la linea.
+            fijarRumbo(getYRot());
         }
     }
 

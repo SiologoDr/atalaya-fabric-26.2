@@ -10,6 +10,7 @@
     "DanoFulminanteMixin",
     "DanoHabilidadesMixin",
     "LivingEntityAccessor",
+    "LevelEntidadesMixin",
     "PoisonMobEffectMixin",
     "QuemaduraAguaMixin",
     "RanuraAturdidoMixin",

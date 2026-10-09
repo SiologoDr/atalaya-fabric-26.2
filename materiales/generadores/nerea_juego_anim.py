@@ -523,21 +523,30 @@ _ge_clava = mezcla({'pelvis': P(0, 6, -2), 'torso': r(22), 'cabeza': r(10), 'man
 anim('GEISER', 1.6, [(0, N, 'c'), (0.32, _ge_alza, 'c'), (T_GEISER, _ge_clava, 'l'), (0.8, _ge_clava, 'c'),
                      (1.15, con(_ge_clava, torso=r(16), pelvis=P(0, 4, -1)), 'c'), (1.6, N, 'c')])
 
-# --- La Gran Marea (remake): alza el tridente al cielo con los brazos abiertos
-#     y el mar se retira; al bajarlo de un tajo, la ola sale hacia delante ---
-T_MAREA = 2.0
+# --- La Gran Marea (remake): ruge con la cabeza atras, alza el tridente al
+#     cielo con los brazos abiertos y se va arqueando mientras el mar se retira;
+#     al bajarlo de un tajo, la ola sale. El aviso es la animacion entera, 4,5 s
+#     (09-10-2026, Juan: antes se quedaba quieta 2,5 s y "si estan pegados
+#     pegandole ni se enteran") ---
+T_MAREA = 4.5
+_ma_ruge = mezcla({'pelvis': P(0, -0.5, 2), 'torso': r(-16), 'cuello': r(-8), 'cabeza': r(-32), 'mandibula': r(40)},
+                  brazo('der', -120, 30, -20), brazo('izq', -110, -50, -20))
+_ma_tope = mezcla({'pelvis': P(0, -2, 2.5), 'torso': r(-20), 'cuello': r(-6), 'cabeza': r(-22), 'mandibula': r(38)},
+                  brazo('der', -185, 8, -2), brazo('izq', -140, -70, -20))
 _ma_alza = mezcla({'pelvis': P(0, -1.5, 1), 'torso': r(-9), 'cuello': r(-4), 'cabeza': r(-14), 'mandibula': r(32)},
                   brazo('der', -172, 8, -8), brazo('izq', -120, -60, -20))
 _ma_baja = mezcla({'pelvis': P(0, 6, -5), 'torso': r(26, -4), 'cabeza': r(12), 'mandibula': r(36),
                    'tridente': r(*T_EMP)},
                   brazo('der', -58, 6, -44), brazo('izq', -30, -40, -20), apoyo('izq', 7, SUELO, -13))
-_claves = [(0, N, 'c'), (0.5, _ma_alza, 'c')]
-for k in range(1, 5):
-    _claves.append((0.5 + 0.3 * k, con(_ma_alza, torso=r(-9 + (1.5 if k % 2 else -1.5), 0, 0.8 if k % 2 else -0.8),
-                                        mandibula=r(30 + 4 * (k % 2))), 'c'))
-_claves += [(1.78, mezcla(_ma_alza, {'torso': r(-12)}, brazo('der', -180, 8, -4)), 'c'), (T_MAREA, _ma_baja, 'l'),
-            (2.4, _ma_baja, 'c'), (3.0, N, 'c')]
-anim('MAREA', 3.0, _claves)
+_claves = [(0, N, 'c'), (0.35, _ma_ruge, 'c'), (0.8, con(_ma_ruge, cabeza=r(-35)), 'c'), (1.2, _ma_alza, 'c')]
+k = 1
+while 1.2 + 0.3 * k < 3.9:
+    # se mece y cada vez se arquea mas hacia atras
+    _claves.append((round(1.2 + 0.3 * k, 3), con(_ma_alza, torso=r(-9 - k + (1.5 if k % 2 else -1.5), 0, 0.8 if k % 2 else -0.8),
+                                                 mandibula=r(30 + 4 * (k % 2))), 'c'))
+    k += 1
+_claves += [(4.2, _ma_tope, 'c'), (T_MAREA, _ma_baja, 'l'), (4.9, _ma_baja, 'c'), (5.5, N, 'c')]
+anim('MAREA', 5.5, _claves)
 
 # --- Canto de Sirena (octubre de 2026, mecanicas cooperativas): abre los brazos,
 #     echa la cabeza atras y canta; se mece despacio y la mandibula sigue la

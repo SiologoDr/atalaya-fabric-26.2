@@ -320,6 +320,8 @@ public class PlataformaSelloEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        // Grande y se pisa: que se encuentre al buscar con que se choca (ColisionGrande).
+        ColisionGrande.apuntar(this);
         int tipo = getTipo();
         // La columna crece y mengua: su caja tambien (en los dos lados, cada tick).
         if (tipo == COLUMNA) {

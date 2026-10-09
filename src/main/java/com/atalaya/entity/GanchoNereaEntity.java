@@ -22,16 +22,21 @@ import org.jspecify.annotations.Nullable;
  * El ancla del Arpon (desde el remake de octubre de 2026; antes, un garfio de
  * hueso): la del extremo de la cadena-latigo.
  *
- * Vuela recto hacia el jugador mas lejano, con una estela de espuma y
- * burbujas, y marca con un aro de espuma el suelo de a quien va. Si lo
- * alcanza, Nerea decide ({@link NereaEntity#alEngancharGancho}): un escudo de
- * frente la hace rebotar; si no, se queda clavada y lo arrastra hasta la punta
- * del tridente. La cadena que la une a la mano la pinta su renderer.
+ * Vuela hacia el jugador mas lejano, con una estela de espuma y burbujas, y
+ * marca con un aro de espuma el suelo de a quien va. Desde el 09-10-2026 le
+ * sigue (gira hasta GIRO por tick): antes volaba recto a donde estaba al
+ * lanzarla y fallaba con solo moverse (Juan: "a veces falla"). Lo paran un
+ * bloque en medio o un escudo. Si lo alcanza, Nerea decide
+ * ({@link NereaEntity#alEngancharGancho}): un escudo la hace rebotar; si no,
+ * se queda clavada y lo arrastra hasta la punta del tridente. La cadena que la
+ * une a la mano la pinta su renderer.
  */
 public class GanchoNereaEntity extends ThrowableProjectile {
 
     public static final float VELOCIDAD = 2.1F;
-    private static final int VUELO = 30;
+    private static final int VUELO = 40;
+    /** Lo que puede girar por tick siguiendo a su blanco (radianes): unos 7 grados. */
+    private static final double GIRO = Math.toRadians(7.0);
 
     /** A quien lleva enganchado (id de entidad), para que el cliente lo pinte encima. */
     private static final EntityDataAccessor<Integer> DATA_ENGANCHADO =
@@ -97,6 +102,7 @@ public class GanchoNereaEntity extends ThrowableProjectile {
             }
             return;
         }
+        seguir();
         super.tick();
         if (level().isClientSide()) {
             // La estela: espuma y burbujas que deja el ancla por donde pasa.
@@ -110,6 +116,30 @@ public class GanchoNereaEntity extends ThrowableProjectile {
         } else if (tickCount > VUELO) {
             fallar();
         }
+    }
+
+    /** Gira un poco hacia su blanco (en los dos lados, que saben a quien va). */
+    private void seguir() {
+        Entity b = level().getEntity(getIdBlanco());
+        Vec3 v = getDeltaMovement();
+        if (!(b instanceof LivingEntity blanco) || !blanco.isAlive() || v.lengthSqr() < 1.0E-6) {
+            return;
+        }
+        Vec3 hacia = blanco.getEyePosition().add(0, -0.4, 0).subtract(position());
+        if (hacia.lengthSqr() < 1.0E-4) {
+            return;
+        }
+        Vec3 a = v.normalize();
+        Vec3 d = hacia.normalize();
+        double cos = Math.clamp(a.dot(d), -1.0, 1.0);
+        Vec3 nueva;
+        if (Math.acos(cos) <= GIRO) {
+            nueva = d;
+        } else {
+            Vec3 perp = d.subtract(a.scale(cos));
+            nueva = perp.lengthSqr() < 1.0E-8 ? a : a.scale(Math.cos(GIRO)).add(perp.normalize().scale(Math.sin(GIRO)));
+        }
+        setDeltaMovement(nueva.scale(VELOCIDAD));
     }
 
     @Override

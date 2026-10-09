@@ -1,5 +1,12 @@
 package com.atalaya.entity;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -63,6 +70,21 @@ public final class PresasJefe {
 
     /** Cada cuanto se revisa el objetivo (ticks). */
     public static final int CADA = 10;
+    /**
+     * Cada cuanto cambia de objetivo un jefe que esta libre (ticks): de 5 a 8 s
+     * (09-10-2026, Juan: "que el jefe este cambiando constantemente el target y
+     * no se enfoque siempre en una sola persona").
+     */
+    private static final int ROTA_MIN = 100;
+    private static final int ROTA_MAS = 60;
+
+    /** Cuando cambia de objetivo cada jefe y cuando persiguio por ultima vez a cada jugador. */
+    private static final class Rotacion {
+        long proximo;
+        final Map<UUID, Long> ultimaVez = new HashMap<>();
+    }
+
+    private static final Map<Mob, Rotacion> ROTACION = Collections.synchronizedMap(new WeakHashMap<>());
     /** Tan cerca, despierta aunque no lo vea (detras de un arbol, debajo de un techo). */
     public static final double DESPIERTA_SIN_VER = 16.0;
 
@@ -118,8 +140,52 @@ public final class PresasJefe {
     /**
      * Revisa el objetivo del jefe: suelta el que ya no vale y, si no tiene
      * ninguno (o persigue a un bicho y hay un jugador a tiro), elige al jugador
-     * mas cercano. Devuelve el objetivo con el que se queda.
+     * mas cercano. Si esta libre (entre ataques), cada 5 a 8 s cambia a otro
+     * jugador, el que lleve mas tiempo sin perseguir: asi no se ceba siempre en
+     * el mismo. Devuelve el objetivo con el que se queda.
      */
+    public static @Nullable LivingEntity revisar(ServerLevel nivel, Mob jefe, @Nullable LivingEntity objetivo, Vec3 centro,
+                                                 double correa, boolean libre) {
+        objetivo = revisar(nivel, jefe, objetivo, centro, correa);
+        if (!(objetivo instanceof Player actual)) {
+            return objetivo;
+        }
+        Rotacion r = ROTACION.computeIfAbsent(jefe, k -> new Rotacion());
+        long ahora = nivel.getGameTime();
+        r.ultimaVez.put(actual.getUUID(), ahora);
+        if (r.proximo == 0L) {
+            r.proximo = ahora + ROTA_MIN + jefe.getRandom().nextInt(ROTA_MAS);
+        }
+        if (!libre || ahora < r.proximo) {
+            return objetivo;
+        }
+        r.proximo = ahora + ROTA_MIN + jefe.getRandom().nextInt(ROTA_MAS);
+        List<Player> otros = new ArrayList<>();
+        for (Player p : nivel.players()) {
+            if (p != actual && vale(p) && p.distanceToSqr(jefe) < correa * correa && p.distanceToSqr(centro) < correa * correa) {
+                otros.add(p);
+            }
+        }
+        if (otros.isEmpty()) {
+            return objetivo;
+        }
+        // El que lleve mas tiempo sin perseguir (a igualdad, uno al azar).
+        Collections.shuffle(otros, new java.util.Random(jefe.getRandom().nextLong()));
+        Player elegido = otros.get(0);
+        long antes = r.ultimaVez.getOrDefault(elegido.getUUID(), Long.MIN_VALUE);
+        for (Player p : otros) {
+            long vez = r.ultimaVez.getOrDefault(p.getUUID(), Long.MIN_VALUE);
+            if (vez < antes) {
+                antes = vez;
+                elegido = p;
+            }
+        }
+        jefe.setTarget(elegido);
+        r.ultimaVez.put(elegido.getUUID(), ahora);
+        return elegido;
+    }
+
+    /** Lo mismo sin la rotacion (para quien solo quiere soltar el que no vale o elegir uno). */
     public static @Nullable LivingEntity revisar(ServerLevel nivel, Mob jefe, @Nullable LivingEntity objetivo, Vec3 centro,
                                                  double correa) {
         if (objetivo != null && !vale(objetivo)) {

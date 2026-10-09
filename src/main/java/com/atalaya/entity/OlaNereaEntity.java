@@ -86,7 +86,7 @@ public class OlaNereaEntity extends Entity {
     /** La Gran Marea: de lado a lado, con el hueco en "hueco" bloques a un lado. */
     public static OlaNereaEntity marea(ServerLevel nivel, NereaEntity duena, Vec3 desde, Vec3 dir, float hueco) {
         OlaNereaEntity o = ola(nivel, duena, desde, dir, NereaEntity.MAREA_ANCHO / 2.0F, NereaEntity.MAREA_ALTO,
-                NereaEntity.MAREA_VEL, NereaEntity.MAREA_LARGO);
+                NereaEntity.MAREA_VEL, NereaEntity.MAREA_LARGO + NereaEntity.MAREA_ATRAS);
         o.dano = NereaEntity.MORTAL;
         o.entityData.set(DATA_HUECO, hueco);
         o.entityData.set(DATA_HUECO_ANCHO, NereaEntity.MAREA_HUECO);

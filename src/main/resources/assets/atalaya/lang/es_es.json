@@ -216,6 +216,8 @@
   "hud.atalaya.nerea.despertando": "Despertando a %s: %s/%s",
   "hud.atalaya.nerea.libre": "¡Has salido del trance!",
   "hud.atalaya.nerea.refugio_lleno": "¡Esta cúpula está llena! Busca otra",
+  "hud.atalaya.nerea.marea_titulo": "¡GRAN MAREA!",
+  "hud.atalaya.nerea.marea_subtitulo": "Corre al hueco marcado en el suelo",
   "hud.atalaya.nerea.marea_alta": "¡A una cúpula! %s",
   "death.attack.atalaya.nerea_canto": "%1$s se dejó llevar por el canto de %2$s",
   "death.attack.atalaya.nerea_marea_alta": "%1$s se quedó fuera de las burbujas en la Marea Alta de %2$s",

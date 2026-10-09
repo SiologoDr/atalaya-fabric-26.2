@@ -216,6 +216,8 @@
   "hud.atalaya.nerea.despertando": "Waking %s: %s/%s",
   "hud.atalaya.nerea.libre": "You broke out of the trance!",
   "hud.atalaya.nerea.refugio_lleno": "This dome is full! Find another one",
+  "hud.atalaya.nerea.marea_titulo": "GREAT TIDE!",
+  "hud.atalaya.nerea.marea_subtitulo": "Run to the gap marked on the ground",
   "hud.atalaya.nerea.marea_alta": "Into a dome! %s",
   "death.attack.atalaya.nerea_canto": "%1$s followed %2$s's song",
   "death.attack.atalaya.nerea_marea_alta": "%1$s was left outside the bubbles in %2$s's High Tide",

@@ -5,6 +5,7 @@ import com.atalaya.entity.NereaGeometria;
 import com.atalaya.particula.AtalayaParticulas;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
@@ -125,6 +126,13 @@ public final class NereaEfectosCliente {
                 }
             }
             case NereaEntity.MAREA -> {
+                if (t == 1) {
+                    // Ruge al empezar: un golpe para que lo note quien le esta pegando.
+                    NereaPresencia.sacudir(x, y, z, 1.3F, 40);
+                }
+                if (t < NereaGeometria.MAREA_LANZA) {
+                    retirada(nivel, n, mc, t);
+                }
                 if (t < NereaGeometria.MAREA_LANZA) {
                     // El mar se retira: retumba cada vez mas (en la espera de aviso, flojo).
                     NereaPresencia.retumbar(x, y, z, 0.2F + 0.5F * Math.max(0, t) / NereaGeometria.MAREA_LANZA, 60);
@@ -138,6 +146,34 @@ public final class NereaEfectosCliente {
             }
         }
         pisadas(nivel, n);
+    }
+
+    /**
+     * La Gran Marea, mientras avisa: el mar se retira. Alrededor de cada uno
+     * corre el agua por el suelo hacia la espalda de Nerea, y detras de ella se
+     * levanta la pared de agua que va a volver (cada vez mas alta).
+     */
+    private static void retirada(ClientLevel nivel, NereaEntity n, Minecraft mc, int t) {
+        float b = n.getYRot() * Mth.DEG_TO_RAD;
+        double dx = -Mth.sin(b);
+        double dz = Mth.cos(b);
+        Vec3 p = mc.player.position();
+        if (p.distanceToSqr(n.position()) < 80 * 80) {
+            for (int i = 0; i < 4; i++) {
+                double ox = (nivel.getRandom().nextDouble() - 0.5) * 16.0;
+                double oz = (nivel.getRandom().nextDouble() - 0.5) * 16.0;
+                nivel.addParticle(AtalayaParticulas.NEREA_ESPUMA, p.x + ox, p.y + 0.08, p.z + oz, -dx * 0.45, 0.0, -dz * 0.45);
+            }
+        }
+        double k = Math.min(1.0, t / (double) NereaGeometria.MAREA_LANZA);
+        for (int i = 0; i < 6; i++) {
+            double lado = (nivel.getRandom().nextDouble() - 0.5) * 40.0;
+            double atras = NereaEntity.MAREA_ATRAS + nivel.getRandom().nextDouble() * 3.0;
+            double px = n.getX() - dx * atras - dz * lado;
+            double pz = n.getZ() - dz * atras + dx * lado;
+            nivel.addParticle(i % 2 == 0 ? AtalayaParticulas.NEREA_ESPUMA : AtalayaParticulas.NEREA_GOTA, px,
+                    n.getY() + 0.2 + nivel.getRandom().nextDouble() * 7.0 * k, pz, 0, 0.12 + 0.2 * k, 0);
+        }
     }
 
     /**

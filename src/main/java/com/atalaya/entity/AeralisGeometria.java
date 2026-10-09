@@ -65,7 +65,7 @@ public final class AeralisGeometria {
     public static final int LIBERACION_OJOS_ORO = 70;
     public static final int PERIODO_VUELO = 22;
     public static final int VUELO_GOLPE = 1;
-    public static final int DURACION_PICADO_AVISO = 28;
+    public static final int DURACION_PICADO_AVISO = 56;
     public static final int PERIODO_PICADO = 10;
     public static final int DURACION_POSADA = 100;
     public static final int POSADA_CHOQUE = 2;

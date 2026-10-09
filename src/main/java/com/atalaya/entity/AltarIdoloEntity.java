@@ -112,6 +112,8 @@ public class AltarIdoloEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        // Grande y se pisa: que se encuentre al buscar con que se choca (ColisionGrande).
+        ColisionGrande.apuntar(this);
         if (level().isClientSide()) {
             return;
         }

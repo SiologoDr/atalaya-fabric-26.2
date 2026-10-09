@@ -28,7 +28,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -225,13 +224,23 @@ public class RajangEntity extends Monster {
     private static final double PIEDRA_GIRO = 0.62;
     /**
      * Seis oleadas de fragmentos, una cada 2 s: 12 s de lluvia de jade; la marca
-     * avisa 1,2 s antes. Desde el centro de la marca hay que correr 4,8-5,7
-     * bloques: esprintando sobran 0,2-0,35 s, y saltando al esprintar, 0,4-0,5.
-     * Es de reflejos.
+     * avisa 2,2 s antes (1 s esperando y 1,2 s de caida, RETRASO_FRAGMENTO).
+     * Desde el centro de la marca hay que correr 4,8-5,7 bloques.
      */
     private static final int OLEADAS = 6;
     private static final int CADA_OLEADA = 40;
     public static final int AVISO_FRAGMENTO = 24;
+    /**
+     * Lo que espera cada fragmento con su marca ya en el suelo antes de empezar a
+     * caer (ticks): 1 s mas de aviso, con la misma caida (Juan, 09-10-2026: "su
+     * caida es buena, solo hay que retrasarlo 1 s").
+     */
+    public static final int RETRASO_FRAGMENTO = 20;
+    /** Los fragmentos con la marca puesta que aun no han empezado a caer: donde, su tamano y cuando. */
+    private record FragmentoPendiente(Vec3 marca, float tam, int cuando) {
+    }
+
+    private final List<FragmentoPendiente> fragmentosPendientes = new ArrayList<>();
 
     private static final double ALCANCE_GARRA = 30.0;
     private static final double CORREA = 40.0;
@@ -408,7 +417,6 @@ public class RajangEntity extends Monster {
     protected void registerGoals() {
         // Sin goals de movimiento: andar, correr y saltar lo decide
         // customServerAiStep, que sabe hasta donde le deja su templo.
-        targetSelector.addGoal(1, new HurtByTargetGoal(this));
         targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
@@ -879,7 +887,8 @@ public class RajangEntity extends Monster {
         // de vanilla pide verlo, y con este tamano el ojo se queda entre las hojas o
         // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
         if (getEstado() != DORMIDO && !isDeadOrDying()) {
-            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72);
+            soltarFragmentos(nivel);
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 72, getEstado() == LIBRE);
             // En Furia persigue al que mas lejos le esta: que el arquero sienta el miedo.
             if (tieneFuria()) {
                 Player lejos = masLejano(nivel, 0.0, 56.0, false);
@@ -973,7 +982,7 @@ public class RajangEntity extends Monster {
                 sonido(AtalayaSonidos.RAJANG_SELLO, 8.0F);
             }
             case CATACLISMO -> {
-                ponerEstado(CATACLISMO_SOSTIENE, OLEADAS * CADA_OLEADA + AVISO_FRAGMENTO + 6);
+                ponerEstado(CATACLISMO_SOSTIENE, OLEADAS * CADA_OLEADA + RETRASO_FRAGMENTO + AVISO_FRAGMENTO + 6);
                 mato = false;
             }
             case CATACLISMO_SOSTIENE -> {
@@ -1924,11 +1933,26 @@ public class RajangEntity extends Monster {
             double y = sueloBajo(nivel, p.x, p.y + 3, p.z);
             float tam = 2.3F + random.nextFloat() * 0.4F;
             nivel.sendParticles(AtalayaParticulas.RAJANG_MARCA, true, true, p.x, y + 0.08, p.z, 0,
-                    FragmentoJadeEntity.radioMuerte(tam) + 0.6, AVISO_FRAGMENTO, 0.0, 1.0);
-            FragmentoJadeEntity.caer(nivel, this, new Vec3(p.x, y, p.z), AVISO_FRAGMENTO, tam);
+                    FragmentoJadeEntity.radioMuerte(tam) + 0.6, RETRASO_FRAGMENTO + AVISO_FRAGMENTO, 0.0, 1.0);
+            fragmentosPendientes.add(new FragmentoPendiente(new Vec3(p.x, y, p.z), tam, tickCount + RETRASO_FRAGMENTO));
         }
         nivel.playSound(null, getX(), getY() + 10, getZ(), AtalayaSonidos.RAJANG_MARCA, SoundSource.HOSTILE, 6.0F, 1.0F);
         sonido(AtalayaSonidos.RAJANG_RUGIDO, 5.0F);
+    }
+
+    /** Suelta los fragmentos a los que ya les toca caer (aunque el ya este en otra cosa: su marca ya esta en el suelo). */
+    private void soltarFragmentos(ServerLevel nivel) {
+        if (fragmentosPendientes.isEmpty()) {
+            return;
+        }
+        java.util.Iterator<FragmentoPendiente> it = fragmentosPendientes.iterator();
+        while (it.hasNext()) {
+            FragmentoPendiente f = it.next();
+            if (tickCount >= f.cuando()) {
+                FragmentoJadeEntity.caer(nivel, this, f.marca(), AVISO_FRAGMENTO, f.tam());
+                it.remove();
+            }
+        }
     }
 
     /** Un fragmento ha matado a alguien: el Cataclismo se cobra su vida. */

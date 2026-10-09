@@ -28,7 +28,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -177,9 +176,9 @@ public class NereaEntity extends Monster {
         return switch (estado) {
             case MOLINO -> 11;
             case ROMPEOLAS -> 9;
-            // La Gran Marea marca el paso 2,5 s mas (4,5 s en total antes de soltar
-            // la ola), quieta y mirando a donde va a ir (Juan, 08-10-2026).
-            case MAREA -> 50;
+            // La Gran Marea ya no espera quieta: su animacion entera es el aviso
+            // (4,5 s antes de soltar la ola, los mismos que antes), y ruge y alza el
+            // tridente desde el principio (Juan, 09-10-2026: quieta no se enteraban).
             default -> 0;
         };
     }
@@ -207,6 +206,12 @@ public class NereaEntity extends Monster {
     public static final float MAREA_ANCHO = 80.0F;
     public static final float MAREA_ALTO = 9.0F;
     public static final float MAREA_HUECO = 5.0F;
+    /**
+     * Lo que nace la ola por detras de ella (bloques): pasa por encima de su sitio
+     * y moja tambien a los que le pegan de cerca o se le ponen detras. Antes
+     * nacia a sus pies y pegarse a ella era quedarse a salvo (Juan, 09-10-2026).
+     */
+    public static final float MAREA_ATRAS = 12.0F;
     /** Hasta donde puede caer el hueco, a un lado o al otro de su rumbo. */
     private static final float MAREA_HUECO_LADO = 14.0F;
 
@@ -224,7 +229,7 @@ public class NereaEntity extends Monster {
     public static final float ESCALA_MOLINO = 1.45F;
     /** Pegado a sus pies no llega la cadena. */
     public static final double MOLINO_PIES = 4.2;
-    private static final int ESPERA_GANCHO = 40;
+    private static final int ESPERA_GANCHO = 50;
     private static final int CADA_AGOTADO = 500;
 
     /** Lo lejos que se aparta de donde nacio: no se va de la zona del combate. */
@@ -388,7 +393,6 @@ public class NereaEntity extends Monster {
         // Sin goals de movimiento: con diez bloques de alto y una arena
         // redonda, andar lo decide customServerAiStep, que sabe hasta donde le
         // dejan las cadenas.
-        targetSelector.addGoal(1, new HurtByTargetGoal(this));
         targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
@@ -695,7 +699,7 @@ public class NereaEntity extends Monster {
         // de vanilla pide verlo, y con este tamano el ojo se queda entre las hojas o
         // tras una loma (se quedaba quieto aunque hubiera alguien al lado).
         if (getEstado() != DORMIDO && !isDeadOrDying()) {
-            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 64);
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), 64, getEstado() == LIBRE);
             // La Muralla de Jade: si un tanque le provoca, ese es su objetivo.
             objetivo = com.atalaya.habilidad.Provocacion.objetivo(this, objetivo, com.atalaya.habilidad.Provocacion.ALCANCE);
             if (objetivo != null && getTarget() != objetivo) {
@@ -1018,9 +1022,10 @@ public class NereaEntity extends Monster {
                 ponerEstado(MAREA, NereaGeometria.DURACION_MAREA);
                 // Puesta la direccion, ni se mueve ni ataca hasta que la ola acaba de cruzar.
                 duracion = Math.max(duracion, avisoEstado + (int) Math.ceil(NereaGeometria.MAREA_LANZA / ritmoEstado)
-                        + (int) Math.ceil(MAREA_LARGO / MAREA_VEL) + OlaNereaEntity.APAGA / 2);
+                        + (int) Math.ceil((MAREA_LARGO + MAREA_ATRAS) / MAREA_VEL) + OlaNereaEntity.APAGA / 2);
                 // Ruge al marcar el paso; el mar se alza cuando alza el tridente (tickMarea).
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 5.0F);
+                avisarMarea(nivel);
             }
             default -> {
             }
@@ -1539,7 +1544,11 @@ public class NereaEntity extends Monster {
             return false;
         }
         boolean entra = victima.hurtServer(nivel, NereaDanos.fuente(nivel, NereaDanos.TRIDENTE, g, this), dano(DANO_GANCHO));
-        if (!entra) {
+        // Solo rebota en un escudo. Si el golpe no entra por otra cosa (le acababan de
+        // pegar y aun esta en su medio segundo de inmunidad), engancha igual: antes
+        // eso contaba como escudo y el gancho "fallaba" (Juan, 09-10-2026).
+        boolean escudo = victima.isUsingItem() && victima.getUseItem().has(net.minecraft.core.component.DataComponents.BLOCKS_ATTACKS);
+        if (!entra && escudo) {
             // Escudo: el gancho rebota.
             nivel.playSound(null, g.getX(), g.getY(), g.getZ(), AtalayaSonidos.NEREA_ARPON_REBOTA, SoundSource.HOSTILE, 2.0F, 1.0F);
             nivel.sendParticles(AtalayaParticulas.NEREA_CHISPA, g.getX(), g.getY(), g.getZ(), 10, 0.2, 0.2, 0.2, 0.25);
@@ -2098,7 +2107,30 @@ public class NereaEntity extends Monster {
             nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.NEREA_ROMPEOLAS_GOLPE, SoundSource.HOSTILE, 6.0F, 0.7F);
             sonido(AtalayaSonidos.NEREA_MAREA, 8.0F);
             golpeSuelo(nivel, p, 3.2F, 16.0F, 30, 40);
-            OlaNereaEntity.marea(nivel, this, position(), frente(), getHueco());
+            OlaNereaEntity.marea(nivel, this, position().subtract(frente().scale(MAREA_ATRAS)), frente(), getHueco());
+        }
+    }
+
+    /**
+     * El aviso grande de la Gran Marea, en el centro de la pantalla de todos
+     * los que pelean: con la vista en ella y pegandole no veian el paso marcado
+     * en el suelo hasta que la ola les pasaba por encima (Juan, 09-10-2026).
+     */
+    private void avisarMarea(ServerLevel nivel) {
+        net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket tiempos =
+                new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(4, 40, 12);
+        net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket titulo =
+                new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(
+                        Component.translatable("hud.atalaya.nerea.marea_titulo").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket sub =
+                new net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket(
+                        Component.translatable("hud.atalaya.nerea.marea_subtitulo").withStyle(ChatFormatting.WHITE));
+        for (Player p : jugadores(nivel, 80, 0)) {
+            if (p instanceof ServerPlayer sp) {
+                sp.connection.send(tiempos);
+                sp.connection.send(sub);
+                sp.connection.send(titulo);
+            }
         }
     }
 

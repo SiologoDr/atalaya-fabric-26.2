@@ -486,16 +486,22 @@ anim('LIBERACION', 10.0, [(0, N, 'c'),
                           (10.0, _li_abre, 'c')])
 
 
-# --- Picado del Vendaval: el aviso. Sube con dos batidas mientras la linea se
-#     marca en el suelo, pliega las alas hacia atras y se inclina hacia su presa ---
-T_PICADO_AVISO = 1.4
+# --- Picado del Vendaval: el aviso. Sube batiendo mientras la linea se marca
+#     en el suelo, pliega las alas hacia atras y se inclina hacia su presa. 2,8 s
+#     (09-10-2026, Juan: como la Embestida de Rajang, apunta el primer segundo y
+#     luego la linea se queda fija hasta que se lanza) ---
+T_PICADO_AVISO = 2.8
 _pi_plegada = sumar(alas(62, -8, (66, 6), giro=10), antenas(-30, 6), colmillos(26), abdomen(-12, -18),
                     patas(-34, -24, 16), cuerpo(x=62), {'cabeza': r(-30), 'torax': r(-4)})
 anim('PICADO_AVISO', T_PICADO_AVISO, [(0, N, 'c'),
                                       (0.3, sumar(alas(-34, 32, giro=-12), cuerpo(sube=10), {'cabeza': r(-10)}), 'c'),
                                       (0.6, sumar(alas(40, -16, giro=14), cuerpo(sube=18)), 'c'),
-                                      (0.85, sumar(alas(-30, 36, giro=-12), cuerpo(sube=22), {'cabeza': r(-16)}), 'c'),
-                                      (1.15, sumar(alas(30, 10), cuerpo(x=30, sube=16), {'cabeza': r(-20)}), 'c'),
+                                      (0.9, sumar(alas(-30, 36, giro=-12), cuerpo(sube=22), {'cabeza': r(-16)}), 'c'),
+                                      (1.2, sumar(alas(36, -12, giro=12), cuerpo(sube=24)), 'c'),
+                                      (1.5, sumar(alas(-26, 34, giro=-10), cuerpo(sube=24), {'cabeza': r(-18)}), 'c'),
+                                      (1.8, sumar(alas(32, -6, giro=10), cuerpo(sube=22)), 'c'),
+                                      (2.2, sumar(alas(30, 10), cuerpo(x=30, sube=16), {'cabeza': r(-20)}), 'c'),
+                                      (2.5, sumar(alas(34, 12), cuerpo(x=34, sube=15), {'cabeza': r(-22)}), 'c'),
                                       (T_PICADO_AVISO, _pi_plegada, 'c')])
 # --- El picado en si: plegada, con el viento haciendole vibrar las alas ---
 anim('PICADO', 0.5, [(0, _pi_plegada, 'c'), (0.125, sumar(_pi_plegada, alas(2, 3)), 'c'),

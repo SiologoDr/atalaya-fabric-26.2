@@ -102,6 +102,8 @@ public class EstradoNovilisEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        // Grande y se pisa: que se encuentre al buscar con que se choca (ColisionGrande).
+        ColisionGrande.apuntar(this);
         float alto = getAlto() * salida(0.0F);
         if (Math.abs(alto - altoVisto) > 1.0E-3F) {
             altoVisto = alto;

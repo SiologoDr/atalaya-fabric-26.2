@@ -382,14 +382,15 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         float b = s.bodyRot * Mth.DEG_TO_RAD;
         Vec3 dir = new Vec3(-Mth.sin(b), 0, Mth.cos(b));
         Vec3 lado = OlaNereaEntity.lado(dir);
-        Vec3 a = dir.scale(1.0).add(lado.scale(s.hueco)).add(0, 0.07, 0);
+        // El paso empieza donde nace la ola, por detras de ella.
+        Vec3 a = dir.scale(1.0 - NereaEntity.MAREA_ATRAS).add(lado.scale(s.hueco)).add(0, 0.07, 0);
         Vec3 z = dir.scale(NereaEntity.MAREA_LARGO).add(lado.scale(s.hueco)).add(0, 0.07, 0);
         // Parpadea mas deprisa cuanto menos queda.
         float prisa = 0.25F + 0.5F * Mth.clamp((ticks - desde) / (lanza - desde), 0.0F, 1.0F);
         int brillo = (int) ((165 + 75 * Mth.sin(s.ageInTicks * prisa)) * k);
         float corre = s.ageInTicks * 0.02F;
         colector.submitCustomGeometry(pose, NereaDibujo.SENDERO, (p, buf) ->
-                NereaDibujo.tira(buf, p, a, z, NereaEntity.MAREA_HUECO / 2.0F, 1.0F / 5.0F - corre,
+                NereaDibujo.tira(buf, p, a, z, NereaEntity.MAREA_HUECO / 2.0F, (1.0F - NereaEntity.MAREA_ATRAS) / 5.0F - corre,
                         NereaEntity.MAREA_LARGO / 5.0F - corre, 0xFFFFFF, brillo));
     }
 

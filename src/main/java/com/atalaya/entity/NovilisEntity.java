@@ -36,7 +36,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -428,7 +427,6 @@ public class NovilisEntity extends Monster {
     protected void registerGoals() {
         // Sin goals de movimiento: andar lo decide customServerAiStep, que sabe
         // hasta donde le deja su correa.
-        targetSelector.addGoal(1, new HurtByTargetGoal(this));
         targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
@@ -782,7 +780,7 @@ public class NovilisEntity extends Monster {
             objetivo = null;
         }
         if (getEstado() != DORMIDO && !isDeadOrDying()) {
-            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), LEJOS);
+            objetivo = PresasJefe.revisar(nivel, this, objetivo, Vec3.atCenterOf(centro), LEJOS, getEstado() == LIBRE);
             // La Muralla de Jade: si un tanque le provoca, ese es su objetivo.
             objetivo = com.atalaya.habilidad.Provocacion.objetivo(this, objetivo, com.atalaya.habilidad.Provocacion.ALCANCE);
             if (objetivo != null && getTarget() != objetivo) {
