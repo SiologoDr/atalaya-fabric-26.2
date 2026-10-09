@@ -1516,9 +1516,12 @@ esté a unos 4 bloques por debajo de quien se mueve, así que la columna crea
 tramos invisibles apilados.
 
 Un tótem roto se queda roto, y después de cada Sello hay 2 minutos de descanso.
-Las tres piedras de abajo de cada espiral no caen nunca, y en cada columna se
-cae como mucho una a la vez. Como cada piedra está un bloque más alta que la
-anterior, si falta una el salto siguiente es de dos: toca esperar a que vuelva.
+Las tres piedras de abajo de cada espiral no caen nunca. Cada 0,75 s tiemblan
+**dos** al azar (Juan: «que se caigan con más frecuencia y más»; antes, una cada
+1,5 s), y en cada columna puede haber **dos** fuera a la vez, nunca seguidas. La
+que se pisa empieza a temblar a los 0,5 s. Como cada piedra está un bloque más
+alta que la anterior, si falta una el salto siguiente es de dos: toca esperar a
+que vuelva.
 
 **La Furia de Jade.** Si el Sello falla, a los que sobrevivan al Rugido de Jade
 se lo encuentran con un aura verde: la misma malla un poco hinchada con bandas
@@ -1540,6 +1543,46 @@ vivo.
 > lento»). La ficha con los renders y las cifras está en
 > `materiales/fichas/rajang_mejoras/`, con las hojas de control de las
 > animaciones de antes y de después.
+
+**Minijuegos (octubre de 2026).** Como los de Nerea: uno por fase, elegidos por
+Juan entre cinco fichas (`rajang_minijuegos_escenas.py`, `rajang_ingenio_escenas.py`,
+`rajang_cuarto_escenas.py`). Dos juegan con que Rajang es un gato enorme.
+
+- **Uno a la vez**, y al menos **25 s** entre uno y otro. Como las fases se suman,
+  en la IV pueden salir todos.
+- Empieza con un **rugido** (el del Ídolo) y al rugir sale lo suyo.
+- Mientras dura no salen el Sello, el Cataclismo, la Tumba ni el Ídolo.
+- Bajo su barra, una barra de tiempo y la cuenta («Trampas 1/3», «Glifos 0/3 ·
+  Vidente: Juan», «Caídos: 0»).
+- **Ninguno mata**, salvo caer de las losas del Suelo: lo que pega se queda en 1
+  corazón (`danoSinMatar`, contando que la dificultad lo sube).
+- Si sale bien, **aturdido** (daño doble).
+
+| Minijuego | Qué hace | Si sale bien | Si sale mal |
+|---|---|---|---|
+| **El Rayo del Prisma** (I) | como un gato con un puntero: a uno **le cae del cielo el Prisma de Jade**. Manteniendo **clic derecho** pinta un **punto de luz** donde mira (hasta 30 bloques), con un rayo desde su mano. Rajang, hipnotizado, **salta sobre la luz** cada 2 s. En la plaza salen **3 trampas de oro** (un aro con greca, cabezas de jaguar en las esquinas y pinchos de jade de píxeles). Cada trampa en la que cae le muerde un **2 %** de vida (la mitad que al principio: Juan). Si la luz cae sobre un compañero, Rajang le cae encima (golpe fuerte, sin matar). Con la **Q** el prisma sale lanzado hacia donde se mira, para pasarlo. 25 s | las **3 trampas**: aturdido 6 s | nada |
+| **El Impostor de Jade** (II) | ruge, se envuelve en **polvo de jade** y desaparece: ahora es **una copia de uno de vosotros** (un maniquí de vanilla con su skin, su nombre encima, su armadura y lo que lleva en las manos) que anda entre el grupo como uno más. La pista (Juan: «por 1 s se muestre en sus pasos unas huellas de jade sutiles pero un poco visibles»): **un segundo de cada cuatro deja huellas de zarpa de jade** al andar, que se apagan enseguida. Con poca gente se esconde entre **copias de mentira** (jugando solo, tres tuyas); pegarle a una de mentira la deshace en arenilla y te empuja. Mientras, Rajang no se ve, no se toca y no suena. 20 s | **pegarle al falso**: vuelve a su forma de golpe y aparta a los de al lado; aturdido 6 s | reaparece y **salta sobre el que copió** (sin matar) |
+| **Glifos del Templo** (III) | salen **6 columnas** de jade y oro, cada una con un **glifo** tallado que brilla (de 8: Jaguar, Serpiente, Sol, Luna, Mano, Calavera, Pirámide y Ojo). Solo el **Vidente** (uno al azar) ve en su pantalla los **3 verdaderos**, con su nombre: tiene que decírselo a los demás. Cada verdadero se rompe con **3 golpes** (se raja con cada uno); uno falso **estalla** al primero y lanza a quien le pegó. Rajang **sigue peleando**. El brillo de los glifos respira muy despacio (Juan: «que no parpadee tan rápido»). 25 s | los **3 verdaderos**: el templo le castiga, aturdido 6 s | las columnas se hunden |
+| **Suelo que se Hunde** (IV) | la plaza a su alrededor se vuelve **losas de jade** de 3 × 3, en alto sobre un **foso de pinchos**: un anillo grande, de 7 a **36 bloques** de él (se juega con unos 60). Juega **un tercio** de los que pelean, al azar (al menos uno): suben a las losas, separados; los demás, si estaban dentro del anillo, salen fuera a mirar. **Cada losa que se pisa se agrieta y cae al segundo**: hay que no parar y no volver atrás. Él, **inmune** en medio (la pose del Sello), sostiene la plaza: no cae nada del cielo (Juan). **Quien cae o se tira de las losas muere, salvo tótem** (`rajang_foso`, pasa armadura y resistencia); **quien aguanta hasta el final se salva** y baja planeando. 15 s | aguanta **más de la mitad**: aturdido 6 s | los que cayeron |
+
+Todo propio: los sonidos, de `rajang_minijuegos_sonidos.py` (el prisma que cae
+y brilla, las trampas, el disfraz y el estruendo al descubrirle, las copias que
+se deshacen, las columnas, los golpes, el glifo falso, el aviso del Vidente, las
+losas que crujen y caen, los pinchos, y una campana de oro al ganar); las
+texturas, de `rajang_minijuegos.py` (el prisma, la trampa, la luz y el rayo, la
+columna, los ocho glifos tallados, encendidos y para el panel del Vidente, la
+losa con sus tres grietas y la huella de zarpa); la partícula `rajang_huella`.
+
+Las piezas: `MinijuegoRajang` (la base) y `PrismaRajang`, `ImpostorRajang`,
+`GlifosRajang`, `SueloRajang`; `MinijuegosRajang` (lo común y el Prisma de Jade);
+`LuzPrismaEntity`, `TrampaOroEntity`, `GlifoTemploEntity` y `LosaJadeEntity` (las
+dos últimas se pisan, con `ColisionGrande`); en el cliente, sus renderers y
+`GlifosVidenteHud`. Las copias del Impostor no son presa de nadie, no les entra
+daño (el golpe se cuenta por `ALLOW_DAMAGE`) y no se guardan en el mundo
+(`ManiquiAccessor` les quita el «NPC» de debajo del nombre). Para probar:
+`/atalaya rajang prisma | impostor | glifos | suelo` (y `mini_bien`, `mini_fin`).
+Con `atalaya_fotos.flag`, el mensaje «USAR 1» mantiene el clic derecho (para
+probar el prisma).
 
 ### Novilis, el Caballero Solar
 

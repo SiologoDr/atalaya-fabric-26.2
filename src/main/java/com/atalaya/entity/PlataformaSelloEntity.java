@@ -75,7 +75,7 @@ public class PlataformaSelloEntity extends Entity {
      * "los escalones no se rompen"; con cien piedras, los que tiemblan al azar
      * casi nunca eran los que alguien pisaba).
      */
-    public static final int PISADA = 16;
+    public static final int PISADA = 10;
     /** Lo que cae un escalon antes de deshacerse. */
     public static final float CAIDA = 6.0F;
 

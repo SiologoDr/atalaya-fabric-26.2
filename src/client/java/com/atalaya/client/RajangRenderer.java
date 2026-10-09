@@ -94,6 +94,12 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
         return new RajangRenderState();
     }
 
+    /** Disfrazado (El Impostor de Jade): ni el, ni su sombra, ni nada suyo. */
+    @Override
+    public boolean shouldRender(RajangEntity r, net.minecraft.client.renderer.culling.Frustum vista, double x, double y, double z) {
+        return !r.oculto() && super.shouldRender(r, vista, x, y, z);
+    }
+
     @Override
     public void extractRenderState(RajangEntity r, RajangRenderState s, float parcial) {
         super.extractRenderState(r, s, parcial);

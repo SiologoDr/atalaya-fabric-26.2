@@ -102,6 +102,10 @@ public class RajangEntity extends Monster {
     public static final int TUMBA = 18;
     /** El Idolo de Oro (octubre de 2026): ruge y lanza el idolo; luego 25 s de persecucion. */
     public static final int IDOLO = 19;
+    /** Los minijuegos (octubre de 2026): ruge (como el Idolo) y al rugir sale el que toque. */
+    public static final int MINIJUEGO = 20;
+    /** Suelo que se Hunde: sostiene la plaza en alto (la pose del Sello), inmune, mientras dura. */
+    public static final int SOSTIENE_SUELO = 21;
 
     /** Vida EFECTIVA: 15 000 (Nerea 12 500, Aeralis 13 500). La de vanilla tiene tope de 1024: el dano se divide. */
     public static final float VIDA = 15000.0F;
@@ -204,10 +208,15 @@ public class RajangEntity extends Monster {
     private static final double PULSO_RADIO = 7.0;
     private static final double PULSO_EMPUJE = 2.4;
     /**
-     * Cada cuanto tiembla un escalon del Sello al azar (y cae un segundo despues).
-     * Aparte, el que se pisa tiembla al rato (PlataformaSelloEntity.PISADA).
+     * Cada cuanto tiemblan escalones del Sello al azar (y caen un segundo despues),
+     * cuantos cada vez y cuantos puede haber fuera a la vez en cada columna (Juan,
+     * 09-10-2026: "que se caigan con mas frecuencia y mas"; antes, uno cada 1,5 s
+     * y uno por columna). Aparte, el que se pisa tiembla al rato
+     * (PlataformaSelloEntity.PISADA).
      */
-    private static final int ESCALON_CADA = 30;
+    private static final int ESCALON_CADA = 15;
+    private static final int ESCALONES_A_LA_VEZ = 2;
+    private static final int CAIDOS_POR_COLUMNA = 2;
 
     /** El Sello: 45 s para subir y romper los cuatro totems. Un totem roto se queda roto. */
     public static final int SELLO_TICKS = 900;
@@ -277,6 +286,17 @@ public class RajangEntity extends Monster {
             SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.FLOAT);
     /** Quien lleva el Idolo de Oro (id de entidad, -1 nadie): el cliente se lo pinta en la cabeza. */
     private static final EntityDataAccessor<Integer> DATA_PORTADOR =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
+    /** El minijuego en marcha: el tipo (4 bits), la cuenta (10 bits) y lo que hace falta (10 bits). */
+    private static final EntityDataAccessor<Integer> DATA_MINI =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
+    /** Cuando se acaba el minijuego (tiempo del mundo; 0 si no hay). */
+    private static final EntityDataAccessor<Long> DATA_MINI_FIN =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.LONG);
+    /** Glifos del Templo: quien es el Vidente (id de entidad, -1 nadie) y los glifos buenos (un bit cada uno). */
+    private static final EntityDataAccessor<Integer> DATA_VIDENTE =
+            SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_GLIFOS =
             SynchedEntityData.defineId(RajangEntity.class, EntityDataSerializers.INT);
 
     // --- Solo cliente ---
@@ -375,6 +395,13 @@ public class RajangEntity extends Monster {
     private double velCarga;
     private double avanceCarga;
     private final java.util.Set<Integer> arrollados = new java.util.HashSet<>();
+    // Los minijuegos: uno cada vez, con 25 s entre uno y otro
+    private @Nullable MinijuegoRajang mini;
+    private int miniSiguiente;
+    private int enfMinijuego = 400;
+    private final int[] enfMini = new int[5];
+    /** El salto que viene no mata (el del prisma, el del impostor). */
+    private boolean saltoNoMata;
     // La Tumba
     private @Nullable Vec3 centroTumba;
     /** Las Tumbas que lleva: las impares van en anillo. */
@@ -411,6 +438,10 @@ public class RajangEntity extends Monster {
         datos.define(DATA_TUMBA_ANILLO, false);
         datos.define(DATA_CARGA, 0.0F);
         datos.define(DATA_PORTADOR, -1);
+        datos.define(DATA_MINI, 0);
+        datos.define(DATA_MINI_FIN, 0L);
+        datos.define(DATA_VIDENTE, -1);
+        datos.define(DATA_GLIFOS, 0);
     }
 
     @Override
@@ -474,6 +505,50 @@ public class RajangEntity extends Monster {
         return centro;
     }
 
+    /** El minijuego en marcha (MinijuegosRajang.PRISMA, IMPOSTOR, GLIFOS, SUELO) o NINGUNO; en los dos lados. */
+    public int minijuego() {
+        return entityData.get(DATA_MINI) & 15;
+    }
+
+    /** Lo que lleva el minijuego: trampas, glifos rotos o los que han caido. */
+    public int getMiniCuenta() {
+        return (entityData.get(DATA_MINI) >> 4) & 1023;
+    }
+
+    public int getMiniNecesario() {
+        return (entityData.get(DATA_MINI) >> 14) & 1023;
+    }
+
+    /** Cuando se acaba el minijuego (tiempo del mundo). */
+    public long getMiniFin() {
+        return entityData.get(DATA_MINI_FIN);
+    }
+
+    /** Glifos del Templo: el Vidente (id de entidad, -1 nadie). */
+    public int getVidente() {
+        return entityData.get(DATA_VIDENTE);
+    }
+
+    /** Glifos del Templo: los glifos buenos, un bit cada uno (en el orden de MinijuegosRajang.NOMBRES_GLIFOS). */
+    public int getGlifosBuenos() {
+        return entityData.get(DATA_GLIFOS);
+    }
+
+    /** El Impostor de Jade: esta disfrazado (no se ve, no se toca, no suena). */
+    public boolean oculto() {
+        return minijuego() == MinijuegosRajang.IMPOSTOR && !isDeadOrDying();
+    }
+
+    /** Lo que dura cada minijuego (ticks), para la barra. */
+    public static int duracionMinijuego(int tipo) {
+        return switch (tipo) {
+            case MinijuegosRajang.PRISMA -> PrismaRajang.DURA;
+            case MinijuegosRajang.IMPOSTOR -> ImpostorRajang.DURA;
+            case MinijuegosRajang.GLIFOS -> GlifosRajang.DURA;
+            default -> SueloRajang.DURA;
+        };
+    }
+
     public int getJugadoresGrupo() {
         return jugadoresGrupo;
     }
@@ -484,6 +559,9 @@ public class RajangEntity extends Monster {
     }
 
     private void ponerEstado(int estado, int dur) {
+        if (estado != SALTO) {
+            saltoNoMata = false;
+        }
         if (estado != SALTO && saltando) {
             // Un salto cortado a medias (por otro ataque o una orden) no puede seguir
             // empujandolo: sin esto, alzado en el Cataclismo seguia resbalando hacia delante.
@@ -588,8 +666,8 @@ public class RajangEntity extends Monster {
             case DESPERTAR -> despertar;
             case GARRA -> garra;
             case TERREMOTO -> terremoto;
-            case RUGIDO, IDOLO -> rugido;
-            case SELLO -> sello;
+            case RUGIDO, IDOLO, MINIJUEGO -> rugido;
+            case SELLO, SOSTIENE_SUELO -> sello;
             case CATACLISMO -> cataclismo;
             case CATACLISMO_SOSTIENE -> cataclismoSostiene;
             case CATACLISMO_BAJA -> cataclismoBaja;
@@ -648,7 +726,9 @@ public class RajangEntity extends Monster {
             }
             return;
         }
-        efectosCliente();
+        if (!oculto()) {
+            efectosCliente();
+        }
     }
 
     /**
@@ -912,9 +992,14 @@ public class RajangEntity extends Monster {
         if (enfEmbestida > 0) enfEmbestida--;
         if (enfTumba > 0) enfTumba--;
         if (enfIdolo > 0) enfIdolo--;
+        if (enfMinijuego > 0 && mini == null) enfMinijuego--;
+        for (int i = 0; i < enfMini.length; i++) {
+            if (enfMini[i] > 0) enfMini[i]--;
+        }
         if (idoloQueda > 0) {
             tickIdoloFuera(nivel);
         }
+        tickMinijuego(nivel);
         if (piel > 0 && --piel == 0) {
             entityData.set(DATA_PIEL, false);
         }
@@ -943,6 +1028,11 @@ public class RajangEntity extends Monster {
             case ESTAMPADO -> tickEstampado(nivel);
             case TUMBA -> tickTumba(nivel);
             case IDOLO -> tickIdolo(nivel);
+            case MINIJUEGO -> {
+                if (t == RajangGeometria.RUGIDO_RUGE) {
+                    empezarMinijuego(nivel, miniSiguiente);
+                }
+            }
             default -> {
             }
         }
@@ -1005,7 +1095,15 @@ public class RajangEntity extends Monster {
             }
             case SALTO -> {
                 saltando = false;
+                saltoNoMata = false;
                 terminar();
+            }
+            case MINIJUEGO -> {
+                if (mini instanceof SueloRajang) {
+                    ponerEstado(SOSTIENE_SUELO, mini.dura - mini.t + 20);
+                } else {
+                    terminar();
+                }
             }
             case EMBESTIDA_AVISO -> empezarCarga(nivel);
             case EMBESTIDA -> frenar(nivel);
@@ -1039,6 +1137,10 @@ public class RajangEntity extends Monster {
     // ------------------------------------------------------------------
 
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (mini != null && mini.controlaLibre() && escena <= 0) {
+            mini.libre(nivel);
+            return;
+        }
         if (idoloQueda > 0 && escena <= 0) {
             // Con el idolo fuera solo anda o corre a por el y, si alcanza a quien
             // lo lleva, la Garra (nada de ataques especiales: Juan, 08-10-2026).
@@ -1091,8 +1193,9 @@ public class RajangEntity extends Monster {
         List<int[]> opciones = new ArrayList<>();
         if (enfGarra <= 0 && d < ALCANCE_GARRA) opciones.add(new int[]{GARRA, 5});
         if (enfTerremoto <= 0) opciones.add(new int[]{TERREMOTO, 3});
-        if (fase >= 2 && enfSello <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{RUGIDO, 2});
-        if (fase >= 3 && enfCataclismo <= 0) opciones.add(new int[]{CATACLISMO, 7});
+        boolean conMini = mini != null;
+        if (fase >= 2 && !conMini && enfSello <= 0 && !jugadores(nivel, 56, 0).isEmpty()) opciones.add(new int[]{RUGIDO, 2});
+        if (fase >= 3 && !conMini && enfCataclismo <= 0) opciones.add(new int[]{CATACLISMO, 7});
         // La Embestida y el Salto van a por el jugador mas lejano a tiro: los arqueros
         // de lejos salian casi ilesos (testers, 07-10-2026).
         LivingEntity salto = null;
@@ -1111,10 +1214,16 @@ public class RajangEntity extends Monster {
             }
         }
         if (carga != null) opciones.add(new int[]{EMBESTIDA_AVISO, 5});
-        if (fase >= 2 && enfIdolo <= 0 && idoloQueda <= 0 && !jugadores(nivel, 48, 0).isEmpty()) {
+        if (fase >= 2 && !conMini && enfIdolo <= 0 && idoloQueda <= 0 && !jugadores(nivel, 48, 0).isEmpty()) {
             opciones.add(new int[]{IDOLO, 3});
         }
-        if (fase >= 2 && enfTumba <= 0 && tickCount - ultimoTerremoto >= TUMBA_TRAS_TERREMOTO
+        // Los minijuegos (Juan, 09-10-2026): el Prisma desde la I, el Impostor desde la II, los
+        // Glifos desde la III y el Suelo en la IV. Uno cada vez y con 25 s entre uno y otro.
+        int tipoMini = conMini || enfMinijuego > 0 || idoloQueda > 0 ? MinijuegosRajang.NINGUNO : elegirTipoMini();
+        if (tipoMini != MinijuegosRajang.NINGUNO && !jugadores(nivel, 48, 0).isEmpty()) {
+            opciones.add(new int[]{MINIJUEGO, 5});
+        }
+        if (fase >= 2 && !conMini && enfTumba <= 0 && tickCount - ultimoTerremoto >= TUMBA_TRAS_TERREMOTO
                 && !jugadores(nivel, TUMBA_CERCA, 0).isEmpty()) {
             opciones.add(new int[]{TUMBA, 3});
         }
@@ -1149,6 +1258,9 @@ public class RajangEntity extends Monster {
         }
         if (elegido == SALTO && salto != null) {
             objetivo = salto;
+        }
+        if (elegido == MINIJUEGO) {
+            miniSiguiente = tipoMini;
         }
         iniciar(nivel, elegido, objetivo);
     }
@@ -1207,6 +1319,12 @@ public class RajangEntity extends Monster {
             case IDOLO -> {
                 enfIdolo = (int) (1200 * k);
                 ponerEstado(IDOLO, RajangGeometria.DURACION_RUGIDO);
+                sonido(AtalayaSonidos.RAJANG_RUGIDO, 6.0F);
+            }
+            case MINIJUEGO -> {
+                enfMinijuego = 500;
+                enfMini[miniSiguiente] = (int) (1500 * k);
+                ponerEstado(MINIJUEGO, RajangGeometria.DURACION_RUGIDO);
                 sonido(AtalayaSonidos.RAJANG_RUGIDO, 6.0F);
             }
             case SALTO -> {
@@ -1310,6 +1428,34 @@ public class RajangEntity extends Monster {
             case "escalon" -> {
                 // Hace temblar ya un escalon del Sello (si hay Sello).
                 temblarEscalon(nivel);
+                return true;
+            }
+            case "prisma", "impostor", "glifos", "suelo" -> {
+                // Un minijuego ya (sin mirar la fase ni los enfriamientos).
+                if (getEstado() == DORMIDO) {
+                    despertarse(blanco);
+                    return true;
+                }
+                acabarMinijuego(nivel, false, false);
+                cancelarSello(nivel, false);
+                rugidoFinal = false;
+                ponerEstado(LIBRE, 0);
+                miniSiguiente = java.util.Arrays.asList(MinijuegosRajang.CLAVES).indexOf(orden);
+                iniciar(nivel, MINIJUEGO, blanco);
+                return true;
+            }
+            case "mini_bien" -> {
+                // Que el minijuego en marcha salga bien ya.
+                if (mini != null) {
+                    mini.forzarExito(nivel);
+                }
+                return true;
+            }
+            case "mini_fin" -> {
+                // Que se acabe el tiempo del minijuego en marcha.
+                if (mini != null) {
+                    acabarMinijuego(nivel, mini.exitoAlAcabar(), true);
+                }
                 return true;
             }
             default -> {
@@ -1742,19 +1888,29 @@ public class RajangEntity extends Monster {
      */
     private void temblarEscalon(ServerLevel nivel) {
         ultimoEscalon = t;
-        java.util.Set<Integer> ocupadas = new java.util.HashSet<>();
-        List<PlataformaSelloEntity> libres = new ArrayList<>();
-        for (PlataformaSelloEntity p : plataformas) {
-            if (p.getTipo() == PlataformaSelloEntity.PIEDRA && p.enCaida()) {
-                ocupadas.add(p.getColumna());
+        for (int i = 0; i < ESCALONES_A_LA_VEZ; i++) {
+            // Los que ya estan cayendo o fuera, por columna: como mucho CAIDOS_POR_COLUMNA y
+            // nunca dos seguidos de la misma espiral (un hueco de tres bloques no se salta).
+            java.util.Map<Integer, List<Integer>> fuera = new java.util.HashMap<>();
+            for (PlataformaSelloEntity p : plataformas) {
+                if (p.getTipo() == PlataformaSelloEntity.PIEDRA && p.enCaida()) {
+                    fuera.computeIfAbsent(p.getColumna(), k -> new ArrayList<>()).add(p.getEscalon());
+                }
             }
-        }
-        for (PlataformaSelloEntity p : plataformas) {
-            if (p.getTipo() == PlataformaSelloEntity.PIEDRA && p.firme() && p.getEscalon() >= 3 && !ocupadas.contains(p.getColumna())) {
+            List<PlataformaSelloEntity> libres = new ArrayList<>();
+            for (PlataformaSelloEntity p : plataformas) {
+                if (p.getTipo() != PlataformaSelloEntity.PIEDRA || !p.firme() || p.getEscalon() < 3) {
+                    continue;
+                }
+                List<Integer> ya = fuera.getOrDefault(p.getColumna(), List.of());
+                if (ya.size() >= CAIDOS_POR_COLUMNA || ya.contains(p.getEscalon() - 1) || ya.contains(p.getEscalon() + 1)) {
+                    continue;
+                }
                 libres.add(p);
             }
-        }
-        if (!libres.isEmpty()) {
+            if (libres.isEmpty()) {
+                return;
+            }
             libres.get(random.nextInt(libres.size())).temblar(nivel);
         }
     }
@@ -1983,6 +2139,15 @@ public class RajangEntity extends Monster {
         if (presa != null && presa.isAlive() && ta() < RajangGeometria.SALTO_DESPEGA) {
             girarHacia(presa.position(), 15.0F);
             destino = presa.position();
+        } else if (presa == null && ta() < RajangGeometria.SALTO_DESPEGA) {
+            // A un sitio: la luz del prisma, que se mueve hasta que despega.
+            Vec3 d = mini != null ? mini.destinoSalto() : null;
+            if (d != null) {
+                destino = d;
+            }
+            if (destino != null) {
+                girarHacia(destino, 20.0F);
+            }
         }
         // Donde va a caer: el aro de aviso, desde que se agacha hasta que aterriza (testers: no se veia).
         if (destino != null && ta() < RajangGeometria.SALTO_ATERRIZA && t % 4 == 0) {
@@ -2016,10 +2181,19 @@ public class RajangEntity extends Monster {
                 if (horizontal(c, v.position()) > 6.5) {
                     continue;
                 }
-                v.hurtServer(nivel, fuente, contraArmadura(v, dano(DANO_SALTO)));
+                float d = contraArmadura(v, dano(DANO_SALTO));
+                if (saltoNoMata) {
+                    d = Math.min(d, topeSinMatar(v));
+                }
+                if (d > 0.0F) {
+                    v.hurtServer(nivel, fuente, d);
+                }
                 Vec3 fuera = horizontalHacia(c, v.position());
                 v.setDeltaMovement(fuera.x * 1.4, 0.6, fuera.z * 1.4);
                 v.hurtMarked = true;
+            }
+            if (mini != null) {
+                mini.alAterrizar(nivel, new Vec3(c.x, y0, c.z), destino);
             }
             for (int k = 0; k < 6; k++) {
                 double a = Math.PI * 2 * k / 6 + random.nextDouble() * 0.5;
@@ -2404,6 +2578,7 @@ public class RajangEntity extends Monster {
         if (e == DORMIDO || e == DESPERTAR) {
             return;
         }
+        acabarMinijuego(nivel, false, false);
         for (Player p : jugadores(nivel, 10, 0)) {
             Vec3 fuera = horizontalHacia(position(), p.position());
             p.setDeltaMovement(fuera.x * 1.1, 0.4, fuera.z * 1.1);
@@ -2670,6 +2845,216 @@ public class RajangEntity extends Monster {
     }
 
     // ------------------------------------------------------------------
+    //  Los minijuegos (octubre de 2026; Juan eligio uno por fase de cinco
+    //  fichas: El Rayo del Prisma, El Impostor de Jade, Glifos del Templo y
+    //  Suelo que se Hunde). Cada uno en su clase (MinijuegoRajang); aqui el
+    //  marco: elegir, empezar, mover, acabar, y lo que necesitan de el.
+    // ------------------------------------------------------------------
+
+    /** Uno de los que tocan por la fase y no esten recien hechos, al azar. */
+    private int elegirTipoMini() {
+        List<Integer> tipos = new ArrayList<>();
+        for (int tipo = MinijuegosRajang.PRISMA; tipo <= MinijuegosRajang.SUELO; tipo++) {
+            if (fase() >= MinijuegosRajang.FASE[tipo] && enfMini[tipo] <= 0) {
+                tipos.add(tipo);
+            }
+        }
+        return tipos.isEmpty() ? MinijuegosRajang.NINGUNO : tipos.get(random.nextInt(tipos.size()));
+    }
+
+    /** Al rugir: sale lo del minijuego. */
+    private void empezarMinijuego(ServerLevel nivel, int tipo) {
+        acabarMinijuego(nivel, false, false);
+        MinijuegoRajang m = switch (tipo) {
+            case MinijuegosRajang.PRISMA -> new PrismaRajang(this);
+            case MinijuegosRajang.IMPOSTOR -> new ImpostorRajang(this);
+            case MinijuegosRajang.GLIFOS -> new GlifosRajang(this);
+            case MinijuegosRajang.SUELO -> new SueloRajang(this);
+            default -> null;
+        };
+        if (m == null) {
+            return;
+        }
+        MinijuegosRajang.activar(this);
+        mini = m;
+        anotarMinijuego();
+        if (!m.empezar(nivel, jugadores(nivel, 48, 0))) {
+            mini = null;
+            entityData.set(DATA_MINI, 0);
+            MinijuegosRajang.desactivar(this);
+            return;
+        }
+        anotarMinijuego();
+        entityData.set(DATA_MINI_FIN, nivel.getGameTime() + m.dura);
+    }
+
+    private void anotarMinijuego() {
+        entityData.set(DATA_MINI, mini == null ? 0
+                : mini.tipo | (Math.min(1023, mini.cuenta) << 4) | (Math.min(1023, mini.necesario) << 14));
+    }
+
+    private void tickMinijuego(ServerLevel nivel) {
+        if (mini == null) {
+            return;
+        }
+        MinijuegoRajang m = mini;
+        m.t++;
+        m.tick(nivel);
+        if (mini != m) {
+            return;
+        }
+        if (m.t >= m.dura) {
+            acabarMinijuego(nivel, m.exitoAlAcabar(), true);
+        } else {
+            anotarMinijuego();
+        }
+    }
+
+    /** El que esta en marcha (para que cada uno sepa si sigue siendo el). */
+    @Nullable MinijuegoRajang getMinijuegoEnMarcha() {
+        return mini;
+    }
+
+    /**
+     * Se acaba el minijuego: fuera lo que salio y lo repartido. Si salio bien,
+     * queda aturdido (dano doble); si no, cada uno sabe lo que pasa. Sin
+     * avisar (un cambio de fase, la muerte, una orden), sin mas.
+     */
+    void acabarMinijuego(ServerLevel nivel, boolean exito, boolean avisar) {
+        MinijuegoRajang m = mini;
+        if (m == null) {
+            return;
+        }
+        mini = null;
+        entityData.set(DATA_MINI, 0);
+        entityData.set(DATA_MINI_FIN, 0L);
+        entityData.set(DATA_VIDENTE, -1);
+        entityData.set(DATA_GLIFOS, 0);
+        m.limpiar(nivel, exito, avisar);
+        MinijuegosRajang.quitarTodo(nivel, this);
+        MinijuegosRajang.desactivar(this);
+        enfMinijuego = 500;
+        if (getEstado() == SOSTIENE_SUELO || (getEstado() == MINIJUEGO && !avisar)) {
+            terminar();
+        }
+        if (!avisar || isDeadOrDying()) {
+            return;
+        }
+        String clave = MinijuegosRajang.CLAVES[m.tipo];
+        avisar(nivel, Component.translatable("hud.atalaya.rajang." + clave + (exito ? "_exito" : "_fallo"))
+                .withStyle(exito ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+        nivel.playSound(null, getX(), getY() + 4, getZ(), exito ? AtalayaSonidos.RAJANG_MINI_EXITO : AtalayaSonidos.RAJANG_MINI_FALLO,
+                SoundSource.HOSTILE, 5.0F, 1.0F);
+        if (exito) {
+            aturdirMini(nivel, RajangGeometria.DURACION_ATURDIDO);
+        }
+    }
+
+    /** Aturdido tras un minijuego bien hecho: tumbado, con dano doble. */
+    private void aturdirMini(ServerLevel nivel, int ticks) {
+        int e = getEstado();
+        if (e == DORMIDO || e == DESPERTAR || isDeadOrDying()) {
+            return;
+        }
+        cancelarSello(nivel, false);
+        rugidoFinal = false;
+        saltando = false;
+        ponerEstado(ATURDIDO, ticks);
+        sonido(AtalayaSonidos.RAJANG_ATURDIDO, 7.0F);
+    }
+
+    // --- Lo que los minijuegos necesitan de el ---
+
+    /** El centro de su templo, en el suelo. */
+    Vec3 centroArena() {
+        return centro != null ? Vec3.atBottomCenterOf(centro) : position();
+    }
+
+    /** El mismo punto, pero sin salir de su templo (la correa). */
+    Vec3 dentroArena(Vec3 p) {
+        Vec3 c = centroArena();
+        Vec3 rel = new Vec3(p.x - c.x, 0, p.z - c.z);
+        if (rel.length() <= CORREA) {
+            return p;
+        }
+        rel = rel.normalize().scale(CORREA);
+        return new Vec3(c.x + rel.x, p.y, c.z + rel.z);
+    }
+
+    List<Player> jugadoresMini(ServerLevel nivel, double max) {
+        return jugadores(nivel, max, 0);
+    }
+
+    void avisarMini(ServerLevel nivel, Component texto) {
+        avisar(nivel, texto);
+    }
+
+    void quietoMini() {
+        quieto();
+        setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+    }
+
+    void girarMini(Vec3 hacia, float paso) {
+        girarHacia(hacia, paso);
+    }
+
+    /** Salta a un sitio (o sobre alguien): el del prisma y el del impostor. No mata. */
+    void saltarMini(ServerLevel nivel, Vec3 donde, @Nullable LivingEntity sobre) {
+        presa = sobre;
+        destino = donde;
+        entityData.set(DATA_OBJETIVO, sobre != null ? sobre.getId() : -1);
+        ponerEstado(SALTO, RajangGeometria.DURACION_SALTO);
+        saltoNoMata = true;
+        sonido(AtalayaSonidos.RAJANG_GRUNIDO, 4.0F);
+    }
+
+    /** Una trampa le muerde: una parte de su vida (no se cura con nada). */
+    void morderMini(ServerLevel nivel, float parte) {
+        setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * parte));
+        Vec3 c = puntoMundo(RajangGeometria.PECHO);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, c.x, c.y - 2, c.z, 30, 2.0, 1.0, 2.0, 0.2);
+        hurtTime = 10;
+        hurtDuration = 10;
+    }
+
+    /** Lo mas que se le puede quitar a alguien sin matarlo (con la dificultad, que lo sube hasta x1,5). */
+    static float topeSinMatar(LivingEntity v) {
+        return Math.max(0.0F, (v.getHealth() + v.getAbsorptionAmount() - 1.0F) / 1.5F);
+    }
+
+    /** Un golpe de los minijuegos: duele pero no mata. */
+    void danoSinMatar(ServerLevel nivel, LivingEntity v, float dano) {
+        float d = Math.min(contraArmadura(v, dano), topeSinMatar(v));
+        if (d > 0.0F) {
+            v.hurtServer(nivel, RajangDanos.fuente(nivel, RajangDanos.FRAGMENTO, this, this), d);
+        }
+    }
+
+    /** Glifos del Templo: el Vidente y los glifos buenos, para el cliente. */
+    void ponerGlifos(int vidente, int buenos) {
+        entityData.set(DATA_VIDENTE, vidente);
+        entityData.set(DATA_GLIFOS, buenos);
+    }
+
+    /** El Impostor: vuelve a su forma (donde estaba la copia) y, con estruendo, aparta a los de al lado. */
+    void reaparecerMini(ServerLevel nivel, Vec3 donde, boolean estruendo) {
+        if (horizontal(position(), donde) > 0.5 || Math.abs(getY() - donde.y) > 0.5) {
+            teleportTo(donde.x, donde.y, donde.z);
+        }
+        if (!estruendo) {
+            return;
+        }
+        Vec3 c = puntoMundo(RajangGeometria.PECHO);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, c.x, c.y - 1, c.z, 80, 2.5, 2.5, 3.0, 0.3);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_POLVO, true, true, c.x, c.y - 2, c.z, 60, 3.0, 2.0, 4.0, 0.05);
+        nivel.sendParticles(AtalayaParticulas.RAJANG_ONDA, true, true, getX(), getY() + 0.1, getZ(), 0, 2.4, 12.0, 0.0, 1.0);
+        nivel.playSound(null, c.x, c.y, c.z, AtalayaSonidos.RAJANG_IMPOSTOR_DESCUBIERTO, SoundSource.HOSTILE, 7.0F, 1.0F);
+        for (Player p : jugadores(nivel, 8, 0)) {
+            lanzar(p, horizontalHacia(position(), p.position()).scale(1.2), 0.45);
+        }
+    }
+
+    // ------------------------------------------------------------------
     //  Las cajas de la cabeza y la grupa
     // ------------------------------------------------------------------
 
@@ -2708,6 +3093,12 @@ public class RajangEntity extends Monster {
             Vec3 w = puntoMundo(local);
             p.colocar(w.x, w.y - p.getBbHeight() / 2, w.z);
         }
+        if (oculto()) {
+            // Disfrazado: que no se le pueda dar por donde estaba.
+            for (RajangParteEntity p : partes) {
+                p.colocar(p.getX(), getY() - 64.0, p.getZ());
+            }
+        }
     }
 
     /** El dano que llega por la cabeza o la grupa. */
@@ -2725,6 +3116,9 @@ public class RajangEntity extends Monster {
         }
         if (idoloQueda > 0 && level() instanceof ServerLevel nivelIdolo) {
             acabarIdolo(nivelIdolo);
+        }
+        if (mini != null && level() instanceof ServerLevel nivelMini) {
+            acabarMinijuego(nivelMini, false, false);
         }
         super.remove(motivo);
         limpiar();
@@ -2774,6 +3168,12 @@ public class RajangEntity extends Monster {
         }
         if (e == DESPERTAR || escena > 0) {
             avisoInmune(nivel, causante);
+            return false;
+        }
+        if (mini != null && mini.inmune()) {
+            if (!oculto()) {
+                avisoInmune(nivel, causante);
+            }
             return false;
         }
         if (e == SELLO || e == RUGIDO || (e == TUMBA && t < RajangGeometria.TUMBA_ESTALLA)) {
@@ -2845,6 +3245,7 @@ public class RajangEntity extends Monster {
         velCarga = 0.0;
         if (level() instanceof ServerLevel nivel) {
             cancelarSello(nivel, true);
+            acabarMinijuego(nivel, false, false);
         }
         picos.clear();
         saltando = false;
@@ -2988,7 +3389,22 @@ public class RajangEntity extends Monster {
     // ------------------------------------------------------------------
 
     @Override
+    public boolean isPickable() {
+        return super.isPickable() && !oculto();
+    }
+
+    @Override
+    protected void pushEntities() {
+        if (!oculto()) {
+            super.pushEntities();
+        }
+    }
+
+    @Override
     protected @Nullable SoundEvent getAmbientSound() {
+        if (oculto()) {
+            return null;
+        }
         int e = getEstado();
         return e == DORMIDO ? AtalayaSonidos.RAJANG_DORMIDO : e == LIBRE ? AtalayaSonidos.RAJANG_AMBIENTE : null;
     }

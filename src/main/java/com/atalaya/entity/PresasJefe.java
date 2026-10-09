@@ -108,7 +108,8 @@ public final class PresasJefe {
         if (v instanceof Player p) {
             return !p.isCreative() && !p.isSpectator();
         }
-        return v instanceof net.minecraft.world.entity.decoration.Mannequin;
+        // Las copias del Impostor de Jade de Rajang no son de nadie.
+        return v instanceof net.minecraft.world.entity.decoration.Mannequin && !ImpostorRajang.esCopia(v);
     }
 
     /** Es uno de los cuatro jefes: lo suyo no le hace nada a otro jefe. */

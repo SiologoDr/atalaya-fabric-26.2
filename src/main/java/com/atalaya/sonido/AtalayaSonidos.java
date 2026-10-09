@@ -255,6 +255,25 @@ public final class AtalayaSonidos {
     public static SoundEvent RAJANG_ESCALON_TIEMBLA;
     public static SoundEvent RAJANG_ESCALON_CAE;
     public static SoundEvent RAJANG_TOTEM_PULSO;
+    // Los minijuegos de Rajang (rajang_minijuegos_sonidos.py).
+    public static SoundEvent RAJANG_PRISMA_CAE;
+    public static SoundEvent RAJANG_PRISMA_LUZ;
+    public static SoundEvent RAJANG_TRAMPA_ABRE;
+    public static SoundEvent RAJANG_TRAMPA_CAE;
+    public static SoundEvent RAJANG_IMPOSTOR_DISFRAZ;
+    public static SoundEvent RAJANG_IMPOSTOR_DESCUBIERTO;
+    public static SoundEvent RAJANG_SENUELO_ROMPE;
+    public static SoundEvent RAJANG_GLIFO_ALZA;
+    public static SoundEvent RAJANG_GLIFO_GOLPE;
+    public static SoundEvent RAJANG_GLIFO_ROMPE;
+    public static SoundEvent RAJANG_GLIFO_FALSO;
+    public static SoundEvent RAJANG_VIDENTE;
+    public static SoundEvent RAJANG_SUELO_ALZA;
+    public static SoundEvent RAJANG_LOSA_CRUJE;
+    public static SoundEvent RAJANG_LOSA_CAE;
+    public static SoundEvent RAJANG_PINCHOS;
+    public static SoundEvent RAJANG_MINI_EXITO;
+    public static SoundEvent RAJANG_MINI_FALLO;
 
     // Novilis, el Caballero Solar (novilis_sonidos.py): fuego, lava, acero, su sol y
     // una voz por el yelmo. Las cuatro melodias son las voces de las trompetas de las
@@ -537,6 +556,24 @@ public final class AtalayaSonidos {
         RAJANG_ESCALON_TIEMBLA = registrar("rajang.escalon_tiembla");
         RAJANG_ESCALON_CAE = registrar("rajang.escalon_cae");
         RAJANG_TOTEM_PULSO = registrar("rajang.totem_pulso");
+        RAJANG_PRISMA_CAE = registrar("rajang.prisma_cae");
+        RAJANG_PRISMA_LUZ = registrar("rajang.prisma_luz");
+        RAJANG_TRAMPA_ABRE = registrar("rajang.trampa_abre");
+        RAJANG_TRAMPA_CAE = registrar("rajang.trampa_cae");
+        RAJANG_IMPOSTOR_DISFRAZ = registrar("rajang.impostor_disfraz");
+        RAJANG_IMPOSTOR_DESCUBIERTO = registrar("rajang.impostor_descubierto");
+        RAJANG_SENUELO_ROMPE = registrar("rajang.senuelo_rompe");
+        RAJANG_GLIFO_ALZA = registrar("rajang.glifo_alza");
+        RAJANG_GLIFO_GOLPE = registrar("rajang.glifo_golpe");
+        RAJANG_GLIFO_ROMPE = registrar("rajang.glifo_rompe");
+        RAJANG_GLIFO_FALSO = registrar("rajang.glifo_falso");
+        RAJANG_VIDENTE = registrar("rajang.vidente");
+        RAJANG_SUELO_ALZA = registrar("rajang.suelo_alza");
+        RAJANG_LOSA_CRUJE = registrar("rajang.losa_cruje");
+        RAJANG_LOSA_CAE = registrar("rajang.losa_cae");
+        RAJANG_PINCHOS = registrar("rajang.pinchos");
+        RAJANG_MINI_EXITO = registrar("rajang.mini_exito");
+        RAJANG_MINI_FALLO = registrar("rajang.mini_fallo");
         NOVILIS_DESPERTAR = registrar("novilis.despertar");
         NOVILIS_PASO = registrar("novilis.paso");
         NOVILIS_AMBIENTE = registrar("novilis.ambiente");

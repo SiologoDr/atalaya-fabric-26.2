@@ -168,6 +168,11 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.PLATAFORMA_SELLO, PlataformaSelloRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.FRAGMENTO_JADE, FragmentoJadeRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.ALTAR_IDOLO, AltarIdoloRenderer::new);
+        // Los minijuegos de Rajang: la luz del prisma, las trampas de oro, las columnas de los glifos y las losas.
+        EntityRendererRegistry.register(AtalayaEntities.LUZ_PRISMA, com.atalaya.client.LuzPrismaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.TRAMPA_ORO, com.atalaya.client.TrampaOroRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.GLIFO_TEMPLO, com.atalaya.client.GlifoTemploRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.LOSA_JADE, com.atalaya.client.LosaJadeRenderer::new);
 
         // Novilis: malla y animaciones generadas desde novilis_juego*.py, y lo
         // que lanza (medias lunas, sellos, la onda, los soles, las estatuas, el camino de
@@ -272,6 +277,7 @@ public class AtalayaClient implements ClientModInitializer {
         rajang(AtalayaParticulas.RAJANG_LASTRE, RajangParticula.Tipo.LASTRE);
         rajang(AtalayaParticulas.RAJANG_ORO, RajangParticula.Tipo.ORO);
         rajang(AtalayaParticulas.RAJANG_ZARPAZO, RajangParticula.Tipo.ZARPAZO);
+        rajang(AtalayaParticulas.RAJANG_HUELLA, RajangParticula.Tipo.HUELLA);
 
         // Las once de Novilis.
         novilis(AtalayaParticulas.NOVILIS_BRASA, NovilisParticula.Tipo.BRASA);
@@ -322,6 +328,11 @@ public class AtalayaClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_aeralis"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
                 oculto(new com.atalaya.client.RajangBarraHud()));
+        // Glifos del Templo: los tres glifos buenos, solo para el Vidente.
+        HudElementRegistry.attachElementAfter(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "glifos_vidente"),
+                oculto(new com.atalaya.client.GlifosVidenteHud()));
         // Y la de Novilis, debajo de las tres.
         HudElementRegistry.attachElementAfter(
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),

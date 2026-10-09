@@ -66,6 +66,10 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_CANON_NAUFRAGIO = clave("canon_naufragio");
     public static final ResourceKey<EntityType<?>> CLAVE_PILA_BALAS = clave("pila_balas");
     public static final ResourceKey<EntityType<?>> CLAVE_BALA_CANON = clave("bala_canon");
+    public static final ResourceKey<EntityType<?>> CLAVE_LUZ_PRISMA = clave("luz_prisma");
+    public static final ResourceKey<EntityType<?>> CLAVE_TRAMPA_ORO = clave("trampa_oro");
+    public static final ResourceKey<EntityType<?>> CLAVE_GLIFO_TEMPLO = clave("glifo_templo");
+    public static final ResourceKey<EntityType<?>> CLAVE_LOSA_JADE = clave("losa_jade");
 
     /** Nerea, Guardian de los Mares: el jefe elemental del agua. */
     public static EntityType<NereaEntity> NEREA;
@@ -155,6 +159,11 @@ public final class AtalayaEntities {
     public static EntityType<FragmentoJadeEntity> FRAGMENTO_JADE;
     /** El pilar del altar donde se pone el Idolo de Oro. */
     public static EntityType<AltarIdoloEntity> ALTAR_IDOLO;
+    /** Los minijuegos de Rajang: la luz del prisma, las trampas de oro, las columnas de los glifos y las losas. */
+    public static EntityType<LuzPrismaEntity> LUZ_PRISMA;
+    public static EntityType<TrampaOroEntity> TRAMPA_ORO;
+    public static EntityType<GlifoTemploEntity> GLIFO_TEMPLO;
+    public static EntityType<LosaJadeEntity> LOSA_JADE;
 
     /** Novilis, el Caballero Solar: el jefe elemental del fuego. */
     public static EntityType<NovilisEntity> NOVILIS;
@@ -423,6 +432,23 @@ public final class AtalayaEntities {
                         .clientTrackingRange(16)
                         .updateInterval(20)
                         .build(CLAVE_ALTAR_IDOLO));
+        // Los minijuegos de Rajang (octubre de 2026).
+        LUZ_PRISMA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_LUZ_PRISMA,
+                EntityType.Builder.<LuzPrismaEntity>of(LuzPrismaEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.2F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(1)
+                        .build(CLAVE_LUZ_PRISMA));
+        TRAMPA_ORO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_TRAMPA_ORO,
+                EntityType.Builder.<TrampaOroEntity>of(TrampaOroEntity::new, MobCategory.MISC)
+                        .sized(TrampaOroEntity.LADO, 0.5F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(20)
+                        .build(CLAVE_TRAMPA_ORO));
+        GLIFO_TEMPLO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_GLIFO_TEMPLO,
+                EntityType.Builder.<GlifoTemploEntity>of(GlifoTemploEntity::new, MobCategory.MISC)
+                        .sized(GlifoTemploEntity.ANCHO, GlifoTemploEntity.ALTO).fireImmune().noSummon().clientTrackingRange(16)
+                        .updateInterval(20).build(CLAVE_GLIFO_TEMPLO));
+        LOSA_JADE = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_LOSA_JADE,
+                EntityType.Builder.<LosaJadeEntity>of(LosaJadeEntity::new, MobCategory.MISC)
+                        .sized(LosaJadeEntity.LADO, LosaJadeEntity.GRUESO).fireImmune().noSummon().clientTrackingRange(10)
+                        .updateInterval(20).build(CLAVE_LOSA_JADE));
     }
 
     private static void registrarNerea() {

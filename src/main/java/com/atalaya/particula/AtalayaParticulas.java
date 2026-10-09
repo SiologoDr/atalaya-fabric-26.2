@@ -150,6 +150,8 @@ public final class AtalayaParticulas {
     public static SimpleParticleType RAJANG_ORO;
     /** El zarpazo: tres garras en arco que cortan el aire. Tamano en la X, ticks en la Y, giro en la Z. */
     public static SimpleParticleType RAJANG_ZARPAZO;
+    /** La huella de zarpa de jade del Impostor, tumbada. Tamano en la X, ticks en la Y, giro en la Z. */
+    public static SimpleParticleType RAJANG_HUELLA;
     /** El tajo de cada espada de jefe al golpear: una media luna del color del tema. */
     public static SimpleParticleType MAREAS_TAJO;
     public static SimpleParticleType JADE_TAJO;
@@ -251,6 +253,7 @@ public final class AtalayaParticulas {
         RAJANG_LASTRE = registrar("rajang_lastre", true);
         RAJANG_ORO = registrar("rajang_oro", true);
         RAJANG_ZARPAZO = registrar("rajang_zarpazo", true);
+        RAJANG_HUELLA = registrar("rajang_huella", true);
         MAREAS_TAJO = registrar("mareas_tajo", true);
         JADE_TAJO = registrar("jade_tajo", true);
         VENDAVAL_TAJO = registrar("vendaval_tajo", true);

@@ -1,6 +1,7 @@
 package com.atalaya.client;
 
 import com.atalaya.Atalaya;
+import com.atalaya.entity.MinijuegosRajang;
 import com.atalaya.entity.RajangEntity;
 import com.atalaya.entity.RajangGeometria;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
@@ -8,6 +9,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -166,6 +168,45 @@ public class RajangBarraHud implements HudElement {
         if (sello > 0 && !libre) {
             selloBajo(g, r, hx, y0 + 35, sello, color);
         }
+        if (!libre && r.minijuego() != MinijuegosRajang.NINGUNO) {
+            minijuego(g, mc, r, hx, y0 + 35, color, parcial);
+        }
+    }
+
+    /**
+     * Un minijuego en marcha: bajo la barra (donde va la losa del Sello, que no
+     * coinciden) lo que le queda de tiempo y, debajo, como va: las trampas, los
+     * glifos rotos (y quien es el Vidente) o los que han caido.
+     */
+    private static void minijuego(GuiGraphicsExtractor g, Minecraft mc, RajangEntity r, int x0, int y0, int color, float parcial) {
+        if (mc.level == null) {
+            return;
+        }
+        int tipo = r.minijuego();
+        float queda = r.getMiniFin() - (mc.level.getGameTime() + parcial);
+        float k = Mth.clamp(queda / RajangEntity.duracionMinijuego(tipo), 0.0F, 1.0F);
+        int lx0 = x0 + 2;
+        int lx1 = x0 + HUECO_ANCHO - 2;
+        int ly = y0 + 2;
+        g.fill(lx0 - 1, ly - 1, lx1 + 1, ly + 6, 0xB0061209);
+        g.fill(lx0, ly, lx1, ly + 5, 0xFF07160E);
+        int w = Math.round((lx1 - lx0 - 2) * k);
+        if (w > 0) {
+            int c = k > 0.25F ? color : ((r.tickCount / 3) % 2 == 0 ? 0xFFFF5A3A : 0xFFFFC23A);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 4, c);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 2, 0x60FFFFFF);
+        }
+        String clave = MinijuegosRajang.CLAVES[Mth.clamp(tipo, 0, MinijuegosRajang.CLAVES.length - 1)];
+        Component txt;
+        if (tipo == MinijuegosRajang.GLIFOS) {
+            Entity v = mc.level.getEntity(r.getVidente());
+            Component nombre = v != null ? v.getDisplayName() : Component.literal("?");
+            txt = Component.translatable("hud.atalaya.rajang.barra_glifos", r.getMiniCuenta(), r.getMiniNecesario(), nombre);
+        } else {
+            txt = Component.translatable("hud.atalaya.rajang.barra_" + clave, r.getMiniCuenta(), r.getMiniNecesario());
+        }
+        int tw = mc.font.width(txt);
+        g.text(mc.font, txt, x0 + HUECO_ANCHO / 2 - tw / 2, ly + 9, 0xFFE8FFE8, true);
     }
 
     /** Los cuatro totems del Sello (en pie o partidos) y la losa del tiempo, bajo la barra. */

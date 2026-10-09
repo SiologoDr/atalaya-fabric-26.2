@@ -290,6 +290,30 @@ final class RajangDibujo {
         out.add(new Cara(d, c, b, a, uvTapa));
     }
 
+    /**
+     * Un panel plano (un glifo, una grieta) centrado en c, que se lee bien desde
+     * fuera: 'derecha' es la derecha de quien lo mira y 'arriba', arriba (los dos
+     * de medio panel). Con el mismo orden de vertices que las caras de caja(),
+     * asi sirve tambien en las capas que descartan la cara de atras.
+     */
+    static void panel(List<Cara> out, Vec3 c, Vec3 derecha, Vec3 arriba, float u0, float v0, float u1, float v1) {
+        Vec3 bd = c.add(derecha).subtract(arriba);
+        Vec3 bi = c.subtract(derecha).subtract(arriba);
+        Vec3 ai = c.subtract(derecha).add(arriba);
+        Vec3 ad = c.add(derecha).add(arriba);
+        out.add(new Cara(bd, bi, ai, ad, new float[]{u1, v1, u0, v1, u0, v0, u1, v0}));
+    }
+
+    /** Las mismas caras y, ademas, vueltas del reves (para las capas que descartan la cara de atras). */
+    static List<Cara> dosCaras(List<Cara> caras) {
+        List<Cara> out = new java.util.ArrayList<>(caras);
+        for (Cara c : caras) {
+            float[] u = c.uv();
+            out.add(new Cara(c.d(), c.c(), c.b(), c.a(), new float[]{u[6], u[7], u[4], u[5], u[2], u[3], u[0], u[1]}));
+        }
+        return out;
+    }
+
     /** La UV de un rectangulo de la textura (u0, v0 arriba a la izquierda; u1, v1 abajo a la derecha), como Cara la quiere. */
     static float[] uv(float u0, float v0, float u1, float v1) {
         return new float[]{u0, v1, u1, v1, u1, v0, u0, v0};

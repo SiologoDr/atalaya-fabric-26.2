@@ -31,7 +31,7 @@ public final class RajangEfectosCliente {
             return;
         }
         for (Entity e : nivel.entitiesForRendering()) {
-            if (e instanceof RajangEntity r && r.distanceToSqr(mc.player) < 110 * 110) {
+            if (e instanceof RajangEntity r && !r.oculto() && r.distanceToSqr(mc.player) < 110 * 110) {
                 procesar(nivel, r, mc.player);
             }
         }

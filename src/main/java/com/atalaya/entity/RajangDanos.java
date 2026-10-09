@@ -39,6 +39,8 @@ public final class RajangDanos {
     public static final ResourceKey<DamageType> EMBESTIDA = clave("rajang_embestida");
     public static final ResourceKey<DamageType> RAIZ = clave("rajang_raiz");
     public static final ResourceKey<DamageType> PULSO = clave("rajang_pulso");
+    /** Suelo que se Hunde: caer de las losas (al foso o tirarse) mata salvo totem; pasa la armadura y la resistencia. */
+    public static final ResourceKey<DamageType> FOSO = clave("rajang_foso");
 
     private RajangDanos() {
     }

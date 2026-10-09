@@ -164,6 +164,13 @@ public class Atalaya implements ModInitializer {
         // Y lo que no puede hacer mientras dura: usar, pegar, colocar.
         AturdimientoManager.registrarBloqueos();
 
+        // El Impostor de Jade de Rajang: a sus copias no les entra nada, pero el golpe cuenta;
+        // y una copia que se quedo en el mundo (se cerro a medias) se va al cargarla.
+        ServerLivingEntityEvents.ALLOW_DAMAGE.register((entidad, fuente, cantidad) ->
+                com.atalaya.entity.MinijuegosRajang.permitirDano(entidad, fuente));
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entidad, mundo) ->
+                com.atalaya.entity.MinijuegosRajang.alCargar(entidad));
+
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.
         ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) ->

@@ -24,6 +24,8 @@ public final class FotosPrueba {
     private static final String VISTA = "VISTA ";
     /** "DUELO_AUTO 1|0": el Duelo de Canto se toca solo (acierta casi todas y falla una de cada cinco), para las fotos. */
     private static final String DUELO_AUTO = "DUELO_AUTO ";
+    /** "USAR 1|0": mantiene (o suelta) el clic derecho con lo que lleve en la mano (el Prisma de Jade de Rajang). */
+    private static final String USAR = "USAR ";
 
     private FotosPrueba() {
     }
@@ -38,6 +40,15 @@ public final class FotosPrueba {
             if (texto.startsWith(VISTA)) {
                 int v = Math.clamp(Integer.parseInt(texto.substring(VISTA.length()).trim()), 0, 2);
                 Minecraft.getInstance().options.setCameraType(net.minecraft.client.CameraType.values()[v]);
+                return false;
+            }
+            if (texto.startsWith(USAR)) {
+                Minecraft mc = Minecraft.getInstance();
+                boolean si = texto.substring(USAR.length()).trim().equals("1");
+                mc.options.keyUse.setDown(si);
+                if (si && mc.player != null && mc.gameMode != null && !mc.player.isUsingItem()) {
+                    mc.gameMode.useItem(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND);
+                }
                 return false;
             }
             if (texto.startsWith(DUELO_AUTO)) {

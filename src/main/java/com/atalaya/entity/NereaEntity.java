@@ -392,6 +392,8 @@ public class NereaEntity extends Monster {
     private final List<LivingEntity> duelistas = new ArrayList<>();
     private final Map<UUID, java.util.BitSet> dueloJuzgadas = new HashMap<>();
     private final Map<UUID, Integer> dueloAciertos = new HashMap<>();
+    /** Las notas de este duelo (cuando y en que carril): a ella le salen encima a ritmo. */
+    private int[][] dueloNotas = new int[0][2];
     /** En el cliente: los ids de los duelistas, leidos de DATA_DUELO. */
     private String dueloLeido = "";
     private int[] dueloIds = new int[0];
@@ -1243,6 +1245,7 @@ public class NereaEntity extends Monster {
                 entityData.set(DATA_DUELO, ids.toString());
                 entityData.set(DATA_DUELO_SEMILLA, semilla);
                 entityData.set(DATA_DUELO_CUENTA, duelistas.size() << 8);
+                dueloNotas = notasDuelo(semilla);
                 girarHacia(duelistas.get(0).position(), 180.0F);
                 ponerEstado(DUELO, dueloDura(semilla));
                 sonido(AtalayaSonidos.NEREA_RUGIDO, 5.0F);
@@ -2667,13 +2670,16 @@ public class NereaEntity extends Monster {
         if (t == avisoEstado) {
             sonido(AtalayaSonidos.NEREA_CANTO, 7.0F);
         }
-        if (t > avisoEstado && t % 6 == 0) {
-            // Para los que miran: notas que vuelan de su boca a los duelistas (cada duelista ve ademas las suyas, a ritmo).
-            Vec3 boca = puntoMundo(NereaGeometria.BOCA);
-            for (LivingEntity v : duelistas) {
-                Vec3 hacia = v.getEyePosition().subtract(boca).normalize();
-                nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, boca.x + hacia.x * 2, boca.y + hacia.y * 2,
-                        boca.z + hacia.z * 2, 0, hacia.x, hacia.y, hacia.z, 0.6);
+        // Ella tambien "toca": a cada nota de la cancion le sale una encima de la cabeza (Juan: "que en Nerea
+        // salgan notas, como si ella tambien jugara"). Nada vuela entre ella y los duelistas: con un tercio del
+        // grupo cantando, la pantalla se llenaria.
+        int ahora = t - avisoEstado;
+        for (int[] nota : dueloNotas) {
+            if (nota[0] == ahora) {
+                Vec3 encima = position().add(0, getBbHeight() + 1.2, 0);
+                double a = random.nextDouble() * Math.PI * 2;
+                nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, encima.x + Math.cos(a) * 1.2, encima.y,
+                        encima.z + Math.sin(a) * 1.2, 0, 0, 1, 0, 0.08);
             }
         }
         boolean todas = true;
@@ -2717,6 +2723,8 @@ public class NereaEntity extends Monster {
         b.set(indice);
         if (bien) {
             n.dueloAciertos.merge(p.getUUID(), 1, Integer::sum);
+            nivel.sendParticles(AtalayaParticulas.NEREA_NOTA, true, true, p.getX(), p.getY() + p.getBbHeight() + 0.5, p.getZ(),
+                    0, 0, 1, 0, 0.06);
         }
         n.anotarDuelo();
     }
@@ -2775,6 +2783,7 @@ public class NereaEntity extends Monster {
         duelistas.clear();
         dueloJuzgadas.clear();
         dueloAciertos.clear();
+        dueloNotas = new int[0][2];
         entityData.set(DATA_DUELO, "");
         entityData.set(DATA_DUELO_CUENTA, 0);
     }

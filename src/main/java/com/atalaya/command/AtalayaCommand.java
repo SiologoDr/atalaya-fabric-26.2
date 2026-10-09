@@ -310,7 +310,7 @@ public final class AtalayaCommand {
 
     private static final String[] ORDENES_RAJANG = {"despertar", "perseguir", "garra", "terremoto", "embestida", "tumba", "anillo", "idolo",
             "sello", "romper", "escalon", "cataclismo", "salto", "aturdido", "paralizado", "estampado", "furia", "fase",
-            "liberar"};
+            "prisma", "impostor", "glifos", "suelo", "mini_bien", "mini_fin", "liberar"};
 
     /** Fuerza al Rajang mas cercano (en 80 bloques) a hacer algo ya. */
     private static int probarRajang(CommandSourceStack fuente, String orden) {

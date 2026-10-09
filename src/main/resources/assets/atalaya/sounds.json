@@ -1811,5 +1811,116 @@
     "sounds": [
       "atalaya:nerea/duelo_pierde"
     ]
+  },
+  "rajang.prisma_cae": {
+    "subtitle": "subtitles.atalaya.rajang.prisma_cae",
+    "sounds": [
+      "atalaya:rajang/prisma_cae"
+    ]
+  },
+  "rajang.prisma_luz": {
+    "subtitle": "subtitles.atalaya.rajang.prisma_luz",
+    "sounds": [
+      "atalaya:rajang/prisma_luz"
+    ]
+  },
+  "rajang.trampa_abre": {
+    "subtitle": "subtitles.atalaya.rajang.trampa_abre",
+    "sounds": [
+      "atalaya:rajang/trampa_abre"
+    ]
+  },
+  "rajang.trampa_cae": {
+    "subtitle": "subtitles.atalaya.rajang.trampa_cae",
+    "sounds": [
+      "atalaya:rajang/trampa_cae"
+    ]
+  },
+  "rajang.impostor_disfraz": {
+    "subtitle": "subtitles.atalaya.rajang.impostor_disfraz",
+    "sounds": [
+      "atalaya:rajang/impostor_disfraz"
+    ]
+  },
+  "rajang.impostor_descubierto": {
+    "subtitle": "subtitles.atalaya.rajang.impostor_descubierto",
+    "sounds": [
+      "atalaya:rajang/impostor_descubierto"
+    ]
+  },
+  "rajang.senuelo_rompe": {
+    "subtitle": "subtitles.atalaya.rajang.senuelo_rompe",
+    "sounds": [
+      "atalaya:rajang/senuelo_rompe"
+    ]
+  },
+  "rajang.glifo_alza": {
+    "subtitle": "subtitles.atalaya.rajang.glifo_alza",
+    "sounds": [
+      "atalaya:rajang/glifo_alza"
+    ]
+  },
+  "rajang.glifo_golpe": {
+    "subtitle": "subtitles.atalaya.rajang.glifo_golpe",
+    "sounds": [
+      "atalaya:rajang/glifo_golpe1",
+      "atalaya:rajang/glifo_golpe2",
+      "atalaya:rajang/glifo_golpe3"
+    ]
+  },
+  "rajang.glifo_rompe": {
+    "subtitle": "subtitles.atalaya.rajang.glifo_rompe",
+    "sounds": [
+      "atalaya:rajang/glifo_rompe"
+    ]
+  },
+  "rajang.glifo_falso": {
+    "subtitle": "subtitles.atalaya.rajang.glifo_falso",
+    "sounds": [
+      "atalaya:rajang/glifo_falso"
+    ]
+  },
+  "rajang.vidente": {
+    "subtitle": "subtitles.atalaya.rajang.vidente",
+    "sounds": [
+      "atalaya:rajang/vidente"
+    ]
+  },
+  "rajang.suelo_alza": {
+    "subtitle": "subtitles.atalaya.rajang.suelo_alza",
+    "sounds": [
+      "atalaya:rajang/suelo_alza"
+    ]
+  },
+  "rajang.losa_cruje": {
+    "subtitle": "subtitles.atalaya.rajang.losa_cruje",
+    "sounds": [
+      "atalaya:rajang/losa_cruje1",
+      "atalaya:rajang/losa_cruje2"
+    ]
+  },
+  "rajang.losa_cae": {
+    "subtitle": "subtitles.atalaya.rajang.losa_cae",
+    "sounds": [
+      "atalaya:rajang/losa_cae"
+    ]
+  },
+  "rajang.pinchos": {
+    "subtitle": "subtitles.atalaya.rajang.pinchos",
+    "sounds": [
+      "atalaya:rajang/pinchos"
+    ]
+  },
+  "rajang.mini_exito": {
+    "subtitle": "subtitles.atalaya.rajang.mini_exito",
+    "sounds": [
+      "atalaya:rajang/mini_exito"
+    ]
+  },
+  "rajang.mini_fallo": {
+    "subtitle": "subtitles.atalaya.rajang.mini_fallo",
+    "sounds": [
+      "atalaya:rajang/mini_fallo"
+    ]
   }
 }

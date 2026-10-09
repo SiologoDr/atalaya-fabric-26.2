@@ -11,6 +11,7 @@
     "DanoHabilidadesMixin",
     "LivingEntityAccessor",
     "LevelEntidadesMixin",
+    "ManiquiAccessor",
     "PoisonMobEffectMixin",
     "QuemaduraAguaMixin",
     "RanuraAturdidoMixin",

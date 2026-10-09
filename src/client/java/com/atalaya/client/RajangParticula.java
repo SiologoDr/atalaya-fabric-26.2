@@ -31,7 +31,7 @@ public class RajangParticula extends SingleQuadParticle {
     private static final int A_PLENA_LUZ = 0xF000F0;
 
     public enum Tipo {
-        POLVO, ROCA, JADE, CHISPA, HOJA, ONDA, GRIETA, AVISO, MARCA, SELLO, RUNA, LLAMA, LASTRE, ORO, ZARPAZO
+        POLVO, ROCA, JADE, CHISPA, HOJA, ONDA, GRIETA, AVISO, MARCA, SELLO, RUNA, LLAMA, LASTRE, ORO, ZARPAZO, HUELLA
     }
 
     private final Tipo tipo;
@@ -134,6 +134,15 @@ public class RajangParticula extends SingleQuadParticle {
                 this.quadSize = 0.06F + r.nextFloat() * 0.06F;
                 this.friction = 0.96F;
             }
+            case HUELLA -> {
+                // vx: tamano en bloques; vy: ticks; vz: giro (radianes) en el suelo, hacia donde anda.
+                this.lifetime = vy > 0 ? (int) vy : 30;
+                this.quadSize = (float) Math.max(0.1, vx) * 0.5F;
+                quieta();
+                this.friction = 1.0F;
+                this.roll = (float) vz;
+                this.oRoll = this.roll;
+            }
             case ZARPAZO -> {
                 // vx: tamano en bloques; vy: ticks; vz: giro (radianes), de cara a quien mira.
                 // Con vz >= 50, tumbado en el suelo (las marcas de las garras) y girado vz - 100.
@@ -168,7 +177,7 @@ public class RajangParticula extends SingleQuadParticle {
     @Override
     protected int getLightCoords(float parcial) {
         return switch (tipo) {
-            case CHISPA, LLAMA, RUNA, ORO, ONDA, GRIETA, AVISO, MARCA, SELLO, LASTRE, ZARPAZO -> A_PLENA_LUZ;
+            case CHISPA, LLAMA, RUNA, ORO, ONDA, GRIETA, AVISO, MARCA, SELLO, LASTRE, ZARPAZO, HUELLA -> A_PLENA_LUZ;
             default -> super.getLightCoords(parcial);
         };
     }
@@ -234,6 +243,9 @@ public class RajangParticula extends SingleQuadParticle {
         }
         switch (tipo) {
             case ONDA -> this.alpha = 1.0F - vida;
+            // Sutil pero que se vea (Juan): entra deprisa, se queda a medias y se apaga.
+            case HUELLA -> this.alpha = 0.55F * Mth.clamp(this.age / 3.0F, 0.0F, 1.0F)
+                    * Mth.clamp((this.lifetime - this.age) / 12.0F, 0.0F, 1.0F);
             case ZARPAZO -> this.alpha = enSuelo ? Mth.clamp((this.lifetime - this.age) / 20.0F, 0.0F, 1.0F) * 0.9F
                     : vida < 0.6F ? 1.0F : 1.0F - (vida - 0.6F) / 0.4F;
             case GRIETA, AVISO, MARCA, SELLO, LASTRE -> {
@@ -256,7 +268,7 @@ public class RajangParticula extends SingleQuadParticle {
     @Override
     public void extract(QuadParticleRenderState estado, Camera camara, float parcial) {
         switch (tipo) {
-            case ONDA, GRIETA, AVISO, MARCA, SELLO, LASTRE -> {
+            case ONDA, GRIETA, AVISO, MARCA, SELLO, LASTRE, HUELLA -> {
                 // Tumbadas en el suelo, vistas por las dos caras.
                 float r = Mth.lerp(parcial, this.oRoll, this.roll);
                 extractRotatedQuad(estado, camara, new Quaternionf().rotationX(-Mth.HALF_PI).rotateZ(r), parcial);

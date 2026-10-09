@@ -1,17 +1,13 @@
 package com.atalaya.client;
 
 import com.atalaya.entity.NereaEntity;
-import com.atalaya.entity.NereaGeometria;
 import com.atalaya.net.AtalayaRed;
-import com.atalaya.particula.AtalayaParticulas;
-import com.atalaya.particula.ParticulaSiguiente;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -22,11 +18,13 @@ import org.jspecify.annotations.Nullable;
  * manda (AtalayaRed.DueloNota): el lag no hace fallar.
  *
  * Lo que lo hace un duelo y no solo un panel (Juan: "mas interactivo"): cada
- * nota sale volando de la boca de Nerea hacia ti y llega justo cuando la del
- * panel toca la cuerda; si la aciertas, tu nota vuela de vuelta hacia ella con
- * el arpa del abismo (un tono por carril); si la fallas, se rompe delante de ti,
- * la pantalla se tine de violeta (el trance que se acerca) y se corta la racha.
- * La cuenta atras suena, y al final, o le vuelves el canto o caes en el.
+ * nota acertada suena con el arpa del abismo (un tono por carril) y, en el
+ * mundo, te sale una nota encima de la cabeza (la pone el servidor: la ven
+ * todos); a Nerea le salen las suyas a ritmo, como si tambien tocara. Nada vuela
+ * entre ella y los duelistas: con un tercio del grupo cantando, la pantalla se
+ * llenaria (Juan). Si la fallas, la pantalla se tine de violeta (el trance que
+ * se acerca) y se corta la racha. La cuenta atras suena, y al final, o le vuelves
+ * el canto o caes en el.
  *
  * Las teclas llegan por OfrendaTecladoMixin (como las de la Ofrenda de Novilis):
  * mientras dura, no van al juego. DueloCantoHud lo pinta.
@@ -48,7 +46,6 @@ public final class DueloCantoCliente {
     private static int[][] notas = new int[0][2];
     /** 0 sin juzgar, 1 bien, 2 perfecta, 3 fallada. */
     private static int[] juicio = new int[0];
-    private static boolean[] lanzada = new boolean[0];
     private static int aciertos;
     private static int fallos;
     private static int racha;
@@ -202,11 +199,6 @@ public final class DueloCantoCliente {
         }
         for (int i = 0; i < notas.length; i++) {
             float faltan = notas[i][0] - ahora;
-            // Cada nota sale de su boca cuando asoma por arriba del panel, para llegar contigo a la cuerda.
-            if (!lanzada[i] && faltan <= ANTES && nerea != null) {
-                lanzada[i] = true;
-                lanzarNota(mc, nerea, i, faltan);
-            }
             if (auto && juicio[i] == 0 && i % 5 != 3 && Math.abs(notas[i][0] - ahora) <= 0.6F) {
                 pulsar(CARRILES.charAt(notas[i][1]));
             }
@@ -224,7 +216,6 @@ public final class DueloCantoCliente {
         semilla = n.getSemillaDuelo();
         notas = NereaEntity.notasDuelo(semilla);
         juicio = new int[notas.length];
-        lanzada = new boolean[notas.length];
         aciertos = 0;
         fallos = 0;
         racha = 0;
@@ -243,23 +234,6 @@ public final class DueloCantoCliente {
         }
     }
 
-    /** Un poco delante de los ojos: donde llegan y de donde salen las notas. */
-    private static Vec3 cara(Minecraft mc) {
-        return mc.player.getEyePosition().add(mc.player.getLookAngle().scale(2.4)).add(0, -0.3, 0);
-    }
-
-    /** Una nota de su canto vuela de su boca a tu cara, del color de su carril; llega en "faltan" ticks. */
-    private static void lanzarNota(Minecraft mc, NereaEntity n, int i, float faltan) {
-        Vec3 boca = n.puntoMundo(NereaGeometria.BOCA);
-        Vec3 d = cara(mc).subtract(boca);
-        int vida = Math.max(2, Math.round(faltan));
-        ParticulaSiguiente.color = COLOR[notas[i][1]];
-        ParticulaSiguiente.vida = vida;
-        ParticulaSiguiente.forma = forma(i);
-        ParticulaSiguiente.escala = 1.0F;
-        mc.level.addParticle(AtalayaParticulas.NEREA_NOTA, boca.x, boca.y, boca.z, d.x / vida, d.y / vida, d.z / vida);
-    }
-
     private static void juzgar(Minecraft mc, int i, boolean bien, int valor) {
         juicio[i] = valor;
         ultimoJuicio = valor;
@@ -276,30 +250,12 @@ public final class DueloCantoCliente {
             if (valor == 2) {
                 sonar(mc, AtalayaSonidos.NEREA_DUELO_PERFECTO, 0.6F, 1.0F);
             }
-            // Tu nota le vuelve a ella.
-            if (nerea != null) {
-                Vec3 desde = cara(mc);
-                Vec3 d = nerea.puntoMundo(NereaGeometria.BOCA).subtract(desde);
-                int vida = 14;
-                ParticulaSiguiente.color = COLOR[carril];
-                ParticulaSiguiente.vida = vida;
-                ParticulaSiguiente.forma = valor == 2 ? 1 : 0;
-                ParticulaSiguiente.escala = 1.1F;
-                mc.level.addParticle(AtalayaParticulas.NEREA_NOTA, desde.x, desde.y, desde.z, d.x / vida, d.y / vida, d.z / vida);
-            }
         } else {
             fallos++;
             racha = 0;
             falloEn[carril] = reloj;
             trance = Math.min(1.0F, trance + 0.3F);
             sonar(mc, AtalayaSonidos.NEREA_DUELO_FALLO, 0.9F, 1.0F);
-            // La nota se rompe delante de ti y cae.
-            Vec3 c = cara(mc);
-            ParticulaSiguiente.color = 0x8A6A9A;
-            ParticulaSiguiente.vida = 16;
-            ParticulaSiguiente.forma = 3;
-            ParticulaSiguiente.escala = 1.0F;
-            mc.level.addParticle(AtalayaParticulas.NEREA_NOTA, c.x, c.y, c.z, 0, -0.06, 0);
         }
         ClientPlayNetworking.send(new AtalayaRed.DueloNota(jefe, i, bien));
     }
