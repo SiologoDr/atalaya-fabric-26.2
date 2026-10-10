@@ -51,4 +51,10 @@ public class AeralisRenderState extends LivingEntityRenderState {
     public float avance;
     /** El reloj de la batida, en ms de animacion. */
     public float relojVuelo;
+    /** Lo abiertos que estan los ocelos (los Ocelos, el minijuego): 0 a 1. */
+    public float ocelos;
+    /** Si estan entornados (el aviso de que van a abrirse: de ambar). */
+    public boolean ocelosAviso;
+    /** El reloj, para el latido del aviso. */
+    public float ocelosReloj;
 }

@@ -56,8 +56,14 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_CADENA_NEREA = clave("cadena_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_REFUGIO_NEREA = clave("refugio_nerea");
     public static final ResourceKey<EntityType<?>> CLAVE_REMOLINO_LADRON = clave("remolino_ladron");
+    public static final ResourceKey<EntityType<?>> CLAVE_VELETA_AERALIS = clave("veleta_aeralis");
+    public static final ResourceKey<EntityType<?>> CLAVE_CIRCULO_RAYO = clave("circulo_rayo");
+    public static final ResourceKey<EntityType<?>> CLAVE_CHISPA_AERALIS = clave("chispa_aeralis");
+    public static final ResourceKey<EntityType<?>> CLAVE_REMOLINO_CHISPA = clave("remolino_chispa");
     public static final ResourceKey<EntityType<?>> CLAVE_SOL_CENIT = clave("sol_cenit");
     public static final ResourceKey<EntityType<?>> CLAVE_EGIDA_NOVILIS = clave("egida_novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_YUNQUE_FORJA = clave("yunque_forja");
+    public static final ResourceKey<EntityType<?>> CLAVE_BRASA_ENTERRADA = clave("brasa_enterrada");
     public static final ResourceKey<EntityType<?>> CLAVE_POZA_ABISMO = clave("poza_abismo");
     public static final ResourceKey<EntityType<?>> CLAVE_CORCHO_ABISMO = clave("corcho_abismo");
     public static final ResourceKey<EntityType<?>> CLAVE_PERLA_LANZADA = clave("perla_lanzada");
@@ -86,10 +92,18 @@ public final class AtalayaEntities {
     public static EntityType<RefugioNereaEntity> REFUGIO_NEREA;
     /** El remolino de la Rafaga Ladrona de Aeralis, con el arma robada dentro. */
     public static EntityType<RemolinoLadronEntity> REMOLINO_LADRON;
+    /** Los minijuegos de Aeralis: las veletas, los circulos del rayo, la chispa y los remolinos de practica. */
+    public static EntityType<VeletaAeralisEntity> VELETA_AERALIS;
+    public static EntityType<CirculoRayoEntity> CIRCULO_RAYO;
+    public static EntityType<ChispaAeralisEntity> CHISPA_AERALIS;
+    public static EntityType<RemolinoChispaEntity> REMOLINO_CHISPA;
     /** El sol de la Sombra del Escudo de Novilis, en el cielo. */
     public static EntityType<SolCenitEntity> SOL_CENIT;
     /** La Egida de la Sombra del Escudo: el escudo que da sombra. */
     public static EntityType<EgidaNovilisEntity> EGIDA_NOVILIS;
+    /** Los minijuegos de Novilis: los yunques de la Forja del Juramento y las brasas de Frio o Caliente. */
+    public static EntityType<YunqueForjaEntity> YUNQUE_FORJA;
+    public static EntityType<BrasaEnterradaEntity> BRASA_ENTERRADA;
     /** Una poza de la Pesca del Abismo de Nerea. */
     public static EntityType<PozaAbismoEntity> POZA_ABISMO;
     /** El corcho de la Cana del Abismo. */
@@ -523,6 +537,22 @@ public final class AtalayaEntities {
                         .clientTrackingRange(10)
                         .updateInterval(1)
                         .build(CLAVE_REMOLINO_LADRON));
+        VELETA_AERALIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_VELETA_AERALIS,
+                EntityType.Builder.<VeletaAeralisEntity>of(VeletaAeralisEntity::new, MobCategory.MISC)
+                        .sized(VeletaAeralisEntity.ANCHO, VeletaAeralisEntity.ALTO).fireImmune().noSummon().clientTrackingRange(12)
+                        .updateInterval(20).build(CLAVE_VELETA_AERALIS));
+        CIRCULO_RAYO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CIRCULO_RAYO,
+                EntityType.Builder.<CirculoRayoEntity>of(CirculoRayoEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.2F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(20)
+                        .build(CLAVE_CIRCULO_RAYO));
+        CHISPA_AERALIS = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_CHISPA_AERALIS,
+                EntityType.Builder.<ChispaAeralisEntity>of(ChispaAeralisEntity::new, MobCategory.MISC)
+                        .sized(0.6F, 0.6F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
+                        .build(CLAVE_CHISPA_AERALIS));
+        REMOLINO_CHISPA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_REMOLINO_CHISPA,
+                EntityType.Builder.<RemolinoChispaEntity>of(RemolinoChispaEntity::new, MobCategory.MISC)
+                        .sized(1.0F, 2.4F).fireImmune().noSummon().clientTrackingRange(8).updateInterval(20)
+                        .build(CLAVE_REMOLINO_CHISPA));
         SOL_CENIT = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_SOL_CENIT,
                 EntityType.Builder.<SolCenitEntity>of(SolCenitEntity::new, MobCategory.MISC)
                         .sized(1.0F, 1.0F).fireImmune().noSummon().clientTrackingRange(16).updateInterval(1)
@@ -531,6 +561,14 @@ public final class AtalayaEntities {
                 EntityType.Builder.<EgidaNovilisEntity>of(EgidaNovilisEntity::new, MobCategory.MISC)
                         .sized(0.5F, 0.5F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(1)
                         .build(CLAVE_EGIDA_NOVILIS));
+        YUNQUE_FORJA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_YUNQUE_FORJA,
+                EntityType.Builder.<YunqueForjaEntity>of(YunqueForjaEntity::new, MobCategory.MISC)
+                        .sized(YunqueForjaEntity.ANCHO, YunqueForjaEntity.ALTO).fireImmune().noSummon().clientTrackingRange(10)
+                        .updateInterval(20).build(CLAVE_YUNQUE_FORJA));
+        BRASA_ENTERRADA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_BRASA_ENTERRADA,
+                EntityType.Builder.<BrasaEnterradaEntity>of(BrasaEnterradaEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.2F).fireImmune().noSummon().clientTrackingRange(10).updateInterval(20)
+                        .build(CLAVE_BRASA_ENTERRADA));
         // Los minijuegos de Nerea (octubre de 2026).
         POZA_ABISMO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_POZA_ABISMO,
                 EntityType.Builder.<PozaAbismoEntity>of(PozaAbismoEntity::new, MobCategory.MISC)

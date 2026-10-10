@@ -174,15 +174,15 @@ public class NovilisModel extends EntityModel<NovilisRenderState> {
                 case NovilisEntity.CASTIGO -> castigo.apply(ms, 1.0F);
                 case NovilisEntity.CASTIGO_ONDA -> castigoOnda.apply(ms, 1.0F);
                 case NovilisEntity.SOL -> sol.apply(ms, 1.0F);
-                case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA -> trompetas.apply(ms, 1.0F);
+                case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA, NovilisEntity.MINI_ALZA -> trompetas.apply(ms, 1.0F);
                 case NovilisEntity.OFRENDA -> entradaYBucle(ofrenda, ofrendaSostiene, NovilisGeometria.DURACION_OFRENDA, seg);
                 case NovilisEntity.DIOS -> dios.apply(ms, 1.0F);
-                case NovilisEntity.GRITO -> grito.apply(ms, 1.0F);
+                case NovilisEntity.GRITO, NovilisEntity.MANDA -> grito.apply(ms, 1.0F);
                 case NovilisEntity.ATURDIDO -> entradaYBucle(aturdido, aturdidoBucle, NovilisGeometria.DURACION_ATURDIDO, seg);
                 case NovilisEntity.TAMBALEO -> tambaleo.apply(ms, 1.0F);
                 case NovilisEntity.ESPADA -> espadaFuego.apply(ms, 1.0F);
                 case NovilisEntity.INFERNAL -> infernal.apply(ms, 1.0F);
-                case NovilisEntity.MAR -> mar.apply(ms, 1.0F);
+                case NovilisEntity.MAR, NovilisEntity.MINI_CLAVA -> mar.apply(ms, 1.0F);
                 default -> {
                 }
             }

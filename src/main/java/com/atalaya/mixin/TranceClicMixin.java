@@ -13,7 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * El clic izquierdo de un jugador llega al servidor como "mueve el brazo"
  * aunque no le de a nada: si esta en el trance del Canto de Sirena, cuenta para
- * salir de el (TranceSirena).
+ * salir de el (TranceSirena); en los minijuegos de Aeralis lanza la Chispa o
+ * descarga el Pararrayos al que mira (MinijuegosAeralis.alBlandir).
  */
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class TranceClicMixin {
@@ -24,5 +25,6 @@ public abstract class TranceClicMixin {
     @Inject(method = "handleAnimate", at = @At("TAIL"))
     private void atalaya$clicEnTrance(ServerboundSwingPacket paquete, CallbackInfo ci) {
         TranceSirena.alGolpear(player);
+        com.atalaya.entity.MinijuegosAeralis.alBlandir(player);
     }
 }

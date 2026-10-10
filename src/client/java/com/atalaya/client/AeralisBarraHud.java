@@ -177,6 +177,10 @@ public class AeralisBarraHud implements HudElement {
         if (!libre && (e == AeralisEntity.JUICIO_SOSTIENE || e == AeralisEntity.JUICIO_GOLPE)) {
             juicioBajo(g, a, hx, y0 + 35, color, parcial);
         }
+        // Un minijuego: el tiempo que le queda y como va.
+        if (!libre && a.minijuego() != com.atalaya.entity.MinijuegosAeralis.NINGUNO) {
+            minijuegoBajo(g, mc, a, hx, y0 + 35, color, parcial);
+        }
         int cx = x0 + EMBLEMA_X - NUCLEO / 2;
         int cy = y0 + EMBLEMA_Y - NUCLEO / 2;
         if (!libre && a.hurtTime > 0) {
@@ -192,6 +196,35 @@ public class AeralisBarraHud implements HudElement {
         }
         g.blit(RenderPipelines.GUI_TEXTURED, libre ? LIBRE : furia ? FURIA : FASES[fase - 1], hx + HUECO_ANCHO - ROTULO_ANCHO + 1, y0 + 8,
                 0.0F, 0.0F, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, ROTULO_ANCHO, LETRAS_ALTO, color);
+    }
+
+    /** Un minijuego en marcha: bajo la barra, lo que le queda de tiempo y, debajo, como va (si no esta la placa). */
+    private static void minijuegoBajo(GuiGraphicsExtractor g, Minecraft mc, AeralisEntity a, int x0, int y0, int color, float parcial) {
+        if (mc.level == null) {
+            return;
+        }
+        int tipo = a.minijuego();
+        float queda = a.getMiniFin() - (mc.level.getGameTime() + parcial);
+        float k = Mth.clamp(queda / AeralisEntity.duracionMinijuego(tipo), 0.0F, 1.0F);
+        int lx0 = x0 + 2;
+        int lx1 = x0 + HUECO_ANCHO - 2;
+        int ly = y0 + 2;
+        g.fill(lx0 - 1, ly - 1, lx1 + 1, ly + 6, 0xB00A0E18);
+        g.fill(lx0, ly, lx1, ly + 5, 0xFF101826);
+        int w = Math.round((lx1 - lx0 - 2) * k);
+        if (w > 0) {
+            int c = k > 0.25F ? color : ((a.tickCount / 3) % 2 == 0 ? 0xFFFF5A3A : 0xFFFFC23A);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 4, c);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 2, 0x60FFFFFF);
+        }
+        if (AeralisMinijuegosHud.placaVisible) {
+            // La placa de polilla (AeralisMinijuegosHud) ya lleva la cuenta en sus alas, aqui debajo.
+            return;
+        }
+        String clave = com.atalaya.entity.MinijuegosAeralis.CLAVES[Mth.clamp(tipo, 0, 4)];
+        Component txt = Component.translatable("hud.atalaya.aeralis.barra_" + clave, a.getMiniCuenta(), a.getMiniNecesario());
+        int tw = mc.font.width(txt);
+        g.text(mc.font, txt, x0 + HUECO_ANCHO / 2 - tw / 2, ly + 9, 0xFFE8F4FF, true);
     }
 
     /** Los cuatro nucleos del Juicio (rotos o en pie) y la losa del tiempo, bajo la barra. */

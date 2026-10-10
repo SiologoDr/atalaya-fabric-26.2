@@ -62,6 +62,8 @@ public final class AtalayaItems {
     public static Item BALA_CANON;
     /** El Prisma de Jade de Rajang (El Rayo del Prisma): solo existe mientras dura su minijuego. */
     public static Item PRISMA_JADE;
+    /** Los Pararrayos de Aeralis: se lleva el rayo y lo descarga en ella. */
+    public static Item PARARRAYOS_TORMENTA;
 
     /** Huevo generador de Nerea: nace dormido y encadenado hasta que ve a alguien. */
     public static Item HUEVO_NEREA;
@@ -314,6 +316,8 @@ public final class AtalayaItems {
                 .rarity(Rarity.RARE)));
         BALA_CANON = registrar("bala_canon", props -> new BalaCanonItem(props.stacksTo(1).fireResistant()));
         PRISMA_JADE = registrar("prisma_jade", props -> new PrismaJadeItem(props.stacksTo(1).fireResistant()
+                .rarity(Rarity.RARE)));
+        PARARRAYOS_TORMENTA = registrar("pararrayos_tormenta", props -> new PararrayosTormentaItem(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.RARE)));
         COLMILLO_JADE = registrar("colmillo_jade", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));

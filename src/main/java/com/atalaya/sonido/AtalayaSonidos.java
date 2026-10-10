@@ -199,6 +199,27 @@ public final class AtalayaSonidos {
     public static SoundEvent AERALIS_POSADA;
     public static SoundEvent AERALIS_ESCAMAS;
     public static SoundEvent AERALIS_ESCAMAS_DESCARGA;
+    // Los minijuegos de Aeralis (octubre de 2026)
+    public static SoundEvent AERALIS_OCELOS_AVISO;
+    public static SoundEvent AERALIS_OCELOS_ABRE;
+    public static SoundEvent AERALIS_OCELOS_CIERRA;
+    public static SoundEvent AERALIS_OCELOS_RAYO;
+    public static SoundEvent AERALIS_OCELOS_TOCA;
+    public static SoundEvent AERALIS_VELETA_SALE;
+    public static SoundEvent AERALIS_VELETA_GIRA;
+    public static SoundEvent AERALIS_VELETA_APUNTA;
+    public static SoundEvent AERALIS_VELETA_ATRAPA;
+    public static SoundEvent AERALIS_PARARRAYOS_MARCA;
+    public static SoundEvent AERALIS_PARARRAYOS_RAYO;
+    public static SoundEvent AERALIS_PARARRAYOS_ESTALLA;
+    public static SoundEvent AERALIS_PARARRAYOS_DESCARGA;
+    public static SoundEvent AERALIS_CHISPA_CAE;
+    public static SoundEvent AERALIS_CHISPA_TIC;
+    public static SoundEvent AERALIS_CHISPA_PASA;
+    public static SoundEvent AERALIS_CHISPA_CARGADA;
+    public static SoundEvent AERALIS_CHISPA_REVIENTA;
+    public static SoundEvent AERALIS_MINI_EXITO;
+    public static SoundEvent AERALIS_MINI_FALLO;
     public static SoundEvent AERALIS_VIENTO_VUELTA;
 
     // Rajang, el Jaguar de Jade (rajang_sonidos.py)
@@ -328,6 +349,25 @@ public final class AtalayaSonidos {
     public static SoundEvent NOVILIS_GEISER;
     public static SoundEvent NOVILIS_INFERNAL_EXPLOTA;
     public static SoundEvent NOVILIS_MAR;
+    // Los minijuegos de Novilis (novilis_minijuegos_sonidos.py).
+    public static SoundEvent NOVILIS_MANDA_ORDEN;
+    public static SoundEvent NOVILIS_MANDA_BIEN;
+    public static SoundEvent NOVILIS_MANDA_FALLO;
+    public static SoundEvent NOVILIS_FORJA_SALE;
+    public static SoundEvent NOVILIS_FORJA_PERFECTO;
+    public static SoundEvent NOVILIS_FORJA_BIEN;
+    public static SoundEvent NOVILIS_FORJA_MAL;
+    public static SoundEvent NOVILIS_FORJA_HOJA;
+    public static SoundEvent NOVILIS_FORJA_VUELAN;
+    public static SoundEvent NOVILIS_PIEDRA_CUENTA;
+    public static SoundEvent NOVILIS_PIEDRA_REVELA;
+    public static SoundEvent NOVILIS_PIEDRA_GANA;
+    public static SoundEvent NOVILIS_PIEDRA_PIERDE;
+    public static SoundEvent NOVILIS_CALIENTE_ENTIERRA;
+    public static SoundEvent NOVILIS_CALIENTE_HALLADA;
+    public static SoundEvent NOVILIS_CALIENTE_REVIENTA;
+    public static SoundEvent NOVILIS_MINI_EXITO;
+    public static SoundEvent NOVILIS_MINI_FALLO;
 
     private AtalayaSonidos() {
     }
@@ -503,6 +543,26 @@ public final class AtalayaSonidos {
         AERALIS_POSADA = registrar("aeralis.posada");
         AERALIS_ESCAMAS = registrar("aeralis.escamas");
         AERALIS_ESCAMAS_DESCARGA = registrar("aeralis.escamas_descarga");
+        AERALIS_OCELOS_AVISO = registrar("aeralis.ocelos_aviso");
+        AERALIS_OCELOS_ABRE = registrar("aeralis.ocelos_abre");
+        AERALIS_OCELOS_CIERRA = registrar("aeralis.ocelos_cierra");
+        AERALIS_OCELOS_RAYO = registrar("aeralis.ocelos_rayo");
+        AERALIS_OCELOS_TOCA = registrar("aeralis.ocelos_toca");
+        AERALIS_VELETA_SALE = registrar("aeralis.veleta_sale");
+        AERALIS_VELETA_GIRA = registrar("aeralis.veleta_gira");
+        AERALIS_VELETA_APUNTA = registrar("aeralis.veleta_apunta");
+        AERALIS_VELETA_ATRAPA = registrar("aeralis.veleta_atrapa");
+        AERALIS_PARARRAYOS_MARCA = registrar("aeralis.pararrayos_marca");
+        AERALIS_PARARRAYOS_RAYO = registrar("aeralis.pararrayos_rayo");
+        AERALIS_PARARRAYOS_ESTALLA = registrar("aeralis.pararrayos_estalla");
+        AERALIS_PARARRAYOS_DESCARGA = registrar("aeralis.pararrayos_descarga");
+        AERALIS_CHISPA_CAE = registrar("aeralis.chispa_cae");
+        AERALIS_CHISPA_TIC = registrar("aeralis.chispa_tic");
+        AERALIS_CHISPA_PASA = registrar("aeralis.chispa_pasa");
+        AERALIS_CHISPA_CARGADA = registrar("aeralis.chispa_cargada");
+        AERALIS_CHISPA_REVIENTA = registrar("aeralis.chispa_revienta");
+        AERALIS_MINI_EXITO = registrar("aeralis.mini_exito");
+        AERALIS_MINI_FALLO = registrar("aeralis.mini_fallo");
         AERALIS_VIENTO_VUELTA = registrar("aeralis.viento_vuelta");
         RAJANG_AMBIENTE = registrar("rajang.ambiente");
         RAJANG_DORMIDO = registrar("rajang.dormido");
@@ -623,6 +683,24 @@ public final class AtalayaSonidos {
         NOVILIS_GEISER = registrar("novilis.geiser");
         NOVILIS_INFERNAL_EXPLOTA = registrar("novilis.infernal_explota");
         NOVILIS_MAR = registrar("novilis.mar");
+        NOVILIS_MANDA_ORDEN = registrar("novilis.manda_orden");
+        NOVILIS_MANDA_BIEN = registrar("novilis.manda_bien");
+        NOVILIS_MANDA_FALLO = registrar("novilis.manda_fallo");
+        NOVILIS_FORJA_SALE = registrar("novilis.forja_sale");
+        NOVILIS_FORJA_PERFECTO = registrar("novilis.forja_perfecto");
+        NOVILIS_FORJA_BIEN = registrar("novilis.forja_bien");
+        NOVILIS_FORJA_MAL = registrar("novilis.forja_mal");
+        NOVILIS_FORJA_HOJA = registrar("novilis.forja_hoja");
+        NOVILIS_FORJA_VUELAN = registrar("novilis.forja_vuelan");
+        NOVILIS_PIEDRA_CUENTA = registrar("novilis.piedra_cuenta");
+        NOVILIS_PIEDRA_REVELA = registrar("novilis.piedra_revela");
+        NOVILIS_PIEDRA_GANA = registrar("novilis.piedra_gana");
+        NOVILIS_PIEDRA_PIERDE = registrar("novilis.piedra_pierde");
+        NOVILIS_CALIENTE_ENTIERRA = registrar("novilis.caliente_entierra");
+        NOVILIS_CALIENTE_HALLADA = registrar("novilis.caliente_hallada");
+        NOVILIS_CALIENTE_REVIENTA = registrar("novilis.caliente_revienta");
+        NOVILIS_MINI_EXITO = registrar("novilis.mini_exito");
+        NOVILIS_MINI_FALLO = registrar("novilis.mini_fallo");
     }
 
     private static SoundEvent registrar(String nombre) {

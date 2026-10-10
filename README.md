@@ -1398,10 +1398,10 @@ lo heredó.
 
 | Fase | Nombre | Color | Qué se añade |
 |---|---|---|---|
-| I | Brisa | cian | Aleteo Cortante, Tornados |
+| I | Brisa | cian | Aleteo Cortante, Tornados; minijuegos: **Ocelos** y **Veletas del Vendaval** |
 | II | Ráfaga | añil | la Cacería del Vendaval, el Picado, la **Ráfaga Ladrona**; el viento de vuelta |
 | III | Tempestad | violeta | Juicio del Ciclón, Escamas de Tormenta; rayos en las alas y truenos |
-| IV | Ojo de la tormenta | magenta | todo más seguido; cada 25 s cae **agotada** (daño doble) |
+| IV | Ojo de la tormenta | magenta | todo más seguido; cada 25 s cae **agotada** (daño doble); minijuegos: **Pararrayos** y **La Chispa** |
 
 | Ataque | Qué hace | Daño | Cómo se sale |
 |---|---|---|---|
@@ -1440,6 +1440,65 @@ donde atrapan y tres anillos de luz, uno por golpe que les falta; desde la III
 llevan rayos dentro. Las ráfagas de la Cacería son polillas de viento. Los
 núcleos del Juicio son cristales de ocho caras con una columna de luz que sube y
 un rayo que los ata a su pecho. La Marca del Vendaval tiene icono de polilla.
+
+**Minijuegos (octubre de 2026).** Como los de los otros tres. Juan eligió
+Ocelos, Pararrayos y Veletas del Vendaval de la tercera ficha y La Chispa de la
+cuarta (`aeralis_minijuegos_escenas.py`), y pidió ponerlos en las fases que no
+tenían nada que hacer en grupo: la II ya tiene la Ráfaga Ladrona y la III el
+Juicio. Los de viento van en la I y los de rayo en la IV.
+
+- **Uno a la vez**, y al menos **25 s** entre uno y otro. Como las fases se suman,
+  en la IV pueden salir los cuatro.
+- Empieza con un **chillido** (la animación de la Marca). Mientras dura no ataca
+  y **no le entra daño**: lo que cuenta es jugar.
+- Bajo su barra, una barra de tiempo y la cuenta («Veletas: 1/3», «Pases: 4/8»).
+  Cuando hay algo que hacer ya, sale ahí la **placa de polilla**: en el medallón,
+  lo que pasa (el ojo, la chispa con su cuenta o el rayo); en los ocelos de las
+  alas, la cuenta; debajo, la mecha del tiempo y la orden en grande.
+- **Ninguno mata**: lo que pega se queda en medio corazón (`danoSinMatar`).
+- Si sale bien, **aturdida 6 s** (5 en las Veletas), con daño doble.
+
+| Minijuego | Qué hace | Si sale bien | Si sale mal |
+|---|---|---|---|
+| **Ocelos** (I) | «luz roja, luz verde». Se posa y aparta al grupo a 16 bloques. Abre y cierra las alas: con los ocelos **abiertos** (ojos rojos que miran) no hay que moverse; justo antes **se entornan, de ámbar**; **cerrados**, hay que avanzar. Están cerrados de 1,2 a 2,2 s y abiertos de 1,2 a 3,2 s (de 2 a 4 si alguien está a menos de 8 bloques). Hacen falta tres o cuatro carreras. 20 s | el primero que la **toca** (llega a su lado o le pega) con los ojos cerrados: aturdida 6 s | quien se mueve con los ojos abiertos recibe el **rayo de un ocelo**: un golpe que no mata y Parálisis 2 s (uno por cada vez que se abren). A los 20 s levanta el vuelo con una ráfaga |
+| **Veletas del Vendaval** (I) | salen **veletas** alrededor de la cima (dos jugando solo, más juntas; tres con dos o tres; si no, cuatro). **Clic derecho** la gira 45° (**agachado, al revés**). Ella da vueltas a la arena y cambia de sentido. Una veleta cuenta si apunta a ella con 30° de margen y, cuando ella se sale de su rumbo, **aguanta enganchada 3 s** (5 jugando solo), parpadeando. 25 s | **todas encendidas a la vez**: el viento la atrapa y la baja al suelo, aturdida 5 s | las veletas se hunden |
+| **Pararrayos** (IV) | a **un tercio** de los que pelean (mínimo uno) les da un **pararrayos**. Cada 5 s marca **círculos** donde va a caer un rayo (uno jugando solo; si no, de 3 a 10): el primero de cada tanda, junto a cada uno de los que llevan pararrayos. Con el pararrayos **en la mano** dentro del círculo, te llevas el rayo sin daño y quedas **cargado** (el pararrayos se enciende): 5 s para **mirarla y dar un clic** (a 24 bloques), pegarle o dispararle. Cada descarga le quita un **2 %**. El pararrayos se pasa soltándolo con la Q. 30 s | **tres descargas**: aturdida 6 s | si el rayo cae sin pararrayos, **revienta el suelo** en 5 bloques (golpe que no mata) |
+| **La Chispa** (IV) | la patata caliente. Le cae a uno encima una **chispa** con 3 s de cuenta. Se pasa **mirando a un compañero y dando un clic** (a 14 bloques; o pegándole, sin hacerle daño) y la cuenta vuelve a empezar. Cada pase la carga: con **8 pases** (6 jugando solo) se vuelve **de oro** y quien la lleva tiene 5 s para **lanzársela a ella** (mirarla y clic, a 24 bloques). En el suelo, un aro marca hasta dónde llega si revienta. Jugando solo salen **tres remolinos**: pasársela a uno cuenta y te la devuelve. 30 s | aturdida 6 s | si **revienta**: golpe que no mata y Parálisis a quien la lleva y a los que estén a 3 bloques, y la carga vuelve a cero (al rato cae otra) |
+
+**Afinados el 10-10-2026** (Juan: «afina las mecánicas de Aeralis»). En la
+prueba, el pase de la Chispa y la descarga del Pararrayos se los llevaba su
+cuerpo o no llegaban: vuela a 2,5 bloques y pegarle con la mano costaba. Ahora
+basta con **mirar y dar un clic**: el clic llega al servidor aunque no le dé a
+nada (`TranceClicMixin`, `MinijuegosAeralis.alBlandir`). En los Ocelos se llegaba
+en la primera carrera; ahora se sale de más lejos y los ojos se cierran menos
+rato. Con alguien moviéndose, el retroceso del rayo le volvía a contar: ahora es
+un rayo por apertura. En las Veletas, con ocho rumbos y ella sin parar, había
+que tener las cuatro bien en el mismo instante: ahora tienen margen y enganche.
+
+**El diseño** (`aeralis_minijuegos.py`, rehecho el 10-10-2026: «mejora el diseño
+de los ataques»): los **ocelos** de sus alas hechos ojos (parpado de luz, iris
+rojo con estrías, pupila en rendija y halo; entornados, de ámbar); la **veleta**,
+un poste de la piedra de la cima con la espiral del viento tallada que se
+enciende, un cristal de tormenta, la cruz de bronce con las letras de los vientos
+y la flecha con **cola de polilla**, sobre una **rosa de los vientos**, con una
+cuña de luz en el suelo hacia donde apunta; el **sello de tormenta** del círculo
+del rayo (doble aro con runas y ocho ocelos), con un **aro que se cierra** hasta
+que cae, **el rayo que baja del cielo** y el suelo quemado con grietas de luz; la
+**chispa**, una bola de rayos en cuatro cuadros (de oro cargada) con la cuenta
+en cifras grandes y su **aro en el suelo**; el **remolino**, un torbellino de
+rachas; el pararrayos, apagado y cargado; y la **placa de polilla** de la
+pantalla. Los sonidos, de `aeralis_minijuegos_sonidos.py`.
+
+Las piezas: `MinijuegoAeralis` (la base) y `OcelosAeralis`, `VeletasAeralis`,
+`PararrayosAeralis`, `ChispaAeralis`; `MinijuegosAeralis` (lo común: el
+pararrayos de cada Aeralis, el clic, la mira y lo que va en `DATA_MINI_INFO`);
+`VeletaAeralisEntity`, `CirculoRayoEntity`, `ChispaAeralisEntity` y
+`RemolinoChispaEntity`; en el cliente, sus renderers, `AeralisOcelosLayer`,
+`AeralisMinijuegosHud` (la placa) y la fila de `AeralisBarraHud`. Para probar:
+`/atalaya aeralis ocelos | veletas | pararrayos | chispa` (y `mini_bien`,
+`mini_fin`), o `/function ver_mj:ocelos` (y los otros tres). Con
+`atalaya_fotos.flag`, «INTERACTUAR» da un clic derecho a lo que se mira y
+«MIRAR <tipo>» gira la cámara hacia la entidad más cercana de ese tipo.
 
 ### Rajang, el Jaguar de Jade
 
@@ -1617,10 +1676,10 @@ No le hace nada el fuego (ni lava ni llamas). En cada fase ataca más rápido
 
 | Fase | Nombre | Qué se añade |
 |---|---|---|
-| I | Brasa | Barrido Solar, Castigo Divino, **Espada del Fuego** (su embestida) |
+| I | Brasa | Barrido Solar, Castigo Divino, **Espada del Fuego** (su embestida); minijuegos: **El Caballero Manda** y **la Forja del Juramento** |
 | II | Llamarada | el Castigo acaba en **Onda de Fuego**; Sol Abrasador (con la **Supernova**); **Trompetas del Apocalipsis**; **Sombra del Escudo** |
-| III | Mediodía | **Furia Infernal**; **Ofrenda al Sol** |
-| IV | Dios de la Guerra | **Mar de Llamas**; **Dios de la Guerra** |
+| III | Mediodía | **Furia Infernal**; **Ofrenda al Sol**; minijuego: **Piedra, Papel o Tijera** |
+| IV | Dios de la Guerra | **Mar de Llamas**; **Dios de la Guerra**; minijuego: **Frío o Caliente** |
 
 Las **Fuentes Solares** (el golpe cooperativo de la III) y el **Grito de guerra**
 que soltaba la Supernova si fallaban **se quitaron** el 08-10-2026 (Juan). Los
@@ -1747,6 +1806,63 @@ lenguas cruzadas). Las texturas de las grietas (`grieta.png`,
 `grieta_boca.png`) salen de `novilis_extras.py`, en grises para teñirlas del
 color de la fase; los ocho sonidos nuevos, de `novilis_sonidos.py` (con su propia
 semilla, al final: no cambian los de antes).
+
+**Minijuegos (octubre de 2026).** Como los de Nerea y Rajang, pero Juan los
+repartió para que cada fase tenga algo nuevo: dos en la I (que no tenía nada que
+hacer en grupo), ninguno en la II (ya tiene las Trompetas y la Sombra), uno en la
+III y otro en la IV. Elegidos entre cinco fichas (`novilis_juegos_escenas.py`).
+
+- **Uno a la vez**, y al menos **25 s** entre uno y otro. Como las fases se suman,
+  en la IV pueden salir todos.
+- Empieza **clavando la espada** (la animación del Mar de Llamas) o, en Piedra,
+  Papel o Tijera, **alzando el puño** (la de las Trompetas).
+- Mientras dura no salen las Trompetas, la Sombra, el Mar ni la Ofrenda.
+- Bajo su barra, una barra de tiempo y la cuenta («Dignos: 3 de 5», «Golpes
+  buenos: 4/18», «Ronda 2 de 5», «Brasas: 1/3»).
+- **Ninguno mata**: lo que quema se queda en 1 corazón (`quemarMini`, contando que
+  la dificultad lo sube). Salvo en Frío o Caliente, mientras dura no le entra daño.
+- Si sale bien, **aturdido 6 s** (daño doble).
+
+| Minijuego | Qué hace | Si sale bien | Si sale mal |
+|---|---|---|---|
+| **El Caballero Manda** (I) | «Simón dice» con un caballero. Clava la espada y sobre la pantalla baja su **estandarte** carmesí con la orden: **6 órdenes**, una cada 2,5 s: **arrodillaos** (Shift), **saltad**, **mirad al sol** (el que flota sobre él) y **quietos** (ni andar ni saltar). Solo se obedece si empieza por **«¡Por el Sol...!»**: dos de las seis son trampa (nunca la primera ni «quietos»), y el que la hace, falla. Cada orden se mira 1,9 s. Mientras, él no ataca. Juan quitó «dadme la espalda» | **más de la mitad** sin fallar ninguna: «¡Dignos!», aturdido 6 s | cada fallo quema: Quemadura I y un golpe que no mata |
+| **La Forja del Juramento** (I) | clava la espada y salen **yunques** a 12 bloques (uno jugando solo, dos con dos o tres, y si no, tres), cada uno con una **hoja al rojo**. Sobre la hoja se cierra un **aro de luz**, una y otra vez (1,5 s): hay que **golpearla cuando el aro la toca** (perfecto, bien o a destiempo; se descuenta la latencia de quien golpea). Cada hoja pide **6 golpes buenos** (se encienden seis tachones en el costado). A destiempo saltan chispas que queman. Mientras, cada 5 s alza la espada contra los herreros: el **rayo del Castigo** bajo cada uno, sin la onda (Juan). 25 s | las hojas forjadas salen volando y le parten la armadura: aturdido 6 s | las que quedan revientan en chispas y queman a quien esté al lado |
+| **Piedra, Papel o Tijera** (III) | reta a todo el grupo a la vez. Alza el puño: «¡Piedra... papel... **tijera**!». Durante la cuenta cada uno elige con las teclas **1, 2 y 3** (la casilla de la barra) y le sale encima; al «¡tijera!» él saca lo suyo, enorme, en su puño de fuego. En la mitad de las rondas se le escapa una **pista**: el yelmo le brilla del color de lo que va a sacar. En cada ronda cuenta **lo que saca la mayoría**. **5 rondas** (se acaba antes si ya está decidido) | el grupo gana **más rondas** que él: aturdido 6 s | cada uno que pierde (o no saca nada) se quema, sin morir |
+| **Frío o Caliente** (IV) | clava la espada y **entierra brasas** bajo el altar (dos jugando solo, tres con un grupo y una más por cada ocho pasados los ocho, hasta ocho). A cada uno le sale un **termómetro**: frío, templado, caliente, **¡ardiendo!** (a menos de 3 bloques). Con «¡ardiendo!», **golpear el suelo** encima la saca (la tierra se raja y brilla; el bloque no se rompe). Él **sigue peleando** y le entra el daño. 30 s | todas fuera: se le apaga el pecho, aturdido 6 s | las que quedan **revientan en lava** (golpe y Quemadura II) |
+
+Todo propio: los sonidos, de `novilis_minijuegos_sonidos.py` (el toque de heraldo
+y su voz por el yelmo en cada orden, la campana del acierto, el fuego del fallo,
+los yunques que salen, el martillo perfecto, bueno o a destiempo, la hoja que
+canta al enfriarse, las hojas que vuelan, el tambor de la cuenta, el «¡tijera!»,
+el destello al ganar, la tierra que se traga las brasas, la brasa que sale, el
+reventón de lava y una fanfarria al ganar o al perder); las texturas, de
+`novilis_minijuegos.py`, rehechas el 10-10-2026 (Juan: «mejora los diseños,
+sorpréndeme»): el **estandarte** con vara y remates de sol, damasco carmesí con
+pliegues, medallón para el icono, cartucho para la orden, puntas con borlas y la
+**cinta de oro** de «¡Por el Sol...!» (si no sale la cinta, es trampa); los iconos
+de las órdenes (un caballero de rodillas con capa y espada, uno que salta, un ojo
+que mira al sol y un guantelete en alto); el **yunque** (peana con el sol en
+relieve, cara de acero con los colores del temple, cuerno en escalones, tachones
+que se encienden) sobre su **suelo de fragua** con brasas, el **aro de sol** con
+doce rayos, la mira de la hoja y el destello del golpe; la piedra de basalto con
+vetas de lava, el pergamino con sello de cera y las tijeras forjadas, en
+**casillas** de basalto (la elegida, con llamas); el **termómetro, que es su
+espada** (el fuego sube por la hoja de cristal, de frío a ardiendo, y el pomo de
+sol brilla del color del grado), y la grieta de magma de la brasa); las partículas `novilis_piedra`,
+`novilis_papel` y `novilis_tijera` (un icono quieto en el aire: la velocidad X es
+su tamaño y la Y lo que dura).
+
+Las piezas: `MinijuegoNovilis` (la base) y `MandaNovilis`, `ForjaNovilis`,
+`PiedraNovilis`, `CalienteNovilis`; `MinijuegosNovilis` (los números y lo que va en
+`DATA_MINI_INFO`: la orden en curso o la ronda); `YunqueForjaEntity` (el aro va con
+el tiempo del mundo, el mismo en los dos lados) y `BrasaEnterradaEntity` (se saca
+con `AttackBlockCallback`); en el cliente, sus renderers, `NovilisMinijuegosHud`
+(el estandarte, la cuenta y el termómetro) y la fila de `NovilisBarraHud`. Para
+probar: `/atalaya novilis manda | forja | piedra | caliente` (y `mini_bien`,
+`mini_fin`). Con `atalaya_fotos.flag`, los mensajes «TECLA n», «AGACHAR 1|0»,
+«SALTAR 1|0», «GOLPEAR», «FORJA_AUTO 1|0» y «MANDA_AUTO 1|0» eligen casilla,
+mantienen Shift o el salto, dan un clic izquierdo, forjan solos o obedecen solos
+(para las pruebas con fotos).
 
 ### Las armaduras y las armas de rol
 
@@ -2087,9 +2203,9 @@ El esquema es siempre el mismo:
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
 | `/atalaya nerea <orden>` | Operador | Fuerza a la Nerea más cercana (64 bloques): `despertar`, `rompeolas`, `remolino`, `burbujas`, `molino`, `arpon`, `lejano` (arpón al más lejano), `mirada`, `aturdido`, `agotado`, `canto`, `clic` (un clic de compañero al primer hechizado), `cadenas`, `marea_alta`, `fase`, `liberar` |
-| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `ladrona` (la Ráfaga Ladrona), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar` |
+| `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `ladrona` (la Ráfaga Ladrona), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar`, `ocelos`, `veletas`, `pararrayos`, `chispa` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `pisar` (sube al jugador más cercano a un escalón alto del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano junto al pilar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
-| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `espada` (la Espada del Fuego), `infernal` (la Furia Infernal), `ofrenda`, `mar` (el Mar de Llamas), `dios`, `aturdido`, `furia` (se la pone o se la quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar` |
+| `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `espada` (la Espada del Fuego), `infernal` (la Furia Infernal), `ofrenda`, `mar` (el Mar de Llamas), `dios`, `aturdido`, `furia` (se la pone o se la quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar`, `manda`, `forja`, `piedra`, `caliente` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 

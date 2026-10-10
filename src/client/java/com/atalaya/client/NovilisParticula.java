@@ -28,7 +28,9 @@ public class NovilisParticula extends SingleQuadParticle {
     private static final int A_PLENA_LUZ = 0xF000F0;
 
     public enum Tipo {
-        BRASA, CHISPA, CENIZA, LLAMA, HUMO, ONDA, ROCA, NOTA, LUZ, AZUL, CARMESI
+        BRASA, CHISPA, CENIZA, LLAMA, HUMO, ONDA, ROCA, NOTA, LUZ, AZUL, CARMESI,
+        /** Piedra, papel o tijera: quieto en el aire; vx es su tamano y vy lo que dura. */
+        ICONO
     }
 
     private final Tipo tipo;
@@ -132,6 +134,12 @@ public class NovilisParticula extends SingleQuadParticle {
                 this.friction = 0.97F;
                 this.yd = Math.max(vy, 0.015 + r.nextFloat() * 0.02);
             }
+            case ICONO -> {
+                this.lifetime = Math.max(2, (int) vy);
+                this.quadSize = (float) Math.max(0.05, vx);
+                quieta();
+                this.friction = 1.0F;
+            }
         }
         this.tamanoInicial = this.quadSize;
         this.giro = giroInicial;
@@ -216,9 +224,14 @@ public class NovilisParticula extends SingleQuadParticle {
                 this.zd += Mth.cos(this.age * 0.17F + fase) * 0.003;
                 setSprite(sprites.get((this.age / 4) % 3, 2));
             }
+            case ICONO -> {
+                // Sale de golpe (crece en 3 ticks) y se queda quieto.
+                this.quadSize = tamanoInicial * Math.min(1.0F, 0.4F + this.age / 3.0F);
+            }
         }
         switch (tipo) {
             case ONDA -> this.alpha = 1.0F - vida;
+            case ICONO -> this.alpha = vida < 0.75F ? 1.0F : 1.0F - (vida - 0.75F) / 0.25F;
             case NOTA, LUZ -> this.alpha = Mth.clamp(this.age / 4.0F, 0.0F, 1.0F)
                     * (vida < 0.7F ? 1.0F : 1.0F - (vida - 0.7F) / 0.3F);
             case HUMO -> this.alpha = 0.85F * (vida < 0.4F ? 1.0F : 1.0F - (vida - 0.4F) / 0.6F);

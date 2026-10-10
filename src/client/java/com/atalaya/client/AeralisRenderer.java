@@ -57,6 +57,7 @@ public class AeralisRenderer extends MobRenderer<AeralisEntity, AeralisRenderSta
         super(contexto, new AeralisModel(contexto.bakeLayer(AeralisModel.CAPA)), 3.2F);
         addLayer(new AeralisBrilloLayer(this));
         addLayer(new AeralisFuriaLayer(this, new AeralisModel(contexto.bakeLayer(AeralisModel.CAPA_AURA))));
+        addLayer(new AeralisOcelosLayer(this));
     }
 
     @Override
@@ -111,6 +112,10 @@ public class AeralisRenderer extends MobRenderer<AeralisEntity, AeralisRenderSta
         s.alabeo = Mth.lerp(parcial, a.alabeoAnt, a.alabeo);
         s.avance = Mth.lerp(parcial, a.avanceAnt, a.avance);
         s.relojVuelo = Mth.lerp(parcial, a.relojVueloAnt, a.relojVuelo);
+        s.ocelos = Mth.lerp(parcial, a.ocelosAnt, a.ocelos);
+        s.ocelosAviso = a.getEstado() == AeralisEntity.OCELOS
+                && com.atalaya.entity.MinijuegosAeralis.ojosOcelos(a.getMiniInfo()) == com.atalaya.entity.MinijuegosAeralis.OJOS_AVISO;
+        s.ocelosReloj = a.tickCount + parcial;
     }
 
     @Override

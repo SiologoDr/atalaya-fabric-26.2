@@ -1,6 +1,7 @@
 package com.atalaya.client;
 
 import com.atalaya.Atalaya;
+import com.atalaya.entity.MinijuegosNovilis;
 import com.atalaya.entity.NovilisEntity;
 import com.atalaya.entity.RajangEntity;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
@@ -34,6 +35,8 @@ import org.jspecify.annotations.Nullable;
  *              ven los demas; el cautivo ve ademas OfrendaHud).
  *   Sombra     su sol, lo que le queda en el cielo (del oro al rojo, se va
  *              vaciando) y cuantos estan a la sombra de una Egida.
+ *   Minijuego  lo que le queda de tiempo y como va (los dignos, los golpes,
+ *              la ronda o las brasas); lo grande va en NovilisMinijuegosHud.
  *
  * Va debajo de las de Nerea, Aeralis y Rajang si estan a la vista.
  */
@@ -269,6 +272,34 @@ public class NovilisBarraHud implements HudElement {
             int abajo = vista == NovilisEntity.SOMBRA ? 0 : FILA_EXTRA;
             sombraBajo(g, n, x0, y0 + abajo, ahora);
         }
+        if (n.minijuego() != MinijuegosNovilis.NINGUNO) {
+            minijuegoBajo(g, mc, n, x0 + HUECO_X, y0 + DEBAJO_Y + 1, color, parcial);
+        }
+    }
+
+    /** Un minijuego en marcha: lo que le queda de tiempo y, debajo, como va. */
+    private static void minijuegoBajo(GuiGraphicsExtractor g, Minecraft mc, NovilisEntity n, int x0, int y0, int color, float parcial) {
+        if (mc.level == null) {
+            return;
+        }
+        int tipo = n.minijuego();
+        float queda = n.getMiniFin() - (mc.level.getGameTime() + parcial);
+        float k = Mth.clamp(queda / NovilisEntity.duracionMinijuego(tipo), 0.0F, 1.0F);
+        int lx0 = x0 + 2;
+        int lx1 = x0 + HUECO_ANCHO - 2;
+        int ly = y0 + 2;
+        g.fill(lx0 - 1, ly - 1, lx1 + 1, ly + 6, 0xB0180806);
+        g.fill(lx0, ly, lx1, ly + 5, 0xFF1A0A06);
+        int w = Math.round((lx1 - lx0 - 2) * k);
+        if (w > 0) {
+            int c = k > 0.25F ? color : ((n.tickCount / 3) % 2 == 0 ? 0xFFFF5A3A : 0xFFFFC23A);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 4, c);
+            g.fill(lx0 + 1, ly + 1, lx0 + 1 + w, ly + 2, 0x60FFFFFF);
+        }
+        String clave = MinijuegosNovilis.CLAVES[Mth.clamp(tipo, 0, MinijuegosNovilis.CLAVES.length - 1)];
+        Component txt = Component.translatable("hud.atalaya.novilis.barra_" + clave, n.getMiniCuenta(), n.getMiniNecesario());
+        int tw = mc.font.width(txt);
+        g.text(mc.font, txt, x0 + HUECO_ANCHO / 2 - tw / 2, ly + 9, 0xFFFFF0D8, true);
     }
 
     /** Su sol, lo que le queda abrasando (se vacia del rojo al oro) y cuantos estan a la sombra. */

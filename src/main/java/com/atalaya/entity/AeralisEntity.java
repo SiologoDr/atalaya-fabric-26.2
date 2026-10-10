@@ -106,6 +106,13 @@ public class AeralisEntity extends Monster {
     public static final int ESCAMAS = 17;
     /** La Rafaga Ladrona (octubre de 2026): un soplido que quita el arma de la mano a un tercio. */
     public static final int LADRONA = 18;
+    /**
+     * Los minijuegos (octubre de 2026): chilla (la animacion de la Marca) y al
+     * acabar sale el que toque; en los Ocelos se posa (la de la Posada, quieta,
+     * con las alas que se abren y se cierran).
+     */
+    public static final int MINI_CHILLIDO = 19;
+    public static final int OCELOS = 20;
 
     /**
      * Vida EFECTIVA: 13 500 (Nerea, 11 250), la misma con cualquier numero de
@@ -270,6 +277,15 @@ public class AeralisEntity extends Monster {
     /** Cuando se le acaba la Furia (tiempo del mundo; 0: sin Furia): el cliente pinta la cuenta atras. */
     private static final EntityDataAccessor<Long> DATA_FURIA_FIN =
             SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.LONG);
+    /** El minijuego en marcha: el tipo (4 bits), la cuenta (10 bits) y lo que hace falta (10 bits). */
+    private static final EntityDataAccessor<Integer> DATA_MINI =
+            SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.INT);
+    /** Cuando se acaba el minijuego (tiempo del mundo; 0 si no hay). */
+    private static final EntityDataAccessor<Long> DATA_MINI_FIN =
+            SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.LONG);
+    /** Lo de cada minijuego para el cliente (los ojos de los Ocelos, la cuenta de la Chispa). */
+    private static final EntityDataAccessor<Integer> DATA_MINI_INFO =
+            SynchedEntityData.defineId(AeralisEntity.class, EntityDataSerializers.INT);
 
     // --- Solo cliente ---
     public final AnimationState dormida = new AnimationState();
@@ -311,6 +327,9 @@ public class AeralisEntity extends Monster {
     /** Reloj de la batida (ms de animacion): corre mas deprisa cuanto mas rapido vuela. */
     public float relojVuelo;
     public float relojVueloAnt;
+    /** Lo abiertos que estan los ocelos (0 a 1), suavizado: las alas se abren y los ojos se encienden. */
+    public float ocelos;
+    public float ocelosAnt;
 
     // --- Solo servidor ---
     private @Nullable BlockPos centro;
@@ -374,6 +393,11 @@ public class AeralisEntity extends Monster {
     private boolean juicioPendiente;
     /** El giro de los nucleos alrededor del ciclon. */
     private float giroNucleos;
+    // Los minijuegos: uno cada vez, con 25 s entre uno y otro
+    private @Nullable MinijuegoAeralis mini;
+    private int miniSiguiente;
+    private int enfMinijuego = 400;
+    private final int[] enfMini = new int[5];
 
     public AeralisEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -409,6 +433,9 @@ public class AeralisEntity extends Monster {
         datos.define(DATA_FURIA, false);
         datos.define(DATA_FURIA_FIN, 0L);
         datos.define(DATA_NUCLEOS, 0);
+        datos.define(DATA_MINI, 0);
+        datos.define(DATA_MINI_FIN, 0L);
+        datos.define(DATA_MINI_INFO, 0);
     }
 
     @Override
@@ -486,6 +513,41 @@ public class AeralisEntity extends Monster {
 
     public @Nullable BlockPos getCentro() {
         return centro;
+    }
+
+    /** El minijuego en marcha (MinijuegosAeralis.OCELOS, VELETAS, PARARRAYOS, CHISPA) o NINGUNO; en los dos lados. */
+    public int minijuego() {
+        return entityData.get(DATA_MINI) & 15;
+    }
+
+    /** Lo que lleva el minijuego: lo cerca que esta el mas cercano, las veletas encendidas, las descargas o los pases. */
+    public int getMiniCuenta() {
+        return (entityData.get(DATA_MINI) >> 4) & 1023;
+    }
+
+    public int getMiniNecesario() {
+        return (entityData.get(DATA_MINI) >> 14) & 1023;
+    }
+
+    /** Cuando se acaba el minijuego (tiempo del mundo). */
+    public long getMiniFin() {
+        return entityData.get(DATA_MINI_FIN);
+    }
+
+    /** Lo de cada minijuego (MinijuegosAeralis.infoOcelos, infoChispa). */
+    public int getMiniInfo() {
+        return entityData.get(DATA_MINI_INFO);
+    }
+
+    /** Lo que dura cada minijuego (ticks), para la barra. */
+    public static int duracionMinijuego(int tipo) {
+        return switch (tipo) {
+            case MinijuegosAeralis.OCELOS -> OcelosAeralis.DURA;
+            case MinijuegosAeralis.VELETAS -> VeletasAeralis.DURA;
+            case MinijuegosAeralis.PARARRAYOS -> PararrayosAeralis.DURA;
+            case MinijuegosAeralis.CHISPA -> ChispaAeralis.DURA;
+            default -> 1;
+        };
     }
 
     /** Cuantos jugadores habia al despertar: mas tornados, mas cuchillas. */
@@ -586,7 +648,7 @@ public class AeralisEntity extends Monster {
             case DESPERTAR -> despertar;
             case ALETEO -> aleteo;
             case TORNADOS -> tornados;
-            case MARCA -> marca;
+            case MARCA, MINI_CHILLIDO -> marca;
             case RAFAGA, LADRONA -> rafaga;
             case DOBLE_RAFAGA -> dobleRafaga;
             case JUICIO_SUBE -> juicioSube;
@@ -597,7 +659,7 @@ public class AeralisEntity extends Monster {
             case TAMBALEO -> tambaleo;
             case PICADO_AVISO -> picadoAviso;
             case PICADO -> picado;
-            case POSADA -> posada;
+            case POSADA, OCELOS -> posada;
             case ESCAMAS -> escamas;
             default -> null;
         };
@@ -632,6 +694,14 @@ public class AeralisEntity extends Monster {
         if (!muriendo && actual != null && !actual.isStarted()) {
             arrancarAnimacion();
         }
+        ocelosAnt = ocelos;
+        float abre = 0.0F;
+        if (getEstado() == OCELOS && !muriendo) {
+            int ojos = MinijuegosAeralis.ojosOcelos(getMiniInfo());
+            // Antes de abrirse, las alas a medio abrir y los ojos entornados (AeralisOcelosLayer).
+            abre = ojos == MinijuegosAeralis.OJOS_ABIERTOS ? 1.0F : ojos == MinijuegosAeralis.OJOS_AVISO ? 0.45F : 0.0F;
+        }
+        ocelos += (abre - ocelos) * 0.3F;
         pesoLibreAnt = pesoLibre;
         float objetivoPeso = getEstado() == LIBRE && !muriendo ? 1.0F : 0.0F;
         pesoLibre = objetivoPeso > pesoLibre ? Math.min(objetivoPeso, pesoLibre + 0.2F) : Math.max(objetivoPeso, pesoLibre - 0.25F);
@@ -936,10 +1006,15 @@ public class AeralisEntity extends Monster {
         if (enfPicado > 0) enfPicado--;
         if (enfEscamas > 0) enfEscamas--;
         if (enfLadrona > 0) enfLadrona--;
+        if (enfMinijuego > 0 && mini == null) enfMinijuego--;
+        for (int i = 0; i < enfMini.length; i++) {
+            if (enfMini[i] > 0) enfMini[i]--;
+        }
         tornadosVivos.removeIf(Entity::isRemoved);
         tickManchas(nivel);
         tickVientos(nivel);
 
+        tickMinijuego(nivel);
         int e = getEstado();
         t++;
         if (caza > 0) {
@@ -965,6 +1040,8 @@ public class AeralisEntity extends Monster {
             case POSADA -> tickPosada(nivel);
             case ESCAMAS -> tickEscamas(nivel, objetivo);
             case LADRONA -> tickLadrona(nivel);
+            case MINI_CHILLIDO -> fijarRumbo(getYRot());
+            case OCELOS -> tickOcelos(nivel, objetivo);
             default -> {
             }
         }
@@ -1000,6 +1077,10 @@ public class AeralisEntity extends Monster {
             case JUICIO_SUBE -> empezarCiclon(nivel);
             case PICADO_AVISO -> empezarPicado(nivel);
             case PICADO -> posarse(nivel);
+            case MINI_CHILLIDO -> {
+                terminar();
+                empezarMinijuego(nivel, miniSiguiente);
+            }
             case JUICIO_SOSTIENE -> {
                 ponerEstado(JUICIO_GOLPE, AeralisGeometria.DURACION_JUICIO_GOLPE);
                 sonido(AtalayaSonidos.AERALIS_JUICIO_GOLPE, 8.0F);
@@ -1033,6 +1114,16 @@ public class AeralisEntity extends Monster {
     private void tickLibre(ServerLevel nivel, @Nullable LivingEntity objetivo) {
         if (escena > 0) {
             // En escena tras despertar (su cartel aun se lee): ni se mueve ni ataca.
+            return;
+        }
+        if (mini != null) {
+            // Un minijuego: no ataca; mira a donde le diga.
+            Vec3 m = mini.mira(nivel, objetivo);
+            if (m != null) {
+                girarHacia(m, 8.0F);
+            } else if (objetivo != null) {
+                girarHacia(objetivo.position(), 8.0F);
+            }
             return;
         }
         LivingEntity mira = caza > 0 && presa != null ? presa : objetivo;
@@ -1081,6 +1172,11 @@ public class AeralisEntity extends Monster {
         if (fase >= 2 && enfPicado <= 0 && d >= 12.0 && d <= 50.0) opciones.add(new int[]{PICADO_AVISO, 4});
         if (fase >= 3 && enfEscamas <= 0) opciones.add(new int[]{ESCAMAS, 3});
         if (fase >= 2 && enfLadrona <= 0 && !armados(nivel).isEmpty()) opciones.add(new int[]{LADRONA, 3});
+        // Los minijuegos (Juan, 10-10-2026): Ocelos y Veletas desde la I; Pararrayos y la Chispa en la IV.
+        int tipoMini = enfMinijuego > 0 || caza > 0 || mini != null ? MinijuegosAeralis.NINGUNO : elegirTipoMini();
+        if (tipoMini != MinijuegosAeralis.NINGUNO && !jugadores(nivel, 48, 0).isEmpty()) {
+            opciones.add(new int[]{MINI_CHILLIDO, 5});
+        }
         if (opciones.isEmpty()) {
             return;
         }
@@ -1103,6 +1199,9 @@ public class AeralisEntity extends Monster {
         if (elegido == PICADO_AVISO || elegido == ESCAMAS) {
             iniciar(nivel, elegido, objetivo);
             return;
+        }
+        if (elegido == MINI_CHILLIDO) {
+            miniSiguiente = tipoMini;
         }
         if (elegido == ALETEO) {
             List<Player> cerca = jugadores(nivel, ALCANCE_CUCHILLA - 4, 0);
@@ -1167,6 +1266,12 @@ public class AeralisEntity extends Monster {
                 centroEscamas = c != null ? c.position() : position();
                 ponerEstado(ESCAMAS, AeralisGeometria.DURACION_ESCAMAS);
                 sonido(AtalayaSonidos.AERALIS_ESCAMAS, 6.0F);
+            }
+            case MINI_CHILLIDO -> {
+                enfMinijuego = 500;
+                enfMini[Mth.clamp(miniSiguiente, 0, enfMini.length - 1)] = (int) (1500 * k);
+                ponerEstado(MINI_CHILLIDO, AeralisGeometria.DURACION_MARCA);
+                sonido(AtalayaSonidos.AERALIS_CHILLIDO, 7.0F);
             }
             default -> {
             }
@@ -1252,6 +1357,33 @@ public class AeralisEntity extends Monster {
                     despertarse(blanco);
                 }
                 ponerFuria(nivel, !tieneFuria());
+                return true;
+            }
+            case "ocelos", "veletas", "pararrayos", "chispa" -> {
+                // Un minijuego ya (sin mirar la fase ni los enfriamientos).
+                if (getEstado() == DORMIDA) {
+                    despertarse(blanco);
+                }
+                acabarMinijuego(nivel, false, false);
+                cancelarJuicio(nivel);
+                terminarCaza();
+                ponerEstado(LIBRE, 0);
+                miniSiguiente = java.util.Arrays.asList(MinijuegosAeralis.CLAVES).indexOf(orden);
+                iniciar(nivel, MINI_CHILLIDO, blanco);
+                return true;
+            }
+            case "mini_bien" -> {
+                // Que el minijuego en marcha salga bien ya.
+                if (mini != null) {
+                    mini.forzarExito(nivel);
+                }
+                return true;
+            }
+            case "mini_fin" -> {
+                // Que se acabe el tiempo del minijuego en marcha.
+                if (mini != null) {
+                    acabarMinijuego(nivel, mini.exitoAlAcabar(), true);
+                }
                 return true;
             }
             case "mancha" -> {
@@ -1352,13 +1484,22 @@ public class AeralisEntity extends Monster {
             case PICADO_AVISO -> ALTURA_VUELO + 4.5;
             case POSADA -> ta() >= AeralisGeometria.POSADA_ALZA ? vuelo : 0.0;
             case ESCAMAS -> ALTURA_VUELO + 3.0;
+            case OCELOS -> 0.0;
             default -> vuelo;
         };
         Vec3 c = Vec3.atBottomCenterOf(centro);
         double x = getX();
         double z = getZ();
         double vmax = 0.32;
-        if (e == LIBRE && escena > 0) {
+        double[] mandado = mini != null && (e == LIBRE || e == OCELOS) ? mini.destino(nivel) : null;
+        if (mandado != null) {
+            // Un minijuego le dice por donde volar (o que se pose).
+            x = mandado[0];
+            z = mandado[1];
+            altura = mandado[2];
+            vmax = mandado[3];
+            rasante = 0;
+        } else if (e == LIBRE && escena > 0) {
             // En escena: se queda donde esta, meciendose.
             vmax = 0.0;
         } else if (e == LIBRE) {
@@ -2435,6 +2576,7 @@ public class AeralisEntity extends Monster {
         }
         cancelarJuicio(nivel);
         terminarCaza();
+        acabarMinijuego(nivel, false, false);
         if (e != TAMBALEO) {
             ponerEstado(TAMBALEO, AeralisGeometria.DURACION_TAMBALEO);
             sonido(AtalayaSonidos.AERALIS_TAMBALEO, 7.0F);
@@ -2450,6 +2592,10 @@ public class AeralisEntity extends Monster {
         }
         if (nueva == 4) {
             relojAgotado = 300;
+            // Lo nuevo de la IV llega pronto.
+            enfMini[MinijuegosAeralis.PARARRAYOS] = 0;
+            enfMini[MinijuegosAeralis.CHISPA] = 0;
+            enfMinijuego = Math.min(enfMinijuego, 300);
         }
     }
 
@@ -2467,6 +2613,9 @@ public class AeralisEntity extends Monster {
 
     /** Lo suyo que queda por ahi (tornados, ciclon, nucleos) se va con ella. */
     private void limpiar() {
+        if (mini != null && level() instanceof ServerLevel nivelMini) {
+            acabarMinijuego(nivelMini, false, false);
+        }
         manchas.clear();
         vientos.clear();
         entityData.set(DATA_PICADO, 0.0F);
@@ -2522,6 +2671,16 @@ public class AeralisEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
+        if (mini != null) {
+            // En los minijuegos lo que sirve es jugar: el golpe que cuenta lo decide el minijuego.
+            if (mini.alGolpearla(nivel, causante, directo)) {
+                return false;
+            }
+            if (mini.inmune()) {
+                avisoInmune(nivel, causante);
+                return false;
+            }
+        }
         if (tieneFuria()) {
             // La Furia: inmune mientras dura (30 s); lo de romper (ojos, nucleos...) va aparte.
             avisoInmune(nivel, causante);
@@ -2555,6 +2714,208 @@ public class AeralisEntity extends Monster {
         nivel.playSound(null, p.x, p.y, p.z, AtalayaSonidos.AERALIS_INMUNE, SoundSource.HOSTILE, 1.5F,
                 0.9F + random.nextFloat() * 0.2F);
         nivel.sendParticles(AtalayaParticulas.AERALIS_VIENTO, true, true, p.x, p.y, p.z, 6, 0.3, 0.3, 0.3, 0.2);
+    }
+
+    // ------------------------------------------------------------------
+    //  Los minijuegos (octubre de 2026; Juan eligio Ocelos, Pararrayos y
+    //  Veletas del Vendaval de la tercera ficha y La Chispa de la cuarta, y
+    //  los puso en las fases sin nada interactivo: los de viento en la I y los
+    //  de rayo en la IV). Cada uno en su clase (MinijuegoAeralis); aqui el
+    //  marco: elegir, empezar, mover, acabar, y lo que necesitan de ella.
+    // ------------------------------------------------------------------
+
+    /** Lo que se queda aturdida tras un minijuego bien hecho: 6 s (las Veletas, 5). */
+    private static final int ATURDIDA_MINI = 120;
+
+    private int elegirTipoMini() {
+        List<Integer> tipos = new ArrayList<>();
+        for (int tipo = MinijuegosAeralis.OCELOS; tipo <= MinijuegosAeralis.CHISPA; tipo++) {
+            if (fase() >= MinijuegosAeralis.FASE[tipo] && enfMini[tipo] <= 0) {
+                tipos.add(tipo);
+            }
+        }
+        return tipos.isEmpty() ? MinijuegosAeralis.NINGUNO : tipos.get(random.nextInt(tipos.size()));
+    }
+
+    private void empezarMinijuego(ServerLevel nivel, int tipo) {
+        acabarMinijuego(nivel, false, false);
+        MinijuegoAeralis m = switch (tipo) {
+            case MinijuegosAeralis.OCELOS -> new OcelosAeralis(this);
+            case MinijuegosAeralis.VELETAS -> new VeletasAeralis(this);
+            case MinijuegosAeralis.PARARRAYOS -> new PararrayosAeralis(this);
+            case MinijuegosAeralis.CHISPA -> new ChispaAeralis(this);
+            default -> null;
+        };
+        if (m == null) {
+            return;
+        }
+        MinijuegosAeralis.activar(this);
+        mini = m;
+        anotarMinijuego();
+        if (!m.empezar(nivel, jugadores(nivel, 48, 0))) {
+            mini = null;
+            entityData.set(DATA_MINI, 0);
+            entityData.set(DATA_MINI_INFO, 0);
+            MinijuegosAeralis.desactivar(this);
+            if (getEstado() == OCELOS) {
+                terminar();
+            }
+            return;
+        }
+        anotarMinijuego();
+        entityData.set(DATA_MINI_FIN, nivel.getGameTime() + m.dura);
+    }
+
+    private void anotarMinijuego() {
+        entityData.set(DATA_MINI, mini == null ? 0
+                : mini.tipo | (Math.min(1023, mini.cuenta) << 4) | (Math.min(1023, mini.necesario) << 14));
+        entityData.set(DATA_MINI_INFO, mini == null ? 0 : mini.info());
+    }
+
+    private void tickMinijuego(ServerLevel nivel) {
+        if (mini == null) {
+            return;
+        }
+        MinijuegoAeralis m = mini;
+        m.t++;
+        m.tick(nivel);
+        if (mini != m) {
+            return;
+        }
+        if (m.t >= m.dura) {
+            acabarMinijuego(nivel, m.exitoAlAcabar(), true);
+        } else {
+            anotarMinijuego();
+        }
+    }
+
+    /** El que esta en marcha (para que el de la Chispa sepa si sigue siendo el). */
+    @Nullable MinijuegoAeralis minijuegoEnMarcha() {
+        return mini;
+    }
+
+    /**
+     * Se acaba el minijuego: fuera lo que salio y lo repartido. Si salio bien,
+     * cae aturdida (dano doble); si no, cada uno sabe lo que pasa. Sin avisar
+     * (un cambio de fase, la muerte, una orden), sin mas.
+     */
+    void acabarMinijuego(ServerLevel nivel, boolean exito, boolean avisar) {
+        MinijuegoAeralis m = mini;
+        if (m == null) {
+            return;
+        }
+        mini = null;
+        entityData.set(DATA_MINI, 0);
+        entityData.set(DATA_MINI_FIN, 0L);
+        entityData.set(DATA_MINI_INFO, 0);
+        m.limpiar(nivel, exito, avisar);
+        MinijuegosAeralis.quitarTodo(nivel, this);
+        MinijuegosAeralis.desactivar(this);
+        enfMinijuego = 500;
+        int e = getEstado();
+        if (e == OCELOS || e == MINI_CHILLIDO) {
+            terminar();
+        }
+        if (!avisar || isDeadOrDying()) {
+            return;
+        }
+        String clave = MinijuegosAeralis.CLAVES[m.tipo];
+        avisarMini(nivel, Component.translatable("hud.atalaya.aeralis." + clave + (exito ? "_exito" : "_fallo"))
+                .withStyle(exito ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+        nivel.playSound(null, getX(), getY() + 4, getZ(), exito ? AtalayaSonidos.AERALIS_MINI_EXITO : AtalayaSonidos.AERALIS_MINI_FALLO,
+                SoundSource.HOSTILE, 6.0F, 1.0F);
+        if (exito && getEstado() != DORMIDA && getEstado() != DESPERTAR) {
+            aturdir(nivel, m.tipo == MinijuegosAeralis.VELETAS ? VeletasAeralis.ATURDIDA : ATURDIDA_MINI);
+        }
+    }
+
+    /** Los Ocelos: posada; las alas (y los ojos) las mueve el cliente segun DATA_MINI_INFO. */
+    private void tickOcelos(ServerLevel nivel, @Nullable LivingEntity objetivo) {
+        if (mini == null) {
+            terminar();
+            return;
+        }
+        Vec3 m = mini.mira(nivel, objetivo);
+        if (m != null) {
+            girarHacia(m, 6.0F);
+        }
+    }
+
+    // --- Lo que los minijuegos necesitan de ella ---
+
+    /** Se posa para los Ocelos (hasta que acabe el minijuego). */
+    void posarMini() {
+        ponerEstado(OCELOS, Integer.MAX_VALUE / 4);
+        sonido(AtalayaSonidos.AERALIS_POSADA, 6.0F);
+    }
+
+    /** El centro de su arena, en el suelo. */
+    Vec3 centroArenaMini() {
+        return centro != null ? Vec3.atBottomCenterOf(centro) : position();
+    }
+
+    List<LivingEntity> presasMini(ServerLevel nivel, double max) {
+        List<LivingEntity> out = new ArrayList<>(jugadores(nivel, max, 0));
+        if (out.isEmpty()) {
+            for (LivingEntity v : nivel.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(max, 24, max), this::esPresa)) {
+                if (!(v instanceof Player)) {
+                    out.add(v);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Un aviso en la barra de accion de todos los que pelean. */
+    void avisarMini(ServerLevel nivel, Component texto) {
+        for (Player p : jugadores(nivel, 80, 0)) {
+            p.sendOverlayMessage(texto);
+        }
+    }
+
+    void sonidoMini(SoundEvent s, float volumen) {
+        sonido(s, volumen);
+    }
+
+    /** Un golpe de los minijuegos: duele pero no mata (con la dificultad, que lo sube hasta x1,5). */
+    void danoSinMatar(ServerLevel nivel, LivingEntity v, float dano) {
+        float tope = Math.max(0.0F, (v.getHealth() + v.getAbsorptionAmount() - 1.0F) / 1.5F);
+        float d = Math.min(contraArmadura(v, dano), tope);
+        if (d > 0.0F) {
+            v.hurtServer(nivel, AeralisDanos.fuente(nivel, AeralisDanos.ESCAMAS, this, this), d);
+        }
+    }
+
+    /** Paralisis 2 s (la de las Escamas), sin el respiro de las manchas. */
+    void paralizarMini(LivingEntity v) {
+        paralizados.remove(v.getId());
+        paralizar(v);
+    }
+
+    /** Un rayo de a a b (chispas de rayo en linea y un destello al llegar). */
+    void rayoMini(ServerLevel nivel, Vec3 a, Vec3 b) {
+        Vec3 d = b.subtract(a);
+        int n = Math.max(4, (int) (d.length() * 1.5));
+        for (int k = 0; k <= n; k++) {
+            Vec3 p = a.add(d.scale(k / (double) n)).add((random.nextDouble() - 0.5) * 0.5, (random.nextDouble() - 0.5) * 0.5,
+                    (random.nextDouble() - 0.5) * 0.5);
+            nivel.sendParticles(AtalayaParticulas.AERALIS_RAYO, true, true, p.x, p.y, p.z, 1, 0.05, 0.05, 0.05, 0.0);
+        }
+        nivel.sendParticles(AtalayaParticulas.AERALIS_LUZ, true, true, b.x, b.y, b.z, 12, 0.3, 0.3, 0.3, 0.15);
+    }
+
+    /** Una parte de su vida que se le va de golpe (las descargas de los Pararrayos). No se cura con nada. */
+    void morderMini(ServerLevel nivel, float parte) {
+        setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * parte));
+        Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
+        nivel.sendParticles(AtalayaParticulas.AERALIS_ESCAMA, true, true, c.x, c.y, c.z, 30, 2.0, 1.5, 2.0, 0.1);
+        hurtTime = 10;
+        hurtDuration = 10;
+    }
+
+    /** La onda de una batida, a sus pies. */
+    void golpeAireMini(ServerLevel nivel, float temblor, double radio) {
+        golpeAire(nivel, new Vec3(getX(), sueloBajo(nivel, getX(), getY(), getZ()), getZ()), temblor, (float) radio, 30);
     }
 
     // ------------------------------------------------------------------

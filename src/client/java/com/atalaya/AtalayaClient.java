@@ -134,8 +134,16 @@ public class AtalayaClient implements ClientModInitializer {
         EntityRendererRegistry.register(AtalayaEntities.CADENA_NEREA, com.atalaya.client.CadenaNereaRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.REFUGIO_NEREA, com.atalaya.client.RefugioNereaRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.REMOLINO_LADRON, com.atalaya.client.RemolinoLadronRenderer::new);
+        // Los minijuegos de Aeralis
+        EntityRendererRegistry.register(AtalayaEntities.VELETA_AERALIS, com.atalaya.client.VeletaAeralisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CIRCULO_RAYO, com.atalaya.client.CirculoRayoRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.CHISPA_AERALIS, com.atalaya.client.ChispaAeralisRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.REMOLINO_CHISPA, com.atalaya.client.RemolinoChispaRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.SOL_CENIT, com.atalaya.client.SolCenitRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.EGIDA_NOVILIS, com.atalaya.client.EgidaNovilisRenderer::new);
+        // Los minijuegos de Novilis
+        EntityRendererRegistry.register(AtalayaEntities.YUNQUE_FORJA, com.atalaya.client.YunqueForjaRenderer::new);
+        EntityRendererRegistry.register(AtalayaEntities.BRASA_ENTERRADA, com.atalaya.client.BrasaEnterradaRenderer::new);
         // Los minijuegos de Nerea
         EntityRendererRegistry.register(AtalayaEntities.POZA_ABISMO, com.atalaya.client.PozaAbismoRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.CORCHO_ABISMO, com.atalaya.client.CorchoAbismoRenderer::new);
@@ -291,6 +299,9 @@ public class AtalayaClient implements ClientModInitializer {
         novilis(AtalayaParticulas.NOVILIS_LUZ, NovilisParticula.Tipo.LUZ);
         novilis(AtalayaParticulas.NOVILIS_AZUL, NovilisParticula.Tipo.AZUL);
         novilis(AtalayaParticulas.NOVILIS_CARMESI, NovilisParticula.Tipo.CARMESI);
+        novilis(AtalayaParticulas.NOVILIS_PIEDRA, NovilisParticula.Tipo.ICONO);
+        novilis(AtalayaParticulas.NOVILIS_PAPEL, NovilisParticula.Tipo.ICONO);
+        novilis(AtalayaParticulas.NOVILIS_TIJERA, NovilisParticula.Tipo.ICONO);
 
         // La presencia de Nerea: temblor, retumbo y miedo. El miedo va con los
         // velos de camara (calabaza, nieve polvo...): un velo bajo el resto del
@@ -338,6 +349,17 @@ public class AtalayaClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_novilis"),
                 oculto(new com.atalaya.client.NovilisBarraHud()));
+        // Los minijuegos de Aeralis: el ojo de los Ocelos y la cuenta de la Chispa.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "aeralis_minijuegos"),
+                oculto(new com.atalaya.client.AeralisMinijuegosHud()));
+        // Los minijuegos de Novilis: el estandarte del Caballero Manda, la cuenta de
+        // Piedra, Papel o Tijera y el termometro de Frio o Caliente.
+        HudElementRegistry.attachElementAfter(
+                VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "novilis_minijuegos"),
+                oculto(new com.atalaya.client.NovilisMinijuegosHud()));
         // La pantalla de la Ofrenda al Sol (la del atrapado), por encima de la hotbar.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,

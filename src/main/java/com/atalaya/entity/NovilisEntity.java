@@ -93,6 +93,10 @@ import java.util.UUID;
  * Las Fuentes solares y el Grito de guerra que soltaban si fallaban se
  * quitaron el 08-10-2026 (Juan).
  *
+ * Los minijuegos (10-10-2026, MinijuegosNovilis): El Caballero Manda y la
+ * Forja del Juramento desde la I, Piedra, Papel o Tijera desde la III y Frio o
+ * Caliente en la IV. Uno a la vez; si sale bien, aturdido 6 s.
+ *
  * El fuego deja Quemadura (I a III, QuemaduraEffect). La Furia es de fuego
  * azul: un 25 % mas rapido, un 35 % mas de dano y un 35 % menos de espera; se
  * va al aturdirlo (una Ofrenda superada o el sol apagado en la Sombra).
@@ -123,6 +127,14 @@ public class NovilisEntity extends Monster {
     public static final int ESPADA = 15;
     public static final int INFERNAL = 16;
     public static final int MAR = 17;
+    /**
+     * Los minijuegos (octubre de 2026): clava la espada (la animacion del Mar) o
+     * alza el puno (la de las Trompetas) y sale el que toque; MANDA es cada
+     * orden del Caballero Manda (la del Grito, sin rugido).
+     */
+    public static final int MINI_CLAVA = 18;
+    public static final int MINI_ALZA = 19;
+    public static final int MANDA = 20;
 
     /** Vida EFECTIVA: 16 500, la misma con cualquier numero de jugadores (el tope de vanilla es 1024). */
     public static final float VIDA = 16500.0F;
@@ -280,6 +292,15 @@ public class NovilisEntity extends Monster {
     /** Los que estan a la sombra (8 bits bajos) y los que pelean (los de encima): la cuenta de la barra. */
     private static final EntityDataAccessor<Integer> DATA_SOMBRA_CUENTA =
             SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
+    /** El minijuego en marcha: el tipo (4 bits), la cuenta (10 bits) y lo que hace falta (10 bits). */
+    private static final EntityDataAccessor<Integer> DATA_MINI =
+            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
+    /** Cuando se acaba el minijuego (tiempo del mundo; 0 si no hay). */
+    private static final EntityDataAccessor<Long> DATA_MINI_FIN =
+            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.LONG);
+    /** Lo de cada minijuego para el cliente (la orden del Caballero Manda, la ronda de Piedra, Papel o Tijera). */
+    private static final EntityDataAccessor<Integer> DATA_MINI_INFO =
+            SynchedEntityData.defineId(NovilisEntity.class, EntityDataSerializers.INT);
 
     // --- Solo cliente ---
     public final AnimationState dormido = new AnimationState();
@@ -386,6 +407,13 @@ public class NovilisEntity extends Monster {
     private final List<EgidaNovilisEntity> egidas = new ArrayList<>();
     /** Cuantas veces se ha quemado cada uno: con mas de una, ya no cae deslumbrado. */
     private final java.util.Map<UUID, Integer> quemadosSombra = new java.util.HashMap<>();
+    // Los minijuegos: uno cada vez, con 25 s entre uno y otro
+    private @Nullable MinijuegoNovilis mini;
+    private int miniSiguiente;
+    private int enfMinijuego = 400;
+    private final int[] enfMini = new int[5];
+    /** El rayo del Castigo de la Forja: solo a estos (null: a todos, como siempre). */
+    private @Nullable List<LivingEntity> castigoSolo;
 
     public NovilisEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -421,6 +449,9 @@ public class NovilisEntity extends Monster {
         datos.define(DATA_ACIERTOS, 0);
         datos.define(DATA_SOMBRA, -1.0F);
         datos.define(DATA_SOMBRA_CUENTA, 0);
+        datos.define(DATA_MINI, 0);
+        datos.define(DATA_MINI_FIN, 0L);
+        datos.define(DATA_MINI_INFO, 0);
     }
 
     @Override
@@ -510,6 +541,41 @@ public class NovilisEntity extends Monster {
 
     public @Nullable BlockPos getCentro() {
         return centro;
+    }
+
+    /** El minijuego en marcha (MinijuegosNovilis.MANDA, FORJA, PIEDRA, CALIENTE) o NINGUNO; en los dos lados. */
+    public int minijuego() {
+        return entityData.get(DATA_MINI) & 15;
+    }
+
+    /** Lo que lleva el minijuego: los que no han fallado, los golpes, la ronda o las brasas. */
+    public int getMiniCuenta() {
+        return (entityData.get(DATA_MINI) >> 4) & 1023;
+    }
+
+    public int getMiniNecesario() {
+        return (entityData.get(DATA_MINI) >> 14) & 1023;
+    }
+
+    /** Cuando se acaba el minijuego (tiempo del mundo). */
+    public long getMiniFin() {
+        return entityData.get(DATA_MINI_FIN);
+    }
+
+    /** Lo de cada minijuego (MinijuegosNovilis.infoManda, infoPiedra). */
+    public int getMiniInfo() {
+        return entityData.get(DATA_MINI_INFO);
+    }
+
+    /** Lo que dura cada minijuego (ticks), para la barra. */
+    public static int duracionMinijuego(int tipo) {
+        return switch (tipo) {
+            case MinijuegosNovilis.MANDA -> MandaNovilis.DURA;
+            case MinijuegosNovilis.FORJA -> ForjaNovilis.DURA;
+            case MinijuegosNovilis.PIEDRA -> PiedraNovilis.DURA;
+            case MinijuegosNovilis.CALIENTE -> CalienteNovilis.DURA;
+            default -> 1;
+        };
     }
 
     /**
@@ -636,15 +702,15 @@ public class NovilisEntity extends Monster {
             case CASTIGO -> castigo;
             case CASTIGO_ONDA -> castigoOnda;
             case SOL -> sol;
-            case TROMPETAS, SOMBRA -> trompetas;
+            case TROMPETAS, SOMBRA, MINI_ALZA -> trompetas;
             case OFRENDA -> ofrenda;
             case DIOS -> dios;
             case ATURDIDO -> aturdido;
             case TAMBALEO -> tambaleo;
-            case GRITO -> grito;
+            case GRITO, MANDA -> grito;
             case ESPADA -> espada;
             case INFERNAL -> infernal;
-            case MAR -> mar;
+            case MAR, MINI_CLAVA -> mar;
             default -> null;
         };
     }
@@ -800,10 +866,15 @@ public class NovilisEntity extends Monster {
         if (enfOfrenda > 0) enfOfrenda--;
         if (enfDios > 0) enfDios--;
         if (enfSombra > 0) enfSombra--;
+        if (enfMinijuego > 0 && mini == null) enfMinijuego--;
+        for (int i = 0; i < enfMini.length; i++) {
+            if (enfMini[i] > 0) enfMini[i]--;
+        }
 
         tickMelodia(nivel);
         tickSombra(nivel);
         tickMar(nivel);
+        tickMinijuego(nivel);
 
         int e = getEstado();
         t++;
@@ -822,6 +893,8 @@ public class NovilisEntity extends Monster {
             case ESPADA -> tickEspada(nivel, objetivo);
             case INFERNAL -> tickInfernal(nivel, objetivo);
             case MAR -> tickMarEstado(nivel);
+            case MINI_CLAVA, MINI_ALZA -> tickMiniEmpieza(nivel, e);
+            case MANDA -> fijarRumbo(yBodyRot);
             case ATURDIDO, TAMBALEO -> fijarRumbo(yBodyRot);
             default -> {
             }
@@ -844,6 +917,7 @@ public class NovilisEntity extends Monster {
         saltando = false;
         entityData.set(DATA_MARCA, -1);
         presa = null;
+        castigoSolo = null;
         ponerEstado(LIBRE, 0);
         respiro = new int[]{0, 16, 12, 11, 9}[fase()];
         if (e == DESPERTAR) {
@@ -874,6 +948,11 @@ public class NovilisEntity extends Monster {
         if (sombra >= 0 && solCenit != null) {
             // Con su sol en el cielo, lo mira (y como en las Trompetas, ni ataca ni se mueve).
             getLookControl().setLookAt(solCenit.getX(), solCenit.getY(), solCenit.getZ(), 10.0F, 10.0F);
+        }
+        if (mini != null && mini.controlaLibre()) {
+            // Un minijuego que le tiene quieto (el Caballero Manda, la Forja, Piedra, Papel o Tijera).
+            mini.libre(nivel, objetivo);
+            return;
         }
         if (melodia >= 0 || sombra >= 0) {
             // Mientras tocan los angeles no ataca ni se mueve (Juan, 08-10-2026): se
@@ -911,7 +990,8 @@ public class NovilisEntity extends Monster {
         int fase = fase();
         double d = horizontal(position(), objetivo.position());
         List<int[]> opciones = new ArrayList<>();
-        boolean campo = melodia >= 0 || sombra >= 0 || marCampo >= 0;
+        boolean conMini = mini != null;
+        boolean campo = melodia >= 0 || sombra >= 0 || marCampo >= 0 || conMini;
         LivingEntity lejos = presaEntre(nivel, 8.0, 30.0, objetivo);
         if (enfBarrido <= 0 && d < 16) opciones.add(new int[]{BARRIDO, 5});
         if (enfCastigo <= 0 && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{fase >= 2 ? CASTIGO_ONDA : CASTIGO, 4});
@@ -920,9 +1000,15 @@ public class NovilisEntity extends Monster {
         if (fase >= 2 && enfTrompetas <= 0 && !campo) opciones.add(new int[]{TROMPETAS, 2});
         if (fase >= 2 && enfSombra <= 0 && !campo && !presas(nivel, 48).isEmpty()) opciones.add(new int[]{SOMBRA, 3});
         if (fase >= 3 && enfInfernal <= 0 && lejos != null) opciones.add(new int[]{INFERNAL, 3});
-        if (fase >= 3 && enfOfrenda <= 0 && presaOfrenda(nivel) != null) opciones.add(new int[]{OFRENDA, 2});
+        if (fase >= 3 && enfOfrenda <= 0 && !conMini && presaOfrenda(nivel) != null) opciones.add(new int[]{OFRENDA, 2});
         if (fase >= 4 && enfMar <= 0 && !campo) opciones.add(new int[]{MAR, 3});
         if (fase >= 4 && enfDios <= 0) opciones.add(new int[]{DIOS, 3});
+        // Los minijuegos (Juan, 10-10-2026): el Caballero Manda y la Forja desde la I,
+        // Piedra, Papel o Tijera desde la III y Frio o Caliente en la IV. Uno a la vez.
+        int tipoMini = campo || enfMinijuego > 0 ? MinijuegosNovilis.NINGUNO : elegirTipoMini();
+        if (tipoMini != MinijuegosNovilis.NINGUNO && !jugadores(nivel, 48, 0).isEmpty()) {
+            opciones.add(new int[]{tipoMini == MinijuegosNovilis.PIEDRA ? MINI_ALZA : MINI_CLAVA, 5});
+        }
         if (opciones.isEmpty()) {
             return false;
         }
@@ -940,6 +1026,9 @@ public class NovilisEntity extends Monster {
         if (elegido == ESPADA || elegido == INFERNAL) {
             // A uno que este a media distancia (ni encima ni fuera de su alcance).
             presa = lejos;
+        }
+        if (elegido == MINI_CLAVA || elegido == MINI_ALZA) {
+            miniSiguiente = tipoMini;
         }
         if (elegido == BARRIDO) {
             // Al mas cercano (antes, uno al azar a 30 bloques: tajaba al aire).
@@ -1045,6 +1134,12 @@ public class NovilisEntity extends Monster {
                 ponerEstado(DIOS, NovilisGeometria.DURACION_DIOS);
                 sonido(AtalayaSonidos.NOVILIS_DIOS, 7.0F);
             }
+            case MINI_CLAVA, MINI_ALZA -> {
+                enfMinijuego = 500;
+                enfMini[Mth.clamp(miniSiguiente, 0, enfMini.length - 1)] = (int) (1500 * k);
+                ponerEstado(ataque, ataque == MINI_CLAVA ? NovilisGeometria.DURACION_MAR : NovilisGeometria.DURACION_TROMPETAS);
+                sonido(AtalayaSonidos.NOVILIS_RUGIDO, 6.0F);
+            }
             default -> {
                 return false;
             }
@@ -1106,6 +1201,40 @@ public class NovilisEntity extends Monster {
                         s.hurtServer(nivel, nivel.damageSources().generic(), 1.0F);
                         break;
                     }
+                }
+                return true;
+            }
+            case "manda", "forja", "piedra", "caliente" -> {
+                // Un minijuego ya (sin mirar la fase ni los enfriamientos).
+                if (getEstado() == DORMIDO) {
+                    despertarse(blanco);
+                }
+                if (getEstado() == OFRENDA) {
+                    soltarCaptivo(nivel, false);
+                }
+                acabarMinijuego(nivel, false, false);
+                acabarSombra(nivel, false, false);
+                acabarMelodia(nivel, false);
+                acabarMar(nivel);
+                entityData.set(DATA_MARCA, -1);
+                velCarga = 0.0;
+                saltando = false;
+                ponerEstado(LIBRE, 0);
+                miniSiguiente = java.util.Arrays.asList(MinijuegosNovilis.CLAVES).indexOf(orden);
+                iniciar(nivel, miniSiguiente == MinijuegosNovilis.PIEDRA ? MINI_ALZA : MINI_CLAVA);
+                return true;
+            }
+            case "mini_bien" -> {
+                // Que el minijuego en marcha salga bien ya.
+                if (mini != null) {
+                    mini.forzarExito(nivel);
+                }
+                return true;
+            }
+            case "mini_fin" -> {
+                // Que se acabe el tiempo del minijuego en marcha.
+                if (mini != null) {
+                    acabarMinijuego(nivel, mini.exitoAlAcabar(), true);
                 }
                 return true;
             }
@@ -1282,7 +1411,10 @@ public class NovilisEntity extends Monster {
         }
         if (cruza(NovilisGeometria.CASTIGO_MARCA)) {
             int retraso = (int) Math.ceil((NovilisGeometria.CASTIGO_RAYO - NovilisGeometria.CASTIGO_MARCA) / ritmoEstado);
-            for (LivingEntity v : presas(nivel, 48)) {
+            for (LivingEntity v : castigoSolo != null ? castigoSolo : presas(nivel, 48)) {
+                if (!v.isAlive() || v.isRemoved()) {
+                    continue;
+                }
                 SelloSolEntity.poner(nivel, this, v.position(), RADIO_RAYO, retraso, SelloSolEntity.RAYO, dano(DANO_RAYO), fase());
             }
             sonido(AtalayaSonidos.NOVILIS_CASTIGO_AVISO, 5.0F);
@@ -2178,10 +2310,12 @@ public class NovilisEntity extends Monster {
         if (e == OFRENDA) {
             soltarCaptivo(nivel, false);
         }
+        acabarMinijuego(nivel, false, false);
         velCarga = 0.0;
         saltando = false;
         entityData.set(DATA_MARCA, -1);
         presa = null;
+        castigoSolo = null;
         if (e != TAMBALEO) {
             ponerEstado(TAMBALEO, NovilisGeometria.DURACION_TAMBALEO);
         }
@@ -2193,9 +2327,13 @@ public class NovilisEntity extends Monster {
         } else if (nueva == 3) {
             enfInfernal = Math.min(enfInfernal, 200);
             enfOfrenda = Math.min(enfOfrenda, 300);
+            enfMini[MinijuegosNovilis.PIEDRA] = 0;
+            enfMinijuego = Math.min(enfMinijuego, 300);
         } else if (nueva == 4) {
             enfMar = Math.min(enfMar, 240);
             enfDios = Math.min(enfDios, 200);
+            enfMini[MinijuegosNovilis.CALIENTE] = 0;
+            enfMinijuego = Math.min(enfMinijuego, 300);
         }
     }
 
@@ -2236,6 +2374,11 @@ public class NovilisEntity extends Monster {
         }
         if (tieneFuria()) {
             // La Furia: inmune mientras dura (30 s); lo de romper (ojos, nucleos...) va aparte.
+            avisoInmune(nivel, causante);
+            return false;
+        }
+        if (mini != null && mini.inmune()) {
+            // En los minijuegos (salvo Frio o Caliente) lo que sirve es jugar.
             avisoInmune(nivel, causante);
             return false;
         }
@@ -2309,6 +2452,7 @@ public class NovilisEntity extends Monster {
         acabarMar(nivel);
         acabarMelodia(nivel, false);
         acabarSombra(nivel, false, false);
+        acabarMinijuego(nivel, false, false);
         entityData.set(DATA_MARCA, -1);
     }
 
@@ -2348,6 +2492,231 @@ public class NovilisEntity extends Monster {
             nivel.sendParticles(AtalayaParticulas.NOVILIS_LUZ, getX(), getY() + 8.0, getZ(), 90, 3.0, 6.0, 3.0, 0.05);
             remove(RemovalReason.KILLED);
         }
+    }
+
+    // ------------------------------------------------------------------
+    //  Los minijuegos (octubre de 2026; Juan eligio cuatro de cinco fichas y
+    //  los repartio por fases: El Caballero Manda y la Forja del Juramento en
+    //  la I, Piedra, Papel o Tijera en la III y Frio o Caliente en la IV).
+    //  Cada uno en su clase (MinijuegoNovilis); aqui el marco: elegir,
+    //  empezar, mover, acabar, y lo que necesitan de el.
+    // ------------------------------------------------------------------
+
+    /** Lo que se queda aturdido tras un minijuego bien hecho (6 s). */
+    private static final int ATURDIDO_MINI = 120;
+
+    /** Uno de los que tocan por la fase y no esten recien hechos, al azar. */
+    private int elegirTipoMini() {
+        List<Integer> tipos = new ArrayList<>();
+        for (int tipo = MinijuegosNovilis.MANDA; tipo <= MinijuegosNovilis.CALIENTE; tipo++) {
+            if (fase() >= MinijuegosNovilis.FASE[tipo] && enfMini[tipo] <= 0) {
+                tipos.add(tipo);
+            }
+        }
+        return tipos.isEmpty() ? MinijuegosNovilis.NINGUNO : tipos.get(random.nextInt(tipos.size()));
+    }
+
+    /** Al clavar la espada (o alzar el puno): sale lo del minijuego que tocaba. */
+    private void tickMiniEmpieza(ServerLevel nivel, int e) {
+        fijarRumbo(yBodyRot);
+        if (mini != null) {
+            // Ya en marcha: solo es el gesto (alza el puno en cada ronda de Piedra, Papel o Tijera).
+            return;
+        }
+        if (e == MINI_CLAVA && cruza(NovilisGeometria.MAR_CLAVA)) {
+            Vec3 p = puntoMundo(NovilisGeometria.PUNTA_MAR);
+            sonido(AtalayaSonidos.NOVILIS_CASTIGO_CLAVA, 7.0F);
+            golpeSuelo(nivel, new Vec3(p.x, getY(), p.z), 2.0F, 14.0F, 20);
+            empezarMinijuego(nivel, miniSiguiente);
+        } else if (e == MINI_ALZA && cruza(NovilisGeometria.TROMPETAS_ALZA)) {
+            Vec3 c = puntoMundo(NovilisGeometria.SOL_PROPIO);
+            nivel.sendParticles(AtalayaParticulas.NOVILIS_LLAMA, true, true, c.x, c.y, c.z, 30, 1.5, 1.5, 1.5, 0.06);
+            empezarMinijuego(nivel, miniSiguiente);
+        }
+    }
+
+    private void empezarMinijuego(ServerLevel nivel, int tipo) {
+        acabarMinijuego(nivel, false, false);
+        MinijuegoNovilis m = switch (tipo) {
+            case MinijuegosNovilis.MANDA -> new MandaNovilis(this);
+            case MinijuegosNovilis.FORJA -> new ForjaNovilis(this);
+            case MinijuegosNovilis.PIEDRA -> new PiedraNovilis(this);
+            case MinijuegosNovilis.CALIENTE -> new CalienteNovilis(this);
+            default -> null;
+        };
+        if (m == null) {
+            return;
+        }
+        mini = m;
+        anotarMinijuego();
+        if (!m.empezar(nivel, jugadores(nivel, 48, 0))) {
+            mini = null;
+            entityData.set(DATA_MINI, 0);
+            entityData.set(DATA_MINI_INFO, 0);
+            return;
+        }
+        anotarMinijuego();
+        entityData.set(DATA_MINI_FIN, nivel.getGameTime() + m.dura);
+    }
+
+    private void anotarMinijuego() {
+        entityData.set(DATA_MINI, mini == null ? 0
+                : mini.tipo | (Math.min(1023, mini.cuenta) << 4) | (Math.min(1023, mini.necesario) << 14));
+        entityData.set(DATA_MINI_INFO, mini == null ? 0 : mini.info());
+    }
+
+    private void tickMinijuego(ServerLevel nivel) {
+        if (mini == null) {
+            return;
+        }
+        MinijuegoNovilis m = mini;
+        m.t++;
+        m.tick(nivel);
+        if (mini != m) {
+            return;
+        }
+        if (m.t >= m.dura) {
+            acabarMinijuego(nivel, m.exitoAlAcabar(), true);
+        } else {
+            anotarMinijuego();
+        }
+    }
+
+    /**
+     * Se acaba el minijuego: fuera lo que salio. Si salio bien, queda aturdido 6 s
+     * (dano doble); si no, cada uno sabe lo que pasa. Sin avisar (un cambio de
+     * fase, la muerte, una orden), sin mas.
+     */
+    void acabarMinijuego(ServerLevel nivel, boolean exito, boolean avisar) {
+        MinijuegoNovilis m = mini;
+        if (m == null) {
+            return;
+        }
+        mini = null;
+        entityData.set(DATA_MINI, 0);
+        entityData.set(DATA_MINI_FIN, 0L);
+        entityData.set(DATA_MINI_INFO, 0);
+        m.limpiar(nivel, exito, avisar);
+        enfMinijuego = 500;
+        castigoSolo = null;
+        int e = getEstado();
+        if (!avisar && (e == MANDA || e == MINI_CLAVA || e == MINI_ALZA)) {
+            terminar(nivel);
+        }
+        if (!avisar || isDeadOrDying()) {
+            return;
+        }
+        String clave = MinijuegosNovilis.CLAVES[m.tipo];
+        avisarMini(nivel, Component.translatable("hud.atalaya.novilis." + clave + (exito ? "_exito" : "_fallo"))
+                .withStyle(exito ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+        nivel.playSound(null, getX(), getY() + 6, getZ(), exito ? AtalayaSonidos.NOVILIS_MINI_EXITO : AtalayaSonidos.NOVILIS_MINI_FALLO,
+                SoundSource.HOSTILE, 6.0F, 1.0F);
+        if (exito && e != DORMIDO && e != DESPERTAR) {
+            if (e == OFRENDA) {
+                soltarCaptivo(nivel, false);
+            }
+            Vec3 c = puntoMundo(NovilisGeometria.PECHO);
+            nivel.sendParticles(AtalayaParticulas.NOVILIS_HUMO, true, true, c.x, c.y, c.z, 40, 2.5, 3.0, 2.5, 0.05);
+            aturdir(nivel, ATURDIDO_MINI);
+        }
+    }
+
+    // --- Lo que los minijuegos necesitan de el ---
+
+    /** El centro de su altar, en el suelo. */
+    Vec3 centroArenaMini() {
+        return centro != null ? Vec3.atBottomCenterOf(centro) : position();
+    }
+
+    /** El mismo punto, pero sin salir de su altar (la correa). */
+    Vec3 dentroArenaMini(Vec3 p) {
+        Vec3 c = centroArenaMini();
+        Vec3 rel = new Vec3(p.x - c.x, 0, p.z - c.z);
+        if (rel.length() <= CORREA) {
+            return p;
+        }
+        rel = rel.normalize().scale(CORREA);
+        return new Vec3(c.x + rel.x, p.y, c.z + rel.z);
+    }
+
+    List<LivingEntity> presasMini(ServerLevel nivel, double max) {
+        return presas(nivel, max);
+    }
+
+    /** Un aviso en la barra de accion de todos los que pelean. */
+    void avisarMini(ServerLevel nivel, Component texto) {
+        for (Player p : jugadores(nivel, 80, 0)) {
+            p.sendOverlayMessage(texto);
+        }
+    }
+
+    /** Plantado, mirando a su objetivo. */
+    void quietoMini(@Nullable LivingEntity objetivo) {
+        getNavigation().stop();
+        getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
+        setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+        if (objetivo != null) {
+            getLookControl().setLookAt(objetivo, 10.0F, 10.0F);
+            girarHacia(objetivo.position(), 3.0F);
+        }
+    }
+
+    /** Su sol, el que flota sobre el (al que hay que mirar en el Caballero Manda). */
+    Vec3 solPropio() {
+        return puntoMundo(NovilisGeometria.SOL_PROPIO);
+    }
+
+    Vec3 pechoMini() {
+        return puntoMundo(NovilisGeometria.PECHO);
+    }
+
+    /** Delante del yelmo (la pista de Piedra, Papel o Tijera). */
+    Vec3 yelmoMini() {
+        return puntoMundo(NovilisGeometria.CABEZA.add(0, 0.2, 1.6));
+    }
+
+    /** Da una orden (el Caballero Manda): el gesto del Grito, sin rugido, y su toque de heraldo. */
+    void ordenMini() {
+        if (getEstado() == LIBRE) {
+            ponerEstado(MANDA, NovilisGeometria.DURACION_GRITO);
+        }
+        sonido(AtalayaSonidos.NOVILIS_MANDA_ORDEN, 7.0F);
+    }
+
+    /** Alza el puno (una ronda de Piedra, Papel o Tijera). */
+    void alzarMini() {
+        if (getEstado() == LIBRE) {
+            ponerEstado(MINI_ALZA, NovilisGeometria.DURACION_TROMPETAS);
+        }
+    }
+
+    /** La Forja: alza la espada contra los herreros (el rayo del Castigo, sin la onda, solo a estos). */
+    void castigoMini(ServerLevel nivel, List<LivingEntity> blancos) {
+        if (getEstado() != LIBRE || blancos.isEmpty()) {
+            return;
+        }
+        castigoSolo = new ArrayList<>(blancos);
+        ponerEstado(CASTIGO, NovilisGeometria.DURACION_CASTIGO);
+        sonido(AtalayaSonidos.NOVILIS_CASTIGO_ALZA, 5.0F);
+    }
+
+    /** Un fallo en un minijuego: quema (los niveles de quemadura) y un golpe que no mata. */
+    void quemarMini(ServerLevel nivel, LivingEntity v, float dano, int niveles) {
+        float tope = Math.max(0.0F, (v.getHealth() + v.getAbsorptionAmount() - 1.0F) / 1.5F);
+        float d = Math.min(dano, tope);
+        if (d > 0.0F) {
+            v.hurtServer(nivel, NovilisDanos.fuente(nivel, NovilisDanos.ABRASA, this, this), d);
+        }
+        if (niveles > 0) {
+            QuemaduraEffect.quemar(v, niveles);
+        }
+    }
+
+    /** Un sonido solo para este jugador. */
+    static void sonidoPara(ServerPlayer p, SoundEvent s, float volumen) {
+        p.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
+                net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.wrapAsHolder(s), SoundSource.PLAYERS,
+                p.getX(), p.getEyeY(), p.getZ(), volumen, 1.0F, p.getRandom().nextLong()));
     }
 
     // ------------------------------------------------------------------

@@ -1922,5 +1922,233 @@
     "sounds": [
       "atalaya:rajang/mini_fallo"
     ]
+  },
+  "novilis.manda_orden": {
+    "subtitle": "subtitles.atalaya.novilis.manda_orden",
+    "sounds": [
+      "atalaya:novilis/manda_orden"
+    ]
+  },
+  "novilis.manda_bien": {
+    "subtitle": "subtitles.atalaya.novilis.manda_bien",
+    "sounds": [
+      "atalaya:novilis/manda_bien"
+    ]
+  },
+  "novilis.manda_fallo": {
+    "subtitle": "subtitles.atalaya.novilis.manda_fallo",
+    "sounds": [
+      "atalaya:novilis/manda_fallo"
+    ]
+  },
+  "novilis.forja_sale": {
+    "subtitle": "subtitles.atalaya.novilis.forja_sale",
+    "sounds": [
+      "atalaya:novilis/forja_sale"
+    ]
+  },
+  "novilis.forja_perfecto": {
+    "subtitle": "subtitles.atalaya.novilis.forja_perfecto",
+    "sounds": [
+      "atalaya:novilis/forja_perfecto"
+    ]
+  },
+  "novilis.forja_bien": {
+    "subtitle": "subtitles.atalaya.novilis.forja_bien",
+    "sounds": [
+      "atalaya:novilis/forja_bien"
+    ]
+  },
+  "novilis.forja_mal": {
+    "subtitle": "subtitles.atalaya.novilis.forja_mal",
+    "sounds": [
+      "atalaya:novilis/forja_mal"
+    ]
+  },
+  "novilis.forja_hoja": {
+    "subtitle": "subtitles.atalaya.novilis.forja_hoja",
+    "sounds": [
+      "atalaya:novilis/forja_hoja"
+    ]
+  },
+  "novilis.forja_vuelan": {
+    "subtitle": "subtitles.atalaya.novilis.forja_vuelan",
+    "sounds": [
+      "atalaya:novilis/forja_vuelan"
+    ]
+  },
+  "novilis.piedra_cuenta": {
+    "subtitle": "subtitles.atalaya.novilis.piedra_cuenta",
+    "sounds": [
+      "atalaya:novilis/piedra_cuenta"
+    ]
+  },
+  "novilis.piedra_revela": {
+    "subtitle": "subtitles.atalaya.novilis.piedra_revela",
+    "sounds": [
+      "atalaya:novilis/piedra_revela"
+    ]
+  },
+  "novilis.piedra_gana": {
+    "subtitle": "subtitles.atalaya.novilis.piedra_gana",
+    "sounds": [
+      "atalaya:novilis/piedra_gana"
+    ]
+  },
+  "novilis.piedra_pierde": {
+    "subtitle": "subtitles.atalaya.novilis.piedra_pierde",
+    "sounds": [
+      "atalaya:novilis/piedra_pierde"
+    ]
+  },
+  "novilis.caliente_entierra": {
+    "subtitle": "subtitles.atalaya.novilis.caliente_entierra",
+    "sounds": [
+      "atalaya:novilis/caliente_entierra"
+    ]
+  },
+  "novilis.caliente_hallada": {
+    "subtitle": "subtitles.atalaya.novilis.caliente_hallada",
+    "sounds": [
+      "atalaya:novilis/caliente_hallada"
+    ]
+  },
+  "novilis.caliente_revienta": {
+    "subtitle": "subtitles.atalaya.novilis.caliente_revienta",
+    "sounds": [
+      "atalaya:novilis/caliente_revienta"
+    ]
+  },
+  "novilis.mini_exito": {
+    "subtitle": "subtitles.atalaya.novilis.mini_exito",
+    "sounds": [
+      "atalaya:novilis/mini_exito"
+    ]
+  },
+  "novilis.mini_fallo": {
+    "subtitle": "subtitles.atalaya.novilis.mini_fallo",
+    "sounds": [
+      "atalaya:novilis/mini_fallo"
+    ]
+  },
+  "aeralis.ocelos_aviso": {
+    "subtitle": "subtitles.atalaya.aeralis.ocelos_aviso",
+    "sounds": [
+      "atalaya:aeralis/ocelos_aviso"
+    ]
+  },
+  "aeralis.ocelos_abre": {
+    "subtitle": "subtitles.atalaya.aeralis.ocelos_abre",
+    "sounds": [
+      "atalaya:aeralis/ocelos_abre"
+    ]
+  },
+  "aeralis.ocelos_cierra": {
+    "subtitle": "subtitles.atalaya.aeralis.ocelos_cierra",
+    "sounds": [
+      "atalaya:aeralis/ocelos_cierra"
+    ]
+  },
+  "aeralis.ocelos_rayo": {
+    "subtitle": "subtitles.atalaya.aeralis.ocelos_rayo",
+    "sounds": [
+      "atalaya:aeralis/ocelos_rayo"
+    ]
+  },
+  "aeralis.ocelos_toca": {
+    "subtitle": "subtitles.atalaya.aeralis.ocelos_toca",
+    "sounds": [
+      "atalaya:aeralis/ocelos_toca"
+    ]
+  },
+  "aeralis.veleta_sale": {
+    "subtitle": "subtitles.atalaya.aeralis.veleta_sale",
+    "sounds": [
+      "atalaya:aeralis/veleta_sale"
+    ]
+  },
+  "aeralis.veleta_gira": {
+    "subtitle": "subtitles.atalaya.aeralis.veleta_gira",
+    "sounds": [
+      "atalaya:aeralis/veleta_gira"
+    ]
+  },
+  "aeralis.veleta_apunta": {
+    "subtitle": "subtitles.atalaya.aeralis.veleta_apunta",
+    "sounds": [
+      "atalaya:aeralis/veleta_apunta"
+    ]
+  },
+  "aeralis.veleta_atrapa": {
+    "subtitle": "subtitles.atalaya.aeralis.veleta_atrapa",
+    "sounds": [
+      "atalaya:aeralis/veleta_atrapa"
+    ]
+  },
+  "aeralis.pararrayos_marca": {
+    "subtitle": "subtitles.atalaya.aeralis.pararrayos_marca",
+    "sounds": [
+      "atalaya:aeralis/pararrayos_marca"
+    ]
+  },
+  "aeralis.pararrayos_rayo": {
+    "subtitle": "subtitles.atalaya.aeralis.pararrayos_rayo",
+    "sounds": [
+      "atalaya:aeralis/pararrayos_rayo"
+    ]
+  },
+  "aeralis.pararrayos_estalla": {
+    "subtitle": "subtitles.atalaya.aeralis.pararrayos_estalla",
+    "sounds": [
+      "atalaya:aeralis/pararrayos_estalla"
+    ]
+  },
+  "aeralis.pararrayos_descarga": {
+    "subtitle": "subtitles.atalaya.aeralis.pararrayos_descarga",
+    "sounds": [
+      "atalaya:aeralis/pararrayos_descarga"
+    ]
+  },
+  "aeralis.chispa_cae": {
+    "subtitle": "subtitles.atalaya.aeralis.chispa_cae",
+    "sounds": [
+      "atalaya:aeralis/chispa_cae"
+    ]
+  },
+  "aeralis.chispa_tic": {
+    "subtitle": "subtitles.atalaya.aeralis.chispa_tic",
+    "sounds": [
+      "atalaya:aeralis/chispa_tic"
+    ]
+  },
+  "aeralis.chispa_pasa": {
+    "subtitle": "subtitles.atalaya.aeralis.chispa_pasa",
+    "sounds": [
+      "atalaya:aeralis/chispa_pasa"
+    ]
+  },
+  "aeralis.chispa_cargada": {
+    "subtitle": "subtitles.atalaya.aeralis.chispa_cargada",
+    "sounds": [
+      "atalaya:aeralis/chispa_cargada"
+    ]
+  },
+  "aeralis.chispa_revienta": {
+    "subtitle": "subtitles.atalaya.aeralis.chispa_revienta",
+    "sounds": [
+      "atalaya:aeralis/chispa_revienta"
+    ]
+  },
+  "aeralis.mini_exito": {
+    "subtitle": "subtitles.atalaya.aeralis.mini_exito",
+    "sounds": [
+      "atalaya:aeralis/mini_exito"
+    ]
+  },
+  "aeralis.mini_fallo": {
+    "subtitle": "subtitles.atalaya.aeralis.mini_fallo",
+    "sounds": [
+      "atalaya:aeralis/mini_fallo"
+    ]
   }
 }

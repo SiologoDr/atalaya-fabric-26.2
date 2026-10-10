@@ -36,6 +36,11 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
     private final ModelPart cuerpo;
     private final ModelPart nucleo;
     private final ModelPart halo;
+    /** Las alas de arriba, que se abren en los Ocelos. */
+    private final ModelPart alaSupIzq;
+    private final ModelPart alaSupDer;
+    private final ModelPart alaInfIzq;
+    private final ModelPart alaInfDer;
 
     private final KeyframeAnimation vuelo;
     private final KeyframeAnimation avance;
@@ -63,6 +68,10 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
         this.cuerpo = raiz.createPartLookup().apply("cuerpo");
         this.nucleo = raiz.createPartLookup().apply("nucleo");
         this.halo = raiz.createPartLookup().apply("halo");
+        this.alaSupIzq = raiz.createPartLookup().apply("ala_sup_izq");
+        this.alaSupDer = raiz.createPartLookup().apply("ala_sup_der");
+        this.alaInfIzq = raiz.createPartLookup().apply("ala_inf_izq");
+        this.alaInfDer = raiz.createPartLookup().apply("ala_inf_der");
         this.vuelo = AeralisAnimaciones.VUELO.bake(raiz);
         this.avance = AeralisAnimaciones.AVANCE.bake(raiz);
         this.dormida = AeralisAnimaciones.DORMIDA.bake(raiz);
@@ -136,7 +145,21 @@ public class AeralisModel extends EntityModel<AeralisRenderState> {
             tambaleo.apply(s.tambaleo, s.ageInTicks, s.ritmo);
             picadoAviso.apply(s.picadoAviso, s.ageInTicks, s.ritmo);
             picado.apply(s.picado, s.ageInTicks, 1.0F);
-            posada.apply(s.posada, s.ageInTicks, 1.0F);
+            if (s.estado == AeralisEntity.OCELOS) {
+                // Los Ocelos: posada (sin el despegue del final de la animacion) y las alas
+                // de arriba se abren cuando miran, para que se vean los ojos.
+                long ms = Math.min(2000L, (long) s.posada.getTimeInMillis(s.ageInTicks));
+                posada.apply(ms, 1.0F);
+                float abre = Math.min(1.0F, s.ocelos);
+                alaSupIzq.zRot += 38.0F * Mth.DEG_TO_RAD * abre;
+                alaSupDer.zRot -= 38.0F * Mth.DEG_TO_RAD * abre;
+                alaSupIzq.yRot += 18.0F * Mth.DEG_TO_RAD * abre;
+                alaSupDer.yRot -= 18.0F * Mth.DEG_TO_RAD * abre;
+                alaInfIzq.yRot += 22.0F * Mth.DEG_TO_RAD * abre;
+                alaInfDer.yRot -= 22.0F * Mth.DEG_TO_RAD * abre;
+            } else {
+                posada.apply(s.posada, s.ageInTicks, 1.0F);
+            }
             escamas.apply(s.escamas, s.ageInTicks, s.ritmo);
         }
         liberacion.apply(s.liberacion, s.ageInTicks);

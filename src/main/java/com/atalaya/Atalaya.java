@@ -171,6 +171,18 @@ public class Atalaya implements ModInitializer {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entidad, mundo) ->
                 com.atalaya.entity.MinijuegosRajang.alCargar(entidad));
 
+        // La Chispa de Aeralis: quien la lleva la pasa de un golpe (y el golpe no hace dano).
+        // En el cliente se deja pasar (que el golpe llegue al servidor); alli se decide.
+        net.fabricmc.fabric.api.event.player.AttackEntityCallback.EVENT.register((jugador, mundo, mano, blanco, impacto) ->
+                !mundo.isClientSide() && com.atalaya.entity.MinijuegosAeralis.alAtacar(jugador, blanco)
+                        ? net.minecraft.world.InteractionResult.FAIL : net.minecraft.world.InteractionResult.PASS);
+
+        // Frio o Caliente de Novilis: golpear el suelo justo encima de una brasa enterrada la saca
+        // (y el bloque no se rompe). En los dos lados: el cliente solo dice que la hay.
+        net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT.register((jugador, mundo, mano, pos, cara) ->
+                !jugador.isSpectator() && com.atalaya.entity.BrasaEnterradaEntity.alGolpearBloque(jugador, mundo, pos)
+                        ? net.minecraft.world.InteractionResult.SUCCESS : net.minecraft.world.InteractionResult.PASS);
+
         // Al conectarse, el libro de recetas tiene que reflejar los interruptores
         // actuales: si el crafteo esta apagado, esas recetas no deben aparecer.
         ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) ->

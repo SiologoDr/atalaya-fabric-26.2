@@ -90,6 +90,12 @@ public final class NovilisEfectosCliente {
                     NereaPresencia.asustarFuego(x, y, z, 1.0F, 90);
                 }
             }
+            case NovilisEntity.MINI_CLAVA -> {
+                // Clava la espada para un minijuego: sacude, pero sin el miedo del Mar.
+                if (t == NovilisGeometria.MAR_CLAVA) {
+                    NereaPresencia.sacudir(x, y, z, 1.6F, 64);
+                }
+            }
             case NovilisEntity.DIOS -> {
                 if (t == NovilisGeometria.DIOS_MARCA) {
                     NereaPresencia.sacudir(x, y, z, 2.0F, 64);

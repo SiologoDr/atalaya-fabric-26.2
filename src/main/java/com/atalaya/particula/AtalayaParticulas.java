@@ -185,6 +185,14 @@ public final class AtalayaParticulas {
     public static SimpleParticleType NOVILIS_AZUL;
     /** Lengua de fuego carmesi: el Dios de la Guerra y el Grito de guerra. */
     public static SimpleParticleType NOVILIS_CARMESI;
+    /**
+     * Piedra, papel y tijera (el minijuego de Novilis): un icono quieto en el
+     * aire, encima de quien lo saca. La velocidad X es su tamano y la Y lo que
+     * dura (se manda con count 0 y speed 1).
+     */
+    public static SimpleParticleType NOVILIS_PIEDRA;
+    public static SimpleParticleType NOVILIS_PAPEL;
+    public static SimpleParticleType NOVILIS_TIJERA;
 
     private AtalayaParticulas() {
     }
@@ -273,6 +281,9 @@ public final class AtalayaParticulas {
         NOVILIS_LUZ = registrar("novilis_luz", false);
         NOVILIS_AZUL = registrar("novilis_azul", true);
         NOVILIS_CARMESI = registrar("novilis_carmesi", true);
+        NOVILIS_PIEDRA = registrar("novilis_piedra", true);
+        NOVILIS_PAPEL = registrar("novilis_papel", true);
+        NOVILIS_TIJERA = registrar("novilis_tijera", true);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {

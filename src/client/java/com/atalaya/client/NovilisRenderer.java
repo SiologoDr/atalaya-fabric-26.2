@@ -161,11 +161,11 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
             case NovilisEntity.CASTIGO_ONDA -> NovilisEstelas.CASTIGO_ONDA;
             case NovilisEntity.DESPERTAR -> NovilisEstelas.DESPERTAR;
             case NovilisEntity.TAMBALEO -> NovilisEstelas.TAMBALEO;
-            case NovilisEntity.GRITO -> NovilisEstelas.GRITO;
-            case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA -> NovilisEstelas.TROMPETAS;
+            case NovilisEntity.GRITO, NovilisEntity.MANDA -> NovilisEstelas.GRITO;
+            case NovilisEntity.TROMPETAS, NovilisEntity.SOMBRA, NovilisEntity.MINI_ALZA -> NovilisEstelas.TROMPETAS;
             case NovilisEntity.ESPADA -> NovilisEstelas.ESPADA;
             case NovilisEntity.INFERNAL -> NovilisEstelas.INFERNAL;
-            case NovilisEntity.MAR -> NovilisEstelas.MAR;
+            case NovilisEntity.MAR, NovilisEntity.MINI_CLAVA -> NovilisEstelas.MAR;
             case NovilisEntity.SOL -> NovilisEstelas.SOL;
             default -> null;
         };
