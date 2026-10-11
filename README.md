@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.8**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.1.9**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -2395,7 +2395,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.8.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.1.9.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -2426,7 +2426,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.8
+	- atalaya 1.1.9
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2799,7 +2799,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.8.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.1.9.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y
