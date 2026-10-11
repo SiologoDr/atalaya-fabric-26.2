@@ -143,8 +143,6 @@ public class NereaEntity extends Monster {
     private static final int ATURDIDA_PESCA = 120;
     private static final int ATURDIDA_CANONES = 100;
     private static final int ATURDIDA_MORENAS = 120;
-    /** Lo que le quita cada bala de canon que le da (de su vida). */
-    private static final float DANO_CANON = 0.03F;
 
     /**
      * Vida EFECTIVA: 12 500, la misma con cualquier numero de jugadores. La de
@@ -990,19 +988,11 @@ public class NereaEntity extends Monster {
         }
         getLookControl().setLookAt(objetivo, 20.0F, 20.0F);
         if (miniTipo != MinijuegosNerea.NINGUNO) {
-            // Mientras dura un minijuego ni anda ni ataca: el minijuego es lo que importa. Con
-            // los canones se defiende: de vez en cuando, un Rompeolas hacia un artillero.
+            // Mientras dura un minijuego ni anda ni ataca (tampoco a los artilleros: Juan,
+            // 10-10-2026): el minijuego es lo que importa.
             getNavigation().stop();
             getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0.0);
             setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
-            if (miniTipo == MinijuegosNerea.CANONES && respiro <= 0 && enfRompeolas <= 0) {
-                LivingEntity blanco = artilleroAlAzar();
-                if (blanco != null) {
-                    setTarget(blanco);
-                    iniciar(nivel, ROMPEOLAS, null);
-                    enfRompeolas = 140;
-                }
-            }
             return;
         }
         if (fase() == 4 && --relojAgotado <= 0) {
@@ -2586,26 +2576,11 @@ public class NereaEntity extends Monster {
 
     // --- Canones del Naufragio ---
 
-    /** Uno al azar de los que estan en un canon o junto a uno (para su Rompeolas). */
-    private @Nullable LivingEntity artilleroAlAzar() {
-        List<LivingEntity> cerca = new ArrayList<>();
-        for (CanonNaufragioEntity canon : canones) {
-            if (canon.getFirstPassenger() instanceof LivingEntity v && esPresa(v)) {
-                cerca.add(v);
-            }
-        }
-        if (cerca.isEmpty() && getTarget() != null && esPresa(getTarget())) {
-            cerca.add(getTarget());
-        }
-        return cerca.isEmpty() ? null : cerca.get(random.nextInt(cerca.size()));
-    }
-
-    /** Una bala le ha dado: un 3 % de su vida, se tambalea y suma a la racha; tres seguidas, aturdida. */
+    /** Una bala le ha dado: se tambalea y suma a la racha (sin quitarle vida: Juan, 10-10-2026); tres seguidas, aturdida. */
     void alImpactoCanon(ServerLevel nivel, Vec3 donde) {
         if (miniTipo != MinijuegosNerea.CANONES || isDeadOrDying()) {
             return;
         }
-        setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * DANO_CANON));
         miniCuenta++;
         anotarMinijuego();
         sonido(AtalayaSonidos.NEREA_HERIDO, 5.0F);
@@ -3061,8 +3036,9 @@ public class NereaEntity extends Monster {
                 && impactoEnOjo(nivel, proyectil)) {
             return true;
         }
-        if (e == DUELO) {
-            // El Duelo de Canto es cosa del elegido: nadie le puede pegar ni frenar el canto.
+        if (e == DUELO || e == PESCA || e == CANONES || e == MORENAS || miniTipo != MinijuegosNerea.NINGUNO) {
+            // En los minijuegos (y mientras los saca) no le entra nada: lo que sirve es jugar
+            // (Juan, 10-10-2026). El Duelo de Canto es cosa del elegido: nadie le frena el canto.
             avisoInmune(nivel, causante);
             return false;
         }

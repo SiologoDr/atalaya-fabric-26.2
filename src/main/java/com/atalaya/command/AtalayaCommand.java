@@ -64,6 +64,7 @@ import java.util.List;
  *                                    aturdido, furia, perseguir, fase, liberar).
  *
  *   /atalaya habilidad            -> lanza la habilidad de tu armadura, como la tecla R
+ *   /atalaya habilidad lista      -> te la deja lista ya (sin recarga), para probar
  *   /repair [jugadores]           -> deja como nueva la armadura puesta (casco,
  *                                    peto o elitros, grebas y botas) tuya o de
  *                                    los jugadores que digas.
@@ -99,7 +100,14 @@ public final class AtalayaCommand {
                                     // Lo mismo que pulsar la tecla de la habilidad (para probar).
                                     com.atalaya.habilidad.Habilidades.activar(ctx.getSource().getPlayerOrException());
                                     return 1;
-                                }))
+                                })
+                                .then(Commands.literal("lista")
+                                        .executes(ctx -> {
+                                            // Para probar: la deja lista ya (sin recarga ni activa en marcha).
+                                            ctx.getSource().getPlayerOrException().setAttached(com.atalaya.habilidad.Habilidades.ESTADO,
+                                                    com.atalaya.habilidad.HabilidadEstado.NADA);
+                                            return 1;
+                                        })))
                         .then(Commands.literal("nerea")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("orden", StringArgumentType.word())

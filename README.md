@@ -895,17 +895,23 @@ entera, Protección IV y manzana de Notch. Con ese equipo, un golpe fuerte quita
 3,5 / 5 / 7,5 / 11 corazones según la fase.
 
 Ninguno muere: al final **se libera**, deja una bendición a todo el que esté
-cerca y entrega su pieza.
+cerca y entrega **su corazón**.
 
 | Jefe | Elemento | Vida | Armadura / dureza | XP | Suelta |
 |---|---|---|---|---|---|
-| **Nerea**, Guardián de los Mares | agua | 12 500 | 14 / 8 | 300 | Lágrima de Nerea |
-| **Aeralis**, la Mariposa del Vendaval | aire | 13 500 | 14 / 8 | 400 | Escama del Vendaval |
-| **Rajang**, el Jaguar de Jade | tierra | 15 000 | 16 / 10 | 450 | Colmillo de Jade |
-| **Novilis**, el Caballero Solar | fuego | 16 500 | 16 / 10 | 500 | Núcleo Solar |
+| **Nerea**, Guardián de los Mares | agua | 12 500 | 14 / 8 | 300 | Corazón de Nerea |
+| **Aeralis**, la Mariposa del Vendaval | aire | 13 500 | 14 / 8 | 400 | Corazón de Aeralis |
+| **Rajang**, el Jaguar de Jade | tierra | 15 000 | 16 / 10 | 450 | Corazón de Rajang |
+| **Novilis**, el Caballero Solar | fuego | 16 500 | 16 / 10 | 500 | Corazón de Novilis |
 
-Las cuatro piezas **todavía no hacen nada**: no tienen receta ni uso. Caen
-siempre, sin pedir que mate un jugador, y no se apilan.
+Los corazones (10-10-2026, Juan: «el drop de cada boss va a ser un corazón de
+cada tipo y diseño de boss») **todavía no hacen nada**: se usarán más adelante.
+Cada uno lleva lo suyo y late (`corazones_botin.py`): el de Nerea, de prismarina
+con una perla y su cadena; el de Aeralis, pálido con el ocelo de sus alas y un
+rayo; el de Rajang, de jade con el meandro de oro; el de Novilis, de oro al rojo
+con el sol en medio y grietas de lava. Caen siempre, sin pedir que mate un
+jugador, y se apilan de 16 en 16. Las piezas de antes (Lágrima, Escama,
+Colmillo y Núcleo) siguen existiendo, pero ya no caen.
 
 ### Lo que comparten
 
@@ -1195,6 +1201,25 @@ categoría de **ambiente** (no en la de música: con la música baja o quitada s
 quedaban sin ella), y entra y sale fundiéndose. Mientras suena, la de vanilla
 calla (`MusicaJefesMixin`); al liberarlo, se apaga.
 
+**Su cielo** (10-10-2026, Juan: «que el cielo cambie según el boss que estemos
+peleando... sorpréndeme»). Mientras se pelea con uno (el mismo que pone su
+música: despierto, a menos de 96 bloques y sin liberar), el cielo, la niebla,
+las nubes, el ocaso y la luz del mundo se vuelven los suyos **poco a poco**
+(8 s), y al liberarlo, o al alejarse, **vuelven solos** en otros 8 s. Entra al
+80 % y la fase IV lo pone del todo; con la Furia late más.
+
+| Jefe | Su cielo | Lo que trae |
+|---|---|---|
+| Novilis | **Apocalipsis Solar**: rojo sangre, nubes de humo rojo, ocaso de fuego y la luz del mundo roja | el cielo **late** como un sol que se muere (más deprisa con la Furia); llueve **ceniza**, suben **brasas** y a lo lejos sube humo |
+| Aeralis | **Tormenta**: pizarra, nubes negras, el mundo más oscuro y frío | **relámpagos**: el cielo se enciende dos veces, cae un **rayo** dentado a lo lejos (40-90 bloques) y luego retumba el **trueno**, tanto más tarde cuanto más lejos; cada vez más seguidos (de 7-13 s en la I a 3-6 s en la IV); rachas de viento y jirones |
+| Nerea | **Abismo**: azul de fondo marino y niebla cerrada | las **estrellas** se ven aun de día, como luces del abismo; la luz ondula; suben **luces** y **burbujas** |
+| Rajang | **Eclipse de Jade**: jade oscuro con un ocaso de oro y estrellas de eclipse | flota **polen de oro** y caen **hojas**; en la IV el cielo **respira** hacia el oro |
+
+Todo es del cliente (`CieloJefes`): `CieloJefesMixin` mezcla lo del jefe en los
+atributos de ambiente que lee la cámara (solo los de la cámara: el servidor y el
+juego no se enteran), las partículas salen alrededor de ella y los rayos de la
+tormenta los pinta `AeralisRenderer`.
+
 Cada jefe tiene un comando para probarlo por partes: `/atalaya <jefe> <orden>`
 (ver [Comandos](#comandos)).
 
@@ -1290,7 +1315,7 @@ salir todos.
 | Minijuego | Qué hace | Si sale bien | Si sale mal |
 |---|---|---|---|
 | **Pesca del Abismo** (I) | abre de 4 a 6 **pozas** en el suelo, a 10-18 bloques de ella. A un tercio de los que pelean (al menos uno) le da la **Caña del Abismo**. Se lanza a una poza (fuera no pica) y pica **una sola vez**: el corcho se hunde a tirones y sale un **aro dorado que se va cerrando** sobre él durante **1 s** (lo que queda de aro es el tiempo que queda; Juan: «así se mide la agilidad»). Si se recoge a tiempo, sale una **Perla del Abismo**; si no, **se escapa** y hay que recoger y volver a lanzar. Mirando a Nerea (a menos de 18 bloques), clic derecho: la perla **vuela a su corazón**. Hacen falta la mitad de perlas que jugadores (al menos 2), en 25 s. Si se recoge **antes** de que pique, **salta una morena** de la poza en arco hasta el pescador y le muerde (6 / 8 / 9 / 11, pasa la armadura); luego cae y se deshace en agua (`MorenaSaltoEntity`) | aturdida 6 s | las pozas revientan en **géiseres** |
-| **Cañones del Naufragio** (I) | salen de 3 a 5 **cañones** de un barco hundido (más con más gente) a 16 bloques, cada uno con su **pila de balas**. Uno coge una bala de la pila (clic derecho con la mano libre): la **lleva en brazos**, con las dos manos (`BalaBrazosMixin`, `BalaEnBrazosLayer`; en primera persona, `BalaManosMixin`), y **carga** el cañón. Otro se **sube** (clic derecho con la mano libre) y mira por su **catalejo**: la vista se acerca y la puntería va despacio, como con el de vanilla, pero con nuestro catalejo de bronce, la mira en el centro (**dorada y «¡EN EL BLANCO!»** si la bala daría en Nerea) y, en el mundo, el **camino de la bala** en puntos de luz hasta donde caería. Subido, no se ve la barra de objetos ni los corazones. Dispara con **ESPACIO**; con SHIFT se baja. La bala vuela despacio (1,7 bloques por tick) con su estela de humo para **verla llegar**; cada una que le da le quita un **3 %**; una que falla pone la racha a cero. 30 s | **tres seguidas**: aturdida 5 s | los cañones se hunden |
+| **Cañones del Naufragio** (I) | salen de 3 a 5 **cañones** de un barco hundido (más con más gente) a 16 bloques, cada uno con su **pila de balas**. Uno coge una bala de la pila (clic derecho con la mano libre): la **lleva en brazos**, con las dos manos (`BalaBrazosMixin`, `BalaEnBrazosLayer`; en primera persona, `BalaManosMixin`), y **carga** el cañón. Otro se **sube** (clic derecho con la mano libre) y mira por su **catalejo**: la vista se acerca y la puntería va despacio, como con el de vanilla, pero con nuestro catalejo de bronce, la mira en el centro (**dorada y «¡EN EL BLANCO!»** si la bala daría en Nerea) y, en el mundo, el **camino de la bala** en puntos de luz hasta donde caería. Subido, no se ve la barra de objetos ni los corazones. Dispara con **ESPACIO**; con SHIFT se baja. La bala vuela despacio (1,7 bloques por tick) con su estela de humo para **verla llegar**; cada una que le da la hace tambalearse (sin quitarle vida: Juan, 10-10-2026, «no debería recibir daño»); una que falla pone la racha a cero. 30 s | **tres seguidas**: aturdida 5 s | los cañones se hunden |
 | **Morenas de las Pozas** (II) | abre **8 agujeros** (un brocal de rocas con musgo) a 11 bloques; las morenas **asoman** 0,8 s, de una a tres a la vez (más con más gente, y una más en la segunda mitad). Antes de salir, el agua **hierve**; sale de golpe con una corona de agua, se mece, abre y cierra la boca y **mira al jugador más cercano**. En su último tercio de segundo **se echa atrás con la boca abierta y sisea**: el aviso. Hay que **golpearlas** antes: se ponen **rojas** como cualquier bicho, dan un respingo y se meten enroscándose. 10 con pocos jugadores, 2 más por cada uno a partir de 2 (hasta 30), en 20 s. La que no recibe un golpe **se lanza a morder** con la segunda mandíbula al que tenga más cerca (5,5 bloques): 8 / 10 / 12 / 15, pasa la armadura. **No la curan** | aturdida 6 s | nada más que los mordiscos |
 | **Duelo de Canto** (IV) | **le canta a un tercio** de los que pelean (al azar; al menos uno), a todos la misma canción y a cada uno en su pantalla: **3 s de cuenta atrás** (3, 2, 1, ¡CANTA!) sin ninguna nota, y luego 16 notas que bajan por cuatro carriles de colores (**A, S, D y F**) hasta la cuerda de oro de un arpa; hay que pulsar cada una al llegar (0,15 s de margen). Cada nota **sale volando de la boca de Nerea** hacia el duelista y llega a la vez que la del panel; si la aciertas, **tu nota le vuelve** con el arpa del abismo (un tono por carril); si la fallas, se rompe delante de ti y la pantalla **se tiñe de violeta**. Las teclas no llegan al juego mientras dura. Las notas se juzgan en el cliente: **el lag no hace fallar**. Mientras canta, **nadie le puede pegar** ni cortarle el canto | si **todos** llegan a **12** aciertos: aturdida 5 s | el que no llega **cae en su canto: muerte, salvo tótem** (Juan: «el que pierde popea tótems»; `nerea_duelo`, pasa armadura, resistencia y escudo) |
 
@@ -1462,7 +1487,7 @@ Juicio. Los de viento van en la I y los de rayo en la IV.
 |---|---|---|---|
 | **Ocelos** (I) | «luz roja, luz verde». Se posa y aparta al grupo a 16 bloques. Abre y cierra las alas: con los ocelos **abiertos** (ojos rojos que miran) no hay que moverse; justo antes **se entornan, de ámbar**; **cerrados**, hay que avanzar. Están cerrados de 1,2 a 2,2 s y abiertos de 1,2 a 3,2 s (de 2 a 4 si alguien está a menos de 8 bloques). Hacen falta tres o cuatro carreras. 20 s | el primero que la **toca** (llega a su lado o le pega) con los ojos cerrados: aturdida 6 s | quien se mueve con los ojos abiertos recibe el **rayo de un ocelo**: un golpe que no mata y Parálisis 2 s (uno por cada vez que se abren). A los 20 s levanta el vuelo con una ráfaga |
 | **Veletas del Vendaval** (I) | salen **veletas** alrededor de la cima (dos jugando solo, más juntas; tres con dos o tres; si no, cuatro). **Clic derecho** la gira 45° (**agachado, al revés**). Ella da vueltas a la arena y cambia de sentido. Una veleta cuenta si apunta a ella con 30° de margen y, cuando ella se sale de su rumbo, **aguanta enganchada 3 s** (5 jugando solo), parpadeando. 25 s | **todas encendidas a la vez**: el viento la atrapa y la baja al suelo, aturdida 5 s | las veletas se hunden |
-| **Pararrayos** (IV) | a **un tercio** de los que pelean (mínimo uno) les da un **pararrayos**. Cada 5 s marca **círculos** donde va a caer un rayo (uno jugando solo; si no, de 3 a 10): el primero de cada tanda, junto a cada uno de los que llevan pararrayos. Con el pararrayos **en la mano** dentro del círculo, te llevas el rayo sin daño y quedas **cargado** (el pararrayos se enciende): 5 s para **mirarla y dar un clic** (a 24 bloques), pegarle o dispararle. Cada descarga le quita un **2 %**. El pararrayos se pasa soltándolo con la Q. 30 s | **tres descargas**: aturdida 6 s | si el rayo cae sin pararrayos, **revienta el suelo** en 5 bloques (golpe que no mata) |
+| **Pararrayos** (IV) | a **un tercio** de los que pelean (mínimo uno) les da un **pararrayos**. Cada 5 s marca **círculos** donde va a caer un rayo (uno jugando solo; si no, de 3 a 10): el primero de cada tanda, junto a cada uno de los que llevan pararrayos. Basta con **tener** el pararrayos (en el inventario) dentro del círculo para llevarte el rayo sin daño y quedar **cargado** (el pararrayos se enciende); en la mano se lleva **alzado**, con el brazo recto hacia arriba (`PararrayosBrazoMixin`; en primera persona, en alto). Cargado, 5 s para **mirarla y dar un clic** (a 24 bloques), pegarle o dispararle. Cada descarga cuenta, sin quitarle vida (Juan, 10-10-2026). El pararrayos se pasa soltándolo con la Q. 30 s | **tres descargas**: aturdida 6 s | si el rayo cae sin pararrayos, **revienta el suelo** en 5 bloques (golpe que no mata) |
 | **La Chispa** (IV) | la patata caliente. Le cae a uno encima una **chispa** con 3 s de cuenta. Se pasa **mirando a un compañero y dando un clic** (a 14 bloques; o pegándole, sin hacerle daño) y la cuenta vuelve a empezar. Cada pase la carga: con **8 pases** (6 jugando solo) se vuelve **de oro** y quien la lleva tiene 5 s para **lanzársela a ella** (mirarla y clic, a 24 bloques). En el suelo, un aro marca hasta dónde llega si revienta. Jugando solo salen **tres remolinos**: pasársela a uno cuenta y te la devuelve. 30 s | aturdida 6 s | si **revienta**: golpe que no mata y Parálisis a quien la lleva y a los que estén a 3 bloques, y la carga vuelve a cero (al rato cae otra) |
 
 **Afinados el 10-10-2026** (Juan: «afina las mecánicas de Aeralis»). En la
@@ -1619,9 +1644,9 @@ Juan entre cinco fichas (`rajang_minijuegos_escenas.py`, `rajang_ingenio_escenas
 
 | Minijuego | Qué hace | Si sale bien | Si sale mal |
 |---|---|---|---|
-| **El Rayo del Prisma** (I) | como un gato con un puntero: a uno **le cae del cielo el Prisma de Jade**. Manteniendo **clic derecho** pinta un **punto de luz** donde mira (hasta 30 bloques), con un rayo desde su mano. Rajang, hipnotizado, **salta sobre la luz** cada 2 s. En la plaza salen **3 trampas de oro** (un aro con greca, cabezas de jaguar en las esquinas y pinchos de jade de píxeles). Cada trampa en la que cae le muerde un **2 %** de vida (la mitad que al principio: Juan). Si la luz cae sobre un compañero, Rajang le cae encima (golpe fuerte, sin matar). Con la **Q** el prisma sale lanzado hacia donde se mira, para pasarlo. 25 s | las **3 trampas**: aturdido 6 s | nada |
+| **El Rayo del Prisma** (I) | como un gato con un puntero: a uno **le cae del cielo el Prisma de Jade**. Manteniendo **clic derecho** pinta un **punto de luz** donde mira (hasta 30 bloques), con un rayo desde su mano. Rajang, hipnotizado, **salta sobre la luz** cada 2 s. En la plaza salen **3 trampas de oro** (un aro con greca, cabezas de jaguar en las esquinas y pinchos de jade de píxeles). Cada trampa en la que cae le muerde (cuenta, sin quitarle vida: Juan, 10-10-2026). Si la luz cae sobre un compañero, Rajang le cae encima (golpe fuerte, sin matar). Con la **Q** el prisma sale lanzado hacia donde se mira, para pasarlo. 25 s | las **3 trampas**: aturdido 6 s | nada |
 | **El Impostor de Jade** (II) | ruge, se envuelve en **polvo de jade** y desaparece: ahora es **una copia de uno de vosotros** (un maniquí de vanilla con su skin, su nombre encima, su armadura y lo que lleva en las manos) que anda entre el grupo como uno más. La pista (Juan: «por 1 s se muestre en sus pasos unas huellas de jade sutiles pero un poco visibles»): **un segundo de cada cuatro deja huellas de zarpa de jade** al andar, que se apagan enseguida. Con poca gente se esconde entre **copias de mentira** (jugando solo, tres tuyas); pegarle a una de mentira la deshace en arenilla y te empuja. Mientras, Rajang no se ve, no se toca y no suena. 20 s | **pegarle al falso**: vuelve a su forma de golpe y aparta a los de al lado; aturdido 6 s | reaparece y **salta sobre el que copió** (sin matar) |
-| **Glifos del Templo** (III) | salen **6 columnas** de jade y oro, cada una con un **glifo** tallado que brilla (de 8: Jaguar, Serpiente, Sol, Luna, Mano, Calavera, Pirámide y Ojo). Solo el **Vidente** (uno al azar) ve en su pantalla los **3 verdaderos**, con su nombre: tiene que decírselo a los demás. Cada verdadero se rompe con **3 golpes** (se raja con cada uno); uno falso **estalla** al primero y lanza a quien le pegó. Rajang **sigue peleando**. El brillo de los glifos respira muy despacio (Juan: «que no parpadee tan rápido»). 25 s | los **3 verdaderos**: el templo le castiga, aturdido 6 s | las columnas se hunden |
+| **Glifos del Templo** (III) | salen **6 columnas** de jade y oro, cada una con un **glifo** tallado que brilla (de 8: Jaguar, Serpiente, Sol, Luna, Mano, Calavera, Pirámide y Ojo). Solo el **Vidente** (uno al azar) ve en su pantalla los **3 verdaderos**, con su nombre: tiene que decírselo a los demás. Cada verdadero se rompe con **3 golpes** (se raja con cada uno); uno falso **estalla** al primero y lanza a quien le pegó. Rajang ni ataca ni le entra nada (Juan, 10-10-2026; antes seguía peleando). El brillo de los glifos respira muy despacio (Juan: «que no parpadee tan rápido»). 25 s | los **3 verdaderos**: el templo le castiga, aturdido 6 s | las columnas se hunden |
 | **Suelo que se Hunde** (IV) | la plaza a su alrededor se vuelve **losas de jade** de 3 × 3, en alto sobre un **foso de pinchos**: un anillo grande, de 7 a **36 bloques** de él (se juega con unos 60). Juega **un tercio** de los que pelean, al azar (al menos uno): suben a las losas, separados; los demás, si estaban dentro del anillo, salen fuera a mirar. **Cada losa que se pisa se agrieta y cae al segundo**: hay que no parar y no volver atrás. Él, **inmune** en medio (la pose del Sello), sostiene la plaza: no cae nada del cielo (Juan). **Quien cae o se tira de las losas muere, salvo tótem** (`rajang_foso`, pasa armadura y resistencia); **quien aguanta hasta el final se salva** y baja planeando. 15 s | aguanta **más de la mitad**: aturdido 6 s | los que cayeron |
 
 Todo propio: los sonidos, de `rajang_minijuegos_sonidos.py` (el prisma que cae
@@ -1820,15 +1845,17 @@ III y otro en la IV. Elegidos entre cinco fichas (`novilis_juegos_escenas.py`).
 - Bajo su barra, una barra de tiempo y la cuenta («Dignos: 3 de 5», «Golpes
   buenos: 4/18», «Ronda 2 de 5», «Brasas: 1/3»).
 - **Ninguno mata**: lo que quema se queda en 1 corazón (`quemarMini`, contando que
-  la dificultad lo sube). Salvo en Frío o Caliente, mientras dura no le entra daño.
+  la dificultad lo sube). Mientras dura (y mientras lo saca) ni ataca ni le entra
+  daño, también en Frío o Caliente (Juan, 10-10-2026). Lo mismo con los de los
+  otros tres jefes.
 - Si sale bien, **aturdido 6 s** (daño doble).
 
 | Minijuego | Qué hace | Si sale bien | Si sale mal |
 |---|---|---|---|
-| **El Caballero Manda** (I) | «Simón dice» con un caballero. Clava la espada y sobre la pantalla baja su **estandarte** carmesí con la orden: **6 órdenes**, una cada 2,5 s: **arrodillaos** (Shift), **saltad**, **mirad al sol** (el que flota sobre él) y **quietos** (ni andar ni saltar). Solo se obedece si empieza por **«¡Por el Sol...!»**: dos de las seis son trampa (nunca la primera ni «quietos»), y el que la hace, falla. Cada orden se mira 1,9 s. Mientras, él no ataca. Juan quitó «dadme la espalda» | **más de la mitad** sin fallar ninguna: «¡Dignos!», aturdido 6 s | cada fallo quema: Quemadura I y un golpe que no mata |
-| **La Forja del Juramento** (I) | clava la espada y salen **yunques** a 12 bloques (uno jugando solo, dos con dos o tres, y si no, tres), cada uno con una **hoja al rojo**. Sobre la hoja se cierra un **aro de luz**, una y otra vez (1,5 s): hay que **golpearla cuando el aro la toca** (perfecto, bien o a destiempo; se descuenta la latencia de quien golpea). Cada hoja pide **6 golpes buenos** (se encienden seis tachones en el costado). A destiempo saltan chispas que queman. Mientras, cada 5 s alza la espada contra los herreros: el **rayo del Castigo** bajo cada uno, sin la onda (Juan). 25 s | las hojas forjadas salen volando y le parten la armadura: aturdido 6 s | las que quedan revientan en chispas y queman a quien esté al lado |
-| **Piedra, Papel o Tijera** (III) | reta a todo el grupo a la vez. Alza el puño: «¡Piedra... papel... **tijera**!». Durante la cuenta cada uno elige con las teclas **1, 2 y 3** (la casilla de la barra) y le sale encima; al «¡tijera!» él saca lo suyo, enorme, en su puño de fuego. En la mitad de las rondas se le escapa una **pista**: el yelmo le brilla del color de lo que va a sacar. En cada ronda cuenta **lo que saca la mayoría**. **5 rondas** (se acaba antes si ya está decidido) | el grupo gana **más rondas** que él: aturdido 6 s | cada uno que pierde (o no saca nada) se quema, sin morir |
-| **Frío o Caliente** (IV) | clava la espada y **entierra brasas** bajo el altar (dos jugando solo, tres con un grupo y una más por cada ocho pasados los ocho, hasta ocho). A cada uno le sale un **termómetro**: frío, templado, caliente, **¡ardiendo!** (a menos de 3 bloques). Con «¡ardiendo!», **golpear el suelo** encima la saca (la tierra se raja y brilla; el bloque no se rompe). Él **sigue peleando** y le entra el daño. 30 s | todas fuera: se le apaga el pecho, aturdido 6 s | las que quedan **revientan en lava** (golpe y Quemadura II) |
+| **El Caballero Manda** (I) | «Simón dice» con un caballero. Clava la espada y sobre la pantalla baja su **estandarte** carmesí con la orden: **6 órdenes**, una cada 2,5 s: **arrodillaos** (Shift), **saltad**, **mirad al sol** (el que flota sobre él) y **quietos** (ni andar ni saltar). Solo se obedece si empieza por **«¡Por el Sol...!»**: dos de las seis son trampa (nunca la primera ni «quietos»), y el que la hace, falla. Cada orden se mira 2,3 s desde que la da: un salto o agacharse cuentan aunque se hagan nada más oírla (antes, quien saltaba enseguida ya estaba en el aire y no contaba); «quietos» deja 0,4 s para pararse. Mientras, él no ataca. Juan quitó «dadme la espalda» | **más de la mitad** sin fallar ninguna: «¡Dignos!», aturdido 6 s | cada fallo quema: Quemadura I y un golpe que no mata |
+| **La Forja del Juramento** (I) | clava la espada y salen **yunques** a 12 bloques (uno jugando solo, dos con dos o tres, y si no, tres), cada uno con una **hoja al rojo**. Sobre la hoja se cierra un **aro de luz**, una y otra vez, **cada vez más deprisa**: 1,5 s con la hoja fría y 0,15 s menos por cada golpe bueno, hasta 0,75 s (Juan: «cada vez debería ser más rápido»). Hay que **golpearla cuando el aro la toca** (perfecto, bien o a destiempo; se descuenta la latencia de quien golpea). Cada hoja pide **6 golpes buenos** (se encienden seis tachones en el costado). A destiempo saltan chispas que queman. Mientras, ni ataca ni le entra nada (antes alzaba la espada contra los herreros). 25 s | las hojas forjadas salen volando y le parten la armadura: aturdido 6 s | las que quedan revientan en chispas y queman a quien esté al lado |
+| **Piedra, Papel o Tijera** (III) | reta a todo el grupo a la vez. Primero, 3 s con quién gana a quién, sin textos: las tres manos con flechas, piedra > tijera > papel > piedra (Juan: «algo simple que se entienda por sí solo»). Cada ronda dura 7 s y hay 4,5 s para elegir. Alza el puño: «¡Piedra... papel... **tijera**!». Durante la cuenta cada uno elige con las teclas **1, 2 y 3** (la casilla de la barra) y le sale encima; al «¡tijera!» él saca lo suyo, enorme, en su puño de fuego. En la mitad de las rondas se le escapa una **pista**: el yelmo le brilla del color de lo que va a sacar. En cada ronda cuenta **lo que saca la mayoría**. **5 rondas** (se acaba antes si ya está decidido) | el grupo gana **más rondas** que él: aturdido 6 s | cada uno que pierde (o no saca nada) se quema, sin morir |
+| **Frío o Caliente** (IV) | clava la espada y **entierra brasas** bajo el altar (dos jugando solo, tres con un grupo y una más por cada ocho pasados los ocho, hasta ocho). A cada uno le sale un **termómetro**: frío, templado, caliente, **¡ardiendo!** (a menos de 3 bloques). Con «¡ardiendo!», **golpear el suelo** encima la saca (la tierra se raja y brilla; el bloque no se rompe). A menos de bloque y medio de una, **el suelo te la marca** con un resplandor que late (solo lo ve quien está encima). Él ni ataca ni le entra nada (antes seguía peleando). 30 s | todas fuera: se le apaga el pecho, aturdido 6 s | las que quedan **revientan en lava** (golpe y Quemadura II) |
 
 Todo propio: los sonidos, de `novilis_minijuegos_sonidos.py` (el toque de heraldo
 y su voz por el yelmo en cada orden, la campana del acierto, el fuego del fallo,
@@ -1896,6 +1923,25 @@ dura **30 s** y vuelve a estar lista **120 s** después de usarla. Un icono a la
 derecha de la hotbar la muestra: limpio si está lista; latiendo y con una barra
 que se gasta mientras dura; oscuro y con los segundos que faltan en recarga.
 Las piezas lo explican al pasar el ratón.
+
+**Mientras la activa está en marcha se nota** (10-10-2026, Juan: «actualmente
+sale solo un efecto de que lo activaste pero no sale si lo tienes ahorita»).
+Alrededor de quien la tiene, y lo ven todos, sale su aura los 30 s
+(`HabilidadAuraLayer`, texturas de `auras_habilidad.py`):
+
+- **Muralla de Jade**: un hexágono de jade con los vértices de oro a los pies,
+  otro grande y tenue hasta donde protege (8 bloques) y cinco cristales de jade
+  que le giran alrededor.
+- **Manantial**: ondas de agua que salen de él hasta 8 bloques, una cada 3 s
+  (con cada cura), y un aro de agua que le flota en la cintura.
+- **Corriente Ascendente**: tres cintas de viento que le suben en espiral y un
+  remolino en el suelo.
+- **Furia Solar**: un sol que le arde y gira detrás de la cabeza y llamas a los
+  pies.
+
+Quien la lleva, en primera persona, ve los bordes de la pantalla teñidos del
+color de su elemento, latiendo, y lo suyo saliéndole alrededor de los pies.
+`/atalaya habilidad lista` la deja lista al momento (para probar).
 
 | Rol | Pasiva | Activa (120 s, dura 30 s) |
 |---|---|---|
@@ -2207,6 +2253,7 @@ El esquema es siempre el mismo:
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `pisar` (sube al jugador más cercano a un escalón alto del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano junto al pilar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `espada` (la Espada del Fuego), `infernal` (la Furia Infernal), `ofrenda`, `mar` (el Mar de Llamas), `dios`, `aturdido`, `furia` (se la pone o se la quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar`, `manda`, `forja`, `piedra`, `caliente` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
+| `/atalaya habilidad lista` | Operador | Te deja la activa lista al momento, sin recarga (para probar) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
 
 En las órdenes de los jefes:

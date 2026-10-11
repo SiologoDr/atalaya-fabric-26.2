@@ -3008,9 +3008,8 @@ public class RajangEntity extends Monster {
         sonido(AtalayaSonidos.RAJANG_GRUNIDO, 4.0F);
     }
 
-    /** Una trampa le muerde: una parte de su vida (no se cura con nada). */
-    void morderMini(ServerLevel nivel, float parte) {
-        setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * parte));
+    /** Una trampa le muerde: se encoge y suelta jade (sin quitarle vida: Juan, 10-10-2026). */
+    void morderMini(ServerLevel nivel) {
         Vec3 c = puntoMundo(RajangGeometria.PECHO);
         nivel.sendParticles(AtalayaParticulas.RAJANG_JADE, true, true, c.x, c.y - 2, c.z, 30, 2.0, 1.0, 2.0, 0.2);
         hurtTime = 10;
@@ -3170,7 +3169,8 @@ public class RajangEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (mini != null && mini.inmune()) {
+        if ((mini != null && mini.inmune()) || e == MINIJUEGO) {
+            // En los minijuegos (y en el rugido que los saca) no le entra nada (Juan, 10-10-2026).
             if (!oculto()) {
                 avisoInmune(nivel, causante);
             }

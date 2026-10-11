@@ -214,7 +214,7 @@ public final class FotosPrueba {
             float r = y.radioAro(mc.level.getGameTime(), 0.0F);
             // El ultimo tick antes de que el aro toque la hoja (el golpe llega al siguiente).
             float paso = (com.atalaya.entity.YunqueForjaEntity.ARO_SALE - com.atalaya.entity.YunqueForjaEntity.ARO_HOJA)
-                    / com.atalaya.entity.YunqueForjaEntity.PERIODO;
+                    / y.periodo();
             if (r > 0.0F && r <= com.atalaya.entity.YunqueForjaEntity.ARO_HOJA + paso + 0.01F) {
                 mc.gameMode.attack(mc.player, y);
                 mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);

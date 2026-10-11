@@ -14,7 +14,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 /**
- * Una brasa de Frio o Caliente: enterrada no se ve (la busca el termometro).
+ * Una brasa de Frio o Caliente: enterrada no se ve (la busca el termometro),
+ * salvo para quien esta a menos de bloque y medio: a ese el suelo se la marca
+ * con un resplandor que late (Juan, 10-10-2026: "al estar ahi cerca de 1 bloque
+ * te debe marcar en el piso").
  * Al sacarla, la tierra se raja y brilla (brasa_grieta.png) y se va apagando;
  * al reventar, la grieta se abre roja y grande.
  */
@@ -28,7 +31,13 @@ public class BrasaEnterradaRenderer extends EntityRenderer<BrasaEnterradaEntity,
         public float hallada = -1.0F;
         public float revienta = -1.0F;
         public float giro;
+        /** Enterrada y con quien mira encima: de 0 a 1 (mas cuanto mas cerca). */
+        public float marca;
+        public float edad;
     }
+
+    /** A cuanto (bloques, en horizontal) se marca en el suelo. */
+    private static final double MARCA = 1.5;
 
     public BrasaEnterradaRenderer(EntityRendererProvider.Context contexto) {
         super(contexto);
@@ -45,6 +54,15 @@ public class BrasaEnterradaRenderer extends EntityRenderer<BrasaEnterradaEntity,
         s.hallada = b.getHallada() >= 0 ? b.tickCount - b.getHallada() + parcial : -1.0F;
         s.revienta = b.getRevienta() >= 0 ? b.tickCount - b.getRevienta() + parcial : -1.0F;
         s.giro = b.getYRot() * Mth.DEG_TO_RAD;
+        s.edad = b.tickCount + parcial;
+        s.marca = 0.0F;
+        net.minecraft.client.player.LocalPlayer yo = net.minecraft.client.Minecraft.getInstance().player;
+        if (b.enterrada() && yo != null && !yo.isSpectator()) {
+            double d = Math.hypot(yo.getX() - b.getX(), yo.getZ() - b.getZ());
+            if (d < MARCA && Math.abs(yo.getY() - b.getY()) < 3.0) {
+                s.marca = (float) (1.0 - d / MARCA) * 0.6F + 0.4F;
+            }
+        }
     }
 
     @Override
@@ -55,6 +73,11 @@ public class BrasaEnterradaRenderer extends EntityRenderer<BrasaEnterradaEntity,
             int alfa = (int) (240 * (1.0F - k * k));
             colector.submitCustomGeometry(pose, GRIETA, (p, buf) ->
                     NereaDibujo.suelo(buf, p, 0.0, 0.04, 0.0, m, s.giro, 0xFFFFFF, alfa));
+        } else if (s.marca > 0.0F) {
+            float late = 0.75F + 0.25F * Mth.sin(s.edad * 0.35F);
+            int alfa = (int) (200 * s.marca * late);
+            colector.submitCustomGeometry(pose, GRIETA, (p, buf) ->
+                    NereaDibujo.suelo(buf, p, 0.0, 0.04, 0.0, 0.9F, s.giro, 0xFFB050, alfa));
         } else if (s.revienta >= 0.0F) {
             float k = Mth.clamp(s.revienta / BrasaEnterradaEntity.REVIENTA_DURA, 0.0F, 1.0F);
             float m = 1.6F + 2.0F * Mth.clamp(s.revienta / 5.0F, 0.0F, 1.0F);

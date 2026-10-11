@@ -19,7 +19,9 @@
     "BalaCuerpoMixin",
     "BalaManosMixin",
     "CanonZoomMixin",
-    "CanonPunteriaMixin"
+    "CanonPunteriaMixin",
+    "PararrayosBrazoMixin",
+    "CieloJefesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

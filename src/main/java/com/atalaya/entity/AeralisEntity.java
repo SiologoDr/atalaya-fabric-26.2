@@ -2671,6 +2671,11 @@ public class AeralisEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
+        if (e == MINI_CHILLIDO) {
+            // El chillido con el que saca un minijuego: tampoco le entra nada (Juan, 10-10-2026).
+            avisoInmune(nivel, causante);
+            return false;
+        }
         if (mini != null) {
             // En los minijuegos lo que sirve es jugar: el golpe que cuenta lo decide el minijuego.
             if (mini.alGolpearla(nivel, causante, directo)) {
@@ -2905,8 +2910,7 @@ public class AeralisEntity extends Monster {
     }
 
     /** Una parte de su vida que se le va de golpe (las descargas de los Pararrayos). No se cura con nada. */
-    void morderMini(ServerLevel nivel, float parte) {
-        setHealth(Math.max(1.0F, getHealth() - getMaxHealth() * parte));
+    void morderMini(ServerLevel nivel) {
         Vec3 c = puntoMundo(AeralisGeometria.NUCLEO);
         nivel.sendParticles(AtalayaParticulas.AERALIS_ESCAMA, true, true, c.x, c.y, c.z, 30, 2.0, 1.5, 2.0, 0.1);
         hurtTime = 10;

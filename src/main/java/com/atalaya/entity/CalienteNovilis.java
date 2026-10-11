@@ -15,8 +15,9 @@ import net.minecraft.world.phys.Vec3;
  * suelo del altar (dos jugando solo, tres con un grupo y una mas por cada ocho
  * jugadores pasados los ocho, hasta ocho). A cada uno le sale un termometro
  * (TermometroHud): frio, templado, caliente, ¡ardiendo! Con "¡ardiendo!",
- * golpear el suelo saca la brasa (BrasaEnterradaEntity). Dura 30 s y mientras
- * el sigue peleando (y le entra el dano).
+ * golpear el suelo saca la brasa (BrasaEnterradaEntity); a menos de bloque y
+ * medio de una, el suelo te la marca (BrasaEnterradaRenderer). Dura 30 s y
+ * mientras ni ataca ni le entra nada (Juan, 10-10-2026; antes seguia peleando).
  *
  * Todas fuera: se le apaga el pecho, aturdido 6 s. Si no, las que quedan
  * revientan en lava donde estaban.
@@ -108,16 +109,6 @@ final class CalienteNovilis extends MinijuegoNovilis {
         }
         n.avisarMini(nivel, Component.translatable("hud.atalaya.novilis.caliente_hallada", p.getDisplayName(), halladas, necesario)
                 .withStyle(ChatFormatting.GOLD));
-    }
-
-    @Override
-    boolean controlaLibre() {
-        return false;
-    }
-
-    @Override
-    boolean inmune() {
-        return false;
     }
 
     @Override

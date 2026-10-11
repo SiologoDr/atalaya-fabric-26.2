@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
  * El cargador mete una bala (clic derecho con la Bala de canon de la pila en la
  * mano). El artillero se sube (clic derecho con la mano libre): el canon apunta
  * a donde mira, dispara con ESPACIO y se baja con SHIFT. Cada bala que le da a
- * Nerea le quita un 3 % y la hace tambalearse; tres seguidas, aturdida.
+ * Nerea la hace tambalearse (sin quitarle vida); tres seguidas, aturdida.
  */
 public class CanonNaufragioEntity extends Entity {
 

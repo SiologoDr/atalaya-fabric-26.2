@@ -133,7 +133,8 @@ public final class Habilidades {
                 // Persiste: salir y entrar no recarga la habilidad.
                 .persistent(HabilidadEstado.CODEC)
                 .initializer(() -> HabilidadEstado.NADA)
-                .syncWith(HabilidadEstado.RED, AttachmentSyncPredicate.targetOnly())
+                // A todos (no solo a el): el aura de la activa la ven todos (HabilidadAuraLayer).
+                .syncWith(HabilidadEstado.RED, AttachmentSyncPredicate.all())
                 .buildAndRegister(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "habilidad"));
         ServerTickEvents.END_SERVER_TICK.register(Habilidades::tick);
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> {

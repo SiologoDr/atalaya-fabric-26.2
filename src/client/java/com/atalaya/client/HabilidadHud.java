@@ -23,6 +23,11 @@ import net.minecraft.util.Mth;
  * A su derecha, la tecla que la lanza (la que haya en Controles, categoria
  * Atalaya; R por defecto), dibujada como una tecla: encendida del color del
  * elemento cuando esta lista, apagada mientras esta activa o en recarga.
+ *
+ * Mientras esta activa, en primera persona, los bordes de la pantalla se tinen
+ * suave del color del elemento y laten (10-10-2026, Juan: "debe de senalarte
+ * cuando la habilidad esta activa"); desde fuera se ve el aura
+ * (HabilidadAuraLayer).
  */
 public class HabilidadHud implements HudElement {
 
@@ -64,6 +69,9 @@ public class HabilidadHud implements HudElement {
         g.blit(RenderPipelines.GUI_TEXTURED, MARCO, x, y, 0.0F, 0.0F, MARCO_TAM, MARCO_TAM, MARCO_TAM, MARCO_TAM);
         boolean activa = e.tema() == i && ahora < e.hasta();
         boolean recarga = ahora < e.lista();
+        if (activa && mc.options.getCameraType().isFirstPerson()) {
+            marco(g, COLOR[i], ahora, e.hasta());
+        }
         int tinte = 0xFFFFFFFF;
         if (activa) {
             float k = 0.8F + 0.2F * Mth.sin(ahora * 0.3F);
@@ -86,6 +94,29 @@ public class HabilidadHud implements HudElement {
             g.text(mc.font, segundos, x + MARCO_TAM / 2 - mc.font.width(segundos) / 2, y + 7, 0xFFFFFFFF, true);
         }
         tecla(g, mc, x + MARCO_TAM + TECLA_HUECO, y + (MARCO_TAM - TECLA_ALTO) / 2, !activa && !recarga ? COLOR[i] : 0xFF5A5A5A);
+    }
+
+    /** Lo ancho del marco de color (pixeles de la interfaz) y en cuantas franjas se difumina por los lados. */
+    private static final int MARCO_ANCHO = 26;
+    private static final int FRANJAS = 13;
+
+    /** Los bordes de la pantalla del color del elemento, latiendo; se apaga en el ultimo segundo. */
+    private static void marco(GuiGraphicsExtractor g, int color, float ahora, long hasta) {
+        float apaga = Mth.clamp((hasta - ahora) / 20.0F, 0.0F, 1.0F);
+        float k = (0.28F + 0.08F * Mth.sin(ahora * 0.2F)) * apaga;
+        int rgb = color & 0xFFFFFF;
+        int fuerte = ((int) (255 * k) << 24) | rgb;
+        int w = g.guiWidth();
+        int h = g.guiHeight();
+        g.fillGradient(0, 0, w, MARCO_ANCHO, fuerte, rgb);
+        g.fillGradient(0, h - MARCO_ANCHO, w, h, rgb, fuerte);
+        int paso = MARCO_ANCHO / FRANJAS;
+        for (int f = 0; f < FRANJAS; f++) {
+            int a = (int) (255 * k * (1.0F - f / (float) FRANJAS));
+            int c = (a << 24) | rgb;
+            g.fill(f * paso, 0, (f + 1) * paso, h, c);
+            g.fill(w - (f + 1) * paso, 0, w - f * paso, h, c);
+        }
     }
 
     /** La tecla de la habilidad, como una tecla de teclado: borde, cara y la letra. */

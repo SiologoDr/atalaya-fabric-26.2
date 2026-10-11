@@ -26,10 +26,11 @@ import org.jspecify.annotations.Nullable;
  * pararrayos. Con la tormenta marca circulos donde va a caer un rayo (de cuatro
  * a diez segun cuantos sean; jugando solo, uno): el primero de cada tanda cerca
  * de cada uno de los que llevan pararrayos, los demas sobre cualquiera. Quien
- * este dentro con el pararrayos en la mano se lleva el rayo sin dano y queda
- * cargado (el pararrayos se enciende): tiene 5 s para descargarlo en ella,
- * mirandola y dando un clic (a 24 bloques), pegandole o disparandole. Cada
- * descarga le quita un 2 % de vida. Si cae sin pararrayos, revienta el suelo
+ * este dentro con el pararrayos (basta con tenerlo; en la mano lo lleva alzado:
+ * PararrayosBrazoMixin) se lleva el rayo sin dano y queda cargado (el
+ * pararrayos se enciende): tiene 5 s para descargarlo en ella, mirandola y
+ * dando un clic (a 24 bloques), pegandole o disparandole. Cada descarga cuenta
+ * (sin quitarle vida: Juan, 10-10-2026). Si cae sin pararrayos, revienta el suelo
  * en 5 bloques (golpe que no mata). Con tres descargas cae aturdida 6 s. Dura
  * 30 s; mientras vuela bajo y no le entra nada mas.
  *
@@ -40,8 +41,6 @@ final class PararrayosAeralis extends MinijuegoAeralis {
 
     static final int DURA = 600;
     static final int DESCARGAS = 3;
-    /** Lo que le quita cada descarga (de su vida maxima). */
-    static final float PARTE = 0.02F;
     /** Cada cuanto marca otra tanda, cuanto tarda en caer y lo que dura la carga. */
     private static final int TANDA = 100;
     private static final int CUENTA = 60;
@@ -162,7 +161,7 @@ final class PararrayosAeralis extends MinijuegoAeralis {
     void alCaer(ServerLevel nivel, CirculoRayoEntity c) {
         Player conPararrayos = null;
         for (Player p : jugadores) {
-            if (c.dentro(p) && MinijuegosAeralis.enMano(p, a, AtalayaItems.PARARRAYOS_TORMENTA)) {
+            if (c.dentro(p) && MinijuegosAeralis.tiene(p, a, AtalayaItems.PARARRAYOS_TORMENTA)) {
                 conPararrayos = p;
                 break;
             }
@@ -212,14 +211,14 @@ final class PararrayosAeralis extends MinijuegoAeralis {
         }
     }
 
-    /** La descarga: el rayo va de su pararrayos al pecho de Aeralis y le quita un 2 %. */
+    /** La descarga: el rayo va de su pararrayos al pecho de Aeralis (la sacude, sin quitarle vida). */
     private void descargar(ServerLevel nivel, Player p) {
         cargados.remove(p.getUUID());
         MinijuegosAeralis.marcarCarga(p, a, AtalayaItems.PARARRAYOS_TORMENTA, 0L);
         cuenta++;
         Vec3 pecho = a.puntoMundo(AeralisGeometria.NUCLEO);
         a.rayoMini(nivel, p.position().add(0, 1.2, 0), pecho);
-        a.morderMini(nivel, PARTE);
+        a.morderMini(nivel);
         a.sonidoMini(AtalayaSonidos.AERALIS_PARARRAYOS_DESCARGA, 6.0F);
         a.avisarMini(nivel, Component.translatable("hud.atalaya.aeralis.pararrayos_descarga", p.getDisplayName(), cuenta, DESCARGAS)
                 .withStyle(ChatFormatting.GOLD));

@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
  * Prisma de Jade. A uno le cae el prisma del cielo; manteniendo el clic
  * derecho pinta la luz donde mira (hasta 30 bloques) y Rajang salta sobre ella
  * cada poco. En la plaza salen tres trampas de oro: cada una en la que cae le
- * muerde (un 2 % de su vida) y con las tres queda aturdido 6 s. El prisma se
+ * muerde (sin quitarle vida) y con las tres queda aturdido 6 s. El prisma se
  * pasa con la Q (sale lanzado hacia donde se mira). Si la luz cae sobre un
  * companero, Rajang le cae encima (golpe fuerte, sin matar). No mata.
  */
@@ -35,8 +35,6 @@ final class PrismaRajang extends MinijuegoRajang {
     static final int DURA = 500;
     static final double ALCANCE = 30.0;
     private static final double RADIO_TRAMPAS = 13.0;
-    /** Lo que le muerde cada trampa (de su vida maxima): la mitad que al principio (Juan, 09-10-2026). */
-    private static final float MUERDE = 0.02F;
     /** Lo que espera entre un salto y el siguiente, ya en el suelo (ticks). */
     private static final int ENTRE_SALTOS = 8;
 
@@ -215,7 +213,7 @@ final class PrismaRajang extends MinijuegoRajang {
             }
             tr.usar(nivel);
             cuenta++;
-            r.morderMini(nivel, MUERDE);
+            r.morderMini(nivel);
             if (cuenta >= necesario) {
                 r.acabarMinijuego(nivel, true, true);
             }

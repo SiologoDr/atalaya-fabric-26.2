@@ -124,6 +124,29 @@ public class AeralisRenderer extends MobRenderer<AeralisEntity, AeralisRenderSta
         if (s.picadoLargo > 0.5F) {
             linea(s, pose, colector);
         }
+        rayoTormenta(s, pose, colector, camara);
+    }
+
+    /** El rayo de la tormenta de su cielo (CieloJefes): cae a lo lejos, del cielo al suelo, y parpadea. */
+    private static final RenderType RAYO_TORMENTA = RenderTypes.entityTranslucentEmissive(
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/entity/aeralis/rayo.png"));
+
+    private static void rayoTormenta(AeralisRenderState s, PoseStack pose, SubmitNodeCollector colector, CameraRenderState camara) {
+        net.minecraft.world.phys.Vec3 arriba = CieloJefes.rayoArriba();
+        net.minecraft.world.phys.Vec3 abajo = CieloJefes.rayoAbajo();
+        if (arriba == null || abajo == null) {
+            return;
+        }
+        net.minecraft.world.phys.Vec3 o = new net.minecraft.world.phys.Vec3(s.x, s.y, s.z);
+        net.minecraft.world.phys.Vec3 a = arriba.subtract(o);
+        net.minecraft.world.phys.Vec3 b = abajo.subtract(o);
+        net.minecraft.world.phys.Vec3 ojo = camara.pos.subtract(o);
+        float alfa = CieloJefes.rayoAlfa();
+        long semilla = CieloJefes.rayoSemilla();
+        colector.submitCustomGeometry(pose, RAYO_TORMENTA, (p, buf) -> {
+            AeralisDibujo.rayo(buf, p, a, b, ojo, semilla, 18, 4.0, 1.3F, 0xB8B0FF, (int) (210 * alfa));
+            AeralisDibujo.rayo(buf, p, a, b, ojo, semilla, 18, 4.0, 0.45F, 0xFFFFFF, (int) (255 * alfa));
+        });
     }
 
     /** La linea del Picado, tumbada en el suelo delante de ella (sigue su rumbo mientras se gira). */

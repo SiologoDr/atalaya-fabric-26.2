@@ -202,6 +202,22 @@ public class NovilisMinijuegosHud implements HudElement {
             g.centeredText(mc.font, Integer.toString(i + 1), x + CASILLA_LADO / 2, y + CASILLA_LADO + 2 + dy,
                     esta ? 0xFFFFD86A : 0xFFB0A8A0);
         }
+        if (ronda == 0) {
+            // Antes de la primera ronda, quien gana a quien, sin textos (Juan, 10-10-2026: "algo
+            // simple que se entienda por si solo"): piedra > tijera > papel > piedra.
+            textoCabe(g, mc, Component.translatable("hud.atalaya.novilis.piedra_titulo"), cx, y - 66, 1.6F, 320, 0xFFFFD86A);
+            int[] ciclo = {0, 2, 1, 0};
+            int lado = 20;
+            int hueco = 14;
+            int x = cx - (ciclo.length * lado + (ciclo.length - 1) * hueco) / 2;
+            for (int k = 0; k < ciclo.length; k++) {
+                g.blit(RenderPipelines.GUI_TEXTURED, MANOS, x, y - 46, ciclo[k] * 32.0F, 0.0F, lado, lado, 32, 32, 96, 32, 0xFFFFFFFF);
+                if (k < ciclo.length - 1) {
+                    g.centeredText(mc.font, Component.literal(">"), x + lado + hueco / 2, y - 40, 0xFFFFD86A);
+                }
+                x += lado + hueco;
+            }
+        }
         // La cuenta, o lo que ha sacado el (en su casilla, encendida) y como ha ido.
         if (golpe >= 1 && golpe <= 2) {
             String clave = golpe == 1 ? "hud.atalaya.novilis.piedra_1" : "hud.atalaya.novilis.piedra_2";

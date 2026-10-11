@@ -25,8 +25,8 @@ import org.jspecify.annotations.Nullable;
  * cuales son los tres verdaderos; tiene que decirselo a los demas (por voz o
  * por el chat) y entre todos romperlos: tres golpes cada uno. Una falsa estalla
  * al primer golpe y lanza a quien le pego (dano sin matar). Con los tres
- * verdaderos rotos, el templo le castiga: aturdido 6 s. Dura 25 s y mientras,
- * Rajang sigue peleando. Jugando solo, tu ves y tu golpeas.
+ * verdaderos rotos, el templo le castiga: aturdido 6 s. Dura 25 s y mientras
+ * Rajang ni ataca ni le entra nada (Juan, 10-10-2026; antes seguia peleando). Jugando solo, tu ves y tu golpeas.
  */
 final class GlifosRajang extends MinijuegoRajang {
 
@@ -104,12 +104,6 @@ final class GlifosRajang extends MinijuegoRajang {
                 vidente.sendOverlayMessage(Component.translatable("hud.atalaya.rajang.glifos_vidente").withStyle(ChatFormatting.GOLD));
             }
         }
-    }
-
-    @Override
-    boolean controlaLibre() {
-        // Mientras, pelea como siempre.
-        return false;
     }
 
     /** Un golpe a una columna. */

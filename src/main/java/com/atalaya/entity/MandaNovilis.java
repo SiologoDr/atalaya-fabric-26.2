@@ -33,7 +33,13 @@ final class MandaNovilis extends MinijuegoNovilis {
     static final int ORDENES = 6;
     /** Una orden cada 2,5 s. */
     static final int CADA = 50;
-    /** Cuando empieza y acaba de mirarse cada orden (ticks desde que la da). */
+    /**
+     * Cuando acaba de mirarse cada orden (ticks desde que la da). Saltar,
+     * arrodillarse y mirar al sol cuentan desde que la da (Juan, 10-10-2026: "si
+     * salto una vez ya deberia contar"; antes se miraba a partir de MIRA_DESDE y
+     * quien saltaba enseguida ya estaba en el aire); quietos, desde MIRA_DESDE,
+     * que da tiempo a pararse.
+     */
     static final int MIRA_DESDE = 8;
     static final int MIRA_HASTA = 46;
     static final int DURA = PREPARA + ORDENES * CADA + 10;
@@ -41,7 +47,7 @@ final class MandaNovilis extends MinijuegoNovilis {
     private static final int TRAMPAS = 2;
     /** Lo que se puede mover quien tiene que quedarse quieto (bloques) y lo que sube quien salta. */
     private static final double QUIETO = 0.35;
-    private static final double SALTO = 0.45;
+    private static final double SALTO = 0.4;
     private static final float GOLPE = 6.0F;
 
     private final int[] ordenes = new int[ORDENES];
@@ -105,18 +111,19 @@ final class MandaNovilis extends MinijuegoNovilis {
         }
         if (actual >= 0) {
             int dentro = t - PREPARA - actual * CADA;
-            if (dentro == MIRA_DESDE) {
+            boolean quietos = ordenes[actual] == MinijuegosNovilis.QUIETOS;
+            if (dentro == MIRA_DESDE && quietos) {
                 for (Player p : jugadores) {
                     desde.put(p.getUUID(), p.position());
                     masBajo.put(p.getUUID(), p.getY());
                 }
             }
-            if (dentro > MIRA_DESDE && dentro <= MIRA_HASTA) {
+            if (dentro > (quietos ? MIRA_DESDE : 0) && dentro <= MIRA_HASTA) {
                 for (Player p : jugadores) {
+                    masBajo.merge(p.getUUID(), p.getY(), Math::min);
                     if (loHace(p)) {
                         hecha.add(p.getUUID());
                     }
-                    masBajo.merge(p.getUUID(), p.getY(), Math::min);
                 }
             }
             if (dentro == MIRA_HASTA) {
@@ -137,6 +144,10 @@ final class MandaNovilis extends MinijuegoNovilis {
         hecha.clear();
         desde.clear();
         masBajo.clear();
+        for (Player p : jugadores) {
+            desde.put(p.getUUID(), p.position());
+            masBajo.put(p.getUUID(), p.getY());
+        }
         n.ordenMini();
     }
 
@@ -144,7 +155,9 @@ final class MandaNovilis extends MinijuegoNovilis {
     private boolean loHace(Player p) {
         UUID u = p.getUUID();
         return switch (ordenes[actual]) {
-            case MinijuegosNovilis.ARRODILLAOS -> p.isShiftKeyDown() || p.isCrouching();
+            // Con el Shift: la tecla (lo ultimo que mando el cliente) o ya agachado.
+            case MinijuegosNovilis.ARRODILLAOS -> p.isShiftKeyDown() || p.isCrouching()
+                    || (p instanceof ServerPlayer sp && sp.getLastClientInput().shift());
             case MinijuegosNovilis.SALTAD -> p.getY() - masBajo.getOrDefault(u, p.getY()) > SALTO;
             case MinijuegosNovilis.MIRAD_SOL -> miraAlSol(p);
             // Quietos: aqui se apunta a quien se MUEVE, andando o saltando (al juzgar se da la vuelta).

@@ -311,6 +311,8 @@ public class AtalayaClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.RajangEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NereaEfectosCliente::tick);
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.NovilisEfectosCliente::tick);
+        // El cielo del jefe con el que se pelea (CieloJefesMixin lo mezcla en lo que ve la camara).
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.CieloJefes::tick);
         // La Ofrenda al Sol: la secuencia de teclas de quien Novilis tiene en las manos.
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.OfrendaCliente::tick);
         // El Duelo de Canto de Nerea: las notas de quien ha elegido.
@@ -392,6 +394,8 @@ public class AtalayaClient implements ClientModInitializer {
                 (tipo, renderer, ayudante, contexto) -> {
                     if (renderer instanceof net.minecraft.client.renderer.entity.player.AvatarRenderer<?> avatar) {
                         ayudante.register(new com.atalaya.client.BalaEnBrazosLayer(avatar));
+                        // El aura de la habilidad de la armadura mientras esta activa.
+                        ayudante.register(new com.atalaya.client.HabilidadAuraLayer(avatar));
                     }
                 });
         // La pantalla del Duelo de Canto de Nerea (la del elegido), a la izquierda.

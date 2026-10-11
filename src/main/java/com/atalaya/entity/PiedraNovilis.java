@@ -14,8 +14,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Piedra, Papel o Tijera (fase III): reta a todo el grupo a la vez. Alza el
- * puno: "Piedra... papel... ¡tijera!". Durante la cuenta cada uno elige con
+ * Piedra, Papel o Tijera (fase III): reta a todo el grupo a la vez. Primero, 3 s
+ * con quien gana a quien en pantalla, con las manos y sin textos (Juan,
+ * 10-10-2026: "no se entiende o es muy rapido"; "algo simple que se entienda por
+ * si solo"); luego cada ronda dura 7 s: alza el puno, "Piedra... papel...
+ * ¡tijera!" (4,5 s para elegir). Durante la cuenta cada uno elige con
  * las teclas 1, 2 y 3 (la casilla de la barra que tenga elegida) y le sale
  * encima; al "¡tijera!", el saca lo suyo en su puno de fuego. A veces se le
  * escapa una pista: el yelmo le brilla del color de lo que va a sacar.
@@ -27,17 +30,17 @@ import net.minecraft.world.phys.Vec3;
  */
 final class PiedraNovilis extends MinijuegoNovilis {
 
-    static final int PREPARA = 30;
+    static final int PREPARA = 60;
     static final int RONDAS = 5;
-    static final int RONDA = 80;
+    static final int RONDA = 140;
     /** Los golpes de la cuenta (ticks desde que empieza la ronda): piedra, papel y ¡tijera! (cuando se saca). */
-    static final int GOLPE_1 = 10;
-    static final int GOLPE_2 = 25;
-    static final int SACA = 40;
+    static final int GOLPE_1 = 35;
+    static final int GOLPE_2 = 65;
+    static final int SACA = 95;
     /** Cuando alza el puno (la animacion lo tiene arriba 14 ticks despues). */
     private static final int ALZA = SACA - 18;
     /** Cuando se mira si ya esta decidido (tras ver el resultado). */
-    private static final int MIRA = 70;
+    private static final int MIRA = 128;
     static final int DURA = PREPARA + RONDAS * RONDA + 10;
     private static final float PIERDE = 5.0F;
 

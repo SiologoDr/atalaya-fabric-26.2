@@ -412,8 +412,6 @@ public class NovilisEntity extends Monster {
     private int miniSiguiente;
     private int enfMinijuego = 400;
     private final int[] enfMini = new int[5];
-    /** El rayo del Castigo de la Forja: solo a estos (null: a todos, como siempre). */
-    private @Nullable List<LivingEntity> castigoSolo;
 
     public NovilisEntity(EntityType<? extends Monster> tipo, Level nivel) {
         super(tipo, nivel);
@@ -917,7 +915,6 @@ public class NovilisEntity extends Monster {
         saltando = false;
         entityData.set(DATA_MARCA, -1);
         presa = null;
-        castigoSolo = null;
         ponerEstado(LIBRE, 0);
         respiro = new int[]{0, 16, 12, 11, 9}[fase()];
         if (e == DESPERTAR) {
@@ -1411,7 +1408,7 @@ public class NovilisEntity extends Monster {
         }
         if (cruza(NovilisGeometria.CASTIGO_MARCA)) {
             int retraso = (int) Math.ceil((NovilisGeometria.CASTIGO_RAYO - NovilisGeometria.CASTIGO_MARCA) / ritmoEstado);
-            for (LivingEntity v : castigoSolo != null ? castigoSolo : presas(nivel, 48)) {
+            for (LivingEntity v : presas(nivel, 48)) {
                 if (!v.isAlive() || v.isRemoved()) {
                     continue;
                 }
@@ -2315,7 +2312,6 @@ public class NovilisEntity extends Monster {
         saltando = false;
         entityData.set(DATA_MARCA, -1);
         presa = null;
-        castigoSolo = null;
         if (e != TAMBALEO) {
             ponerEstado(TAMBALEO, NovilisGeometria.DURACION_TAMBALEO);
         }
@@ -2377,8 +2373,9 @@ public class NovilisEntity extends Monster {
             avisoInmune(nivel, causante);
             return false;
         }
-        if (mini != null && mini.inmune()) {
-            // En los minijuegos (salvo Frio o Caliente) lo que sirve es jugar.
+        if ((mini != null && mini.inmune()) || e == MINI_CLAVA || e == MINI_ALZA || e == MANDA) {
+            // En los minijuegos (y mientras los saca) no le entra nada: lo que sirve es
+            // jugar (Juan, 10-10-2026: "el boss no deberia atacar ni recibir dano").
             avisoInmune(nivel, causante);
             return false;
         }
@@ -2598,7 +2595,6 @@ public class NovilisEntity extends Monster {
         entityData.set(DATA_MINI_INFO, 0);
         m.limpiar(nivel, exito, avisar);
         enfMinijuego = 500;
-        castigoSolo = null;
         int e = getEstado();
         if (!avisar && (e == MANDA || e == MINI_CLAVA || e == MINI_ALZA)) {
             terminar(nivel);
@@ -2688,16 +2684,6 @@ public class NovilisEntity extends Monster {
         if (getEstado() == LIBRE) {
             ponerEstado(MINI_ALZA, NovilisGeometria.DURACION_TROMPETAS);
         }
-    }
-
-    /** La Forja: alza la espada contra los herreros (el rayo del Castigo, sin la onda, solo a estos). */
-    void castigoMini(ServerLevel nivel, List<LivingEntity> blancos) {
-        if (getEstado() != LIBRE || blancos.isEmpty()) {
-            return;
-        }
-        castigoSolo = new ArrayList<>(blancos);
-        ponerEstado(CASTIGO, NovilisGeometria.DURACION_CASTIGO);
-        sonido(AtalayaSonidos.NOVILIS_CASTIGO_ALZA, 5.0F);
     }
 
     /** Un fallo en un minijuego: quema (los niveles de quemadura) y un golpe que no mata. */

@@ -85,8 +85,17 @@ public final class AtalayaItems {
 
     /** Huevo generador de Rajang: nace tumbado como una esfinge, hasta que ve a alguien. */
     public static Item HUEVO_RAJANG;
-    /** El nucleo solar: lo que Novilis entrega al liberarse. */
+    /** El nucleo solar: lo que Novilis entregaba al liberarse (ya no sale: ahora suelta su corazon). */
     public static Item NUCLEO_SOLAR;
+    /**
+     * Los corazones de los jefes (10-10-2026): lo que suelta cada uno al
+     * liberarse, con su diseno (corazones_botin.py). De momento no sirven para
+     * nada: luego se usaran para otra cosa (Juan).
+     */
+    public static Item CORAZON_NEREA;
+    public static Item CORAZON_AERALIS;
+    public static Item CORAZON_RAJANG;
+    public static Item CORAZON_NOVILIS;
     /** El huevo de Novilis. */
     public static Item HUEVO_NOVILIS;
 
@@ -301,6 +310,10 @@ public final class AtalayaItems {
                 props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.NEREA)));
         LAGRIMA_NEREA = registrar("lagrima_nerea", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
+        CORAZON_NEREA = registrar("corazon_nerea", props -> new Item(props.stacksTo(16).fireResistant().rarity(Rarity.EPIC)));
+        CORAZON_AERALIS = registrar("corazon_aeralis", props -> new Item(props.stacksTo(16).fireResistant().rarity(Rarity.EPIC)));
+        CORAZON_RAJANG = registrar("corazon_rajang", props -> new Item(props.stacksTo(16).fireResistant().rarity(Rarity.EPIC)));
+        CORAZON_NOVILIS = registrar("corazon_novilis", props -> new Item(props.stacksTo(16).fireResistant().rarity(Rarity.EPIC)));
         HUEVO_AERALIS = registrar("huevo_aeralis",
                 props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.AERALIS)));
         ESCAMA_AERALIS = registrar("escama_aeralis", props -> new Item(props.stacksTo(1).fireResistant()
@@ -353,7 +366,8 @@ public final class AtalayaItems {
                 ESPEJO_MAR, ALGA_VITRIFICADA, LENTE_MAR,
                 PATA_LIGERA, ALON, PATA_ALADA, LINGOTE_BLINDADO,
                 MIEL_CRISTALIZADA, PLANTILLA_SELLADO,
-                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA, ESCAMA_AERALIS, COLMILLO_JADE, NUCLEO_SOLAR
+                FULGURITA, OJO_VIGIA, LAGRIMA_NEREA, ESCAMA_AERALIS, COLMILLO_JADE, NUCLEO_SOLAR,
+                CORAZON_NEREA, CORAZON_AERALIS, CORAZON_RAJANG, CORAZON_NOVILIS
         };
     }
 }

@@ -41,8 +41,14 @@ public class YunqueForjaEntity extends Entity {
     /** Lo que tarda en salir del suelo y en hundirse. */
     public static final int SUBE = 20;
     public static final int BAJA = 20;
-    /** Lo que tarda el aro en cerrarse sobre la hoja y la pausa tras un buen golpe. */
+    /**
+     * Lo que tarda el aro en cerrarse sobre la hoja (con la hoja sin golpear) y la
+     * pausa tras un buen golpe. Con cada golpe bueno se cierra mas deprisa (Juan,
+     * 10-10-2026: "cada vez deberia ser mas rapido"): de 1,5 s a 0,75 s.
+     */
     public static final int PERIODO = 30;
+    private static final int ACELERA = 3;
+    private static final int PERIODO_MIN = 15;
     private static final int PAUSA = 6;
     /** Los golpes buenos que pide cada hoja. */
     public static final int GOLPES = 6;
@@ -139,8 +145,14 @@ public class YunqueForjaEntity extends Entity {
         if (dt < 0.0F) {
             return -1.0F;
         }
-        float k = (dt % PERIODO) / PERIODO;
+        int periodo = periodo();
+        float k = (dt % periodo) / periodo;
         return ARO_HOJA + (ARO_SALE - ARO_HOJA) * (1.0F - k);
+    }
+
+    /** Lo que tarda ahora el aro en cerrarse: mas deprisa con cada golpe bueno. */
+    public int periodo() {
+        return Math.max(PERIODO_MIN, PERIODO - ACELERA * Math.min(getGolpes(), GOLPES));
     }
 
     /** Lo que ha salido del suelo (0 a 1): sube al nacer y baja al hundirse. */
@@ -187,9 +199,10 @@ public class YunqueForjaEntity extends Entity {
         int retraso = p instanceof ServerPlayer sp ? Mth.clamp(sp.connection.latency() / 50, 0, 8) : 0;
         long dt = ahora - retraso - entityData.get(DATA_INICIO);
         int calidad = MAL;
-        if (dt >= PERIODO - BIEN) {
-            long m = dt % PERIODO;
-            long d = Math.min(m, PERIODO - m);
+        int periodo = periodo();
+        if (dt >= periodo - BIEN) {
+            long m = dt % periodo;
+            long d = Math.min(m, periodo - m);
             calidad = d <= PERFECTO ? PERFECTO_HECHO : d <= BIEN ? BIEN_HECHO : MAL;
         }
         entityData.set(DATA_ULTIMO, ahora);

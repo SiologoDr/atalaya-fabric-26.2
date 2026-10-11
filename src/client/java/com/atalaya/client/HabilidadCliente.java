@@ -49,8 +49,37 @@ public final class HabilidadCliente {
                     ClientPlayNetworking.send(new AtalayaRed.Habilidad());
                 }
             }
+            alrededor(mc);
         });
         ItemTooltipCallback.EVENT.register((stack, contexto, flag, lineas) -> describir(stack.getItem(), lineas));
+    }
+
+    /**
+     * Con la activa en marcha y en primera persona, a sus pies y alrededor sale lo
+     * de su elemento (el aura entera solo se ve desde fuera: HabilidadAuraLayer).
+     */
+    private static void alrededor(net.minecraft.client.Minecraft mc) {
+        net.minecraft.client.player.LocalPlayer p = mc.player;
+        if (p == null || mc.level == null || mc.isPaused() || !mc.options.getCameraType().isFirstPerson() || p.tickCount % 3 != 0) {
+            return;
+        }
+        ArmadurasJefes.Tema tema = Habilidades.conjunto(p);
+        com.atalaya.habilidad.HabilidadEstado e = p.getAttachedOrElse(Habilidades.ESTADO, com.atalaya.habilidad.HabilidadEstado.NADA);
+        if (tema == null || !e.activa(mc.level.getGameTime(), tema.ordinal())) {
+            return;
+        }
+        net.minecraft.core.particles.SimpleParticleType tipo = switch (tema) {
+            case JADE -> com.atalaya.particula.AtalayaParticulas.RAJANG_JADE;
+            case MAREAS -> com.atalaya.particula.AtalayaParticulas.NEREA_BURBUJA;
+            case VENDAVAL -> com.atalaya.particula.AtalayaParticulas.AERALIS_LUZ;
+            case SOLAR -> com.atalaya.particula.AtalayaParticulas.NOVILIS_BRASA;
+        };
+        for (int i = 0; i < 2; i++) {
+            double a = p.getRandom().nextDouble() * Math.PI * 2;
+            double r = 0.8 + p.getRandom().nextDouble() * 0.5;
+            mc.level.addParticle(tipo, p.getX() + Math.cos(a) * r, p.getY() + 0.1 + p.getRandom().nextDouble() * 0.6,
+                    p.getZ() + Math.sin(a) * r, 0.0, 0.04, 0.0);
+        }
     }
 
     private static void describir(Item item, List<Component> lineas) {

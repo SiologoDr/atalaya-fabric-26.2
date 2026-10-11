@@ -56,9 +56,9 @@ abstract class MinijuegoRajang {
         r.quietoMini();
     }
 
-    /** No le entra nada mientras dura. */
+    /** No le entra nada mientras dura (en todos: Juan, 10-10-2026). */
     boolean inmune() {
-        return false;
+        return true;
     }
 
     /** Hacia donde salta, si es a un sitio que se mueve (la luz del prisma). */

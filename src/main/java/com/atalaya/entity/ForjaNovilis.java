@@ -3,7 +3,6 @@ package com.atalaya.entity;
 import com.atalaya.particula.AtalayaParticulas;
 import com.atalaya.sonido.AtalayaSonidos;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -17,9 +16,9 @@ import net.minecraft.world.phys.Vec3;
  * La Forja del Juramento (fase I): clava la espada y salen yunques con una
  * hoja al rojo (uno jugando solo, dos con dos o tres, y si no, tres). Sobre
  * cada hoja se cierra un aro de luz: hay que golpearla cuando el aro la toca.
- * Cada hoja pide 6 golpes buenos (YunqueForjaEntity). Mientras, el no se mueve
- * ni le entra nada, y cada 5 s alza la espada contra los herreros: el rayo del
- * Castigo bajo cada uno (sin la onda). Dura 25 s.
+ * Cada hoja pide 6 golpes buenos (YunqueForjaEntity) y con cada uno el aro se
+ * cierra mas deprisa. Mientras, el ni se mueve ni ataca ni le entra nada (Juan,
+ * 10-10-2026: antes cada 5 s alzaba la espada contra los herreros). Dura 25 s.
  *
  * Con todas las hojas forjadas, salen volando hacia el y le parten la
  * armadura: aturdido 6 s. Si no, las que quedan revientan en chispas y queman
@@ -30,11 +29,6 @@ final class ForjaNovilis extends MinijuegoNovilis {
     static final int DURA = 500;
     /** A cuanto de el salen los yunques. */
     private static final double RADIO = 12.0;
-    /** El rayo contra los herreros: el primero y luego cada cuanto. */
-    private static final int RAYO_PRIMERO = 70;
-    private static final int RAYO_CADA = 100;
-    /** Quien esta a menos de esto de un yunque sin forjar es un herrero. */
-    private static final double HERRERO = 6.0;
     /** Lo que tardan las hojas en llegarle volando. */
     private static final int VUELO = 20;
     private static final float CHISPAS = 4.0F;
@@ -93,10 +87,6 @@ final class ForjaNovilis extends MinijuegoNovilis {
                 y.volar();
             }
             nivel.playSound(null, n.getX(), n.getY() + 6, n.getZ(), AtalayaSonidos.NOVILIS_FORJA_VUELAN, SoundSource.HOSTILE, 6.0F, 1.0F);
-            return;
-        }
-        if (t >= RAYO_PRIMERO && (t - RAYO_PRIMERO) % RAYO_CADA == 0 && t < dura - 40) {
-            n.castigoMini(nivel, herreros(nivel));
         }
     }
 
@@ -116,25 +106,6 @@ final class ForjaNovilis extends MinijuegoNovilis {
             nivel.sendParticles(AtalayaParticulas.NOVILIS_CHISPA, true, true, pecho.x, pecho.y, pecho.z, 50, 1.5, 2.0, 1.5, 0.4);
             n.acabarMinijuego(nivel, true, true);
         }
-    }
-
-    /** Los que estan junto a un yunque sin forjar; si no hay, un tercio al azar. */
-    private List<LivingEntity> herreros(ServerLevel nivel) {
-        List<LivingEntity> out = new ArrayList<>();
-        for (LivingEntity v : n.presasMini(nivel, 56)) {
-            for (YunqueForjaEntity y : yunques) {
-                if (!y.forjada() && v.distanceToSqr(y) < HERRERO * HERRERO) {
-                    out.add(v);
-                    break;
-                }
-            }
-        }
-        if (out.isEmpty()) {
-            List<LivingEntity> todos = n.presasMini(nivel, 48);
-            Collections.shuffle(todos, new java.util.Random(nivel.getRandom().nextLong()));
-            out.addAll(todos.subList(0, Math.min(todos.size(), Math.max(1, (todos.size() + 2) / 3))));
-        }
-        return out;
     }
 
     /** Un golpe bueno (o perfecto). */

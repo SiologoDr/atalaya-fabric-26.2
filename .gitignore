@@ -25,6 +25,10 @@ bin/
 # VS Code
 .vscode/
 
+# Cache de Python (los generadores de materiales/)
+__pycache__/
+*.pyc
+
 # Sistema
 *.log
 *.DS_Store
