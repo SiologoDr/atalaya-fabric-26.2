@@ -1249,7 +1249,7 @@ eslabones en las muescas. En la Mirada cambia de vista: en el emblema, su
 **calavera con los dos ojos**, que se rajan con cada impacto, y debajo la **marea**
 que baja con el tiempo que le queda al chorro. Con la Furia, todo en verde abismo.
 La de Rajang al mismo estilo está **solo en propuesta**
-(`rajang_remake_hud.py`, ficha en `materiales/fichas/rajang_barra/`).
+(`rajang_remake_hud.py`).
 
 La de **Novilis** es del mismo estilo desde el principio: lenguas de fuego que
 salen del emblema (su yelmo ante el sol), lava del color de la fase y muescas
@@ -1709,9 +1709,7 @@ sienta el miedo. En la barra, el rótulo pasa a **FURIA** y la energía late en 
 vivo.
 
 > Estas mejoras salen de las pruebas del grupo de octubre de 2026 («tosco y
-> lento»). La ficha con los renders y las cifras está en
-> `materiales/fichas/rajang_mejoras/`, con las hojas de control de las
-> animaciones de antes y de después.
+> lento»).
 
 **Minijuegos (octubre de 2026).** Como los de Nerea: uno por fase, elegidos por
 Juan entre cinco fichas (`rajang_minijuegos_escenas.py`, `rajang_ingenio_escenas.py`,
