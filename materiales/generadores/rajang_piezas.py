@@ -58,12 +58,15 @@ guardar(e, os.path.join(ENT, 'fragmento_brillo.png'))
 guardar(ta.LLAMA, os.path.join(ENT, 'llama.png'))
 
 # la mascara de disolverse: grano de piedra a varias escalas (la piedra se
-# deshace a terrones, no a pixeles sueltos)
+# deshace a terrones, no a pixeles sueltos). El shader de vanilla lee la ALFA
+# de la mascara (descarta donde la alfa del vertice es menor): el grano va en
+# la alfa, entre 8 y 245 como en las de los demas jefes. Antes iba en el color
+# con la alfa a 255 y Rajang desaparecia de golpe en vez de deshacerse.
 n = ta._fbm2(256, 256, (8, 8), 77, 4)
 m = np.zeros((256, 256, 4), np.uint8)
-v = np.clip((n - n.min()) / (n.max() - n.min()) * 255, 0, 255).astype(np.uint8)
-m[..., 0] = m[..., 1] = m[..., 2] = v
-m[..., 3] = 255
+v = (n - n.min()) / (n.max() - n.min())
+m[..., 0] = m[..., 1] = m[..., 2] = 255
+m[..., 3] = np.clip(8 + v * 237, 8, 245).astype(np.uint8)
 guardar(m, os.path.join(ENT, 'rajang_disolver.png'))
 
 # la banda de oro de los totems y el haz de luz de los totems vivos

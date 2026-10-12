@@ -2,6 +2,15 @@ package com.atalaya.client;
 
 import com.atalaya.entity.AeralisEntity;
 import com.atalaya.entity.AeralisGeometria;
+import com.atalaya.entity.AtlahuaEntity;
+import com.atalaya.entity.AtlahuaGeometria;
+import com.atalaya.entity.MiniJefeEntity;
+import com.atalaya.entity.MoctezumaEntity;
+import com.atalaya.entity.MoctezumaGeometria;
+import com.atalaya.entity.XiuhquetzalEntity;
+import com.atalaya.entity.XiuhquetzalGeometria;
+import com.atalaya.entity.YiatzoEntity;
+import com.atalaya.entity.YiatzoGeometria;
 import com.atalaya.entity.NereaEntity;
 import com.atalaya.entity.NereaGeometria;
 import com.atalaya.entity.NovilisEntity;
@@ -106,6 +115,32 @@ public final class PresentacionJefe {
             NovilisGeometria.DESPERTAR_RUGE, NovilisGeometria.DURACION_DESPERTAR, AtalayaSonidos.MUSICA_NOVILIS_GRANDE, 1.0F,
             // Se levanta visto por su derecha y mas de lejos: que se vea como agarra la espada clavada.
             new Tomas(1.0F, 0.02F, 1.0F, 1.0F, 0.0F, -1.0F, 1.45F));
+
+    // Los mini jefes: la misma presentacion, con su despertar (de 6,5 a 7 s) y su cartel. Su primer plano va mas de
+    // lejos que el de los jefes (revision del 11-10-2026): con 4 bloques mas de alto, el penacho de Moctezuma, la
+    // corona de Atlahua y la capucha de Yiatzo se salian del plano, y al fenix, con la cabeza escondida en el capullo,
+    // la camara le quedaba bajo el vientre.
+    private static final Ficha MOCTEZUMA = new Ficha("moctezuma", 0x6CFFB0, 0xF2C844,
+            MoctezumaGeometria.CABEZA, MoctezumaGeometria::cabezaDespertar, MoctezumaGeometria::pechoDespertar,
+            MoctezumaGeometria.DESPERTAR_ABRE, MoctezumaGeometria.DESPERTAR_SE_ALZA, MoctezumaGeometria.DESPERTAR_ALZADO,
+            MoctezumaGeometria.DESPERTAR_RUGE, MoctezumaGeometria.DURACION_DESPERTAR, AtalayaSonidos.MOCTEZUMA_CARTEL, 1.0F,
+            new Tomas(1.5F, 0.08F, 1.0F, 1.0F, 0.0F, 1.0F, 1.1F));
+    private static final Ficha YIATZO = new Ficha("yiatzo", 0x9FEAFF, 0xC8D4E0,
+            YiatzoGeometria.CABEZA, YiatzoGeometria::cabezaDespertar, YiatzoGeometria::pechoDespertar,
+            YiatzoGeometria.DESPERTAR_ABRE, YiatzoGeometria.DESPERTAR_SE_ALZA, YiatzoGeometria.DESPERTAR_ALZADO,
+            YiatzoGeometria.DESPERTAR_RUGE, YiatzoGeometria.DURACION_DESPERTAR, AtalayaSonidos.YIATZO_CARTEL, 1.05F,
+            new Tomas(1.4F, 0.04F, 1.1F, 1.0F, 0.0F, -1.0F, 1.1F));
+    private static final Ficha ATLAHUA = new Ficha("atlahua", 0x6AE8FF, 0xFF7A5A,
+            AtlahuaGeometria.CABEZA, AtlahuaGeometria::cabezaDespertar, AtlahuaGeometria::pechoDespertar,
+            AtlahuaGeometria.DESPERTAR_ABRE, AtlahuaGeometria.DESPERTAR_SE_ALZA, AtlahuaGeometria.DESPERTAR_ALZADO,
+            AtlahuaGeometria.DESPERTAR_RUGE, AtlahuaGeometria.DURACION_DESPERTAR, AtalayaSonidos.ATLAHUA_CARTEL, 1.05F,
+            new Tomas(1.5F, 0.02F, 1.0F, 1.0F, 0.0F, 1.0F, 1.1F));
+    // El fenix: unos 22 bloques de ala a ala, de mas lejos (las tomas se miden por la altura de su cabeza).
+    private static final Ficha XIUHQUETZAL = new Ficha("xiuhquetzal", 0xFF9A30, 0xD050C8,
+            XiuhquetzalGeometria.CABEZA, XiuhquetzalGeometria::cabezaDespertar, XiuhquetzalGeometria::pechoDespertar,
+            XiuhquetzalGeometria.DESPERTAR_ABRE, XiuhquetzalGeometria.DESPERTAR_SE_ALZA, XiuhquetzalGeometria.DESPERTAR_ALZADO,
+            XiuhquetzalGeometria.DESPERTAR_RUGE, XiuhquetzalGeometria.DURACION_DESPERTAR, AtalayaSonidos.XIUHQUETZAL_CARTEL, 1.45F,
+            new Tomas(2.4F, 0.35F, 1.5F, 1.1F, 0.0F, 1.0F, 1.3F));
 
     private static final int DORMIDO = 1;
     private static final int DESPERTAR = 2;
@@ -377,6 +412,18 @@ public final class PresentacionJefe {
         if (e instanceof NovilisEntity) {
             return NOVILIS;
         }
+        if (e instanceof MoctezumaEntity) {
+            return MOCTEZUMA;
+        }
+        if (e instanceof YiatzoEntity) {
+            return YIATZO;
+        }
+        if (e instanceof AtlahuaEntity) {
+            return ATLAHUA;
+        }
+        if (e instanceof XiuhquetzalEntity) {
+            return XIUHQUETZAL;
+        }
         return null;
     }
 
@@ -393,6 +440,9 @@ public final class PresentacionJefe {
         if (e instanceof NovilisEntity n) {
             return n.getEstado();
         }
+        if (e instanceof MiniJefeEntity m) {
+            return m.getEstado();
+        }
         return -1;
     }
 
@@ -408,6 +458,9 @@ public final class PresentacionJefe {
         }
         if (e instanceof NovilisEntity n) {
             return n.inicioEstado;
+        }
+        if (e instanceof MiniJefeEntity m) {
+            return m.inicioEstado;
         }
         return e.tickCount;
     }

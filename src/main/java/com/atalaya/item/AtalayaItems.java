@@ -98,6 +98,11 @@ public final class AtalayaItems {
     public static Item CORAZON_NOVILIS;
     /** El huevo de Novilis. */
     public static Item HUEVO_NOVILIS;
+    /** Los huevos de los mini jefes: nacen dormidos, cada uno en su postura. Puede haber varios a la vez. */
+    public static Item HUEVO_MOCTEZUMA;
+    public static Item HUEVO_YIATZO;
+    public static Item HUEVO_ATLAHUA;
+    public static Item HUEVO_XIUHQUETZAL;
 
     /**
      * Fulgurita en bruto: la arena que un rayo fundio de golpe.
@@ -241,6 +246,18 @@ public final class AtalayaItems {
      */
     public static Item PLANTILLA_SELLADO;
 
+    /**
+     * Los tótems del mod (TotemJefe), en su orden: los cuatro menores (los de los
+     * mini jefes), los cuatro mayores (los de los jefes) y otros (Viajero y Dos
+     * Vidas). Por ahora solo se consiguen en creativo.
+     */
+    public static final Item[] TOTEMS = new Item[TotemJefe.values().length];
+
+    /** El Kit de Reparación: deja nueva la armadura puesta de un compañero (no la tuya). */
+    public static Item KIT_REPARACION;
+    /** El Corazón de Vida: se come y te deja la vida llena. */
+    public static Item CORAZON_VIDA;
+
     private AtalayaItems() {
     }
 
@@ -336,9 +353,28 @@ public final class AtalayaItems {
                 .rarity(Rarity.EPIC)));
         HUEVO_NOVILIS = registrar("huevo_novilis",
                 props -> new HuevoJefeItem(props.spawnEgg(AtalayaEntities.NOVILIS)));
+        HUEVO_MOCTEZUMA = registrar("huevo_moctezuma", props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.MOCTEZUMA)));
+        HUEVO_YIATZO = registrar("huevo_yiatzo", props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.YIATZO)));
+        HUEVO_ATLAHUA = registrar("huevo_atlahua", props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.ATLAHUA)));
+        HUEVO_XIUHQUETZAL = registrar("huevo_xiuhquetzal", props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.XIUHQUETZAL)));
         NUCLEO_SOLAR = registrar("nucleo_solar", props -> new Item(props.stacksTo(1).fireResistant()
                 .rarity(Rarity.EPIC)));
 
+        for (TotemJefe t : TotemJefe.values()) {
+            TOTEMS[t.ordinal()] = registrar("totem_" + t.id, props -> {
+                props.stacksTo(1).fireResistant().rarity(t.rareza)
+                        .component(DataComponents.DEATH_PROTECTION, t.proteccion());
+                if (t == TotemJefe.DOS_VIDAS) {
+                    // El brillo dice que le quedan las dos vidas: se apaga al gastar la primera.
+                    props.component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+                }
+                return new TotemJefeItem(t, props);
+            });
+        }
+        KIT_REPARACION = registrar("kit_reparacion", props -> new KitReparacionItem(props.stacksTo(16).rarity(Rarity.UNCOMMON)));
+        // Se come aunque tengas el hambre llena: lleva consumable, pero no food.
+        CORAZON_VIDA = registrar("corazon_vida", props -> new CorazonVidaItem(props.stacksTo(16).rarity(Rarity.RARE)
+                .component(DataComponents.CONSUMABLE, Consumables.DEFAULT_FOOD)));
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),
                 azul("item.atalaya.plantilla_sellado.ingredientes"),

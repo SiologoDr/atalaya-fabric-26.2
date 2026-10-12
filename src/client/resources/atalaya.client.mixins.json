@@ -21,7 +21,8 @@
     "CanonZoomMixin",
     "CanonPunteriaMixin",
     "PararrayosBrazoMixin",
-    "CieloJefesMixin"
+    "CieloJefesMixin",
+    "ModelPartAccesor"
   ],
   "injectors": {
     "defaultRequire": 1

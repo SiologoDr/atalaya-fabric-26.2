@@ -55,7 +55,9 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
 
     public NovilisRenderer(EntityRendererProvider.Context contexto) {
         super(contexto, new NovilisModel(contexto.bakeLayer(NovilisModel.CAPA)), 3.4F);
-        addLayer(new NovilisBrilloLayer(this));
+        // La pasada de lo que brilla, con una copia del modelo que solo tiene los cubos que brillan.
+        addLayer(new NovilisBrilloLayer(this, new NovilisModel(SoloLoQueBrilla.filtrar(contexto.bakeLayer(NovilisModel.CAPA), "novilis",
+                "novilis_brillo_f1", "novilis_brillo_f2", "novilis_brillo_f3", "novilis_brillo_f4", "novilis_brillo_furia", "novilis_brillo_libre"))));
         addLayer(new NovilisLlamasLayer(this));
     }
 
@@ -195,9 +197,22 @@ public class NovilisRenderer extends MobRenderer<NovilisEntity, NovilisRenderSta
         return s.disolver > 0.0F ? ARGB.white(1.0F - s.disolver) : -1;
     }
 
+    /**
+     * Se recorta con una caja que le cubre entero (con su sol y la espada), y
+     * solo cuando no pinta nada lejos de el: el haz del Castigo, la Ofrenda, el
+     * carril de la Espada y los soles se pintan siempre.
+     */
     @Override
     protected boolean affectedByCulling(NovilisEntity n) {
-        return false;
+        return switch (n.getEstado()) {
+            case NovilisEntity.CASTIGO, NovilisEntity.CASTIGO_ONDA, NovilisEntity.OFRENDA, NovilisEntity.ESPADA, NovilisEntity.SOL -> false;
+            default -> true;
+        };
+    }
+
+    @Override
+    protected net.minecraft.world.phys.AABB getBoundingBoxForCulling(NovilisEntity n) {
+        return n.getBoundingBox().inflate(6.0, 4.0, 6.0);
     }
 
     @Override

@@ -35,8 +35,12 @@ public class AeralisBrilloLayer extends RenderLayer<AeralisRenderState, AeralisM
     private static final RenderType LIBRE = RenderTypes.eyes(
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/entity/aeralis/aeralis_brillo_libre.png"));
 
-    public AeralisBrilloLayer(RenderLayerParent<AeralisRenderState, AeralisModel> padre) {
+    /** Una copia del modelo solo con los cubos que brillan (SoloLoQueBrilla): no pinta otra vez lo que no brilla. */
+    private final AeralisModel modelo;
+
+    public AeralisBrilloLayer(RenderLayerParent<AeralisRenderState, AeralisModel> padre, AeralisModel modelo) {
         super(padre);
+        this.modelo = modelo;
     }
 
     @Override
@@ -60,7 +64,7 @@ public class AeralisBrilloLayer extends RenderLayer<AeralisRenderState, AeralisM
         if (k <= 0.01F) {
             return;
         }
-        colector.order(1).submitModel(getParentModel(), s, pose, s.libre ? LIBRE : FASES[Math.clamp(s.fase, 1, 4) - 1], luz,
+        colector.order(1).submitModel(modelo, s, pose, s.libre ? LIBRE : FASES[Math.clamp(s.fase, 1, 4) - 1], luz,
                 OverlayTexture.NO_OVERLAY, ARGB.colorFromFloat(k, k, k, k), null, s.outlineColor, null);
     }
 }

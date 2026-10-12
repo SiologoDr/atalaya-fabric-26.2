@@ -35,6 +35,18 @@
     "atalaya:novilis_abrasa",
     "atalaya:novilis_llamas",
     "atalaya:nerea_duelo",
-    "atalaya:rajang_foso"
+    "atalaya:rajang_foso",
+    "atalaya:moctezuma_corte",
+    "atalaya:moctezuma_terremoto",
+    "atalaya:moctezuma_tormenta",
+    "atalaya:yiatzo_rafaga",
+    "atalaya:yiatzo_tormenta",
+    "atalaya:yiatzo_ciclon",
+    "atalaya:atlahua_estocada",
+    "atalaya:atlahua_olas",
+    "atalaya:atlahua_tsunami",
+    "atalaya:xiuhquetzal_picotazo",
+    "atalaya:xiuhquetzal_plumas",
+    "atalaya:xiuhquetzal_llamarada"
   ]
 }

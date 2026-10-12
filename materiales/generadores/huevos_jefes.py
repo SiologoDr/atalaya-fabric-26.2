@@ -1,5 +1,6 @@
 """
-Huevos generadores del Vigia, de Nerea, de Aeralis, de Rajang y de Novilis, dibujados pixel a pixel (16x16).
+Huevos generadores del Vigia, de Nerea, de Aeralis, de Rajang, de Novilis y de los cuatro mini jefes (Moctezuma,
+Yiatzo, Atlahua y Xiuhquetzal), dibujados pixel a pixel (16x16).
 
 Siguen el estilo de los huevos de vanilla de 26.x: la misma silueta y la luz
 desde arriba a la izquierda, con contorno de dos tonos, y encima los rasgos
@@ -19,6 +20,11 @@ puas del guardian:
   Novilis acero quemado, el halo de oro detras del yelmo, los cuernos con la
           punta de oro, la rendija en T encendida, la gola de oro, grietas de
           lava y el nucleo solar en el pecho
+  Moctezuma    jade, el penacho de quetzal, el pico de aguila de oro, los dientes de
+               obsidiana y el medallon con la gema
+  Yiatzo       piedra gris, la capucha con los ojos celestes, el orbe y las losas de glifos
+  Atlahua      escamas del abismo, la corona de coral, la barba de algas y el tridente
+  Xiuhquetzal  carmesi, la cresta de fuego, el pico de oro, las alas y la brasa del pecho
 
 Solo se escribe un huevo si sus pixeles cambian: otra version de Pillow
 codifica distinto el mismo dibujo, y reescribirlos cambiaria los bytes de
@@ -245,9 +251,134 @@ pintar(novilis, [
 # El halo se sale por arriba y los cuernos por los lados; en el pecho, el nucleo.
 guardar(novilis, 'huevo_novilis.png')
 
+# ---------------------------------------------------------------- Moctezuma (mini jefe de la tierra)
+# Jade con la banda de oro del yelmo, el penacho de quetzal que se sale por arriba, el pico de aguila de oro con los
+# ojos de jade, los dientes de obsidiana del macuahuitl a los lados y el medallon de oro con la gema en el pecho.
+MOCTEZUMA = {
+    'f': hexc('2ab07a'), 'F': hexc('5ad494'), 'r': hexc('d0402a'),          # el penacho y sus plumas rojas
+    'y': hexc('f8d65c'), 'Y': hexc('e8b834'), 'G': hexc('b07a18'), 'h': hexc('6a4410'),  # oro
+    'e': hexc('7affb0'),                                                    # los ojos de jade
+    'k': hexc('1a1424'), 'w': hexc('b8a8f0'),                               # obsidiana y su brillo
+    'n': hexc('4cc884'), 'N': hexc('c8ffe0'),                               # la gema del medallon
+}
+moctezuma = cascara([hexc('0f4a32'), hexc('16603f'), hexc('1c7a4c'), hexc('1c7a4c'), hexc('23925a')], hexc('0d4030'),
+                    hexc('06180f'), 'moctezuma')
+pintar(moctezuma, [
+    "..f..F.fF.F..f..",
+    "...fF.fFFf.Ff...",
+    "....FfFrrFfF....",
+    "....yYGYYGYy....",
+    "....GeY..YeG....",
+    ".....GYyyYG.....",
+    "......GyyG......",
+    ".......GG.......",
+    "..k..........k..",
+    "..kw..yYYy..wk..",
+    "..k..YnNNnY..k..",
+    "..kw.YNnnNY.wk..",
+    "..k...YnnY...k..",
+    "......hYYh......",
+    "................",
+    "................",
+], MOCTEZUMA)
+guardar(moctezuma, 'huevo_moctezuma.png')
+
+# ---------------------------------------------------------------- Yiatzo (mini jefe del viento)
+# Piedra gris: la capucha honda con los dos ojos celestes, el orbe de viento que asoma por arriba, dos losas de glifos
+# que flotan a los lados y las runas de la tunica.
+YIATZO = {
+    'c': hexc('7ae0ff'), 'W': hexc('f0fbff'),                               # el orbe
+    's': hexc('52565e'), 'S': hexc('868a92'), 'd': hexc('0a0b10'),          # la capucha y su hueco
+    'C': hexc('9ef0ff'), 'x': hexc('7ae0ff'), 't': hexc('48b8e8'),          # ojos, glifos y runas
+    'p': hexc('3e4048'),
+}
+yiatzo = cascara([hexc('5e626a'), hexc('7a7e86'), hexc('868a92'), hexc('969aa2'), hexc('b4b8bc')], hexc('484c54'),
+                 hexc('2a2c32'), 'yiatzo')
+pintar(yiatzo, [
+    ".......cW.......",
+    "......cWWc......",
+    ".......cc.......",
+    "......sSSs......",
+    ".....sSddSs.....",
+    "....sSddddSs....",
+    "....sSdCdCdS....",
+    ".....SddddS.....",
+    ".p....SSSS....p.",
+    "pxp..........pxp",
+    ".p..t......t..p.",
+    "....t.ttt..t....",
+    ".....tt.t.t.....",
+    "......tt.t......",
+    "................",
+    "................",
+], YIATZO)
+guardar(yiatzo, 'huevo_yiatzo.png')
+
+# ---------------------------------------------------------------- Atlahua (mini jefe del agua)
+# Escamas del abismo: la corona de coral que se sale por arriba, la diadema de nacar, los ojos de luz, la barba de
+# algas, la coraza de nacar y el tridente que asoma por la derecha con las puntas encendidas.
+ATLAHUA = {
+    'R': hexc('f06a3c'), 'r': hexc('c8322a'),                               # el coral
+    'n': hexc('c8d4e0'), 'N': hexc('e2e6f0'),                               # nacar
+    't': hexc('146070'), 'E': hexc('96f5ff'),                               # la cara y los ojos
+    'g': hexc('1c6a38'), 'G': hexc('2a8448'),                               # la barba de algas
+    'T': hexc('b8fbff'), 'P': hexc('0a2a4a'),                               # el tridente
+}
+atlahua = cascara([hexc('0e4a5a'), hexc('146070'), hexc('1a7888'), hexc('1a7888'), hexc('22909e')], hexc('0e4a5a'),
+                  hexc('06222a'), 'atlahua')
+pintar(atlahua, [
+    "..R.r..R..r.T.T.",
+    "..rR.rR.Rr..TTT.",
+    "...rRrRRrR...P..",
+    "....nNnnnNn..P..",
+    "....tEtttEt..P..",
+    ".....tttttt..P..",
+    "......gGgG...P..",
+    "......gGgGg..P..",
+    ".....g.G.g...P..",
+    ".............P..",
+    "....NnNNnN...P..",
+    "....nNnnNn...P..",
+    ".....nNNn....P..",
+    ".............P..",
+    "................",
+    "................",
+], ATLAHUA)
+guardar(atlahua, 'huevo_atlahua.png')
+
+# ---------------------------------------------------------------- Xiuhquetzal (mini jefe del fuego)
+# Carmesi: la cresta de fuego (con las puntas violetas) que se sale por arriba, los ojos de oro y el pico ganchudo,
+# las alas que asoman por los lados y la brasa del pecho.
+XIUHQUETZAL = {
+    'v': hexc('c060ff'), 'Y': hexc('ffe08a'), 'y': hexc('fff4c0'), 'o': hexc('ff9a30'), 'O': hexc('dc3018'),
+    'r': hexc('861212'), 'R': hexc('b01c16'), 'e': hexc('ffd060'), 'b': hexc('e8b834'), 'B': hexc('8a5a10'),
+    'm': hexc('ff8a28'), 'M': hexc('ffd060'), 'W': hexc('fff8e0'),
+}
+xiuhquetzal = cascara([hexc('440609'), hexc('5a0a0c'), hexc('6e0c0e'), hexc('6e0c0e'), hexc('861212')], hexc('5a0a0c'),
+                      hexc('1e0204'), 'xiuhquetzal')
+pintar(xiuhquetzal, [
+    ".....v.Y.v......",
+    "....vYoYYoYv....",
+    ".....oYyyYo.....",
+    "......oyyo......",
+    ".....rReReR.....",
+    "......RbbR......",
+    ".......bB.......",
+    "oO..........Oo..",
+    "OYo.........oYO.",
+    "oYOo..mMMm.oOYo.",
+    ".oO..mMWWMm.Oo..",
+    "......mMMm......",
+    ".......mm.......",
+    "................",
+    "................",
+    "................",
+], XIUHQUETZAL)
+guardar(xiuhquetzal, 'huevo_xiuhquetzal.png')
+
 if len(sys.argv) > 2:
     VAN = sys.argv[3] if len(sys.argv) > 3 else None
-    fila = [vigia, nerea, aeralis, rajang, novilis]
+    fila = [vigia, nerea, aeralis, rajang, novilis, moctezuma, yiatzo, atlahua, xiuhquetzal]
     if VAN:
         for f in ('warden', 'guardian', 'drowned', 'wither_skeleton'):
             fila.append(Image.open(os.path.join(VAN, f + '_spawn_egg.png')).convert('RGBA'))

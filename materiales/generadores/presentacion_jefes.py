@@ -72,6 +72,28 @@ JEFES = {
         ante={'es': 'JEFE DEL FUEGO', 'en': 'FIRE BOSS'},
         acento=(255, 206, 110), halo=(255, 116, 28), linea=(255, 42, 58), blanco=(252, 246, 234),
         epi=(240, 224, 206), gris=(206, 192, 182), sombra=(20, 6, 4)),
+    # Los mini jefes (11-10-2026): el mismo cartel, con el nombre algo mas pequeno (escala 3 y sin aire entre letras:
+    # XIUHQUETZAL tiene once) y "MINIJEFE" en el antetitulo.
+    'moctezuma': dict(
+        nombre='MOCTEZUMA', escala=3, aire=0,
+        ante={'es': 'MINIJEFE DE LA TIERRA', 'en': 'EARTH MINIBOSS'},
+        acento=(120, 240, 170), halo=(40, 200, 120), linea=(242, 200, 68), blanco=(244, 250, 236),
+        epi=(212, 236, 220), gris=(182, 206, 190), sombra=(3, 14, 9)),
+    'yiatzo': dict(
+        nombre='YIATZO', escala=3, aire=0,
+        ante={'es': 'MINIJEFE DEL VIENTO', 'en': 'WIND MINIBOSS'},
+        acento=(160, 230, 255), halo=(90, 190, 240), linea=(210, 225, 240), blanco=(240, 248, 252),
+        epi=(210, 224, 236), gris=(184, 196, 210), sombra=(6, 10, 18)),
+    'atlahua': dict(
+        nombre='ATLAHUA', escala=3, aire=0,
+        ante={'es': 'MINIJEFE DEL AGUA', 'en': 'WATER MINIBOSS'},
+        acento=(110, 236, 240), halo=(30, 170, 200), linea=(255, 120, 90), blanco=(236, 250, 250),
+        epi=(200, 232, 236), gris=(176, 204, 208), sombra=(2, 14, 20)),
+    'xiuhquetzal': dict(
+        nombre='XIUHQUETZAL', escala=3, aire=0,
+        ante={'es': 'MINIJEFE DEL FUEGO', 'en': 'FIRE MINIBOSS'},
+        acento=(255, 196, 90), halo=(255, 90, 30), linea=(210, 80, 200), blanco=(255, 246, 232),
+        epi=(242, 222, 206), gris=(208, 190, 182), sombra=(22, 4, 6)),
 }
 
 # ----------------------------------------------------------------------
@@ -237,7 +259,8 @@ def oscuro(j):
 def capa_nombre(j):
     im = lienzo()
     relleno = rampa(j['blanco'], mezcla(j['blanco'], j['halo'], 0.42))
-    pintar_texto(im, j['nombre'], GRANDE, BASE_W // 2, Y_NOMBRE, relleno, oscuro(j), escala=4, aire=1, sombra_dy=2,
+    pintar_texto(im, j['nombre'], GRANDE, BASE_W // 2, Y_NOMBRE, relleno, oscuro(j), escala=j.get('escala', 4),
+                 aire=j.get('aire', 1), sombra_dy=2,
                  halo=(j['halo'], [0.0, 0.62, 0.42, 0.24, 0.10]))
     return im
 
@@ -301,7 +324,7 @@ def ampliar(im, w):
 def comprobar():
     """Que todo quepa en el lienzo (con su contorno)."""
     for nombre, j in JEFES.items():
-        _, a, _ = puntos_texto(j['nombre'], GRANDE, 4, 1)
+        _, a, _ = puntos_texto(j['nombre'], GRANDE, j.get('escala', 4), j.get('aire', 1))
         assert a + 12 <= BASE_W, (nombre, 'nombre', a)
         for idioma in IDIOMAS:
             for clave, glifos in (('ante', PEQUENA),):

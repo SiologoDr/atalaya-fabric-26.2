@@ -85,7 +85,9 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
     public RajangRenderer(EntityRendererProvider.Context contexto) {
         super(contexto, new RajangModel(contexto.bakeLayer(RajangModel.CAPA)), 4.5F);
         this.modelos = contexto.getItemModelResolver();
-        addLayer(new RajangBrilloLayer(this));
+        // La pasada de lo que brilla, con una copia del modelo que solo tiene los cubos que brillan.
+        addLayer(new RajangBrilloLayer(this, new RajangModel(SoloLoQueBrilla.filtrar(contexto.bakeLayer(RajangModel.CAPA), "rajang",
+                "rajang_brillo_f1", "rajang_brillo_f2", "rajang_brillo_f3", "rajang_brillo_f4", "rajang_brillo_libre"))));
         addLayer(new RajangFuriaLayer(this, new RajangModel(contexto.bakeLayer(RajangModel.CAPA_AURA))));
     }
 
@@ -388,10 +390,21 @@ public class RajangRenderer extends MobRenderer<RajangEntity, RajangRenderState,
         pose.popPose();
     }
 
-    /** Veinticinco bloques de largo: que no desaparezca al girar la camara. */
+    /**
+     * Veinticinco bloques de largo: se recorta con una caja que le cubre entero
+     * (no la suya, que solo tapa el pecho), y solo cuando no pinta nada lejos de
+     * su cuerpo. Con la flecha de la Embestida, la Tumba o el idolo en la cabeza
+     * de alguien se pinta siempre, aunque el no se vea.
+     */
     @Override
     protected boolean affectedByCulling(RajangEntity r) {
-        return false;
+        int e = r.getEstado();
+        return (e == RajangEntity.LIBRE || e == RajangEntity.DORMIDO) && r.getPortadorIdolo() < 0;
+    }
+
+    @Override
+    protected net.minecraft.world.phys.AABB getBoundingBoxForCulling(RajangEntity r) {
+        return r.getBoundingBox().inflate(13.0, 4.0, 13.0);
     }
 
     @Override

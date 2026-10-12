@@ -2150,5 +2150,415 @@
     "sounds": [
       "atalaya:aeralis/mini_fallo"
     ]
+  },
+  "yiatzo.ambiente": {
+    "subtitle": "subtitles.atalaya.yiatzo.ambiente",
+    "sounds": [
+      "atalaya:yiatzo/ambiente1",
+      "atalaya:yiatzo/ambiente2"
+    ]
+  },
+  "yiatzo.herido": {
+    "subtitle": "subtitles.atalaya.yiatzo.herido",
+    "sounds": [
+      "atalaya:yiatzo/herido1",
+      "atalaya:yiatzo/herido2",
+      "atalaya:yiatzo/herido3"
+    ]
+  },
+  "yiatzo.muerte": {
+    "subtitle": "subtitles.atalaya.yiatzo.muerte",
+    "sounds": [
+      "atalaya:yiatzo/muerte"
+    ]
+  },
+  "yiatzo.inmune": {
+    "subtitle": "subtitles.atalaya.yiatzo.inmune",
+    "sounds": [
+      "atalaya:yiatzo/inmune"
+    ]
+  },
+  "yiatzo.despertar": {
+    "subtitle": "subtitles.atalaya.yiatzo.despertar",
+    "sounds": [
+      "atalaya:yiatzo/despertar"
+    ]
+  },
+  "yiatzo.losas": {
+    "subtitle": "subtitles.atalaya.yiatzo.losas",
+    "sounds": [
+      "atalaya:yiatzo/losas"
+    ]
+  },
+  "yiatzo.grito": {
+    "subtitle": "subtitles.atalaya.yiatzo.grito",
+    "sounds": [
+      "atalaya:yiatzo/grito"
+    ]
+  },
+  "yiatzo.golpe": {
+    "subtitle": "subtitles.atalaya.yiatzo.golpe",
+    "sounds": [
+      "atalaya:yiatzo/golpe"
+    ]
+  },
+  "yiatzo.cartel": {
+    "subtitle": "subtitles.atalaya.yiatzo.cartel",
+    "sounds": [
+      "atalaya:yiatzo/cartel"
+    ]
+  },
+  "yiatzo.rafaga": {
+    "subtitle": "subtitles.atalaya.yiatzo.rafaga",
+    "sounds": [
+      "atalaya:yiatzo/rafaga1",
+      "atalaya:yiatzo/rafaga2"
+    ]
+  },
+  "yiatzo.cuchilla": {
+    "subtitle": "subtitles.atalaya.yiatzo.cuchilla",
+    "sounds": [
+      "atalaya:yiatzo/cuchilla"
+    ]
+  },
+  "yiatzo.tormenta": {
+    "subtitle": "subtitles.atalaya.yiatzo.tormenta",
+    "sounds": [
+      "atalaya:yiatzo/tormenta"
+    ]
+  },
+  "yiatzo.estallido": {
+    "subtitle": "subtitles.atalaya.yiatzo.estallido",
+    "sounds": [
+      "atalaya:yiatzo/estallido"
+    ]
+  },
+  "yiatzo.ciclon": {
+    "subtitle": "subtitles.atalaya.yiatzo.ciclon",
+    "sounds": [
+      "atalaya:yiatzo/ciclon"
+    ]
+  },
+  "yiatzo.ciclon_estalla": {
+    "subtitle": "subtitles.atalaya.yiatzo.ciclon_estalla",
+    "sounds": [
+      "atalaya:yiatzo/ciclon_estalla"
+    ]
+  },
+  "xiuhquetzal.ambiente": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.ambiente",
+    "sounds": [
+      "atalaya:xiuhquetzal/ambiente1",
+      "atalaya:xiuhquetzal/ambiente2"
+    ]
+  },
+  "xiuhquetzal.aleteo": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.aleteo",
+    "sounds": [
+      "atalaya:xiuhquetzal/aleteo1",
+      "atalaya:xiuhquetzal/aleteo2",
+      "atalaya:xiuhquetzal/aleteo3"
+    ]
+  },
+  "xiuhquetzal.herido": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.herido",
+    "sounds": [
+      "atalaya:xiuhquetzal/herido1",
+      "atalaya:xiuhquetzal/herido2",
+      "atalaya:xiuhquetzal/herido3"
+    ]
+  },
+  "xiuhquetzal.muerte": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.muerte",
+    "sounds": [
+      "atalaya:xiuhquetzal/muerte"
+    ]
+  },
+  "xiuhquetzal.inmune": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.inmune",
+    "sounds": [
+      "atalaya:xiuhquetzal/inmune"
+    ]
+  },
+  "xiuhquetzal.despertar": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.despertar",
+    "sounds": [
+      "atalaya:xiuhquetzal/despertar"
+    ]
+  },
+  "xiuhquetzal.chillido": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.chillido",
+    "sounds": [
+      "atalaya:xiuhquetzal/chillido"
+    ]
+  },
+  "xiuhquetzal.cartel": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.cartel",
+    "sounds": [
+      "atalaya:xiuhquetzal/cartel"
+    ]
+  },
+  "xiuhquetzal.picado": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.picado",
+    "sounds": [
+      "atalaya:xiuhquetzal/picado"
+    ]
+  },
+  "xiuhquetzal.picotazo": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.picotazo",
+    "sounds": [
+      "atalaya:xiuhquetzal/picotazo"
+    ]
+  },
+  "xiuhquetzal.pluma": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.pluma",
+    "sounds": [
+      "atalaya:xiuhquetzal/pluma1",
+      "atalaya:xiuhquetzal/pluma2"
+    ]
+  },
+  "xiuhquetzal.pluma_golpe": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.pluma_golpe",
+    "sounds": [
+      "atalaya:xiuhquetzal/pluma_golpe1",
+      "atalaya:xiuhquetzal/pluma_golpe2"
+    ]
+  },
+  "xiuhquetzal.carga": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.carga",
+    "sounds": [
+      "atalaya:xiuhquetzal/carga"
+    ]
+  },
+  "xiuhquetzal.nova": {
+    "subtitle": "subtitles.atalaya.xiuhquetzal.nova",
+    "sounds": [
+      "atalaya:xiuhquetzal/nova"
+    ]
+  },
+  "atlahua.ambiente": {
+    "subtitle": "subtitles.atalaya.atlahua.ambiente",
+    "sounds": [
+      "atalaya:atlahua/ambiente1",
+      "atalaya:atlahua/ambiente2"
+    ]
+  },
+  "atlahua.paso": {
+    "subtitle": "subtitles.atalaya.atlahua.paso",
+    "sounds": [
+      "atalaya:atlahua/paso1",
+      "atalaya:atlahua/paso2",
+      "atalaya:atlahua/paso3"
+    ]
+  },
+  "atlahua.herido": {
+    "subtitle": "subtitles.atalaya.atlahua.herido",
+    "sounds": [
+      "atalaya:atlahua/herido1",
+      "atalaya:atlahua/herido2",
+      "atalaya:atlahua/herido3"
+    ]
+  },
+  "atlahua.muerte": {
+    "subtitle": "subtitles.atalaya.atlahua.muerte",
+    "sounds": [
+      "atalaya:atlahua/muerte"
+    ]
+  },
+  "atlahua.inmune": {
+    "subtitle": "subtitles.atalaya.atlahua.inmune",
+    "sounds": [
+      "atalaya:atlahua/inmune"
+    ]
+  },
+  "atlahua.despertar": {
+    "subtitle": "subtitles.atalaya.atlahua.despertar",
+    "sounds": [
+      "atalaya:atlahua/despertar"
+    ]
+  },
+  "atlahua.rugido": {
+    "subtitle": "subtitles.atalaya.atlahua.rugido",
+    "sounds": [
+      "atalaya:atlahua/rugido"
+    ]
+  },
+  "atlahua.clava": {
+    "subtitle": "subtitles.atalaya.atlahua.clava",
+    "sounds": [
+      "atalaya:atlahua/clava"
+    ]
+  },
+  "atlahua.cartel": {
+    "subtitle": "subtitles.atalaya.atlahua.cartel",
+    "sounds": [
+      "atalaya:atlahua/cartel"
+    ]
+  },
+  "atlahua.estocada": {
+    "subtitle": "subtitles.atalaya.atlahua.estocada",
+    "sounds": [
+      "atalaya:atlahua/estocada1",
+      "atalaya:atlahua/estocada2"
+    ]
+  },
+  "atlahua.golpe": {
+    "subtitle": "subtitles.atalaya.atlahua.golpe",
+    "sounds": [
+      "atalaya:atlahua/golpe"
+    ]
+  },
+  "atlahua.ola": {
+    "subtitle": "subtitles.atalaya.atlahua.ola",
+    "sounds": [
+      "atalaya:atlahua/ola1",
+      "atalaya:atlahua/ola2"
+    ]
+  },
+  "atlahua.tsunami": {
+    "subtitle": "subtitles.atalaya.atlahua.tsunami",
+    "sounds": [
+      "atalaya:atlahua/tsunami"
+    ]
+  },
+  "atlahua.tsunami_rompe": {
+    "subtitle": "subtitles.atalaya.atlahua.tsunami_rompe",
+    "sounds": [
+      "atalaya:atlahua/tsunami_rompe"
+    ]
+  },
+  "moctezuma.ambiente": {
+    "subtitle": "subtitles.atalaya.moctezuma.ambiente",
+    "sounds": [
+      "atalaya:moctezuma/ambiente1",
+      "atalaya:moctezuma/ambiente2"
+    ]
+  },
+  "moctezuma.paso": {
+    "subtitle": "subtitles.atalaya.moctezuma.paso",
+    "sounds": [
+      "atalaya:moctezuma/paso1",
+      "atalaya:moctezuma/paso2",
+      "atalaya:moctezuma/paso3"
+    ]
+  },
+  "moctezuma.herido": {
+    "subtitle": "subtitles.atalaya.moctezuma.herido",
+    "sounds": [
+      "atalaya:moctezuma/herido1",
+      "atalaya:moctezuma/herido2",
+      "atalaya:moctezuma/herido3"
+    ]
+  },
+  "moctezuma.muerte": {
+    "subtitle": "subtitles.atalaya.moctezuma.muerte",
+    "sounds": [
+      "atalaya:moctezuma/muerte"
+    ]
+  },
+  "moctezuma.inmune": {
+    "subtitle": "subtitles.atalaya.moctezuma.inmune",
+    "sounds": [
+      "atalaya:moctezuma/inmune"
+    ]
+  },
+  "moctezuma.despertar": {
+    "subtitle": "subtitles.atalaya.moctezuma.despertar",
+    "sounds": [
+      "atalaya:moctezuma/despertar"
+    ]
+  },
+  "moctezuma.arranca": {
+    "subtitle": "subtitles.atalaya.moctezuma.arranca",
+    "sounds": [
+      "atalaya:moctezuma/arranca"
+    ]
+  },
+  "moctezuma.choque": {
+    "subtitle": "subtitles.atalaya.moctezuma.choque",
+    "sounds": [
+      "atalaya:moctezuma/choque"
+    ]
+  },
+  "moctezuma.grito": {
+    "subtitle": "subtitles.atalaya.moctezuma.grito",
+    "sounds": [
+      "atalaya:moctezuma/grito"
+    ]
+  },
+  "moctezuma.cartel": {
+    "subtitle": "subtitles.atalaya.moctezuma.cartel",
+    "sounds": [
+      "atalaya:moctezuma/cartel"
+    ]
+  },
+  "moctezuma.corte": {
+    "subtitle": "subtitles.atalaya.moctezuma.corte",
+    "sounds": [
+      "atalaya:moctezuma/corte1",
+      "atalaya:moctezuma/corte2"
+    ]
+  },
+  "moctezuma.corte_golpe": {
+    "subtitle": "subtitles.atalaya.moctezuma.corte_golpe",
+    "sounds": [
+      "atalaya:moctezuma/corte_golpe"
+    ]
+  },
+  "moctezuma.salto": {
+    "subtitle": "subtitles.atalaya.moctezuma.salto",
+    "sounds": [
+      "atalaya:moctezuma/salto"
+    ]
+  },
+  "moctezuma.terremoto": {
+    "subtitle": "subtitles.atalaya.moctezuma.terremoto",
+    "sounds": [
+      "atalaya:moctezuma/terremoto"
+    ]
+  },
+  "moctezuma.pinchos": {
+    "subtitle": "subtitles.atalaya.moctezuma.pinchos",
+    "sounds": [
+      "atalaya:moctezuma/pinchos1",
+      "atalaya:moctezuma/pinchos2"
+    ]
+  },
+  "moctezuma.tormenta": {
+    "subtitle": "subtitles.atalaya.moctezuma.tormenta",
+    "sounds": [
+      "atalaya:moctezuma/tormenta"
+    ]
+  },
+  "moctezuma.fragmento": {
+    "subtitle": "subtitles.atalaya.moctezuma.fragmento",
+    "sounds": [
+      "atalaya:moctezuma/fragmento"
+    ]
+  },
+  "moctezuma.fragmento_golpe": {
+    "subtitle": "subtitles.atalaya.moctezuma.fragmento_golpe",
+    "sounds": [
+      "atalaya:moctezuma/fragmento_golpe1",
+      "atalaya:moctezuma/fragmento_golpe2"
+    ]
+  },
+  "moctezuma.erupcion": {
+    "subtitle": "subtitles.atalaya.moctezuma.erupcion",
+    "sounds": [
+      "atalaya:moctezuma/erupcion"
+    ]
+  },
+  "objeto.reparar": {
+    "subtitle": "subtitles.atalaya.objeto.reparar",
+    "sounds": [
+      "atalaya:objeto/reparar"
+    ]
+  },
+  "objeto.elixir": {
+    "subtitle": "subtitles.atalaya.objeto.elixir",
+    "sounds": [
+      "atalaya:objeto/elixir"
+    ]
   }
 }

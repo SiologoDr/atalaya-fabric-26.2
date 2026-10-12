@@ -42,8 +42,12 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
         return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/entity/rajang/" + nombre + ".png");
     }
 
-    public RajangBrilloLayer(RenderLayerParent<RajangRenderState, RajangModel> padre) {
+    /** Una copia del modelo solo con los cubos que brillan (SoloLoQueBrilla): no pinta otra vez lo que no brilla. */
+    private final RajangModel modelo;
+
+    public RajangBrilloLayer(RenderLayerParent<RajangRenderState, RajangModel> padre, RajangModel modelo) {
         super(padre);
+        this.modelo = modelo;
     }
 
     @Override
@@ -75,7 +79,7 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
             return;
         }
         RenderType tipo = s.libre ? LIBRE : FASES[Math.clamp(s.fase, 1, 4) - 1];
-        colector.order(1).submitModel(getParentModel(), s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,
+        colector.order(1).submitModel(modelo, s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,
                 ARGB.colorFromFloat(k, k, k, k), null, s.outlineColor, null);
         // En la III y la IV la maldicion lo enciende del todo: una segunda pasada encima
         // (y con la Furia, aun mas).
@@ -88,7 +92,7 @@ public class RajangBrilloLayer extends RenderLayer<RajangRenderState, RajangMode
         }
         if (extra > 0.0F) {
             float e = k * extra;
-            colector.order(2).submitModel(getParentModel(), s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,
+            colector.order(2).submitModel(modelo, s, pose, tipo, luz, OverlayTexture.NO_OVERLAY,
                     ARGB.colorFromFloat(e, e, e, e), null, s.outlineColor, null);
         }
     }

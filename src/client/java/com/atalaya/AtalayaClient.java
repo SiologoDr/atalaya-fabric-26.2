@@ -187,6 +187,22 @@ public class AtalayaClient implements ClientModInitializer {
         // llamas y las grietas).
         ModelLayerRegistry.registerModelLayer(NovilisModel.CAPA, NovilisMalla::crear);
         EntityRendererRegistry.register(AtalayaEntities.NOVILIS, NovilisRenderer::new);
+
+        // Los cuatro mini jefes: su malla (minijefes_juego.py), sus animaciones (minijefes_anim.py) y
+        // lo grande de sus ataques. Escala: lo que mide su boceto en el mundo (en su Geometria, que
+        // genera minijefes_anim.py); la sombra crece con lo que han crecido (K).
+        EntityRendererRegistry.register(AtalayaEntities.MOCTEZUMA, ctx -> new com.atalaya.client.MiniJefeRenderer<>(ctx, "moctezuma",
+                com.atalaya.client.MoctezumaAnimaciones.JUEGO, new com.atalaya.client.MoctezumaEfectos(),
+                com.atalaya.entity.MoctezumaGeometria.ESCALA, 0.07F, 1.4F * com.atalaya.entity.MoctezumaEntity.K));
+        EntityRendererRegistry.register(AtalayaEntities.YIATZO, ctx -> new com.atalaya.client.MiniJefeRenderer<>(ctx, "yiatzo",
+                com.atalaya.client.YiatzoAnimaciones.JUEGO, new com.atalaya.client.YiatzoEfectos(),
+                com.atalaya.entity.YiatzoGeometria.ESCALA, 0.08F, 1.2F * com.atalaya.entity.YiatzoEntity.K));
+        EntityRendererRegistry.register(AtalayaEntities.ATLAHUA, ctx -> new com.atalaya.client.MiniJefeRenderer<>(ctx, "atlahua",
+                com.atalaya.client.AtlahuaAnimaciones.JUEGO, new com.atalaya.client.AtlahuaEfectos(),
+                com.atalaya.entity.AtlahuaGeometria.ESCALA, 0.05F, 1.5F * com.atalaya.entity.AtlahuaEntity.K));
+        EntityRendererRegistry.register(AtalayaEntities.XIUHQUETZAL, ctx -> new com.atalaya.client.MiniJefeRenderer<>(ctx,
+                "xiuhquetzal", com.atalaya.client.XiuhquetzalAnimaciones.JUEGO, new com.atalaya.client.XiuhquetzalEfectos(),
+                com.atalaya.entity.XiuhquetzalGeometria.ESCALA, 0.12F, 1.8F * com.atalaya.entity.XiuhquetzalEntity.K));
         EntityRendererRegistry.register(AtalayaEntities.TAJO_NOVILIS, com.atalaya.client.TajoNovilisRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.SELLO_SOL, com.atalaya.client.SelloSolRenderer::new);
         EntityRendererRegistry.register(AtalayaEntities.ONDA_FUEGO, com.atalaya.client.OndaFuegoRenderer::new);
@@ -303,6 +319,26 @@ public class AtalayaClient implements ClientModInitializer {
         novilis(AtalayaParticulas.NOVILIS_PAPEL, NovilisParticula.Tipo.ICONO);
         novilis(AtalayaParticulas.NOVILIS_TIJERA, NovilisParticula.Tipo.ICONO);
 
+        // Las de los mini jefes.
+        miniJefe(AtalayaParticulas.MJ_JADE, com.atalaya.client.MiniJefeParticula.Tipo.JADE);
+        miniJefe(AtalayaParticulas.MJ_OBSIDIANA, com.atalaya.client.MiniJefeParticula.Tipo.OBSIDIANA);
+        miniJefe(AtalayaParticulas.MJ_POLVO, com.atalaya.client.MiniJefeParticula.Tipo.POLVO);
+        miniJefe(AtalayaParticulas.MJ_PLUMA, com.atalaya.client.MiniJefeParticula.Tipo.PLUMA);
+        miniJefe(AtalayaParticulas.MJ_FRAGMENTO, com.atalaya.client.MiniJefeParticula.Tipo.FRAGMENTO);
+        miniJefe(AtalayaParticulas.MJ_MARCA, com.atalaya.client.MiniJefeParticula.Tipo.MARCA);
+        miniJefe(AtalayaParticulas.MJ_ONDA, com.atalaya.client.MiniJefeParticula.Tipo.ONDA);
+        miniJefe(AtalayaParticulas.MJ_VIENTO, com.atalaya.client.MiniJefeParticula.Tipo.VIENTO);
+        miniJefe(AtalayaParticulas.MJ_RUNA, com.atalaya.client.MiniJefeParticula.Tipo.RUNA);
+        miniJefe(AtalayaParticulas.MJ_GOTA, com.atalaya.client.MiniJefeParticula.Tipo.GOTA);
+        miniJefe(AtalayaParticulas.MJ_ESPUMA, com.atalaya.client.MiniJefeParticula.Tipo.ESPUMA);
+        miniJefe(AtalayaParticulas.MJ_BURBUJA, com.atalaya.client.MiniJefeParticula.Tipo.BURBUJA);
+        miniJefe(AtalayaParticulas.MJ_BRASA, com.atalaya.client.MiniJefeParticula.Tipo.BRASA);
+        miniJefe(AtalayaParticulas.MJ_LLAMA, com.atalaya.client.MiniJefeParticula.Tipo.LLAMA);
+        miniJefe(AtalayaParticulas.MJ_PLUMA_FUEGO, com.atalaya.client.MiniJefeParticula.Tipo.PLUMA_FUEGO);
+        miniJefe(AtalayaParticulas.MJ_CENIZA, com.atalaya.client.MiniJefeParticula.Tipo.CENIZA);
+        miniJefe(AtalayaParticulas.MJ_DESTELLO, com.atalaya.client.MiniJefeParticula.Tipo.DESTELLO);
+        miniJefe(AtalayaParticulas.MJ_GRIETA, com.atalaya.client.MiniJefeParticula.Tipo.GRIETA);
+
         // La presencia de Nerea: temblor, retumbo y miedo. El miedo va con los
         // velos de camara (calabaza, nieve polvo...): un velo bajo el resto del
         // HUD. NO cuelga de la hotbar como la vineta del calor: en espectador
@@ -351,6 +387,11 @@ public class AtalayaClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_rajang"),
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_novilis"),
                 oculto(new com.atalaya.client.NovilisBarraHud()));
+        // Y las de los mini jefes, mas bajas, debajo de las de los jefes.
+        HudElementRegistry.attachElementAfter(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_novilis"),
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "barra_minijefes"),
+                oculto(new com.atalaya.client.MiniJefeBarraHud()));
         // Los minijuegos de Aeralis: el ojo de los Ocelos y la cuenta de la Chispa.
         HudElementRegistry.attachElementAfter(
                 VanillaHudElements.HOTBAR,
@@ -457,6 +498,11 @@ public class AtalayaClient implements ClientModInitializer {
     private static void nerea(SimpleParticleType tipo, NereaParticula.Tipo comportamiento) {
         ParticleProviderRegistry.getInstance().register(tipo,
                 sprites -> new NereaParticula.Fabrica(sprites, comportamiento));
+    }
+
+    private static void miniJefe(SimpleParticleType tipo, com.atalaya.client.MiniJefeParticula.Tipo comportamiento) {
+        ParticleProviderRegistry.getInstance().register(tipo,
+                sprites -> new com.atalaya.client.MiniJefeParticula.Fabrica(sprites, comportamiento));
     }
 
     private static void rajang(SimpleParticleType tipo, RajangParticula.Tipo comportamiento) {

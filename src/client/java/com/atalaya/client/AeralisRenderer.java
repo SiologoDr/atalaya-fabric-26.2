@@ -55,7 +55,9 @@ public class AeralisRenderer extends MobRenderer<AeralisEntity, AeralisRenderSta
 
     public AeralisRenderer(EntityRendererProvider.Context contexto) {
         super(contexto, new AeralisModel(contexto.bakeLayer(AeralisModel.CAPA)), 3.2F);
-        addLayer(new AeralisBrilloLayer(this));
+        // La pasada de lo que brilla, con una copia del modelo que solo tiene los cubos que brillan.
+        addLayer(new AeralisBrilloLayer(this, new AeralisModel(SoloLoQueBrilla.filtrar(contexto.bakeLayer(AeralisModel.CAPA), "aeralis",
+                "aeralis_brillo_f1", "aeralis_brillo_f2", "aeralis_brillo_f3", "aeralis_brillo_f4", "aeralis_brillo_libre"))));
         addLayer(new AeralisFuriaLayer(this, new AeralisModel(contexto.bakeLayer(AeralisModel.CAPA_AURA))));
         addLayer(new AeralisOcelosLayer(this));
     }
@@ -214,10 +216,20 @@ public class AeralisRenderer extends MobRenderer<AeralisEntity, AeralisRenderSta
         return s.disolver > 0.0F ? ARGB.white(1.0F - s.disolver) : -1;
     }
 
-    /** Treinta y ocho bloques de alas: que no desaparezca al girar la camara. */
+    /**
+     * Treinta y ocho bloques de alas: se recorta con una caja que se las cubre,
+     * y solo cuando no pinta nada lejos de ella (la linea del Picado y el rayo de
+     * la tormenta se pintan siempre).
+     */
     @Override
     protected boolean affectedByCulling(AeralisEntity a) {
-        return false;
+        int e = a.getEstado();
+        return e != AeralisEntity.PICADO_AVISO && e != AeralisEntity.PICADO && CieloJefes.rayoArriba() == null;
+    }
+
+    @Override
+    protected net.minecraft.world.phys.AABB getBoundingBoxForCulling(AeralisEntity a) {
+        return a.getBoundingBox().inflate(20.0, 6.0, 20.0);
     }
 
     @Override

@@ -372,6 +372,74 @@ public final class AtalayaSonidos {
     private AtalayaSonidos() {
     }
 
+    // Los mini jefes (minijefes_sonidos.py)
+    public static SoundEvent MOCTEZUMA_AMBIENTE;
+    public static SoundEvent MOCTEZUMA_CARTEL;
+    public static SoundEvent MOCTEZUMA_PASO;
+    public static SoundEvent MOCTEZUMA_HERIDO;
+    public static SoundEvent MOCTEZUMA_MUERTE;
+    public static SoundEvent MOCTEZUMA_INMUNE;
+    public static SoundEvent MOCTEZUMA_DESPERTAR;
+    public static SoundEvent MOCTEZUMA_ARRANCA;
+    public static SoundEvent MOCTEZUMA_CHOQUE;
+    public static SoundEvent MOCTEZUMA_GRITO;
+    public static SoundEvent MOCTEZUMA_CORTE;
+    public static SoundEvent MOCTEZUMA_CORTE_GOLPE;
+    public static SoundEvent MOCTEZUMA_SALTO;
+    public static SoundEvent MOCTEZUMA_TERREMOTO;
+    public static SoundEvent MOCTEZUMA_PINCHOS;
+    public static SoundEvent MOCTEZUMA_TORMENTA;
+    public static SoundEvent MOCTEZUMA_FRAGMENTO;
+    public static SoundEvent MOCTEZUMA_FRAGMENTO_GOLPE;
+    public static SoundEvent MOCTEZUMA_ERUPCION;
+    public static SoundEvent YIATZO_AMBIENTE;
+    public static SoundEvent YIATZO_CARTEL;
+    public static SoundEvent YIATZO_HERIDO;
+    public static SoundEvent YIATZO_MUERTE;
+    public static SoundEvent YIATZO_INMUNE;
+    public static SoundEvent YIATZO_DESPERTAR;
+    public static SoundEvent YIATZO_LOSAS;
+    public static SoundEvent YIATZO_GRITO;
+    public static SoundEvent YIATZO_GOLPE;
+    public static SoundEvent YIATZO_RAFAGA;
+    public static SoundEvent YIATZO_CUCHILLA;
+    public static SoundEvent YIATZO_TORMENTA;
+    public static SoundEvent YIATZO_ESTALLIDO;
+    public static SoundEvent YIATZO_CICLON;
+    public static SoundEvent YIATZO_CICLON_ESTALLA;
+    public static SoundEvent ATLAHUA_AMBIENTE;
+    public static SoundEvent ATLAHUA_CARTEL;
+    public static SoundEvent ATLAHUA_PASO;
+    public static SoundEvent ATLAHUA_HERIDO;
+    public static SoundEvent ATLAHUA_MUERTE;
+    public static SoundEvent ATLAHUA_INMUNE;
+    public static SoundEvent ATLAHUA_DESPERTAR;
+    public static SoundEvent ATLAHUA_RUGIDO;
+    public static SoundEvent ATLAHUA_CLAVA;
+    public static SoundEvent ATLAHUA_ESTOCADA;
+    public static SoundEvent ATLAHUA_GOLPE;
+    public static SoundEvent ATLAHUA_OLA;
+    public static SoundEvent ATLAHUA_TSUNAMI;
+    public static SoundEvent ATLAHUA_TSUNAMI_ROMPE;
+    public static SoundEvent XIUHQUETZAL_AMBIENTE;
+    public static SoundEvent XIUHQUETZAL_CARTEL;
+    public static SoundEvent XIUHQUETZAL_ALETEO;
+    public static SoundEvent XIUHQUETZAL_HERIDO;
+    public static SoundEvent XIUHQUETZAL_MUERTE;
+    public static SoundEvent XIUHQUETZAL_INMUNE;
+    public static SoundEvent XIUHQUETZAL_DESPERTAR;
+    public static SoundEvent XIUHQUETZAL_CHILLIDO;
+    public static SoundEvent XIUHQUETZAL_PICADO;
+    public static SoundEvent XIUHQUETZAL_PICOTAZO;
+    public static SoundEvent XIUHQUETZAL_PLUMA;
+    public static SoundEvent XIUHQUETZAL_PLUMA_GOLPE;
+    public static SoundEvent XIUHQUETZAL_CARGA;
+    public static SoundEvent XIUHQUETZAL_NOVA;
+
+    // Los objetos de apoyo (objetos_sonidos.py): el kit de reparación y el corazón de vida (el latido).
+    public static SoundEvent OBJETO_REPARAR;
+    public static SoundEvent OBJETO_ELIXIR;
+
     public static void registrar() {
         VIGIA_AMBIENTE = registrar("vigia.ambiente");
         VIGIA_ACECHO = registrar("vigia.acecho");
@@ -701,6 +769,71 @@ public final class AtalayaSonidos {
         NOVILIS_CALIENTE_REVIENTA = registrar("novilis.caliente_revienta");
         NOVILIS_MINI_EXITO = registrar("novilis.mini_exito");
         NOVILIS_MINI_FALLO = registrar("novilis.mini_fallo");
+        // Los mini jefes (minijefes_sonidos.py)
+        MOCTEZUMA_AMBIENTE = registrar("moctezuma.ambiente");
+        MOCTEZUMA_CARTEL = registrar("moctezuma.cartel");
+        MOCTEZUMA_PASO = registrar("moctezuma.paso");
+        MOCTEZUMA_HERIDO = registrar("moctezuma.herido");
+        MOCTEZUMA_MUERTE = registrar("moctezuma.muerte");
+        MOCTEZUMA_INMUNE = registrar("moctezuma.inmune");
+        MOCTEZUMA_DESPERTAR = registrar("moctezuma.despertar");
+        MOCTEZUMA_ARRANCA = registrar("moctezuma.arranca");
+        MOCTEZUMA_CHOQUE = registrar("moctezuma.choque");
+        MOCTEZUMA_GRITO = registrar("moctezuma.grito");
+        MOCTEZUMA_CORTE = registrar("moctezuma.corte");
+        MOCTEZUMA_CORTE_GOLPE = registrar("moctezuma.corte_golpe");
+        MOCTEZUMA_SALTO = registrar("moctezuma.salto");
+        MOCTEZUMA_TERREMOTO = registrar("moctezuma.terremoto");
+        MOCTEZUMA_PINCHOS = registrar("moctezuma.pinchos");
+        MOCTEZUMA_TORMENTA = registrar("moctezuma.tormenta");
+        MOCTEZUMA_FRAGMENTO = registrar("moctezuma.fragmento");
+        MOCTEZUMA_FRAGMENTO_GOLPE = registrar("moctezuma.fragmento_golpe");
+        MOCTEZUMA_ERUPCION = registrar("moctezuma.erupcion");
+        YIATZO_AMBIENTE = registrar("yiatzo.ambiente");
+        YIATZO_CARTEL = registrar("yiatzo.cartel");
+        YIATZO_HERIDO = registrar("yiatzo.herido");
+        YIATZO_MUERTE = registrar("yiatzo.muerte");
+        YIATZO_INMUNE = registrar("yiatzo.inmune");
+        YIATZO_DESPERTAR = registrar("yiatzo.despertar");
+        YIATZO_LOSAS = registrar("yiatzo.losas");
+        YIATZO_GRITO = registrar("yiatzo.grito");
+        YIATZO_GOLPE = registrar("yiatzo.golpe");
+        YIATZO_RAFAGA = registrar("yiatzo.rafaga");
+        YIATZO_CUCHILLA = registrar("yiatzo.cuchilla");
+        YIATZO_TORMENTA = registrar("yiatzo.tormenta");
+        YIATZO_ESTALLIDO = registrar("yiatzo.estallido");
+        YIATZO_CICLON = registrar("yiatzo.ciclon");
+        YIATZO_CICLON_ESTALLA = registrar("yiatzo.ciclon_estalla");
+        ATLAHUA_AMBIENTE = registrar("atlahua.ambiente");
+        ATLAHUA_CARTEL = registrar("atlahua.cartel");
+        ATLAHUA_PASO = registrar("atlahua.paso");
+        ATLAHUA_HERIDO = registrar("atlahua.herido");
+        ATLAHUA_MUERTE = registrar("atlahua.muerte");
+        ATLAHUA_INMUNE = registrar("atlahua.inmune");
+        ATLAHUA_DESPERTAR = registrar("atlahua.despertar");
+        ATLAHUA_RUGIDO = registrar("atlahua.rugido");
+        ATLAHUA_CLAVA = registrar("atlahua.clava");
+        ATLAHUA_ESTOCADA = registrar("atlahua.estocada");
+        ATLAHUA_GOLPE = registrar("atlahua.golpe");
+        ATLAHUA_OLA = registrar("atlahua.ola");
+        ATLAHUA_TSUNAMI = registrar("atlahua.tsunami");
+        ATLAHUA_TSUNAMI_ROMPE = registrar("atlahua.tsunami_rompe");
+        XIUHQUETZAL_AMBIENTE = registrar("xiuhquetzal.ambiente");
+        XIUHQUETZAL_CARTEL = registrar("xiuhquetzal.cartel");
+        XIUHQUETZAL_ALETEO = registrar("xiuhquetzal.aleteo");
+        XIUHQUETZAL_HERIDO = registrar("xiuhquetzal.herido");
+        XIUHQUETZAL_MUERTE = registrar("xiuhquetzal.muerte");
+        XIUHQUETZAL_INMUNE = registrar("xiuhquetzal.inmune");
+        XIUHQUETZAL_DESPERTAR = registrar("xiuhquetzal.despertar");
+        XIUHQUETZAL_CHILLIDO = registrar("xiuhquetzal.chillido");
+        XIUHQUETZAL_PICADO = registrar("xiuhquetzal.picado");
+        XIUHQUETZAL_PICOTAZO = registrar("xiuhquetzal.picotazo");
+        XIUHQUETZAL_PLUMA = registrar("xiuhquetzal.pluma");
+        XIUHQUETZAL_PLUMA_GOLPE = registrar("xiuhquetzal.pluma_golpe");
+        XIUHQUETZAL_CARGA = registrar("xiuhquetzal.carga");
+        XIUHQUETZAL_NOVA = registrar("xiuhquetzal.nova");
+        OBJETO_REPARAR = registrar("objeto.reparar");
+        OBJETO_ELIXIR = registrar("objeto.elixir");
     }
 
     private static SoundEvent registrar(String nombre) {

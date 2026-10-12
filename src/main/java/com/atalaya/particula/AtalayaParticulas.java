@@ -194,6 +194,48 @@ public final class AtalayaParticulas {
     public static SimpleParticleType NOVILIS_PAPEL;
     public static SimpleParticleType NOVILIS_TIJERA;
 
+    // --- Las de los mini jefes (minijefes_extras.py). Ninguna es de vanilla. ---
+    /** Astilla de jade que brilla: cae con su peso y rebota (Moctezuma). */
+    public static SimpleParticleType MJ_JADE;
+    /** Esquirla de obsidiana: cae con su peso y rebota (Moctezuma). */
+    public static SimpleParticleType MJ_OBSIDIANA;
+    /** Bocanada de polvo y tierra que se abre. */
+    public static SimpleParticleType MJ_POLVO;
+    /** Pluma de quetzal que cae meciendose (Moctezuma). */
+    public static SimpleParticleType MJ_PLUMA;
+    /** Fragmento grande de obsidiana y jade que cae a plomo (la Tormenta de Obsidiana): su velocidad Y es la de caida. */
+    public static SimpleParticleType MJ_FRAGMENTO;
+    /** El glifo de jade donde va a caer algo, tumbado. Tamano en la X, ticks en la Y. */
+    public static SimpleParticleType MJ_MARCA;
+    /**
+     * La onda de un golpe, tumbada: fuerza del temblor en la X, radio en la Y y el
+     * elemento en la Z (0 tierra, 1 viento, 2 agua, 3 fuego), que le da el color.
+     * Al nacer sacude la camara de quien este cerca.
+     */
+    public static SimpleParticleType MJ_ONDA;
+    /** Jiron de viento que se riza y se deshace (Yiatzo). */
+    public static SimpleParticleType MJ_VIENTO;
+    /** Runa de viento celeste que sube (Yiatzo). */
+    public static SimpleParticleType MJ_RUNA;
+    /** Gota de agua con peso (Atlahua). */
+    public static SimpleParticleType MJ_GOTA;
+    /** Bocanada de espuma (Atlahua). */
+    public static SimpleParticleType MJ_ESPUMA;
+    /** Burbuja que sube y revienta (Atlahua). */
+    public static SimpleParticleType MJ_BURBUJA;
+    /** Brasa que sube parpadeando (Xiuhquetzal). */
+    public static SimpleParticleType MJ_BRASA;
+    /** Bocanada de fuego rojo y violeta que sube y se encoge (Xiuhquetzal). */
+    public static SimpleParticleType MJ_LLAMA;
+    /** Pluma de fuego que cae ardiendo (Xiuhquetzal). */
+    public static SimpleParticleType MJ_PLUMA_FUEGO;
+    /** Copo de ceniza que cae despacio (Xiuhquetzal). */
+    public static SimpleParticleType MJ_CENIZA;
+    /** Fogonazo de luz: tamano en la X y el elemento en la Z (su color). */
+    public static SimpleParticleType MJ_DESTELLO;
+    /** Grieta de jade que brilla en el suelo, tumbada: tamano en la X, ticks en la Y, giro en la Z. */
+    public static SimpleParticleType MJ_GRIETA;
+
     private AtalayaParticulas() {
     }
 
@@ -284,6 +326,26 @@ public final class AtalayaParticulas {
         NOVILIS_PIEDRA = registrar("novilis_piedra", true);
         NOVILIS_PAPEL = registrar("novilis_papel", true);
         NOVILIS_TIJERA = registrar("novilis_tijera", true);
+
+        // Las de los mini jefes: siempre visibles las que avisan (la marca, la onda, la grieta y el fragmento).
+        MJ_JADE = registrar("mj_jade", false);
+        MJ_OBSIDIANA = registrar("mj_obsidiana", false);
+        MJ_POLVO = registrar("mj_polvo", false);
+        MJ_PLUMA = registrar("mj_pluma", false);
+        MJ_FRAGMENTO = registrar("mj_fragmento", true);
+        MJ_MARCA = registrar("mj_marca", true);
+        MJ_ONDA = registrar("mj_onda", true);
+        MJ_VIENTO = registrar("mj_viento", false);
+        MJ_RUNA = registrar("mj_runa", false);
+        MJ_GOTA = registrar("mj_gota", false);
+        MJ_ESPUMA = registrar("mj_espuma", false);
+        MJ_BURBUJA = registrar("mj_burbuja", false);
+        MJ_BRASA = registrar("mj_brasa", false);
+        MJ_LLAMA = registrar("mj_llama", true);
+        MJ_PLUMA_FUEGO = registrar("mj_pluma_fuego", false);
+        MJ_CENIZA = registrar("mj_ceniza", false);
+        MJ_DESTELLO = registrar("mj_destello", true);
+        MJ_GRIETA = registrar("mj_grieta", true);
     }
 
     private static SimpleParticleType registrar(String nombre, boolean siempre) {

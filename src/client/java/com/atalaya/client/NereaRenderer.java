@@ -67,7 +67,9 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
 
     public NereaRenderer(EntityRendererProvider.Context contexto) {
         super(contexto, new NereaModel(contexto.bakeLayer(NereaModel.CAPA)), 3.6F);
-        addLayer(new NereaBrilloLayer(this));
+        // La pasada de lo que brilla, con una copia del modelo que solo tiene los cubos que brillan.
+        addLayer(new NereaBrilloLayer(this, new NereaModel(SoloLoQueBrilla.filtrar(contexto.bakeLayer(NereaModel.CAPA), "nerea",
+                "nerea_brillo_f1", "nerea_brillo_f2", "nerea_brillo_f3", "nerea_brillo_f4", "nerea_brillo_libre"))));
         addLayer(new NereaFuriaLayer(this, new NereaModel(contexto.bakeLayer(NereaModel.CAPA_AURA))));
     }
 
@@ -209,10 +211,23 @@ public class NereaRenderer extends MobRenderer<NereaEntity, NereaRenderState, Ne
         return s.disolver > 0.0F ? ARGB.white(1.0F - s.disolver) : -1;
     }
 
-    /** Quince bloques de alto y chorros de cincuenta: que no se corte al girar la camara. */
+    /**
+     * Quince bloques de alto y chorros de cincuenta: se recorta con una caja que
+     * le cubre el cuerpo entero, y solo cuando no pinta nada lejos de el (la
+     * Mirada, el Remolino, el Molino, el Rompeolas y la Marea se pintan siempre).
+     */
     @Override
     protected boolean affectedByCulling(NereaEntity n) {
-        return false;
+        return switch (n.getEstado()) {
+            case NereaEntity.MIRADA, NereaEntity.ATURDIDO, NereaEntity.REMOLINO, NereaEntity.MOLINO, NereaEntity.ROMPEOLAS,
+                 NereaEntity.MAREA -> false;
+            default -> true;
+        };
+    }
+
+    @Override
+    protected net.minecraft.world.phys.AABB getBoundingBoxForCulling(NereaEntity n) {
+        return n.getBoundingBox().inflate(6.0, 3.0, 6.0);
     }
 
     @Override

@@ -126,6 +126,12 @@ public final class AtalayaCommand {
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_RAJANG, sb))
                                         .executes(ctx -> probarRajang(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("minijefe")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("orden", StringArgumentType.word())
+                                        .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_MINIJEFE, sb))
+                                        .executes(ctx -> probarMiniJefe(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "orden")))))
                         .then(Commands.literal("novilis")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("orden", StringArgumentType.word())
@@ -286,6 +292,34 @@ public final class AtalayaCommand {
             return 0;
         }
         fuente.sendSuccess(() -> Component.literal("Nerea: " + orden), false);
+        return 1;
+    }
+
+    private static final String[] ORDENES_MINIJEFE = {"despertar", "normal", "area", "especial", "dormir", "libre", "morir"};
+
+    /** Fuerza al mini jefe mas cercano (en 80 bloques) a hacer algo ya. */
+    private static int probarMiniJefe(CommandSourceStack fuente, String orden) {
+        ServerLevel nivel = fuente.getLevel();
+        Vec3 desde = fuente.getPosition();
+        com.atalaya.entity.MiniJefeEntity mini = null;
+        double mejor = 80 * 80;
+        for (com.atalaya.entity.MiniJefeEntity m : nivel.getEntitiesOfClass(com.atalaya.entity.MiniJefeEntity.class,
+                new AABB(desde, desde).inflate(80))) {
+            if (m.isAlive() && m.distanceToSqr(desde) < mejor) {
+                mejor = m.distanceToSqr(desde);
+                mini = m;
+            }
+        }
+        if (mini == null) {
+            fuente.sendFailure(Component.literal("No hay ningun mini jefe a menos de 80 bloques."));
+            return 0;
+        }
+        if (!mini.forzar(nivel, orden)) {
+            fuente.sendFailure(Component.literal("Orden desconocida: " + orden));
+            return 0;
+        }
+        String nombre = mini.getName().getString();
+        fuente.sendSuccess(() -> Component.literal(nombre + ": " + orden), false);
         return 1;
     }
 

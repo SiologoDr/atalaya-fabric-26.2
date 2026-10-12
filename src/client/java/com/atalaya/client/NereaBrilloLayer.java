@@ -36,8 +36,12 @@ public class NereaBrilloLayer extends RenderLayer<NereaRenderState, NereaModel> 
     private static final RenderType LIBRE = RenderTypes.eyes(
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/entity/nerea/nerea_brillo_libre.png"));
 
-    public NereaBrilloLayer(RenderLayerParent<NereaRenderState, NereaModel> padre) {
+    /** Una copia del modelo solo con los cubos que brillan (SoloLoQueBrilla): no pinta otra vez lo que no brilla. */
+    private final NereaModel modelo;
+
+    public NereaBrilloLayer(RenderLayerParent<NereaRenderState, NereaModel> padre, NereaModel modelo) {
         super(padre);
+        this.modelo = modelo;
     }
 
     @Override
@@ -58,7 +62,7 @@ public class NereaBrilloLayer extends RenderLayer<NereaRenderState, NereaModel> 
         if (k <= 0.01F) {
             return;
         }
-        colector.order(1).submitModel(getParentModel(), s, pose, s.libre ? LIBRE : MALDITO[Math.clamp(s.fase, 1, 4) - 1], luz,
+        colector.order(1).submitModel(modelo, s, pose, s.libre ? LIBRE : MALDITO[Math.clamp(s.fase, 1, 4) - 1], luz,
                 OverlayTexture.NO_OVERLAY, ARGB.colorFromFloat(k, k, k, k), null, s.outlineColor, null);
     }
 }

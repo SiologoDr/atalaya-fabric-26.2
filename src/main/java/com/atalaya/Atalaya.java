@@ -198,6 +198,14 @@ public class Atalaya implements ModInitializer {
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(Items.NETHERITE_SWORD, com.atalaya.item.ArmadurasJefes.armas()));
 
+        // Los tótems del mod, detrás del de la inmortalidad.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
+                salida.insertAfter(Items.TOTEM_OF_UNDYING, AtalayaItems.TOTEMS));
+        // El kit de reparación y el corazón de vida, detrás de los tótems.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
+                salida.insertAfter(AtalayaItems.TOTEMS[AtalayaItems.TOTEMS.length - 1], AtalayaItems.KIT_REPARACION,
+                        AtalayaItems.CORAZON_VIDA));
+
         // Carbon activado y filtro van con los materiales, detras del carbon.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->
                 salida.insertAfter(Items.CHARCOAL, AtalayaItems.todos()));
@@ -216,6 +224,10 @@ public class Atalaya implements ModInitializer {
                 salida.insertAfter(AtalayaItems.HUEVO_AERALIS, AtalayaItems.HUEVO_RAJANG));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(AtalayaItems.HUEVO_RAJANG, AtalayaItems.HUEVO_NOVILIS));
+        // Los de los mini jefes, detras de los de los jefes.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_NOVILIS, AtalayaItems.HUEVO_MOCTEZUMA, AtalayaItems.HUEVO_YIATZO,
+                        AtalayaItems.HUEVO_ATLAHUA, AtalayaItems.HUEVO_XIUHQUETZAL));
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> {

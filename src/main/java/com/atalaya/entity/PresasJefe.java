@@ -114,7 +114,8 @@ public final class PresasJefe {
 
     /** Es uno de los cuatro jefes: lo suyo no le hace nada a otro jefe. */
     public static boolean esJefe(@Nullable Entity e) {
-        return e instanceof NereaEntity || e instanceof AeralisEntity || e instanceof RajangEntity || e instanceof NovilisEntity;
+        return e instanceof NereaEntity || e instanceof AeralisEntity || e instanceof RajangEntity || e instanceof NovilisEntity
+                || e instanceof MiniJefeEntity;
     }
 
     /**

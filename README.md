@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.1.9**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.2.0**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -25,14 +25,17 @@ jefes elementales.
 >   la lluvia, hipotermia en la nieve.
 > - **Monstruos:** el Fulminante (el creeper del desierto, con su aturdimiento y
 >   la fulgurita) y el Vigía.
-> - **Jefes elementales:** **Nerea** (agua), **Aeralis** (aire) y **Rajang**
->   (tierra). Son tres de cuatro: falta el del fuego.
+> - **Jefes elementales:** **Nerea** (agua), **Aeralis** (aire), **Rajang**
+>   (tierra) y **Novilis** (fuego).
+> - **Mini jefes:** **Moctezuma** (tierra), **Yiatzo** (viento), **Atlahua**
+>   (agua) y **Xiuhquetzal** (fuego): una barra, sin fases, tres ataques.
 > - **13 efectos propios** registrados y un panel de configuración con **25
 >   interruptores**.
 >
 > **Nada está encendido de fábrica.** Un mundo recién puesto se comporta como
 > vanilla hasta que un operador abre cada mecánica. Los jefes no tienen
 > interruptor porque no aparecen solos: solo salen con su huevo o con `/summon`.
+> Los mini jefes, igual.
 
 ---
 
@@ -905,13 +908,95 @@ cerca y entrega **su corazón**.
 | **Novilis**, el Caballero Solar | fuego | 16 500 | 16 / 10 | 500 | Corazón de Novilis |
 
 Los corazones (10-10-2026, Juan: «el drop de cada boss va a ser un corazón de
-cada tipo y diseño de boss») **todavía no hacen nada**: se usarán más adelante.
-Cada uno lleva lo suyo y late (`corazones_botin.py`): el de Nerea, de prismarina
-con una perla y su cadena; el de Aeralis, pálido con el ocelo de sus alas y un
-rayo; el de Rajang, de jade con el meandro de oro; el de Novilis, de oro al rojo
-con el sol en medio y grietas de lava. Caen siempre, sin pedir que mate un
-jugador, y se apilan de 16 en 16. Las piezas de antes (Lágrima, Escama,
-Colmillo y Núcleo) siguen existiendo, pero ya no caen.
+cada tipo y diseño de boss, que después se va a usar para otra cosa») son **lo
+único que suelta cada jefe**. Por ahora no sirven para nada.
+Los primeros «se veían muy simples» (11-10-2026). Juan eligió otros en la página
+de propuestas («Tótems de Atalaya») y se mejoraron a partir de su elección
+(`corazones_botin.py`):
+
+- **Nerea**: de prismarina, con dos cadenas oxidadas en aspa (un eslabón de frente
+  en cada lóbulo), la perla donde se cruzan y una punta rota colgando a cada lado.
+- **Aeralis**: pálido, con sus alas de mariposa, el ocelo naranja y las antenas, y
+  el ocelo de sus alas en el pecho.
+- **Rajang**: de jade en su marco de oro, con el meandro del templo y las manchas
+  del jaguar.
+- **Novilis**: de oro al rojo, con las grietas de lava (oscuras por fuera y al rojo
+  blanco por dentro) y las llamas sobre los lóbulos. Las llamas tienen lenguas de
+  varias alturas y salen del lóbulo con el corazón blanco (Juan: «mejora sus
+  llamas»).
+
+Juan se quedó con los cinco mejorados (también el Corazón de Vida). Laten: dos
+golpes y una pausa. Al latir se aclaran el corazón y la lava de Novilis, y sus
+llamas se avivan; las cadenas, las alas y el marco se quedan quietos. Caen siempre, sin
+pedir que mate un jugador, y se apilan de 16 en 16. Las piezas de antes (Lágrima,
+Escama, Colmillo y Núcleo) siguen existiendo, pero ya no caen.
+
+### Los tótems
+
+Diez tótems (11-10-2026, Juan: «agrega más tipos de tótem con todo lo que
+tenemos»): uno por jefe y mini jefe, el del Viajero y el de Dos Vidas. Son
+**figuritas de oro con la paleta del tótem de la inmortalidad** (dorado, contorno
+marrón y esmeralda): la cara en sombra con dos ojos de esmeralda, el tocado de
+cada criatura y el cuerpo de tótem con los brazos abiertos, o con su objeto al
+costado, como los de Yiatzo y Novilis (`totems_jefes.py`). Juan los eligió sobre
+una página de propuestas («Tótems de Atalaya», seis tandas). Los de colores, los
+de la forma del tótem de vanilla y los ídolos de cabeza suelta no le gustaron. Se
+quitaron los del Vigía y el Fulminante.
+
+**Por ahora no tienen receta ni los suelta nadie** (Juan, 11-10-2026: de los mini
+jefes, «ya tengo una idea para ellos»): se consiguen en creativo.
+
+Todos **te salvan de la muerte como el de la inmortalidad**: llevan su componente
+`death_protection`, así que el juego los trata igual. Funcionan en cualquier mano,
+te dejan a medio corazón, limpian los efectos y salen las partículas, el sonido y
+la animación de vanilla, con su icono. Salvan de los golpes que «matan salvo
+tótem», y nada los salva de `bypasses_invulnerability`. Cada uno da además lo suyo:
+
+| Tótem | Lo suyo |
+|---|---|
+| **de Moctezuma** | Resistencia I 10 s; aparta a los monstruos (6 bloques) |
+| **de Yiatzo** | te alza: Velocidad II y caída lenta 8 s |
+| **de Atlahua** | Regeneración II 60 s, respiración acuática 2 min, apaga el fuego |
+| **de Xiuhquetzal** | resistencia al fuego 2 min; prende a los monstruos (6 bloques) |
+| **de Nerea** | Regeneración III 30 s; cura 4 corazones a los 3 aliados más heridos a 8 bloques |
+| **de Aeralis** | Velocidad II y caída lenta 10 s, te alza, aparta a los monstruos (8) y Velocidad I a los 4 aliados más cercanos |
+| **de Rajang** | Absorción IV 15 s y Resistencia II 8 s; aparta a los monstruos (7) |
+| **de Novilis** | Fuerza II 10 s, resistencia al fuego 2 min; prende a los monstruos (8) |
+| **del Viajero** | tras salvarte te lleva a otro sitio cercano (como la fruta coral) |
+| **de Dos Vidas** | aguanta dos muertes: la primera vuelve a la mano sin su brillo |
+
+Salvo donde se dice otra cosa, dan lo mismo que el de la inmortalidad
+(Regeneración II 45 s, Absorción II 5 s, resistencia al fuego 40 s). Como las
+armaduras, nada se acumula: la cura de Nerea llega a cada aliado como mucho una
+vez por minuto. Lo que hacen a los monstruos no toca a jefes ni a mini jefes.
+
+El aviso del chat dice cuál fue: «**Manu** ha usado el Tótem de Rajang [icono]».
+Lo hace `AvisoTotemMixin`, que también pone lo de cada uno (`TotemJefe.alSalvar`) y
+devuelve a la mano el de Dos Vidas la primera vez.
+
+### El kit de reparación y el corazón de vida
+
+Dos objetos de apoyo (11-10-2026, Juan: «un item para reparar la armadura de un
+compañero, que no se pueda a ti mismo, aparte de tener un item que te recupera
+todos los corazones»):
+
+- **Kit de Reparación** (`KitReparacionItem`), un yunque de bolsillo con una
+  correa de cuero en la cintura. El primero llevaba un asa, y en la mano se veía
+  el cielo por sus huecos. Con clic derecho sobre otro jugador
+  le deja nuevas las piezas de armadura que lleve puestas, y se gasta uno. Sobre ti
+  mismo o al aire no hace nada y te lo dice. Si su armadura está entera, tampoco se
+  gasta. Se apila de 16 en 16.
+- **Corazón de Vida** (`CorazonVidaItem`), un corazón rojo entre dos alas de oro
+  que se come. Primero fue un elixir en un cáliz; Juan pidió «un corazón que se
+  pueda comer». Se come como la
+  comida (1,6 s), aunque tengas el hambre llena, y te deja la vida llena. No da
+  absorción, regeneración ni comida.
+
+Ninguno de los dos tiene receta por ahora: se consiguen en creativo.
+
+Los iconos (`objetos_apoyo.py`) llevan sus colores, no los de los tótems. Suenan
+con lo suyo (`objetos_sonidos.py`): martillazos sobre chapa y un latido con
+campanitas que suben.
 
 ### Lo que comparten
 
@@ -2016,6 +2101,187 @@ sustituyen las armas de rol.
 
 ---
 
+## Los mini jefes
+
+Cuatro mini jefes, uno por elemento. Miden de 9 a 10 bloques de alto (el fénix,
+unos 8 de la cabeza a las garras y 22 de ala a ala) y son más sencillos que los
+jefes:
+
+- una sola barra de vida y **sin fases**;
+- no tocan el clima;
+- **sin minijuegos** ni nada que haya que hacer aparte de pelear;
+- **tres ataques**: el normal, el de área y el especial.
+
+Como los jefes, nacen dormidos, cada uno en su postura, y despiertan al ver a un
+jugador o al recibir un golpe. Al despertar tienen la misma presentación de cine:
+las bandas negras, las tomas que siguen la cabeza y el pecho, y el cartel con su
+nombre y «MINIJEFE DE LA TIERRA», «DEL VIENTO», «DEL AGUA» o «DEL FUEGO».
+Mientras se presentan no se mueven, no atacan y no reciben daño.
+
+Puede haber varios a la vez: sus huevos no tienen el límite de uno por mundo de
+los jefes.
+
+| Mini jefe | Elemento | Vida | Normal | Área | Especial |
+|---|---|---|---|---|---|
+| **Moctezuma**, el Guerrero Águila de Jade | tierra | 4200 | **Corte de Obsidiana**: un barrido de 150° por delante y, con un paso al frente, un tajo que raja el suelo unos 12 bloques en línea | **Terremoto del Águila**: salta y cae con el escudo; la onda (6 bloques) y tres coronas de pinchos de jade (a 7, 12 y 16,5) | **Tormenta de Obsidiana y Jade**: alza el macuahuitl, un remolino de esquirlas gira sobre él y caen tres tandas de fragmentos sobre cada jugador (un glifo de jade marca dónde); al final clava el arma y la tierra revienta en pilares de jade |
+| **Yiatzo**, el Mago del Viento | viento | 3600 | **Ráfaga de Viento**: tres cuchillas de viento en abanico, 22 bloques (salen del orbe y bajan a la altura del pecho) | **Tormenta de Viento**: un anillo de viento sale de él hasta 16,5 bloques y lanza por los aires | **Ciclón Devastador**: un ciclón crece donde estaba su presa, arrastra, alza y golpea, y estalla |
+| **Atlahua**, el Tritón de las Profundidades | agua | 4800 | **Estocada del Tridente**: un paso largo y un chorro de agua de 14 bloques | **Olas del Abismo**: clava el tridente y salen dos olas en anillo, hasta 18 bloques | **Tsunami del Abismo**: una ola de 24 bloques de ancho crece a su espalda y barre la arena |
+| **Xiuhquetzal**, el Fénix de Llamas | fuego | 3900 | **Picotazo de Llamas**: un picado con el cuello estirado, el pico a la cabeza de su presa, que revienta en fuego | **Tormenta de Plumas Ígneas**: tres batidas; de cada una cae una corona de plumas de fuego | **Llamarada del Renacimiento**: se envuelve en sus alas, se vuelve un sol y estalla: un anillo de fuego barre el suelo y cae una columna de llamas |
+
+Cada uno se mueve como lo que es:
+
+- **Moctezuma** anda con paso marcial, el escudo por delante, el macuahuitl delante y
+  hacia arriba (como un jugador con su espada) y los pies plantados. Se echa
+  encima: se planta a unos 5 bloques de su presa. En la Tormenta remueve el cielo
+  trazando círculos con el arma alzada, y antes de clavarla la alza recta por
+  encima de la cabeza (sin cruzar el casco ni el penacho). Al caer del Terremoto la
+  cámara tiembla como en los golpes grandes de los jefes.
+- **Yiatzo** no anda: flota medio bloque sobre el suelo con sus cinco losas de
+  glifos dándole vueltas, guarda la distancia (de 11 a 20 bloques) y rodea a su
+  presa. Flota con deriva (sube y baja y se mece en un ocho), la capucha y los
+  brazos llegan tarde, y dirige el Ciclón con el bastón en círculos. La túnica
+  acaba en jirones que cuelgan de las rodillas: van en dos piezas con física que
+  ondean. La túnica maciza va con el cuerpo y solo ondean los jirones, que nacen
+  escondidos bajo el bajo; las juntas comparten 2 y 3 filas y se mueven poco
+  entre sí, así que no se descolocan de la pieza de arriba. Al morir se desploma
+  como una túnica vacía.
+- **Atlahua** es lento y pesado, con el tridente a plomo. Al morir hinca una
+  rodilla, intenta levantarse y se desploma de frente con el tridente por delante.
+- **Xiuhquetzal** vuela de verdad: se cierne a unos 4 bloques del suelo rodeando
+  a su presa a unos 10. Vuela tendido, con el cuerpo a unos 60° hacia delante, el
+  cuello alzado, la cola hacia atrás, las patas recogidas bajo el vientre y la
+  cabeza que mira a su presa (el servidor manda hacia dónde, `mirarA`). Los
+  hombros son una pieza vacía que deshace la inclinación, para que el aleteo siga
+  siendo de arriba abajo; las alas, en cambio, van tendidas hacia atrás a lo
+  largo del cuerpo (`XIUHQUETZAL_ALA_TENDIDA`), no colgando a plomo como en un
+  escudo. Bate las alas como un ave: la mano llega tarde al brazo (se abre en la
+  bajada y se pliega hacia atrás en la subida), el cuerpo sube con cada bajada y
+  la cola frena. Duerme posado, envuelto en sus alas, y al despertar renace y
+  despega. Al morir cae de vientre con las alas flojas y queda tendido boca abajo
+  con las alas abiertas y las patas dobladas bajo él.
+
+El daño sigue la tabla de los jefes (contra netherita P4 y manzana de Notch),
+más o menos la de su fase II: unos 5 corazones el golpe fuerte y 4 el de área.
+Los tipos de daño son `atalaya:<mini jefe>_<ataque>`.
+
+Al morir hacen su animación y se deshacen: Moctezuma en astillas de jade y
+plumas, Yiatzo en viento y runas, Atlahua en espuma y burbujas, y el fénix en
+brasas y ceniza, de las puntas de las alas al pecho.
+
+### Cómo están hechos
+
+Cada mini jefe es un boceto de unos 15 000 vóxeles de un píxel
+(`minijefes_modelo.py`), pero en el juego se ve **como un mob de Minecraft**, igual
+que los jefes. Antes cada vóxel era geometría con la luz suavizada y parecía un
+render, no un mob (Juan: «su textura no parece ya mobs de minecraft»).
+
+**La malla.** `minijefes_juego.py` pasa la forma a **bloques de 2 píxeles** y pinta
+el detalle del boceto, cada vóxel, como **textura de píxel** en las caras de esos
+bloques. La **luz es plana por cara**, como en vanilla: arriba clara, los lados a
+medias y abajo oscura. Cada pieza toma el desfase de celdas que deja menos bloques,
+para que las astas finas no engorden. Las caras a la vista se juntan en
+rectángulos por plano.
+
+Sale un fichero por mini jefe, `assets/atalaya/minijefes/<nombre>.malla`, con sus
+piezas y sus cuadriláteros: unos 2000, unos 2900 el fénix contando lo que brilla.
+Lo lee `MiniJefeMalla`.
+
+**Los niveles de detalle.** El fichero trae la malla dos veces y se pinta una u
+otra según lo grande que se vea el mini jefe en la pantalla. `MiniJefeRenderer`
+lo calcula con la distancia, el alto de la ventana y la proyección de la cámara,
+así que el catalejo cuenta:
+
+- **De cerca**, la malla en bloques de 2.
+- **De lejos**, la malla en bloques de 4, cuando uno de 2 ya no llega a dos píxeles
+  de la pantalla.
+
+**El recorte.** Andando o dormido, un mini jefe no se pinta si su caja, agrandada
+con lo que sobresale (`MiniJefeEfectos.alcance`: alas, armas, el aura), queda
+fuera de la cámara. En sus ataques y al morir se pinta siempre, porque lo grande
+de los ataques llega lejos de su cuerpo.
+
+**Las piezas.** El modelo solo es un esqueleto de piezas vacías, que mueven las
+animaciones de vanilla. `MiniJefeCuerpoLayer` pinta la malla con la matriz de
+cada pieza en tres pasadas:
+
+- la piel, a la luz del sitio (el fénix, a plena luz: es fuego);
+- lo que brilla;
+- al morir, la piel que se deshace con su máscara.
+
+**Las animaciones.** `minijefes_anim.py` las escribe pose a pose:
+
+- piernas por cinemática inversa;
+- brazos y armas que se apuntan hacia una dirección;
+- capas, faldones, penacho y cola del fénix movidos por física (un péndulo por
+  pieza, horneado en keyframes).
+
+Los giros salen **sin tirones**. Vanilla va de una clave a la siguiente mezclando
+los tres ángulos, así que si uno salta (de +170° a −170°, casi lo mismo) la pieza da
+la vuelta entera por el camino largo en ese instante. Le pasaba al macuahuitl en la
+Tormenta, al bastón en el Ciclón y al tridente en los ataques de Atlahua. Ahora, en
+cada tick, cada giro toma el equivalente (±360°) más cercano al del anterior, y
+donde una pieza gira mucho en un tick se ponen claves entre ticks por el camino
+corto. A mitad de tick ninguna arma se aparta más de unos 0,6 bloques de su camino
+(antes, hasta 18).
+
+Salen `<Nombre>Animaciones.java` y `<Nombre>Geometria.java`: las duraciones, el
+tick de cada golpe, los puntos de los ataques, las tablas de la cámara de la
+presentación y la estela de cada arma.
+
+**Los efectos.** Lo grande de los ataques (la ola, el ciclón, las coronas de
+jade, el sol del fénix) no son entidades. Lo pinta el cliente desde el estado
+del mini jefe, el tiempo que lleva en él y el rumbo y el punto del ataque, que se
+mandan al empezarlo. El servidor pega con las mismas cuentas.
+
+Lo común está en `MiniJefeEntity` y en las clases `MiniJefe*` del cliente. Lo de
+cada uno, en `<Nombre>Entity` y `<Nombre>Efectos`.
+
+**La barra.** Es como la de los jefes, pero más baja: mide 220×32 (la de los jefes,
+240×44). Va debajo de las de los jefes que estén a la vista, una por mini jefe
+despierto (hasta tres). Lleva:
+
+- el medallón con su emblema;
+- la barra larga de bloques de su material, con su punta: dientes de obsidiana,
+  punta de plata con el orbe, el tridente o una llama;
+- la cresta de su elemento, que sale del medallón por encima del marco: plumas de
+  quetzal, losas de glifos con el viento, coral o plumas de fuego;
+- su nombre encima, en letras de píxel;
+- la energía que corre por dentro y el rastro del daño;
+- tres muescas de su material, que se parten al pasarlas.
+
+**El tamaño.** La escala de cada uno sale de `ESCALA` en `minijefes_modelo.py`.
+`minijefes_anim.py` la escribe en su `Geometria`, de donde la leen el renderer y
+la caja (`AtalayaEntities`). Lo que dependía de su cuerpo crece con él (`K` en
+cada `<Nombre>Entity`): el alcance, las alturas de las partículas y el remolino
+de encima de Moctezuma. Las zonas de los ataques crecen menos (`KA`, la raíz de
+`K`) para no cambiar tanto la pelea.
+
+**Los sonidos.** `minijefes_sonidos.py` no usa la física de los jefes (la roca y el
+jade de Rajang, el agua de Nerea, el viento de Aeralis, el fuego de Novilis): cada
+mini jefe tiene sus instrumentos.
+
+- **Moctezuma**: la música de guerra mexica. El huehuetl hace de golpe de
+  tierra; el teponaztli redobla y sube en escalas; suenan los ayoyotes de los
+  tobillos, el silbato de la muerte, el silbato de águila, la ocarina y un coro de
+  guerreros. El filo de obsidiana canta y el barro cocido revienta.
+- **Yiatzo**: la magia, no el viento. Cuencos cantores, árbol de campanas,
+  armónica de cristal, flauta con glissandos, arpa eólica, un tono de Shepard
+  que sube sin fin en el ciclón, coros sin palabras y sonidos aspirados (la
+  reverb al revés).
+- **Atlahua**: el tritón, no el agua. Su caracola, el tridente que vibra como un
+  diapasón, llamadas de orca, silbidos de delfín, cantos de ballena, los clics de
+  la ecolocalización (se aceleran cuando fija a su presa), el sonar, el gong que
+  se hunde y un tam-tam con redoble para las olas.
+- **Xiuhquetzal**: un ave que canta. Frases silbadas, trinos, el aleteo de las
+  plumas, chispas, la bengala que chisporrotea, silbidos de cohete y fuegos
+  artificiales que crepitan.
+
+**Para probar** está `/atalaya minijefe <orden>`, que actúa sobre el mini jefe
+más cercano. Las órdenes son `despertar`, `normal`, `area`, `especial`, `dormir`,
+`libre` y `morir`.
+
+---
+
 ## Cómo se hace un jefe
 
 Un jefe nuevo sale en tres tiempos:
@@ -2077,6 +2343,17 @@ pinta en un editor ni se graba. Así un retoque es cambiar un número y regenera
    - `<jefe>_sonidos.py`: **borra** sus `.ogg`, los sintetiza otra vez y reescribe
      su bloque de `sounds.json`. Los subtítulos de `lang/` y el registro en
      `AtalayaSonidos.java` se hacen a mano.
+
+   Dos cosas del renderer son por rendimiento y no cambian lo que se ve:
+   - **La pasada de lo que brilla** pinta una copia del modelo con solo los cubos
+     que tienen brillo en alguna de las texturas de brillo (`SoloLoQueBrilla`, al
+     crear el renderer). Los demás solo daban fragmentos transparentes.
+   - **El recorte** (`affectedByCulling` y `getBoundingBoxForCulling`): el jefe
+     deja de pintarse fuera de la cámara solo cuando no hay nada suyo lejos del
+     cuerpo. Rajang, libre o dormido y sin que nadie lleve el ídolo; Nerea,
+     fuera de la Mirada, el aturdimiento, el remolino, el molino, el rompeolas y
+     la marea; Aeralis, fuera del picado y del rayo; Novilis, fuera del castigo,
+     la ofrenda, la espada y el sol. La caja va agrandada con lo que sobresale.
 7. **El Java a mano.** Lista de lo que tocó Rajang:
 
    | Dónde | Qué |
@@ -2108,6 +2385,7 @@ Los scripts de cada jefe:
 | Aeralis | `viento_modelo`, `viento_bc_modelo`, `viento_escenas`, `viento_remake_escenas`, `viento_remake_hud`, `viento_remake_iconos` | `vendaval_juego` (y `vendaval_juego_v1`, el de antes), `vendaval_fisica`, `vendaval_juego_anim` | `aeralis_extras`, `aeralis_mejoras_extras`, `aeralis_hud`, `aeralis_sonidos`, `aeralis_mejoras_sonidos` | `aeralis_poster`, `video/aeralis_teaser` |
 | Rajang | `tierra_modelo`, `tierra_piel`, `tierra_ataques`, `tierra_escenas`, `rajang_mejoras_escenas` | `rajang_juego`, `rajang_juego_anim` | `rajang_piezas`, `rajang_extras`, `rajang_mejoras_extras`, `rajang_hud`, `rajang_sonidos`, `rajang_mejoras_sonidos` | `rajang_poster`, `video/rajang_teaser` |
 | Novilis | `fuego_modelo`, `fuego_escenas`, `fuego_hud_propuesta` | `novilis_juego`, `novilis_fisica`, `novilis_juego_anim` | `novilis_extras`, `novilis_props`, `novilis_hud`, `novilis_sonidos` | aún no |
+| Mini jefes | `minijefes_modelo` (los bocetos de Moctezuma, Yiatzo, Atlahua y Xiuhquetzal), `minijefes_escenas` (su ficha: heroica, vistas, los tres ataques y la escala) | `minijefes_juego` (la malla, el atlas, la luz y la máscara de disolver), `minijefes_anim` | `minijefes_extras` (partículas, efectos y barras), `minijefes_sonidos`, `presentacion_jefes`, `huevos_jefes` | aún no |
 
 Los nombres de los scripts del boceto van por **elemento** (`viento_`,
 `tierra_`, `fuego_`) y los del juego por **jefe**, porque el nombre se decidió después del
@@ -2395,7 +2673,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.1.9.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.2.0.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -2426,7 +2704,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.1.9
+	- atalaya 1.2.0
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -2799,7 +3077,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.1.9.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.2.0.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

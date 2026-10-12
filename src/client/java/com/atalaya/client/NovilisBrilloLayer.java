@@ -31,8 +31,12 @@ public class NovilisBrilloLayer extends RenderLayer<NovilisRenderState, NovilisM
         }
     }
 
-    public NovilisBrilloLayer(RenderLayerParent<NovilisRenderState, NovilisModel> padre) {
+    /** Una copia del modelo solo con los cubos que brillan (SoloLoQueBrilla): no pinta otra vez lo que no brilla. */
+    private final NovilisModel modelo;
+
+    public NovilisBrilloLayer(RenderLayerParent<NovilisRenderState, NovilisModel> padre, NovilisModel modelo) {
         super(padre);
+        this.modelo = modelo;
     }
 
     @Override
@@ -47,7 +51,7 @@ public class NovilisBrilloLayer extends RenderLayer<NovilisRenderState, NovilisM
         if (k <= 0.01F) {
             return;
         }
-        colector.order(1).submitModel(getParentModel(), s, pose, BRILLO[NovilisRenderer.piel(s)], luz,
+        colector.order(1).submitModel(modelo, s, pose, BRILLO[NovilisRenderer.piel(s)], luz,
                 OverlayTexture.NO_OVERLAY, ARGB.colorFromFloat(k, k, k, k), null, s.outlineColor, null);
     }
 }

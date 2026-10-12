@@ -24,6 +24,8 @@ public final class FotosPrueba {
     private static final String VISTA = "VISTA ";
     /** "DUELO_AUTO 1|0": el Duelo de Canto se toca solo (acierta casi todas y falla una de cada cinco), para las fotos. */
     private static final String DUELO_AUTO = "DUELO_AUTO ";
+    /** "FPS etiqueta": apunta en el registro los fotogramas del ultimo segundo (para medir el rendimiento). */
+    private static final String FPS = "FPS ";
     /** "USAR 1|0": mantiene (o suelta) el clic derecho con lo que lleve en la mano (el Prisma de Jade de Rajang). */
     private static final String USAR = "USAR ";
     /** "TECLA n": elige la casilla n (0 a 8) de la barra (Piedra, Papel o Tijera de Novilis). */
@@ -106,6 +108,11 @@ public final class FotosPrueba {
                 if (si && mc.player != null && mc.gameMode != null && !mc.player.isUsingItem()) {
                     mc.gameMode.useItem(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND);
                 }
+                return false;
+            }
+            if (texto.startsWith(FPS)) {
+                // Para medir el rendimiento: los fotogramas del ultimo segundo, al registro.
+                Atalaya.LOGGER.info("FPS {} {}", texto.substring(FPS.length()).trim(), Minecraft.getInstance().getFps());
                 return false;
             }
             if (texto.startsWith(DUELO_AUTO)) {

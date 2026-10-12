@@ -135,6 +135,10 @@ public final class AtalayaEntities {
     public static final ResourceKey<EntityType<?>> CLAVE_FRAGMENTO_JADE = clave("fragmento_jade");
     public static final ResourceKey<EntityType<?>> CLAVE_ALTAR_IDOLO = clave("altar_idolo");
     public static final ResourceKey<EntityType<?>> CLAVE_NOVILIS = clave("novilis");
+    public static final ResourceKey<EntityType<?>> CLAVE_MOCTEZUMA = clave("moctezuma");
+    public static final ResourceKey<EntityType<?>> CLAVE_YIATZO = clave("yiatzo");
+    public static final ResourceKey<EntityType<?>> CLAVE_ATLAHUA = clave("atlahua");
+    public static final ResourceKey<EntityType<?>> CLAVE_XIUHQUETZAL = clave("xiuhquetzal");
     public static final ResourceKey<EntityType<?>> CLAVE_TAJO_NOVILIS = clave("tajo_novilis");
     public static final ResourceKey<EntityType<?>> CLAVE_SELLO_SOL = clave("sello_sol");
     public static final ResourceKey<EntityType<?>> CLAVE_ONDA_FUEGO = clave("onda_fuego");
@@ -181,6 +185,12 @@ public final class AtalayaEntities {
 
     /** Novilis, el Caballero Solar: el jefe elemental del fuego. */
     public static EntityType<NovilisEntity> NOVILIS;
+
+    /** Los cuatro mini jefes (una barra, sin fases, tres ataques): tierra, viento, agua y fuego. */
+    public static EntityType<MoctezumaEntity> MOCTEZUMA;
+    public static EntityType<YiatzoEntity> YIATZO;
+    public static EntityType<AtlahuaEntity> ATLAHUA;
+    public static EntityType<XiuhquetzalEntity> XIUHQUETZAL;
     /** Las medias lunas de fuego del Barrido. */
     public static EntityType<TajoNovilisEntity> TAJO_NOVILIS;
     /** El Tridente de las Mareas lanzado (el arma del sanador). */
@@ -255,6 +265,7 @@ public final class AtalayaEntities {
         registrarAeralis();
         registrarRajang();
         registrarNovilis();
+        registrarMiniJefes();
         registrarArmas();
     }
 
@@ -276,6 +287,47 @@ public final class AtalayaEntities {
                         .clientTrackingRange(4)
                         .updateInterval(20)
                         .build(CLAVE_FLECHA_VENDAVAL));
+    }
+
+    /**
+     * Los cuatro mini jefes. Las cajas tapan el cuerpo (no las alas del fenix ni las
+     * armas, que se mueven); se ven desde lejos y su posicion va cada tick (el
+     * picado del fenix y los saltos van deprisa).
+     */
+    private static void registrarMiniJefes() {
+        MOCTEZUMA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_MOCTEZUMA,
+                EntityType.Builder.of(MoctezumaEntity::new, MobCategory.MONSTER)
+                        .sized(2.0F * MoctezumaEntity.K, 5.4F * MoctezumaEntity.K)
+                        .eyeHeight(4.6F * MoctezumaEntity.K)
+                        .clientTrackingRange(16)
+                        .updateInterval(1)
+                        .build(CLAVE_MOCTEZUMA));
+        FabricDefaultAttributeRegistry.register(MOCTEZUMA, MoctezumaEntity.crearAtributos());
+        YIATZO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_YIATZO,
+                EntityType.Builder.of(YiatzoEntity::new, MobCategory.MONSTER)
+                        .sized(1.8F * YiatzoEntity.K, 5.6F * YiatzoEntity.K)
+                        .eyeHeight(4.8F * YiatzoEntity.K)
+                        .clientTrackingRange(16)
+                        .updateInterval(1)
+                        .build(CLAVE_YIATZO));
+        FabricDefaultAttributeRegistry.register(YIATZO, YiatzoEntity.crearAtributos());
+        ATLAHUA = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_ATLAHUA,
+                EntityType.Builder.of(AtlahuaEntity::new, MobCategory.MONSTER)
+                        .sized(2.2F * AtlahuaEntity.K, 6.0F * AtlahuaEntity.K)
+                        .eyeHeight(4.7F * AtlahuaEntity.K)
+                        .clientTrackingRange(16)
+                        .updateInterval(1)
+                        .build(CLAVE_ATLAHUA));
+        FabricDefaultAttributeRegistry.register(ATLAHUA, AtlahuaEntity.crearAtributos());
+        XIUHQUETZAL = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_XIUHQUETZAL,
+                EntityType.Builder.of(XiuhquetzalEntity::new, MobCategory.MONSTER)
+                        .sized(3.0F * XiuhquetzalEntity.K, 3.8F * XiuhquetzalEntity.K)
+                        .eyeHeight(3.2F * XiuhquetzalEntity.K)
+                        .fireImmune()
+                        .clientTrackingRange(16)
+                        .updateInterval(1)
+                        .build(CLAVE_XIUHQUETZAL));
+        FabricDefaultAttributeRegistry.register(XIUHQUETZAL, XiuhquetzalEntity.crearAtributos());
     }
 
     private static void registrarNovilis() {
