@@ -13,26 +13,30 @@ bien su portada».
       cinturones granates con remaches, que cuelga del cinturon de la cintura, hace una ese
       suave y acaba en una aleta roja de hojas en abanico;
     - la cintura: un cinturon con remaches;
-    - la pose, en ese de perfil (el dibujo de Juan): la cabeza arriba mirando al frente y las
-      alas abiertas un poco hacia atras; el torso se echa hacia delante; debajo, el cuerpo baja
-      hacia atras, vuelve hacia delante y al final la cola se va hacia atras con la aleta roja;
-    - de arriba abajo, por la ese («pequeno, un poco grande, pequeno de vuelta y luego sigue lo
-      demas»): el costillar, que es solo costillas (cinco pares de barras rosas gruesas que
-      brillan, con el canto blanco, que se abren hacia arriba, con huecos oscuros entre ellas,
-      la columna detras y el esternon delante); la cintura, lo mas fino; un tambor un poco mas
-      grande; y la cola, tramos finos que se estrechan hasta la aleta. Es larga y esbelta;
-    - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante con un cubo rosa
-      encendido por pulgar) y cuatro dedos largos en abanico, con la membrana azul noche tendida
-      solo entre ellos y el borde libre en arcos (nada en las axilas);
+    - la pose, la del directo (el fotograma que marco Juan): el torso se echa un poco hacia
+      delante y la cabeza va delante del pecho, a la altura del costillar, mirando al frente,
+      con la mandibula de abajo colgando por delante; las alas, abiertas a los lados; debajo de
+      la cintura, el cuerpo baja, se abomba hacia delante por debajo de la cabeza y se curva
+      hacia atras hasta la aleta roja;
+    - de arriba abajo, por la ese: el costillar, que es solo costillas (cinco pares de barras
+      rosas gruesas que brillan, con el canto blanco, que se abren hacia arriba, con huecos
+      oscuros entre ellas, la columna detras y el esternon delante); la cintura, pequena; y
+      debajo, tambores de marmol con su cinturon que van de menor a mayor y de mayor a menor
+      hasta la cola (lo mas gordo, a la mitad, algo mas del doble que la cintura, sin llegar a
+      gordo);
+    - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante) y cuatro dedos
+      largos en abanico, con la membrana azul noche tendida solo entre ellos y el borde libre en
+      arcos (nada en las axilas). No llevan luz;
     - la cabeza: una capucha puntiaguda de azul noche, una visera lila con una gema blanca
       que brilla, dos cuernos lila, una media luna lila, una espina rosa, un gancho negro con
       remaches turquesa y un tallo negro con muescas en la coronilla;
     - la boca: las dos mandibulas son medio rectangulo y medio triangulo (la planta acaba en
-      punta), con la bisagra atras. La de arriba, lila por encima y en la proa, con la gema en
-      la arista y los colmillos rosas y blancos por todo el borde; la de abajo, una bandeja rosa
-      por dentro con el borde de marmol y los dientes rojos en escalon. De lado se ve la caja
-      con los dientes rojos por el borde de arriba; de frente, el escudo rosa que acaba en
-      punta debajo de la visera (asi en la portada y en el directo);
+      punta), con la bisagra atras. La de arriba, larga y recta, lila por encima y en la proa,
+      con la gema en la arista, los colmillos rosas y blancos por todo el borde y el gancho
+      negro, que sale de un lado de la punta y sube; la de abajo, una bandeja rosa por dentro
+      con el borde de marmol y los dientes rojos en escalon, cuelga muy abierta, en diagonal.
+      De frente es el escudo rosa que acaba en punta debajo de la visera (asi en la portada y
+      en el directo);
     - tres cebos: el de arriba sale del tallo negro, sube y se dobla hacia atras, y los de los
       lados salen de la capucha y se doblan hacia atras y abajo; acaban en cubos rosas.
 
@@ -42,12 +46,11 @@ bien su portada».
     O  la original      solo para estudiarla (no va al mod)
     A  de la Capucha    la capucha se abre en una capucha de cobra con dos ojos falsos;
                         sin cebos; marmol de luna y hierro; azul hielo
-    B  de los Faroles   los cebos se hacen faroles con almas: una corona en la cabeza, uno
-                        a cada lado y otro colgando de cada ala; marmol pizarra y laton;
-                        verde de almas
-    C  Encadenada       cuernos de carnero, bozal de hierro roto, grilletes en las alas con
-                        la cadena rota, cadenas en vez de cebos, barrotes en el pecho y
-                        cadenas por la cola; marmol negro con vetas rojas; carmesi
+    B  de los Faroles   los cebos se hacen faroles con almas: una corona en la cabeza y uno
+                        a cada lado; marmol pizarra y laton; verde de almas
+    C  Encadenada       cuernos de carnero, bozal de hierro roto, grilletes en las alas
+                        con la cadena rota, cadenas en vez de cebos, barrotes en el pecho y
+                        cadenas por el cuerpo; marmol negro con vetas rojas; carmesi
 
 Mismo oficio que Simara: cajas con las caras pintadas a 8 px por bloque, sin ruido.
 """
@@ -385,6 +388,16 @@ def pintores(V):
         return _membrana(tw, th, s, False)
     reg('membrana_lisa', membrana_lisa)
 
+    def hombro(tw, th, cara, s):
+        """El hombro de las alas: el negro del gancho con remaches que no brillan."""
+        idx = np.full((th, tw), 2)
+        tex = _imagen(_bisel(idx), V['gancho'])
+        ys, xs = np.mgrid[0:th, 0:tw]
+        m = ((ys % 5) < 2) & ((xs % 5) < 2) & (ys > 0) & (xs > 0) & (ys < th - 1) & (xs < tw - 1)
+        tex[m] = (*V['gancho'][4], 255)
+        return tex, None
+    reg('hombro', hombro)
+
     if k == 'O':
         def espina(tw, th, cara, s):
             idx = np.full((th, tw), 3)
@@ -472,67 +485,84 @@ def _jirones(out, a, b, largo, P, semilla=0, vuelo=(0.0, 0.0, 0.0)):
 
 
 # ----------------------------------------------------------------------
-#  La cola: tambores de marmol con su cinturon, enroscada en el suelo y alzandose
+#  El cuerpo en ese: tambores de marmol con su cinturon, de menor a mayor y de mayor a menor
 # ----------------------------------------------------------------------
 CINTURA = 0.8                     # la cintura, lo mas fino del cuerpo
-INCLINA = 32.0                    # el torso se echa hacia delante (grados)
+# el grueso del cuerpo por la ese (fraccion del largo, radio): la cintura, pequena; el primer
+# tambor; crece hasta lo mas gordo, a la mitad (algo mas del doble que la cintura, sin llegar a
+# gordo), y de ahi mengua hasta la cola
+PERFIL = ((0.0, CINTURA), (0.09, CINTURA), (0.0901, 1.25), (0.25, 1.55), (0.45, 1.9), (0.6, 1.85), (0.75, 1.5),
+          (0.88, 1.1), (1.0, 0.65))
+INCLINA = 24.0                    # el torso se echa hacia delante (grados)
 ANCLA = np.array((0.0, 23.0, 0.0))  # la base del costillar: de aqui cuelga el cuerpo en ese
 
-# la ese, de perfil, desde la base del costillar hasta la aleta: baja hacia atras, vuelve hacia
-# delante y al final la cola se va hacia atras, como en el dibujo de Juan
-ESE = [(0.0, 23.0, 0.0), (0.0, 21.7, -2.9), (0.0, 19.6, -4.9), (0.0, 17.0, -5.7), (0.0, 14.4, -4.9), (0.0, 12.0, -2.2),
-       (0.0, 9.6, 0.0), (0.0, 7.6, 2.3), (0.0, 6.0, 2.6), (0.0, 4.8, 0.6), (0.0, 3.9, -1.7), (0.0, 3.4, -3.4)]
+# el cuerpo, de perfil, desde la base del costillar hasta la aleta, medido en el fotograma del
+# directo que marco Juan (a unos 18 pixeles por bloque): baja, se abomba hacia delante por debajo
+# de la cabeza y se curva hacia atras hasta la aleta
+ESE = [(0.0, 23.0, 0.0), (0.0, 20.8, 0.0), (0.0, 19.0, 0.9), (0.0, 16.8, 2.2), (0.0, 14.3, 3.4), (0.0, 11.8, 4.0),
+       (0.0, 9.3, 3.8), (0.0, 7.1, 2.9), (0.0, 5.4, 1.4), (0.0, 4.4, -0.4), (0.0, 4.0, -1.9)]
 
 
-def _cortes(ctrl, cortes, paso):
-    """Puntos a lo largo de la curva: primero en las longitudes de 'cortes' y despues cada 'paso'
-    hasta el final."""
-    pts, _ = em.catmull(ctrl, 800)
-    pts = [np.asarray(p, float) for p in pts]
-    L = [0.0]
-    for a, b in zip(pts, pts[1:]):
-        L.append(L[-1] + float(np.linalg.norm(b - a)))
-    total = L[-1]
-    marcas = list(cortes)
-    while marcas[-1] + paso < total - 0.3:
-        marcas.append(marcas[-1] + paso)
-    marcas.append(total)
-    out = []
-    for m in marcas:
-        i = min(int(np.searchsorted(L, m)), len(pts) - 1)
-        if i == 0:
-            out.append(pts[0])
-            continue
-        f = (m - L[i - 1]) / max(L[i] - L[i - 1], 1e-9)
-        out.append(pts[i - 1] + (pts[i] - pts[i - 1]) * f)
-    return out
+def _radio(f):
+    """El radio del cuerpo a la fraccion f del largo de la ese (0 en la cintura, 1 en la aleta)."""
+    xs, rs = zip(*PERFIL)
+    return float(np.interp(f, xs, rs))
 
 
 def cuerpo_ese(out, V, P):
-    """De la base del costillar a la aleta, por la ese: la cintura (pequena), un tambor un poco
-    mas grande y la cola, tramos finos que se van estrechando, cada uno con su cinturon; al
-    final, la aleta roja que apunta hacia atras."""
-    pts = _cortes(ESE, (0.0, 2.2, 5.6), 1.55)
+    """De la base del costillar a la aleta, por la ese: la cintura, pequena, y debajo tambores de
+    marmol, un poco abombados, con un cinturon entre uno y otro, que van de menor a mayor (lo
+    mas gordo, a la mitad) y de mayor a menor hasta la cola; cada tambor es tan largo como 0,9
+    veces su grueso. Al final, la aleta roja que apunta hacia atras."""
+    curva, _ = em.catmull(ESE, 800)
+    curva = [np.asarray(p, float) for p in curva]
+    L = [0.0]
+    for a, b in zip(curva, curva[1:]):
+        L.append(L[-1] + float(np.linalg.norm(b - a)))
+    total = L[-1]
+
+    def en(m):
+        i = min(max(int(np.searchsorted(L, m)), 1), len(curva) - 1)
+        f = (m - L[i - 1]) / max(L[i] - L[i - 1], 1e-9)
+        return curva[i - 1] + (curva[i] - curva[i - 1]) * min(max(f, 0.0), 1.0)
+
+    cortes = [0.0, PERFIL[1][0] * total]                                          # los cinturones
+    while True:
+        largo = max(1.6, 1.8 * _radio((cortes[-1] + 1.0) / total))
+        if cortes[-1] + largo > total - 0.8:
+            break
+        cortes.append(cortes[-1] + largo)
+    cortes.append(total)
+    marcas, cual, inicio = [], [], []                                             # cada tambor, en trozos de un bloque
+    for j in range(len(cortes) - 1):
+        c0, c1 = cortes[j], cortes[j + 1]
+        n = max(1, int(math.ceil((c1 - c0) / 1.0)))
+        inicio.append(len(marcas))
+        for q in range(n):
+            marcas.append(c0 + (c1 - c0) * q / n)
+            cual.append((j, (q + 0.5) / n))
+    marcas.append(total)
+    pts = [en(m) for m in marcas]
     marcos = sm._marcos(pts, (0, 0, 1))
-    n = len(marcos)
     for i, M in enumerate(marcos):
-        L = float(np.linalg.norm(pts[i + 1] - pts[i]))
-        if i == 0:
-            r = CINTURA                                                             # pequeno: la cintura
-        elif i == 1:
-            r = 1.95                                                                # un poco grande
-        else:
-            t = (i - 2) / max(n - 3, 1)
-            r = 0.95 - 0.3 * t                                                      # la cola, que se estrecha
-        cubo(out, M, -r, -r, -0.15, 2 * r, 2 * r, L + 0.3, P['marmol'], semilla=i)
-        rb = r * 1.16
-        cubo(out, M @ vr.T(0, 0, -0.28), -rb, -rb, 0, 2 * rb, 2 * rb, 0.56, P['cinto'], semilla=i)
-        if i == 1:                                                                 # el tambor grande, cenido abajo tambien
-            cubo(out, M @ vr.T(0, 0, L - 0.28), -rb, -rb, 0, 2 * rb, 2 * rb, 0.56, P['cinto'], semilla=i + 50)
-        if V['clave'] == 'C' and i >= 1 and i % 2 == 1:                           # cadenas que cruzan el tambor
+        j, u = cual[i]
+        Ls = float(np.linalg.norm(pts[i + 1] - pts[i]))
+        r = _radio((marcas[i] + marcas[i + 1]) / 2 / total)
+        if j > 0:
+            r *= 0.9 + 0.1 * math.sin(math.pi * u)                                # el tambor, un poco abombado
+        cubo(out, M, -r, -r, -0.3, 2 * r, 2 * r, Ls + 0.6, P['marmol'], semilla=i)
+    for j in range(len(cortes) - 1):                                              # el cinturon de arriba de cada tambor
+        M = marcos[inicio[j]]
+        c = cortes[j]
+        rb = max(_radio(max(c - 0.05, 0.0) / total) * 0.9, _radio((c + 0.05) / total) * 0.9) * 1.16
+        rb = max(rb, CINTURA * 1.2)
+        cubo(out, M @ vr.T(0, 0, -0.3), -rb, -rb, 0, 2 * rb, 2 * rb, 0.6, P['cinto'], semilla=60 + j)
+        if V['clave'] == 'C' and j >= 1 and j % 2 == 1:                           # cadenas que cruzan el tambor
+            i = inicio[j] + (inicio[j + 1] - inicio[j]) // 2 if j + 1 < len(inicio) else inicio[j]
+            Mm = marcos[i]
+            r = _radio(marcas[i] / total) * 1.02
             for sx in (1, -1):
-                cadena(out, punto(M, (-sx * r * 1.08, r * 1.08, 0.3)), punto(M, (sx * r * 1.08, r * 1.08, L - 0.3)), 0.7,
-                       P['oxido'], semilla=i)
+                cadena(out, punto(Mm, (-sx * r, r, -0.8)), punto(Mm, (sx * r, r, 1.6)), 0.7, P['oxido'], semilla=j)
     fin = pts[-1]
     t = pts[-1] - pts[-2]
     aleta(out, fin, t / np.linalg.norm(t), P)
@@ -600,10 +630,11 @@ def ofidia(variante='O'):
     # el cuerpo en ese, de la base del costillar a la aleta
     cuerpo_ese(out, V, P)
 
-    # el cuello, corto, y la cabeza encima del costillar, mirando al frente
-    arriba = punto(G, (0.0, 24.9, 0.0))
-    Hc = arriba + np.array((0.0, 2.5, 1.3))
-    viga(out, arriba - np.array((0.0, 0.3, 0.0)), Hc + np.array((0.0, -1.0, -1.3)), 1.8, 1.8, P['marmol'], extra=0.3, semilla=40)
+    # el cuello, corto, y la cabeza delante del pecho, a la altura del costillar y mirando al frente
+    # (como en el directo); la mandibula de abajo cuelga por delante del cuerpo
+    arriba = punto(G, (0.0, 24.3, 0.8))
+    Hc = arriba + np.array((0.0, -2.7, 2.9))
+    viga(out, arriba, Hc + np.array((0.0, 0.3, -2.0)), 1.8, 1.8, P['marmol'], extra=0.3, semilla=40)
     Mh = em.marco(Hc, (0.0, -0.2, 1.0)) @ np.diag([1.05, 1.05, 1.05, 1.0])
     cabeza(out, Mh, V, P)
     if k == 'O':
@@ -624,10 +655,10 @@ def _pano(out, raiz, a, b, pintor, semilla=0):
 
 
 def ala(out, s, V, P, dy=0.0):
-    """Un ala de murcielago: el brazo (hombro, codo hacia atras y muneca hacia delante, con el
-    cubo encendido por pulgar) y cuatro dedos largos que se abren en abanico desde la muneca; la
-    membrana va tendida solo entre los dedos y del antebrazo al ultimo dedo, con el borde libre
-    en arcos; en las axilas no hay membrana."""
+    """Un ala de murcielago: el brazo (hombro, codo hacia atras y muneca hacia delante) y cuatro
+    dedos largos que se abren en abanico desde la muneca; la membrana va tendida solo entre los
+    dedos y del antebrazo al ultimo dedo, con el borde libre en arcos; en las axilas no hay
+    membrana. No lleva luz (Juan: «en sus alas no tiene luz»)."""
     k = V['clave']
     sube = np.array((0.0, dy, 0.0))
     hombro = np.array((s * 2.7, 16.0, -0.8)) + sube
@@ -635,7 +666,7 @@ def ala(out, s, V, P, dy=0.0):
     muneca = np.array((s * 10.6, 19.6, -1.4)) + sube
     dedos = [np.array((s * 19.8, 22.4, -3.0)) + sube, np.array((s * 21.0, 17.6, -4.4)) + sube,
              np.array((s * 18.2, 12.4, -4.8)) + sube, np.array((s * 13.4, 9.6, -4.0)) + sube]
-    cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)            # el hombro, con remaches
+    cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['hombro'], semilla=20)            # el hombro, con remaches
     viga(out, hombro, codo, 1.35, 1.3, P['marmol'], extra=0.3, semilla=21)
     viga(out, codo, muneca, 1.1, 1.05, P['marmol'], extra=0.28, semilla=22)
     bola(out, vr.T(*codo), 0.8, P['marmol'], semilla=23)
@@ -648,13 +679,6 @@ def ala(out, s, V, P, dy=0.0):
     for j in range(3):
         _pano(out, muneca, dedos[j], dedos[j + 1], P['membrana'], semilla=30 + j + 10 * (s > 0))
     _pano(out, codo, muneca, dedos[3], P['membrana'], semilla=34 + 10 * (s > 0))
-    # el pulgar: el cubo encendido de la muneca (en los Faroles, un farol colgando)
-    if k == 'B':
-        _cubo_diamante(out, muneca + np.array((0, 0.6, 0.3)), 0.95, P['cebo'], semilla=37)
-        cadena(out, muneca + np.array((0, -0.5, 0)), muneca + np.array((0, -2.2, 0)), 0.45, P['hierro'], semilla=38)
-        farol(out, muneca + np.array((0, -2.35, 0)), P, semilla=39, g=0.6)
-    else:
-        _cubo_diamante(out, muneca + np.array((0, 0.75, 0.35)), 1.3, P['cebo'], semilla=37, giro=s * 15)
     if k == 'C':                                                                                  # grilletes en el brazo, con la cadena rota
         for p, dd in (((hombro + codo) / 2, codo - hombro), ((codo + muneca) / 2, muneca - codo)):
             M = em.marco(p, dd)
@@ -740,21 +764,21 @@ def cabeza(out, Mh, V, P):
     # rosa por dentro, con el borde de marmol y los dientes rojos en escalon; abierta, de frente
     # es el escudo rosa que acaba en punta debajo de la visera.
     Mu = _mandibula_arriba(Mh)
-    W, R, L = 4.1, 2.9, 5.0
-    prisma5(out, Mu, W, 0.0, 1.6, R, L, {'arriba': P['hueso'], 'proa': P['hueso'], 'lados': P['capucha'], 'atras': P['capucha'],
+    W, R, L = 4.3, 3.5, 6.1
+    prisma5(out, Mu, W, 0.0, 1.8, R, L, {'arriba': P['hueso'], 'proa': P['hueso'], 'lados': P['capucha'], 'atras': P['capucha'],
                                          'abajo': P['boca']}, semilla=7)
     n = _dir(Mu, (0.0, 0.0, 1.0))
-    Mg = em.marco(punto(Mu, (0.0, 0.85, L)) + n * 0.05, n)
+    Mg = em.marco(punto(Mu, (0.0, 0.95, L)) + n * 0.05, n)
     cubo(out, Mg @ vr.Rz(45 * D), -0.36, -0.36, 0, 0.72, 0.72, 0.06, None, caras={'frente': P['gema']}, semilla=9)
     cubo(out, Mh, -0.32, 2.0, -1.8, 0.64, 0.42, 1.9, P['hueso'], semilla=11)                       # la cresta
     for j, (x, z, ang) in enumerate(borde5(W - 0.45, R, L - 0.35, 0.5)):                           # los colmillos, por el borde
         M = Mu @ vr.T(x, 0.05, z) @ vr.Ry(ang + math.pi / 2)
         colmillo(out, M, 0.44, 0.95 + 0.35 * (j % 2), 0.16, P['colmillo'], semilla=12 + j % 9)
     # la de abajo
-    Ml = Mh @ vr.T(0, -0.3, -0.2) @ vr.Rx(40 * D)
-    prisma5(out, Ml, 3.9, -1.3, 0.0, 3.0, 5.6, {'arriba': P['boca'], 'abajo': P['marmol'], 'lados': P['marmol'],
+    Ml = Mh @ vr.T(0, -0.3, -0.2) @ vr.Rx(46 * D)
+    prisma5(out, Ml, 4.1, -1.4, 0.0, 3.4, 6.3, {'arriba': P['boca'], 'abajo': P['marmol'], 'lados': P['marmol'],
                                                  'proa': P['marmol'], 'atras': P['capucha']}, semilla=33)
-    for j, (x, z, ang) in enumerate(borde5(3.9 - 0.4, 3.0, 5.6 - 0.35, 0.52)):                     # los dientes rojos, en escalon
+    for j, (x, z, ang) in enumerate(borde5(4.1 - 0.4, 3.4, 6.3 - 0.35, 0.52)):                     # los dientes rojos, en escalon
         M = Ml @ vr.T(x, 0, z) @ vr.Ry(ang)
         alto = 0.42 + 0.14 * (j % 2)
         cubo(out, M, -0.12, 0, -0.13, 0.24, alto, 0.26, P['diente_bajo'], semilla=40 + j % 7)
@@ -767,7 +791,7 @@ def cabeza(out, Mh, V, P):
     # los dos cuernos lila de la visera
     for s in (1, -1):
         Mu = _mandibula_arriba(Mh)
-        p = punto(Mu, (s * 1.45, 1.5, 0.9))
+        p = punto(Mu, (s * 1.45, 1.7, 0.9))
         pua(out, em.marco(p, _dir(Mh, (s * 0.5, 1.0, -0.25))) @ vr.Rx(90 * D), 0.26, 3.2, P['hueso'], semilla=50)
 
 
@@ -788,9 +812,11 @@ def _media_luna(out, Mh, P, x=1.15):
 
 
 def _gancho_negro(out, Mh, P, s=1):
-    """El gancho negro con remaches: sale de un lado de la cabeza, sube y se dobla."""
-    p = punto(Mh, (s * 2.2, 1.3, -1.3))
-    _ruta(out, p, ((s * 1.3, 0.0, 0.0), (0.0, 2.2, -0.2), (-s * 0.1, 0.0, 0.9)), Mh, 0.72, P['gancho'], semilla=55, afina=0.05)
+    """El gancho negro con remaches, como en el cartel: sale de un lado de la punta de la
+    mandibula de arriba, va hacia fuera, sube y se dobla hacia dentro."""
+    Mu = _mandibula_arriba(Mh)
+    p = punto(Mu, (s * 1.9, 1.0, 2.9))
+    _ruta(out, p, ((s * 1.5, 0.0, 0.5), (0.0, 1.6, 0.1), (-s * 0.7, 0.0, 0.0)), Mu, 0.72, P['gancho'], semilla=55, afina=0.05)
 
 
 def _tallo_negro(out, Mh, P):
@@ -811,7 +837,7 @@ def _cebos(out, Mh, P, tope, final=None):
                     afina=0.06)]
     for s in (1, -1):
         base = punto(Mh, (s * 2.1, 1.1, -1.4))
-        puntas.append(_ruta(out, base, ((s * 1.5, 0.5, -0.2), (s * 0.7, 0.1, -1.6), (s * 0.15, -6.4, 0.4)), Mh, 0.36, P['vara'],
+        puntas.append(_ruta(out, base, ((s * 1.5, 0.5, -0.2), (s * 0.7, 0.1, -1.6), (s * 0.15, -2.2, 0.4)), Mh, 0.36, P['vara'],
                             semilla=66 + (s > 0) * 3, afina=0.06))
     for j, p in enumerate(puntas):
         lado = 1.45 if j == 0 else 1.25
@@ -870,7 +896,7 @@ def _corona_faroles(out, Mh, P):
     # los cebos de los lados tambien son faroles
     for s in (1, -1):
         base = punto(Mh, (s * 2.1, 1.1, -1.4))
-        p = _ruta(out, base, ((s * 1.5, 0.5, -0.2), (s * 0.7, 0.1, -1.6), (s * 0.15, -6.0, 0.4)), Mh, 0.36, P['vara'],
+        p = _ruta(out, base, ((s * 1.5, 0.5, -0.2), (s * 0.7, 0.1, -1.6), (s * 0.15, -1.8, 0.4)), Mh, 0.36, P['vara'],
                   semilla=98, afina=0.06)
         farol(out, p + np.array((0, -0.2, 0)), P, semilla=99, g=0.6)
 
@@ -896,14 +922,14 @@ def _corona_encadenada(out, Mh, P):
     # el bozal de hierro, roto: tres aros sobre el hocico (el de delante, partido) y dos barras
     Mu = _mandibula_arriba(Mh)
     for j, z in enumerate((0.6, 1.5, 2.4)):
-        y0, y1 = -0.15, 1.8
+        y0, y1 = -0.15, 2.0
         for s in (1, -1):
             if j == 2 and s < 0:
                 continue
             viga(out, punto(Mu, (s * 2.3, y0, z)), punto(Mu, (s * 2.3, y1, z)), 0.34, 0.34, P['oxido'], semilla=114)
         viga(out, punto(Mu, (-2.3 if j < 2 else 0.4, y1, z)), punto(Mu, (2.3, y1, z)), 0.34, 0.34, P['oxido'], semilla=115)
     for s in (1, -1):
-        viga(out, punto(Mu, (s * 0.9, 1.82, 0.3)), punto(Mu, (s * 0.9, 1.82, 3.2)), 0.3, 0.3, P['oxido'], semilla=116)
+        viga(out, punto(Mu, (s * 0.9, 2.02, 0.3)), punto(Mu, (s * 0.9, 2.02, 3.6)), 0.3, 0.3, P['oxido'], semilla=116)
     p0 = punto(Mu, (-2.3, -0.1, 2.4))                                             # una cadena rota que cuelga del bozal
     cadena(out, p0, p0 + np.array((-0.4, -4.2, 0.4)), 0.8, P['oxido'], semilla=117)
     _gancho_negro(out, Mh, P, 1)
