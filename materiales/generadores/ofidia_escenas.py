@@ -171,19 +171,19 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'cola de tambores, costillar abierto, dos brazos con manos encendidas, boca de monstruo y tres cebos',
+    'O': 'cola de tambores, costillar abierto, dos alas con la membrana rota, boca triangular y tres cebos',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
-    'B': 'el mismo cuerpo; los cebos son una corona de faroles con almas y lleva otro en cada mano',
-    'C': 'el mismo cuerpo, encadenado: grilletes, barrotes en el pecho, bozal roto y cuernos de carnero',
+    'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza, a los lados y en las alas',
+    'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
 }
 SUB_CABEZA = {
-    'O': 'la capucha, la visera lila con su gema, la cortina de colmillos y los cebos',
+    'O': 'la boca triangular: la cortina de colmillos arriba y la cuna en V con los dientes rojos abajo',
     'A': 'la capucha de cobra se abre detras de la cabeza y sus dos ojos falsos miran',
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((6.5, 4.0, 27.0), (0.0, 13.6, 0.0), 60)
-CAMARA_CABEZA = ((4.8, 12.0, 21.0), (0.0, 17.0, 2.5), 54)
+CAMARA_HEROE = ((6.5, 4.2, 28.0), (0.0, 14.4, 0.0), 62)
+CAMARA_CABEZA = ((13.5, 13.5, 17.0), (0.0, 17.2, 2.5), 52)
 
 
 def escena(cual, camara, nombre, sub, n_motas):
@@ -217,9 +217,9 @@ def cuatro():
              amb=(0.22, 0.21, 0.26), niebla=(0.06, 0.05, 0.09), niebla_d=(180, 330),
              cielo=((0.01, 0.012, 0.03), (0.05, 0.05, 0.1), (0.16, 0.13, 0.22)), motas=(230, 230, 255))
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
-    cam = vr.Camara((0.0, 11.0, 150.0), (0.0, 8.5, 0.0), 22, W * SS, H * SS)
+    cam = vr.Camara((0.0, 11.0, 172.0), (0.0, 10.0, 0.0), 22, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
-    for cual, x in (('O', -48.0), ('A', -16.0), ('B', 16.0), ('C', 48.0)):
+    for cual, x in (('O', -45.0), ('A', -15.0), ('B', 15.0), ('C', 45.0)):
         qs, info = om.ofidia(cual)
         om.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0)), S['luces'], S['amb'], niebla)
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(0.0, 20.0, 0)), S['luces'], S['amb'], niebla)
@@ -238,7 +238,7 @@ def materiales():
                   'B': ('hierro', 'hierro', 'der', 8, 16), 'C': ('oxido', 'oxido', 'der', 8, 16)}[c]
         fila = [(P['marmol'], 'marmol', 'der', 24, 24), (P['cinto'], 'cinturon', 'frente', 24, 6), (P['capucha'], 'capucha', 'arriba', 24, 24),
                 (P['colmillo'], 'colmillo', 'frente', 4, 16), (P['pecho'], 'costillar', 'frente', 24, 24),
-                (P['trapo'], 'jirones', 'frente', 16, 24), (P['nucleo'], 'garganta', 'frente', 24, 24),
+                (P['ala'], 'ala', 'frente', 24, 32), (P['nucleo'], 'garganta', 'frente', 24, 24),
                 (P[propio[0]], propio[1], propio[2], propio[3], propio[4])]
         filas.append((c, fila))
     celda = 168

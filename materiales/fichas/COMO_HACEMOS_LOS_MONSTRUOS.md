@@ -43,7 +43,7 @@ dos o tres criaturas mezcladas con algo nuevo. No un animal de verdad agrandado.
 | Cráneos cúbicos | se leen como la calavera de Minecraft | Quimeras |
 | Objetos y arquitectura (velas, papel, máscaras, torres) | gustan menos que lo orgánico | Quimeras, Fauces |
 | Copiar a Ofidia tal cual | hay que hacer variantes propias | Ofidia |
-| Recrear de memoria o de una sola imagen | la primera Ofidia no se parecía: le faltaban los brazos, la boca y la cola | Ofidia |
+| Recrear de memoria o de una sola imagen | la primera Ofidia no se parecía; la segunda tenía brazos en vez de alas y la boca no era triangular | Ofidia |
 
 ## Lo que hay hasta ahora
 
@@ -55,7 +55,7 @@ dos o tres criaturas mezcladas con algo nuevo. No un animal de verdad agrandado.
 | `guaridas/` | yeti, sapo-caimán, buitre y topo | bien, no excelentes |
 | `tenazara/` | alacrana de tenazas-fauces, en 3 tipos | guardada, pero es un animal literal |
 | `lernara/` | hidra de 3, 5 y 2 cabezas | guardada; primera con variantes de forma |
-| `ofidia/` | Ofidia recreada con su cuerpo de verdad y 3 variantes nuestras sobre ese cuerpo | le gustó la Encadenada; la original es solo estudio |
+| `ofidia/` | Ofidia recreada con su cuerpo de verdad (alas y boca triangular) y 3 variantes nuestras sobre ese cuerpo | le gustó la Encadenada; la original es solo estudio |
 
 Formas de cuerpo que ya están, contando los jefes del mod:
 
@@ -77,6 +77,8 @@ El siguiente debería tener una forma de cuerpo que no esté.
      `https://kick.com/api/v2/channels/<canal>/videos` da la lista m3u8 de cada uno, y de
      ahí se sacan fotogramas con ffmpeg.
    - Hay que mirarlo de frente, de lado y de arriba, y apuntar cada pieza.
+   - La portada oficial manda: hay que cotejar cada pieza con ella a resolución completa,
+     sobre todo la silueta de la boca y si lo que sale del cuerpo son brazos o alas.
 3. **Pensar la mezcla y lo nuevo**: qué dos o tres criaturas lo forman, qué enmarca la
    cabeza y qué detalle no tiene ningún otro.
 4. **Pensar las tres variantes de forma**: qué cambia en la silueta de cada una.
