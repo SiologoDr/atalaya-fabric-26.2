@@ -7,6 +7,10 @@ escala y la lamina de materiales.
   B  Ixtara     la noche de luna, con niebla baja
   C  Espinara   la cienaga de noche, con esporas que flotan
 
+Las fotos salen sin letras (las fichas no llevan texto encima de los renders) y Espinara lleva el
+contorno blanco, como Lumara (Juan, 13-10-2026: «a Espinara su diseno de ficha quitale las letras
+para que se vea mas claro y pongamosle borde blanco tambien»).
+
 Uso: python quimeras_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
 """
 import math, os, random, sys
@@ -326,6 +330,26 @@ def rotular(img, texto, sub=None):
     return img
 
 
+def perfilar(lz, mascara, grosor, color=(1.0, 0.97, 1.0)):
+    """El contorno blanco (el de Lumara): los pixeles de fuera que tocan la figura y quedan detras de
+    ella."""
+    zc = np.where(mascara, lz.z, np.inf)
+    for _ in range(grosor):
+        e = zc.copy()
+        e[1:] = np.minimum(e[1:], zc[:-1])
+        e[:-1] = np.minimum(e[:-1], zc[1:])
+        e[:, 1:] = np.minimum(e[:, 1:], zc[:, :-1])
+        e[:, :-1] = np.minimum(e[:, :-1], zc[:, 1:])
+        zc = np.where(mascara, zc, e)
+    borde = ~mascara & np.isfinite(zc) & (lz.z > zc)
+    lz.color[borde] = color
+    lz.alfa[borde] = 1.0
+    lz.emis[borde] = np.array(color) * 0.15
+
+
+CONTORNO = {'C'}                      # las que llevan el contorno blanco: Espinara
+
+
 def quimera(cual, **k):
     if cual == 'A':
         return qm.quelvora(**k)
@@ -370,11 +394,13 @@ def heroe(cual):
     suelo(lz, cam, niebla, cual)
     decorado(lz, cam, niebla, cual)
     qs, info = quimera(cual)
+    z0 = lz.z.copy()
     qm.dibujar(lz, cam, qs, SITIO[cual]['luces'], SITIO[cual]['amb'], niebla)
+    if cual in CONTORNO:
+        perfilar(lz, lz.z < z0, 3 * SS)
     if cual == 'A':
         haz(lz, cam, *info['faro'])
-    img = componer(lz, cam, W, H, cual, n_motas=170)
-    guardar(rotular(img, NOMBRE[cual], SUB_HEROE[cual]), 'heroe_' + cual)
+    guardar(componer(lz, cam, W, H, cual, n_motas=170), 'heroe_' + cual)                 # sin letras
 
 
 def cabeza(cual):
@@ -386,11 +412,13 @@ def cabeza(cual):
     suelo(lz, cam, niebla, cual)
     decorado(lz, cam, niebla, cual)
     qs, info = quimera(cual, **DE_CERCA[cual])
+    z0 = lz.z.copy()
     qm.dibujar(lz, cam, qs, SITIO[cual]['luces'], SITIO[cual]['amb'], niebla)
+    if cual in CONTORNO:
+        perfilar(lz, lz.z < z0, 3 * SS)
     if cual == 'A':
         haz(lz, cam, *info['faro'], brillo=0.35)
-    img = componer(lz, cam, W, H, cual, n_motas=110)
-    guardar(rotular(img, NOMBRE[cual].split(',')[0], SUB_CABEZA[cual]), 'cabeza_' + cual)
+    guardar(componer(lz, cam, W, H, cual, n_motas=110), 'cabeza_' + cual)                # sin letras
 
 
 def trio():
@@ -450,7 +478,32 @@ def materiales():
     guardar(img, 'materiales')
 
 
+def materiales_espinara():
+    """La lamina de materiales de Espinara sola, sin letras: de izquierda a derecha y de arriba
+    abajo, la corteza de zarza, la espina, el petalo, la hoja, el farolillo, el hueso del craneo, los
+    dientes, las fauces, la savia y el polen."""
+    hojas = ('tallo', 'espina', 'petalo', 'hoja', 'vaina', 'hueso', 'diente', 'fauce', 'savia', 'polen')
+    cols, celda, hueco = 5, 280, 36
+    W = hueco + cols * (celda + hueco)
+    H = hueco + 2 * (celda + hueco)
+    img = Image.new('RGB', (W, H), (18, 15, 22))
+    d = ImageDraw.Draw(img)
+    for k, mat in enumerate(hojas):
+        t = qm.MAT[mat]
+        h, w = t.shape[:2]
+        esc = min(celda / w, celda / h)
+        im = Image.fromarray(t).resize((int(w * esc), int(h * esc)), Image.NEAREST)
+        cx = hueco + (k % cols) * (celda + hueco)
+        cy = hueco + (k // cols) * (celda + hueco)
+        fondo = Image.new('RGBA', (celda, celda), (36, 30, 44, 255))
+        fondo.paste(im, ((celda - im.width) // 2, (celda - im.height) // 2), im)
+        img.paste(fondo.convert('RGB'), (cx, cy))
+        d.rectangle((cx - 1, cy - 1, cx + celda, cy + celda), outline=(80, 70, 96))
+    guardar(img, 'materiales_C')
+
+
 ESCENAS = {
+    'materiales_C': materiales_espinara,
     'heroe_A': lambda: heroe('A'), 'heroe_B': lambda: heroe('B'), 'heroe_C': lambda: heroe('C'),
     'cabeza_A': lambda: cabeza('A'), 'cabeza_B': lambda: cabeza('B'), 'cabeza_C': lambda: cabeza('C'),
     'trio': trio, 'materiales': materiales,

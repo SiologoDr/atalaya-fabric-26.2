@@ -6,8 +6,9 @@ errores.
 
 ## El objetivo
 
-Monstruos al nivel de **Ofidia** (Dedsafio 4) y de **Espinara**: inventados, hechos de
-dos o tres criaturas mezcladas con algo nuevo. No un animal de verdad agrandado.
+Monstruos al nivel de **Lumara** (el mejor hasta ahora, nacida de estudiar a la Ofidia de
+Dedsafio 4) y de **Espinara**: inventados, hechos de dos o tres criaturas mezcladas con algo
+nuevo. No un animal de verdad agrandado.
 
 ## La receta
 
@@ -56,12 +57,12 @@ Los jefes van en `bosses/` y los bichos normales en `mobs/`.
 
 | Ficha | Qué es | Veredicto de Juan |
 |---|---|---|
-| `bosses/espinara/` | zarza que florece, flor carnívora por cabeza | le gustó mucho |
+| `bosses/espinara/` | zarza que florece, flor carnívora por cabeza | le gustó mucho; fotos sin letras y con borde blanco |
 | `bosses/simara/` | sierpe de tambores y cinturones, en 3 tipos | le gustó: es el formato |
 | `bosses/riscara/` | dragona de los riscos, en 3 tipos | le gustó |
 | `bosses/tenazara/` | alacrana de tenazas-fauces, en 3 tipos | guardada, pero es un animal literal |
 | `bosses/lernara/` | hidra de 3, 5 y 2 cabezas | guardada; primera con variantes de forma |
-| `bosses/lumara/` | Lumara, la Sirena de los Cebos: empezó como estudio de la Ofidia de Dedsafio 4 y ahora tiene nombre propio; la original y 3 variantes | le gustó la Encadenada |
+| `bosses/lumara/` | Lumara, la Sirena de los Cebos: empezó como estudio de la Ofidia de Dedsafio 4 y ahora tiene nombre propio; la original y 3 variantes | **el mejor diseño hasta ahora** (13-10); le gustó la Encadenada |
 | `mobs/guaridas/` | yeti, sapo-caimán, buitre y topo | bien, no excelentes |
 
 Formas de cuerpo que ya están, contando los jefes del mod:

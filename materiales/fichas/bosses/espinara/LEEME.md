@@ -14,4 +14,10 @@ La quimera que mas le gusto a Juan (12-10-2026) de la ficha del quinto jefe
 - Paleta: zarza #132014, petalo #2a2466, nectar #7aff3a, hueso #cbbfa2, espina #2a1a1e.
 
 El boceto sale de `materiales/generadores/quimeras_modelo.py` (`espinara()`) y
-`quimeras_escenas.py` (escenas `heroe_C` y `cabeza_C`).
+`quimeras_escenas.py` (escenas `heroe_C`, `cabeza_C` y `materiales_C`).
+
+Desde el 13-10-2026 las fotos van sin letras y con el borde blanco de Lumara (Juan: «a
+Espinara su diseño de ficha quítale las letras para que se vea más claro y pongámosle
+borde blanco también»). La lámina `espinara_materiales.jpg` es solo suya y sin rótulos: de
+izquierda a derecha y de arriba abajo, la corteza de zarza, la espina, el pétalo, la hoja,
+el farolillo, el hueso del cráneo, los dientes, las fauces, la savia y el polen.
