@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta nueve versiones:
+como tal». Hicieron falta diez versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -28,8 +28,12 @@ como tal». Hicieron falta nueve versiones:
 8. La octava dividió el cuerpo por tramos («es como pequeño, un poco grande, pequeño de
    vuelta y luego sigue lo demás, sus costillas»), la hizo más alta, alargó la mandíbula y
    quitó la membrana de las axilas.
-9. Esta novena le da la pose en ese del dibujo de Juan («la pose está muy tiesa; vamos a
+9. La novena le dio la pose en ese del dibujo de Juan («la pose está muy tiesa; vamos a
    hacer que tenga una pose como una S»), con la cintura más fina y el cuerpo más largo.
+10. Esta décima sigue las marcas en rojo que Juan pintó sobre los renders («solo haz este
+    cambio y quedaría listo»). El cuerpo hace una ese más redonda justo debajo del pecho y
+    las alas van abiertas del todo a los lados. La ese se midió sobre su trazo rojo y se
+    comprobó superponiéndolo al render nuevo.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -48,10 +52,13 @@ Las fuentes son cinco:
 
 En la forma de monstruo se ve:
 
-- **La pose, en ese** (el dibujo de Juan, de perfil):
-  - la cabeza arriba, mirando al frente, con las alas abiertas un poco hacia atrás;
+- **La pose, en ese** (el dibujo de Juan y sus marcas en rojo):
+  - la cabeza arriba, mirando al frente;
+  - las alas, abiertas del todo a los lados, casi horizontales, con las puntas un poco
+    hacia arriba;
   - el torso se echa hacia delante;
-  - debajo, el cuerpo baja hacia atrás y vuelve hacia delante;
+  - justo debajo del pecho, el cuerpo se va hacia atrás y hace una curva grande hacia
+    delante;
   - al final, la cola se va hacia atrás con la aleta roja.
 
   Flota: no toca el suelo.

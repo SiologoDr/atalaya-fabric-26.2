@@ -480,8 +480,8 @@ ANCLA = np.array((0.0, 23.0, 0.0))  # la base del costillar: de aqui cuelga el c
 
 # la ese, de perfil, desde la base del costillar hasta la aleta: baja hacia atras, vuelve hacia
 # delante y al final la cola se va hacia atras, como en el dibujo de Juan
-ESE = [(0.0, 23.0, 0.0), (0.0, 20.9, -1.7), (0.0, 17.6, -4.6), (0.0, 13.9, -4.4), (0.0, 10.6, -1.4), (0.0, 7.9, 1.8),
-       (0.0, 5.6, 2.6), (0.0, 4.0, 1.0), (0.0, 3.3, -2.0), (0.0, 3.2, -5.6)]
+ESE = [(0.0, 23.0, 0.0), (0.0, 21.7, -2.9), (0.0, 19.6, -4.9), (0.0, 17.0, -5.7), (0.0, 14.4, -4.9), (0.0, 12.0, -2.2),
+       (0.0, 9.6, 0.0), (0.0, 7.6, 2.3), (0.0, 6.0, 2.6), (0.0, 4.8, 0.6), (0.0, 3.9, -1.7), (0.0, 3.4, -3.4)]
 
 
 def _cortes(ctrl, cortes, paso):
@@ -588,12 +588,13 @@ def ofidia(variante='O'):
     G = vr.T(*ANCLA) @ vr.Rx(INCLINA * D) @ vr.T(0, -18.8, 0)
     out += qm.transformar(torso, G)
 
-    # las alas, abiertas a los lados y un poco hacia atras, a nivel (no se inclinan con el torso)
+    # las alas, abiertas del todo a los lados, casi horizontales y con las puntas un poco hacia arriba
+    # (a nivel: no se inclinan con el torso)
     hombros = np.array((0.0, 24.4, -0.8))
     for s in (1, -1):
         alas = []
         ala(alas, s, V, P, dy=8.4)
-        Mal = vr.T(*punto(G, hombros)) @ vr.Ry(s * 34 * D) @ vr.Rz(-s * 14 * D) @ vr.T(*(-hombros))
+        Mal = vr.T(*punto(G, hombros)) @ vr.Ry(s * 8 * D) @ vr.Rz(-s * 10 * D) @ vr.T(*(-hombros))
         out += qm.transformar(alas, Mal)
 
     # el cuerpo en ese, de la base del costillar a la aleta
@@ -630,10 +631,10 @@ def ala(out, s, V, P, dy=0.0):
     k = V['clave']
     sube = np.array((0.0, dy, 0.0))
     hombro = np.array((s * 2.7, 16.0, -0.8)) + sube
-    codo = np.array((s * 6.4, 17.0, -3.2)) + sube
-    muneca = np.array((s * 10.0, 20.4, -1.2)) + sube
-    dedos = [np.array((s * 16.0, 23.0, -3.6)) + sube, np.array((s * 18.6, 18.0, -5.2)) + sube,
-             np.array((s * 16.8, 12.6, -5.8)) + sube, np.array((s * 12.2, 9.4, -5.0)) + sube]
+    codo = np.array((s * 6.6, 17.2, -2.6)) + sube
+    muneca = np.array((s * 10.6, 19.6, -1.4)) + sube
+    dedos = [np.array((s * 19.8, 22.4, -3.0)) + sube, np.array((s * 21.0, 17.6, -4.4)) + sube,
+             np.array((s * 18.2, 12.4, -4.8)) + sube, np.array((s * 13.4, 9.6, -4.0)) + sube]
     cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)            # el hombro, con remaches
     viga(out, hombro, codo, 1.35, 1.3, P['marmol'], extra=0.3, semilla=21)
     viga(out, codo, muneca, 1.1, 1.05, P['marmol'], extra=0.28, semilla=22)
