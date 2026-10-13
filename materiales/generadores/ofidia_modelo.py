@@ -14,16 +14,16 @@ bien su portada».
     - la cintura: un cinturon con remaches;
     - el torso: un costillar abierto que brilla rosa por dentro, con costillas blancas y la
       columna oscura de vertebras grises por delante;
-    - dos alas: el hueso grueso de marmol sale del hombro, sube hasta el codo y se abre hasta la
-      muneca, donde lleva un cubo rosa encendido; de el cuelga la membrana lisa azul noche, en
-      hojas que acaban en pico (en vuelo, las alas son hojas largas echadas hacia atras);
+    - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante con un cubo rosa
+      encendido por pulgar) y cuatro dedos largos en abanico, con la membrana azul noche tendida
+      entre ellos y el borde libre en arcos;
     - la cabeza: una capucha puntiaguda de azul noche, una visera lila con una gema blanca
       que brilla, dos cuernos lila, una media luna lila, una espina rosa, un gancho negro con
       remaches turquesa y un tallo negro con muescas en la coronilla;
-    - la boca, triangular: arriba la mandibula ancha con una cortina de colmillos planos rosas y
-      blancos, con la punta en escalon; abajo una artesa en V de dos losas gruesas, abierta, con
-      el interior encendido y los dientes rojos en escalon por los cantos: de frente, la boca es
-      un triangulo; de lado, la losa oscura con los dientes rojos debajo del rosa;
+    - la boca, de dos cunas (medio rectangulo partido en diagonal cada una): la de arriba, con
+      la visera lila en rampa y la gema, y los colmillos colgando del paladar; la de abajo, al
+      reves, llana por dentro y en rampa por fuera, que se estrecha hasta la barbilla, con los
+      dientes rojos en escalon por los cantos; abierta, por dentro es el triangulo rosa;
     - tres cebos: el de arriba sale del tallo negro, sube y se dobla hacia atras, y los de los
       lados salen de la capucha y se doblan hacia atras y abajo; acaban en cubos rosas.
 
@@ -330,21 +330,33 @@ def pintores(V):
         return t, None
     reg('trapo', trapo)
 
-    def ala(tw, th, cara, s):
-        """La membrana del ala: lisa, azul noche con manchas de marmol mas claras; el canto que va
-        pegado al hueso, claro, y hacia la punta cada vez mas oscura."""
+    def _membrana(tw, th, s, libre):
+        """La membrana del ala de murcielago: azul noche con manchas de marmol, mas oscura junto a
+        la raiz; si el borde es libre, va recortado en arco (cada tramo entre dos dedos se hunde)
+        y con un canto un poco mas claro."""
+        t = np.zeros((th, tw, 4), np.uint8)
         ys, xs = np.mgrid[0:th, 0:tw]
+        u = (xs + 0.5) / tw
         m = _manchas(tw, th, s + 31, celda=6.5, umbral=0.58, alto=0.8)
         idx = np.array([0, 1, 1, 2, 3])[m]
-        v = ys / max(th - 1, 1)                           # 0 en el hueso, 1 en la punta
-        idx = np.where(v > 0.55, np.maximum(idx - 1, 0), idx)
-        if th >= 4:
-            idx[0, :] = 4
-            idx[1, :] = np.maximum(idx[1, :], 3)
-        tex = _imagen(idx, V['trapo'])
-        tex[..., 3] = 255
-        return tex, None
-    reg('ala', ala)
+        v = 1 - (ys + 0.5) / th                        # 0 en la raiz (abajo), 1 en el borde (arriba)
+        idx = np.where(v < 0.3, np.maximum(idx - 1, 0), idx)
+        img = _imagen(idx, V['trapo'])
+        borde = (th - 1) * (0.03 + 0.2 * np.sin(np.pi * u)) if libre else np.zeros_like(u)
+        fuera = ys < borde
+        if libre:
+            canto = (~fuera) & (ys < borde + 1.6)
+            img[canto] = (*V['trapo'][4], 255)
+        t[~fuera] = img[~fuera]
+        return t, None
+
+    def membrana(tw, th, cara, s):
+        return _membrana(tw, th, s, True)
+    reg('membrana', membrana)
+
+    def membrana_lisa(tw, th, cara, s):
+        return _membrana(tw, th, s, False)
+    reg('membrana_lisa', membrana_lisa)
 
     if k == 'O':
         def espina(tw, th, cara, s):
@@ -510,51 +522,68 @@ def ofidia(variante='O'):
     return out, {'cabeza': Mh}
 
 
+def _pano(out, raiz, a, b, pintor, semilla=0):
+    """Un pano de membrana de la raiz al tramo a-b, que es su borde (libre o no)."""
+    raiz, a, b = np.asarray(raiz, float), np.asarray(a, float), np.asarray(b, float)
+    lamina(out, (raiz, raiz, b, a), pintor, float(np.linalg.norm(b - a)), float(np.linalg.norm((a + b) / 2 - raiz)), semilla)
+
+
 def ala(out, s, V, P):
-    """Un ala, como en el cartel y en el vuelo: el hueso grueso de marmol sale del hombro, sube
-    hasta el codo y se abre hasta la muneca, donde lleva un cubo encendido; de el cuelga la
-    membrana lisa, en hojas que acaban en pico (el borde de abajo, roto en picos)."""
+    """Un ala de murcielago: el brazo (hombro, codo hacia atras y muneca hacia delante, con el
+    cubo encendido por pulgar) y cuatro dedos largos que se abren en abanico desde la muneca; la
+    membrana va tendida entre los dedos, con el borde libre en arcos, y del ultimo dedo baja
+    hasta el costado."""
     k = V['clave']
-    raiz = np.array((s * 2.7, 16.0, -0.7))
-    codo = np.array((s * 7.4, 18.4, -1.9))
-    muneca = np.array((s * 12.8, 17.4, -3.2))
-    cubo(out, vr.T(*raiz), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)               # el hombro, con remaches
-    viga(out, raiz, codo, 1.55, 1.45, P['marmol'], extra=0.35, semilla=21)
-    viga(out, codo, muneca, 1.2, 1.1, P['marmol'], extra=0.3, semilla=22)
-    bola(out, vr.T(*codo), 0.95, P['marmol'], semilla=23)
-    d = (muneca - codo) / np.linalg.norm(muneca - codo)
-    if k == 'B':                                                                                  # en la punta, un farol
-        _cubo_diamante(out, muneca + d * 0.4, 1.0, P['cebo'], semilla=24)
-        cadena(out, muneca + np.array((0, -0.5, 0)), muneca + np.array((0, -2.2, 0)), 0.45, P['hierro'], semilla=31)
-        farol(out, muneca + np.array((0, -2.35, 0)), P, semilla=32, g=0.6)
+    hombro = np.array((s * 2.7, 16.0, -0.8))
+    codo = np.array((s * 6.4, 17.0, -3.2))
+    muneca = np.array((s * 10.0, 20.4, -1.2))
+    dedos = [np.array((s * 16.0, 23.0, -3.6)), np.array((s * 18.6, 18.0, -5.2)), np.array((s * 16.8, 12.6, -5.8)),
+             np.array((s * 12.2, 9.4, -5.0))]
+    costado = np.array((s * 3.2, 10.8, -1.8))
+    cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)            # el hombro, con remaches
+    viga(out, hombro, codo, 1.35, 1.3, P['marmol'], extra=0.3, semilla=21)
+    viga(out, codo, muneca, 1.1, 1.05, P['marmol'], extra=0.28, semilla=22)
+    bola(out, vr.T(*codo), 0.8, P['marmol'], semilla=23)
+    bola(out, vr.T(*muneca), 0.7, P['marmol'], semilla=24)
+    for j, t in enumerate(dedos):                                                                # los dedos
+        g = 0.44 - 0.04 * j
+        viga(out, muneca, t, g, g, P['marmol'], extra=0.1, semilla=25 + j)
+    # la membrana: entre los dedos, con el borde en arcos; del ultimo dedo al costado; y por dentro
+    for j in range(3):
+        _pano(out, muneca, dedos[j], dedos[j + 1], P['membrana'], semilla=30 + j + 10 * (s > 0))
+    _pano(out, codo, dedos[3], costado, P['membrana'], semilla=33 + 10 * (s > 0))
+    _pano(out, codo, muneca, dedos[3], P['membrana_lisa'], semilla=34)
+    _pano(out, hombro, codo, costado, P['membrana_lisa'], semilla=35)
+    _pano(out, codo, hombro, muneca, P['membrana_lisa'], semilla=36)
+    # el pulgar: el cubo encendido de la muneca (en los Faroles, un farol colgando)
+    if k == 'B':
+        _cubo_diamante(out, muneca + np.array((0, 0.6, 0.3)), 0.95, P['cebo'], semilla=37)
+        cadena(out, muneca + np.array((0, -0.5, 0)), muneca + np.array((0, -2.2, 0)), 0.45, P['hierro'], semilla=38)
+        farol(out, muneca + np.array((0, -2.35, 0)), P, semilla=39, g=0.6)
     else:
-        _cubo_diamante(out, muneca + d * 0.55, 1.4, P['cebo'], semilla=24, giro=s * 15)
-    # la membrana: una sola tela que cuelga del hueso; el borde de abajo va en dientes de sierra
-    # (puntas largas y muescas), como la de Ofidia
-    huesos = []
-    for t in np.linspace(0, 1, 11):
-        if t <= 0.5:
-            p = raiz + (codo - raiz) * (t / 0.5)
-        else:
-            p = codo + (muneca - codo) * ((t - 0.5) / 0.5)
-        huesos.append(p + np.array((0, -0.55, 0.0)))
-    huesos.append(muneca + d * 1.2)
-    borde = []
-    for i, h in enumerate(huesos):
-        t = i / (len(huesos) - 1)
-        caida = 7.4 - 5.6 * t                          # junto al cuerpo cuelga mucho; en la punta, poco
-        if i % 2 == 1:
-            caida *= 0.62                              # las muescas
-        borde.append(h + np.array((s * 0.25 * t, -caida, -1.2 - 1.4 * t)))
-    for i in range(len(huesos) - 1):
-        a, b = huesos[i], huesos[i + 1]
-        ea, eb = borde[i], borde[i + 1]
-        lamina(out, (ea, eb, b, a), P['ala'], float(np.linalg.norm(b - a)), float(np.linalg.norm(ea - a)), 25 + i + 20 * (s > 0))
-    if k == 'C':                                                                                  # grilletes en el hueso, con la cadena rota
-        for p, dd in (((raiz + codo) / 2, codo - raiz), (codo * 0.45 + muneca * 0.55, muneca - codo)):
+        _cubo_diamante(out, muneca + np.array((0, 0.75, 0.35)), 1.3, P['cebo'], semilla=37, giro=s * 15)
+    if k == 'C':                                                                                  # grilletes en el brazo, con la cadena rota
+        for p, dd in (((hombro + codo) / 2, codo - hombro), ((codo + muneca) / 2, muneca - codo)):
             M = em.marco(p, dd)
-            cubo(out, M, -1.05, -1.0, -0.35, 2.1, 2.0, 0.7, P['oxido'], semilla=33)
-            cadena(out, p + np.array((0, -0.95, 0)), p + np.array((s * 0.3, -4.4, 0.4)), 0.75, P['oxido'], semilla=34)
+            cubo(out, M, -0.95, -0.9, -0.35, 1.9, 1.8, 0.7, P['oxido'], semilla=40)
+            cadena(out, p + np.array((0, -0.9, 0)), p + np.array((s * 0.3, -4.2, 0.4)), 0.75, P['oxido'], semilla=41)
+
+
+def solido(out, esquinas, pintores, semilla=0):
+    """Un bloque de 8 esquinas cualesquiera (una cuna, por ejemplo), con su pintor por cara.
+    Las esquinas van a b c d (atras: abajo-izq, abajo-der, arriba-der, arriba-izq) y e f g h
+    (delante, igual); pintores dice el de cada cara ('atras', 'frente', 'arriba', 'abajo',
+    'izq', 'der'), y la que no tiene pintor no se dibuja."""
+    a, b, c, d, e, f, g, h = [np.asarray(p, float) for p in esquinas]
+    caras = {'atras': (b, a, d, c), 'frente': (e, f, g, h), 'arriba': (h, g, c, d), 'abajo': (a, b, f, e),
+             'izq': (a, e, h, d), 'der': (f, b, c, g)}
+    for k, (p0, p1, p2, p3) in caras.items():
+        pin = pintores.get(k)
+        if pin is None:
+            continue
+        ancho = max(np.linalg.norm(p1 - p0), np.linalg.norm(p2 - p3), 0.05)
+        alto = max(np.linalg.norm(p3 - p0), np.linalg.norm(p2 - p1), 0.05)
+        lamina(out, (p0, p1, p2, p3), pin, float(ancho), float(alto), semilla)
 
 
 def colmillo(out, M, ancho, largo, grueso, pintor, semilla=0):
@@ -565,9 +594,9 @@ def colmillo(out, M, ancho, largo, grueso, pintor, semilla=0):
 
 
 def cabeza(out, Mh, V, P):
-    """La cabeza: la capucha puntiaguda, la visera lila con su gema, la mandibula de arriba con
-    la cortina de colmillos y la de abajo en cuña, en V, de modo que la boca abierta es un
-    triangulo encendido por dentro."""
+    """La cabeza: la capucha puntiaguda y la boca de dos cunas, medio rectangulo cada una: la
+    de arriba con la visera lila en rampa, la gema y los colmillos colgando del paladar; la de
+    abajo al reves, que se estrecha hasta la barbilla y por dentro es el triangulo rosa."""
     k = V['clave']
     # la capucha, que acaba en pico hacia atras
     cubo(out, Mh, -2.05, -0.5, -3.0, 4.1, 2.7, 3.8, P['capucha'], semilla=1)
@@ -578,43 +607,50 @@ def cabeza(out, Mh, V, P):
     for s in (1, -1):                                                                              # los faldones de la capucha
         x0 = 2.0 if s > 0 else -2.4
         cubo(out, Mh, x0, -1.9, -3.0, 0.4, 3.9, 3.4, P['capucha'], semilla=6)
-    # la visera: el bloque de delante, lila, con la gema en medio; por debajo, el paladar encendido
-    cubo(out, Mh, -2.15, -0.55, 0.2, 4.3, 2.35, 2.7, P['hueso'], caras={'abajo': P['fauces'], 'arriba': P['marmol']}, semilla=7)
-    cubo(out, Mh, -2.18, -0.55, 2.84, 4.36, 0.42, 0.1, P['capucha'], semilla=8)                    # la banda oscura de abajo
-    cubo(out, Mh, -0.32, 1.8, -1.8, 0.64, 0.42, 2.7, P['hueso'], semilla=11)                       # la cresta
-    cubo(out, Mh @ vr.T(0, 0.95, 2.91) @ vr.Rz(45 * D), -0.4, -0.4, 0, 0.8, 0.8, 0.08, P['gema'], semilla=9)
+    # la mandibula de arriba: una cuna (medio rectangulo partido en diagonal). Por encima, la
+    # visera lila que baja en rampa hasta el morro, con la gema; delante, la banda oscura con
+    # remaches; por debajo, el paladar encendido, del que cuelgan los colmillos
+    mh = lambda x, y, z: punto(Mh, (x, y, z))
+    solido(out, [mh(-2.15, -0.55, 0.2), mh(2.15, -0.55, 0.2), mh(2.15, 1.95, 0.2), mh(-2.15, 1.95, 0.2),
+                 mh(-2.15, -0.55, 3.25), mh(2.15, -0.55, 3.25), mh(2.15, -0.05, 3.25), mh(-2.15, -0.05, 3.25)],
+           {'arriba': P['hueso'], 'frente': P['gancho'], 'abajo': P['boca'], 'izq': P['capucha'], 'der': P['capucha']}, semilla=7)
+    n = _dir(Mh, (0.0, 3.05, 2.0))
+    n = n / np.linalg.norm(n)
+    Mg = em.marco(mh(0.0, 0.66, 2.17) + n * 0.04, n)
+    cubo(out, Mg @ vr.Rz(45 * D), -0.42, -0.42, 0, 0.84, 0.84, 0.06, None, caras={'frente': P['gema']}, semilla=9)
+    cubo(out, Mh, -0.32, 1.9, -1.8, 0.64, 0.42, 2.0, P['hueso'], semilla=11)                       # la cresta
     for j in range(8):                                                                             # los colmillos de delante
         x = -1.75 + j * 0.5
-        colmillo(out, Mh @ vr.T(x, -0.5, 2.72), 0.42, 0.8 + 0.28 * (j % 2), 0.16, P['colmillo'], semilla=12 + j)
+        colmillo(out, Mh @ vr.T(x, -0.5, 3.08), 0.42, 0.8 + 0.28 * (j % 2), 0.16, P['colmillo'], semilla=12 + j)
     for s in (1, -1):                                                                              # los de los lados
-        for j in range(3):
-            M = Mh @ vr.T(s * 1.98, -0.5, 0.75 + j * 0.7) @ vr.Ry(90 * D)
+        for j in range(4):
+            M = Mh @ vr.T(s * 1.98, -0.5, 0.75 + j * 0.62) @ vr.Ry(90 * D)
             colmillo(out, M, 0.5, 0.75 + 0.25 * ((j + 1) % 2), 0.16, P['colmillo'], semilla=20 + j)
-    # la mandibula de abajo: cuelga casi vertical y se estrecha en escalones hasta la barbilla, asi
-    # que de frente la boca es un triangulo rosa; los dientes rojos van en escalon por los bordes
-    Mj = Mh @ vr.T(0, -0.5, 1.95) @ vr.Rx(62 * D)
-    z = 0.0
-    for j, (mitad, largo) in enumerate(((2.0, 0.95), (1.6, 0.9), (1.15, 0.85), (0.74, 0.8), (0.37, 0.6))):
-        cubo(out, Mj, -mitad, -0.9, z, 2 * mitad, 0.9, largo, P['marmol'], caras={'arriba': P['fauces']}, semilla=33 + j)
-        for lado in (1, -1):                                                                         # dos dientes por escalon
-            for q in range(2):
-                M = Mj @ vr.T(lado * (mitad - 0.14), 0, z + 0.2 + q * (largo - 0.42))
-                alto = 0.3 + 0.1 * ((j + q) % 2)
-                cubo(out, M, -0.11, 0, -0.15, 0.22, alto, 0.3, P['diente_bajo'], semilla=40 + j)
-                cubo(out, M, -0.08, alto, -0.15, 0.16, 0.16, 0.17, P['diente_bajo'], semilla=46 + j)
-        z += largo
-    cubo(out, Mj, -0.34, -0.9, z, 0.68, 0.65, 0.3, P['marmol'], semilla=52)                      # la punta de la barbilla
-    ti, td, pu = punto(Mj, (-2.0, 0.06, 0.0)), punto(Mj, (2.0, 0.06, 0.0)), punto(Mj, (0.0, 0.06, z + 0.1))
-    e = _dir(Mj, (0.2, 0, 0))
-    lamina(out, (pu - e, pu + e, td, ti), P['boca'], 4.0, z, 53)                                   # el triangulo rosa de dentro
+    # la mandibula de abajo: la otra cuna, al reves (llana por dentro y en rampa por fuera), que
+    # se estrecha hasta la barbilla; abierta, cuelga casi recta y por dentro es el triangulo rosa
+    Mj = Mh @ vr.T(0, -0.55, 0.35) @ vr.Rx(46 * D)
+    mj = lambda x, y, z: punto(Mj, (x, y, z))
+    L = 3.7
+    solido(out, [mj(-2.0, -1.9, 0), mj(2.0, -1.9, 0), mj(2.0, 0, 0), mj(-2.0, 0, 0),
+                 mj(-0.55, -0.32, L), mj(0.55, -0.32, L), mj(0.55, 0, L), mj(-0.55, 0, L)],
+           {'arriba': P['boca'], 'abajo': P['marmol'], 'izq': P['marmol'], 'der': P['marmol'], 'frente': P['marmol'],
+            'atras': P['capucha']}, semilla=33)
+    for lado in (1, -1):                                                                           # los dientes rojos, en escalon
+        for j in range(7):
+            t = (j + 0.5) / 7
+            x = lado * (2.0 + (0.55 - 2.0) * t - 0.16)
+            M = Mj @ vr.T(x, 0, t * L)
+            alto = 0.32 + 0.12 * (j % 2)
+            cubo(out, M, -0.11, 0, -0.15, 0.22, alto, 0.3, P['diente_bajo'], semilla=40 + j)
+            cubo(out, M, -0.08, alto, -0.15, 0.16, 0.16, 0.17, P['diente_bajo'], semilla=47 + j)
     # al fondo de la boca, la garganta que brilla
-    Mv = em.marco(punto(Mh, (0.0, -0.95, 0.55)), _dir(Mh, (0.0, 0.1, 1.0)))
+    Mv = em.marco(punto(Mh, (0.0, -1.0, 0.45)), _dir(Mh, (0.0, 0.1, 1.0)))
     cubo(out, Mv, -1.15, -1.15, 0, 2.3, 2.3, 0.05, None, caras={'frente': P['nucleo']}, semilla=49)
     if k == 'C':
         return
     # los dos cuernos lila de la visera
     for s in (1, -1):
-        p = punto(Mh, (s * 1.55, 1.75, 0.9))
+        p = punto(Mh, (s * 1.55, 1.75, 0.5))
         pua(out, em.marco(p, _dir(Mh, (s * 0.5, 1.0, -0.25))) @ vr.Rx(90 * D), 0.26, 3.2, P['hueso'], semilla=50)
 
 
@@ -736,16 +772,16 @@ def _corona_encadenada(out, Mh, P):
         cadena(out, base, fin, 0.8, P['oxido'], semilla=118)
         cubo(out, vr.T(*fin) @ vr.Ry(s * 20 * D), -0.6, -0.9, -0.6, 1.2, 0.9, 1.2, P['oxido'], semilla=119)
     # el bozal de hierro, roto: tres aros sobre el hocico (el de delante, partido) y dos barras
-    for j, z in enumerate((0.7, 1.7, 2.7)):
-        y0, y1 = -0.7, 2.0
+    for j, z in enumerate((0.8, 1.8, 2.8)):
+        y0, y1 = -0.7, 2.1 - 0.66 * z
         for s in (1, -1):
             if j == 2 and s < 0:
                 continue
             viga(out, punto(Mh, (s * 2.32, y0, z)), punto(Mh, (s * 2.32, y1, z)), 0.34, 0.34, P['oxido'], semilla=114)
         viga(out, punto(Mh, (-2.32 if j < 2 else 0.4, y1, z)), punto(Mh, (2.32, y1, z)), 0.34, 0.34, P['oxido'], semilla=115)
     for s in (1, -1):
-        viga(out, punto(Mh, (s * 0.9, 2.05, 0.3)), punto(Mh, (s * 0.9, 2.05, 3.0)), 0.3, 0.3, P['oxido'], semilla=116)
-    p0 = punto(Mh, (-2.32, -0.6, 2.7))                                             # una cadena rota que cuelga del bozal
+        viga(out, punto(Mh, (s * 0.9, 2.0, 0.4)), punto(Mh, (s * 0.9, 0.2, 3.1)), 0.3, 0.3, P['oxido'], semilla=116)
+    p0 = punto(Mh, (-2.32, -0.6, 2.8))                                             # una cadena rota que cuelga del bozal
     cadena(out, p0, p0 + np.array((-0.4, -4.2, 0.4)), 0.8, P['oxido'], semilla=117)
     _gancho_negro(out, Mh, P, 1)
 

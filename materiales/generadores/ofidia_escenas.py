@@ -171,13 +171,13 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'cola de tambores, costillar abierto, dos alas con la membrana rota, boca triangular y tres cebos',
+    'O': 'cola de tambores, costillar abierto, alas de murcielago, boca de dos cunas y tres cebos',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
     'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza, a los lados y en las alas',
     'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
 }
 SUB_CABEZA = {
-    'O': 'la boca triangular: la cortina de colmillos arriba y la cuna en V con los dientes rojos abajo',
+    'O': 'la boca de dos cunas: la visera en rampa con la gema y los colmillos, y la de abajo, el triangulo rosa',
     'A': 'la capucha de cobra se abre detras de la cabeza y sus dos ojos falsos miran',
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
@@ -238,7 +238,7 @@ def materiales():
                   'B': ('hierro', 'hierro', 'der', 8, 16), 'C': ('oxido', 'oxido', 'der', 8, 16)}[c]
         fila = [(P['marmol'], 'marmol', 'der', 24, 24), (P['cinto'], 'cinturon', 'frente', 24, 6), (P['capucha'], 'capucha', 'arriba', 24, 24),
                 (P['colmillo'], 'colmillo', 'frente', 4, 16), (P['pecho'], 'costillar', 'frente', 24, 24),
-                (P['ala'], 'ala', 'frente', 24, 32), (P['nucleo'], 'garganta', 'frente', 24, 24),
+                (P['membrana'], 'membrana', 'frente', 32, 24), (P['nucleo'], 'garganta', 'frente', 24, 24),
                 (P[propio[0]], propio[1], propio[2], propio[3], propio[4])]
         filas.append((c, fila))
     celda = 168
@@ -270,6 +270,7 @@ def materiales():
 
 CAMARA_CARTEL = ((-9.0, 8.0, 25.0), (0.0, 16.4, 2.0), 46)
 CAMARA_FRENTE = ((0.0, 13.5, 24.0), (0.0, 17.0, 3.0), 44)
+CAMARA_LADO = ((-30.0, 18.0, 6.0), (0.0, 18.0, 5.0), 30)
 
 
 def cartel(cual):
@@ -281,6 +282,7 @@ ESCENAS = {'heroe_' + c: (lambda c=c: heroe(c)) for c in 'OABC'}
 ESCENAS.update({'cabeza_' + c: (lambda c=c: cabeza(c)) for c in 'OABC'})
 ESCENAS.update({'cuatro': cuatro, 'materiales': materiales})
 ESCENAS.update({'cartel_' + c: (lambda c=c: cartel(c)) for c in 'OABC'})
+ESCENAS.update({'lado_' + c: (lambda c=c: guardar(escena(c, CAMARA_LADO, NOMBRE[c], SUB_CABEZA[c], 30), 'lado_' + c)) for c in 'OABC'})
 ESCENAS.update({'frente_' + c: (lambda c=c: guardar(escena(c, CAMARA_FRENTE, NOMBRE[c], SUB_CABEZA[c], 40), 'frente_' + c)) for c in 'OABC'})
 
 if __name__ == '__main__':
