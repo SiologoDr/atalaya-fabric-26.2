@@ -13,15 +13,16 @@ bien su portada».
       cinturones granates con remaches, que cuelga del cinturon de la cintura, hace una ese
       suave y acaba en una aleta roja de hojas en abanico;
     - la cintura: un cinturon con remaches;
-    - de abajo arriba (medido en la imagen de Juan): la aleta roja (16 %), la cola fina con la
-      rodilla hacia delante (22 %), las caderas, dos tambores gordos mas anchos que el costillar
-      (18 %), el cinturon, la cintura estrecha (6 %) y, mas arriba, el costillar (17 %), que es
-      solo costillas: cinco pares de barras rosas gruesas que brillan, con el canto blanco, que se
-      abren hacia arriba, con huecos oscuros entre ellas, la columna detras y el esternon delante;
-      encima, sin apenas cuello, la cabeza (18 %);
+    - de abajo arriba, como dijo Juan («pequeno, un poco grande, pequeno de vuelta y luego sigue
+      lo demas, sus costillas»): la aleta roja; la cola, tramos finos con la rodilla hacia
+      delante; un tambor un poco mas grande; otro pequeno, igual que el tramo de arriba de la
+      cola (la cintura); y, encima, el costillar, que es solo costillas: cinco pares de barras
+      rosas gruesas que brillan, con el canto blanco, que se abren hacia arriba, con huecos
+      oscuros entre ellas, la columna detras y el esternon delante; encima, sin apenas cuello,
+      la cabeza. Es alta y esbelta;
     - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante con un cubo rosa
       encendido por pulgar) y cuatro dedos largos en abanico, con la membrana azul noche tendida
-      entre ellos y el borde libre en arcos;
+      solo entre ellos y el borde libre en arcos (nada en las axilas);
     - la cabeza: una capucha puntiaguda de azul noche, una visera lila con una gema blanca
       que brilla, dos cuernos lila, una media luna lila, una espina rosa, un gancho negro con
       remaches turquesa y un tallo negro con muescas en la coronilla;
@@ -472,37 +473,43 @@ def _jirones(out, a, b, largo, P, semilla=0, vuelo=(0.0, 0.0, 0.0)):
 # ----------------------------------------------------------------------
 #  La cola: tambores de marmol con su cinturon, enroscada en el suelo y alzandose
 # ----------------------------------------------------------------------
-COLA = [(0.0, 14.1, 0.0), (0.0, 11.9, 0.2), (0.0, 9.7, 0.6), (0.0, 7.7, 1.7), (0.0, 5.8, 1.3), (0.0, 4.5, -0.1), (0.0, 3.7, -1.3)]
+CINTURA = 1.08                    # el grueso de la cintura, igual que el tramo de arriba de la cola
+COLA = [(0.0, 13.6, 0.0), (0.0, 11.4, 0.3), (0.0, 9.2, 1.3), (0.0, 7.2, 1.4), (0.0, 5.6, 0.4), (0.0, 4.6, -0.9)]
 
 
 def cola(out, V, P):
-    """La cola: cuelga del cinturon. Arriba, las caderas: dos tambores gordos, mas anchos que el
-    costillar; luego se estrecha de golpe, hace la rodilla hacia delante y baja fina hasta la
-    aleta roja. Cada tambor lleva su cinturon con remaches."""
-    pts = sm._por_longitud(COLA, 1.9)
+    """La cola: tramos finos de marmol, cada uno con su cinturon, que bajan con la rodilla hacia
+    delante hasta la aleta roja. El de arriba es igual que la cintura."""
+    pts = sm._por_longitud(COLA, 1.6)
     marcos = sm._marcos(pts, (0, 0, 1))
-    acum = 0.0
+    n = len(marcos)
     for i, M in enumerate(marcos):
+        t = i / max(n - 1, 1)
+        r = CINTURA - (CINTURA - 0.72) * t
         L = float(np.linalg.norm(pts[i + 1] - pts[i]))
-        m = acum + L / 2
-        if m < 5.0:
-            r = 2.65
-        elif m < 6.6:
-            r = 2.65 + (1.0 - 2.65) * (m - 5.0) / 1.6
-        else:
-            r = max(0.62, 1.0 - 0.06 * (m - 6.6))
-        acum += L
         cubo(out, M, -r, -r, -0.15, 2 * r, 2 * r, L + 0.3, P['marmol'], semilla=i)
-        rb = r * 1.14
+        rb = r * 1.16
         cubo(out, M @ vr.T(0, 0, -0.28), -rb, -rb, 0, 2 * rb, 2 * rb, 0.56, P['cinto'], semilla=i)
         if V['clave'] == 'C' and i % 2 == 1:                                    # cadenas que cruzan el tambor
             for s in (1, -1):
-                cadena(out, punto(M, (-s * r * 1.08, r * 1.08, 0.3)), punto(M, (s * r * 1.08, r * 1.08, L - 0.3)), 0.8,
+                cadena(out, punto(M, (-s * r * 1.08, r * 1.08, 0.3)), punto(M, (s * r * 1.08, r * 1.08, L - 0.3)), 0.7,
                        P['oxido'], semilla=i)
     fin = pts[-1]
     t = pts[-1] - pts[-2]
     aleta(out, fin, t / np.linalg.norm(t), P)
     return pts
+
+
+def tambor(out, y0, y1, r, P, semilla=0, cadenas=False):
+    """Un tambor recto de marmol, de y0 a y1, con su cinturon de remaches en cada punta."""
+    cubo(out, vr.T(0, y0, 0), -r, 0, -r, 2 * r, y1 - y0, 2 * r, P['marmol'], semilla=semilla)
+    rb = r * 1.16
+    for y in (y0, y1):
+        cubo(out, vr.T(0, y - 0.28, 0), -rb, 0, -rb, 2 * rb, 0.56, 2 * rb, P['cinto'], semilla=semilla + 1)
+    if cadenas:
+        for sx in (1, -1):
+            cadena(out, np.array((-sx * r * 1.08, y0 + 0.4, r * 1.08)), np.array((sx * r * 1.08, y1 - 0.4, r * 1.08)), 0.7,
+                   P['oxido'], semilla=semilla)
 
 
 def aleta(out, p, t, P):
@@ -533,14 +540,14 @@ def ofidia(variante='O'):
     # de abajo arriba: la cola (con las caderas anchas arriba), el cinturon, la cintura estrecha
     # (solo la columna) y, mas arriba, el costillar de solo costillas
     cola(out, V, P)
-    cubo(out, vr.T(0, 14.3, 0.0), -2.5, -0.35, -2.5, 5.0, 0.7, 5.0, P['cinto'], semilla=1)        # el cinturon
-    cubo(out, vr.T(0, 14.6, -0.1), -1.15, 0, -1.05, 2.3, 1.9, 2.1, P['marmol'], semilla=2)        # la cintura, estrecha
-    cubo(out, vr.T(0, 15.2, -0.1), -1.35, 0, -1.25, 2.7, 0.42, 2.5, P['cinto'], semilla=3)        # su anillo
-    cubo(out, vr.T(0, 14.6, -1.25), -0.45, 0, -0.3, 0.9, 1.9, 0.6, P['columna'], semilla=2)        # la columna, detras
+    # de abajo arriba: la cola (pequeno), un tambor un poco mas grande, otro pequeno igual que el
+    # de arriba de la cola (la cintura) y, encima, el costillar
+    tambor(out, 13.6, 16.6, 2.0, P, semilla=1, cadenas=(k == 'C'))                              # un poco grande
+    tambor(out, 16.6, 18.8, CINTURA, P, semilla=3)                                              # pequeno de vuelta
 
     # el costillar: la columna detras, el esternon delante y cinco pares de costillas gruesas que
     # se abren hacia arriba (estrecho abajo, ancho arriba), con huecos oscuros entre ellas
-    Mt = vr.T(0, 18.9, 0.0)
+    Mt = vr.T(0, 21.75, 0.0) @ np.diag([1.0, 1.12, 1.0, 1.0])
     cubo(out, Mt, -0.55, -2.6, -1.85, 1.1, 5.3, 0.95, P['columna'], semilla=4)                    # la columna
     cubo(out, Mt, -0.45, -2.3, 1.55, 0.9, 4.8, 0.55, P['columna'], semilla=5)                     # el esternon
     cubo(out, Mt, -1.45, -2.4, -1.2, 2.9, 4.8, 2.6, P['capucha'], semilla=6)                      # lo de dentro, oscuro
@@ -562,11 +569,11 @@ def ofidia(variante='O'):
 
     # las dos alas, abiertas a los lados, desde los hombros
     for s in (1, -1):
-        ala(out, s, V, P, dy=5.2)
+        ala(out, s, V, P, dy=8.4)
 
     # el cuello, corto, y la cabeza justo encima del costillar
-    viga(out, np.array((0, 21.5, 0.0)), np.array((0, 22.9, 0.9)), 1.8, 1.8, P['marmol'], extra=0.3, semilla=40)
-    Mh = em.marco(np.array((0.0, 24.2, 2.0)), (0.0, -0.2, 1.0)) @ np.diag([1.05, 1.05, 1.05, 1.0])
+    viga(out, np.array((0, 24.7, 0.0)), np.array((0, 26.2, 0.9)), 1.8, 1.8, P['marmol'], extra=0.3, semilla=40)
+    Mh = em.marco(np.array((0.0, 27.5, 2.0)), (0.0, -0.2, 1.0)) @ np.diag([1.05, 1.05, 1.05, 1.0])
     cabeza(out, Mh, V, P)
     if k == 'O':
         _corona_original(out, Mh, P)
@@ -588,8 +595,8 @@ def _pano(out, raiz, a, b, pintor, semilla=0):
 def ala(out, s, V, P, dy=0.0):
     """Un ala de murcielago: el brazo (hombro, codo hacia atras y muneca hacia delante, con el
     cubo encendido por pulgar) y cuatro dedos largos que se abren en abanico desde la muneca; la
-    membrana va tendida entre los dedos, con el borde libre en arcos, y del ultimo dedo baja
-    hasta el costado."""
+    membrana va tendida solo entre los dedos y del antebrazo al ultimo dedo, con el borde libre
+    en arcos; en las axilas no hay membrana."""
     k = V['clave']
     sube = np.array((0.0, dy, 0.0))
     hombro = np.array((s * 2.7, 16.0, -0.8)) + sube
@@ -597,7 +604,6 @@ def ala(out, s, V, P, dy=0.0):
     muneca = np.array((s * 10.0, 20.4, -1.2)) + sube
     dedos = [np.array((s * 16.0, 23.0, -3.6)) + sube, np.array((s * 18.6, 18.0, -5.2)) + sube,
              np.array((s * 16.8, 12.6, -5.8)) + sube, np.array((s * 12.2, 9.4, -5.0)) + sube]
-    costado = np.array((s * 1.4, 15.6, -1.0))
     cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)            # el hombro, con remaches
     viga(out, hombro, codo, 1.35, 1.3, P['marmol'], extra=0.3, semilla=21)
     viga(out, codo, muneca, 1.1, 1.05, P['marmol'], extra=0.28, semilla=22)
@@ -606,13 +612,11 @@ def ala(out, s, V, P, dy=0.0):
     for j, t in enumerate(dedos):                                                                # los dedos
         g = 0.44 - 0.04 * j
         viga(out, muneca, t, g, g, P['marmol'], extra=0.1, semilla=25 + j)
-    # la membrana: entre los dedos, con el borde en arcos; del ultimo dedo al costado; y por dentro
+    # la membrana: solo entre los dedos (con el borde en arcos) y del antebrazo al ultimo dedo;
+    # nada en las axilas ni hasta el costado
     for j in range(3):
         _pano(out, muneca, dedos[j], dedos[j + 1], P['membrana'], semilla=30 + j + 10 * (s > 0))
-    _pano(out, codo, dedos[3], costado, P['membrana'], semilla=33 + 10 * (s > 0))
-    _pano(out, codo, muneca, dedos[3], P['membrana_lisa'], semilla=34)
-    _pano(out, hombro, codo, costado, P['membrana_lisa'], semilla=35)
-    _pano(out, codo, hombro, muneca, P['membrana_lisa'], semilla=36)
+    _pano(out, codo, muneca, dedos[3], P['membrana'], semilla=34 + 10 * (s > 0))
     # el pulgar: el cubo encendido de la muneca (en los Faroles, un farol colgando)
     if k == 'B':
         _cubo_diamante(out, muneca + np.array((0, 0.6, 0.3)), 0.95, P['cebo'], semilla=37)
@@ -705,7 +709,7 @@ def cabeza(out, Mh, V, P):
     # rosa por dentro, con el borde de marmol y los dientes rojos en escalon; abierta, de frente
     # es el escudo rosa que acaba en punta debajo de la visera.
     Mu = _mandibula_arriba(Mh)
-    W, R, L = 4.1, 2.6, 4.5
+    W, R, L = 4.1, 2.9, 5.0
     prisma5(out, Mu, W, 0.0, 1.6, R, L, {'arriba': P['hueso'], 'proa': P['hueso'], 'lados': P['capucha'], 'atras': P['capucha'],
                                          'abajo': P['boca']}, semilla=7)
     n = _dir(Mu, (0.0, 0.0, 1.0))
@@ -717,9 +721,9 @@ def cabeza(out, Mh, V, P):
         colmillo(out, M, 0.44, 0.95 + 0.35 * (j % 2), 0.16, P['colmillo'], semilla=12 + j % 9)
     # la de abajo
     Ml = Mh @ vr.T(0, -0.3, -0.2) @ vr.Rx(40 * D)
-    prisma5(out, Ml, 3.9, -1.3, 0.0, 2.3, 4.3, {'arriba': P['boca'], 'abajo': P['marmol'], 'lados': P['marmol'],
+    prisma5(out, Ml, 3.9, -1.3, 0.0, 3.0, 5.6, {'arriba': P['boca'], 'abajo': P['marmol'], 'lados': P['marmol'],
                                                  'proa': P['marmol'], 'atras': P['capucha']}, semilla=33)
-    for j, (x, z, ang) in enumerate(borde5(3.9 - 0.4, 2.3, 4.3 - 0.35, 0.52)):                     # los dientes rojos, en escalon
+    for j, (x, z, ang) in enumerate(borde5(3.9 - 0.4, 3.0, 5.6 - 0.35, 0.52)):                     # los dientes rojos, en escalon
         M = Ml @ vr.T(x, 0, z) @ vr.Ry(ang)
         alto = 0.42 + 0.14 * (j % 2)
         cubo(out, M, -0.12, 0, -0.13, 0.24, alto, 0.26, P['diente_bajo'], semilla=40 + j % 7)

@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta siete versiones:
+como tal». Hicieron falta ocho versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -23,10 +23,11 @@ como tal». Hicieron falta siete versiones:
 6. La sexta corrigió la anatomía con esa imagen: flota erguida y la cola cuelga hasta una
    aleta roja; y las dos mandíbulas son medio rectángulo y medio triángulo, como en la
    portada y en los primeros planos del directo.
-7. Esta séptima ajusta las proporciones: «mejora la proporción del cuerpo, que debería ser
+7. La séptima ajustó las proporciones: «mejora la proporción del cuerpo, que debería ser
    primero pequeño y luego subir un poco más; en el pecho, solo mostrando sus costillas».
-   Las proporciones se midieron en la imagen de Juan. Se comprobó de frente, de tres cuartos
-   y de lado.
+8. Esta octava divide el cuerpo por tramos («es como pequeño, un poco grande, pequeño de
+   vuelta y luego sigue lo demás, sus costillas»). La hace más alta y alarga la mandíbula.
+   Las alas ya no tienen membrana en las axilas.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -46,13 +47,15 @@ Las fuentes son cinco:
 En la forma de monstruo se ve:
 
 - **Flota erguida**, como una sirena; no se apoya en el suelo.
-- **Las proporciones**, de abajo arriba, medidas en la imagen de Juan sobre el alto total:
-  - la aleta roja, 16 %;
-  - la cola fina, con la rodilla hacia delante, 22 %;
-  - las caderas, 18 %: dos tambores gordos de mármol con su cinturón, la parte más ancha;
-  - el cinturón y la cintura estrecha, 10 %;
-  - el pecho, más arriba, 17 %;
-  - la cabeza, casi sin cuello, 18 %.
+- **El cuerpo va por tramos**, de abajo arriba, cada uno con su cinturón de remaches:
+  - la aleta roja;
+  - la cola: tramos finos, con la rodilla hacia delante (pequeño);
+  - un tambor un poco más grande;
+  - otro pequeño, igual que el tramo de arriba de la cola (la cintura);
+  - el pecho, encima;
+  - la cabeza, casi sin cuello.
+
+  Es alta y esbelta: unos 35 bloques con los cebos y la aleta.
 - **El pecho es solo costillas**: cinco pares de costillas rosas gruesas que brillan, con
   el canto blanco y huecos oscuros entre ellas. Se abren hacia arriba (estrecho abajo,
   ancho arriba), con la columna detrás y el esternón oscuro delante.
@@ -61,7 +64,7 @@ En la forma de monstruo se ve:
   - un cubo rosa encendido en la muñeca, que hace de pulgar;
   - cuatro dedos largos que salen de la muñeca en abanico;
   - la membrana azul noche tendida entre los dedos, con el borde en arcos;
-  - del último dedo, la membrana baja hasta el costado.
+  - en las axilas no hay membrana.
 - **La cabeza** tiene:
   - una capucha puntiaguda de azul noche;
   - una visera lila con una gema blanca;

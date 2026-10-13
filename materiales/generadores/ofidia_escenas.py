@@ -171,7 +171,7 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'flota: cola fina hasta la aleta, caderas, cintura estrecha, costillar de solo costillas y alas de murcielago',
+    'O': 'flota: cola fina, una pieza un poco grande, la cintura pequena, el costillar de solo costillas y alas de murcielago',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
     'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza, a los lados y en las alas',
     'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
@@ -182,8 +182,8 @@ SUB_CABEZA = {
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((7.0, 4.5, 33.0), (0.0, 15.6, 0.0), 62)
-CAMARA_CABEZA = ((-8.0, 15.0, 22.0), (0.0, 21.6, 2.0), 56)
+CAMARA_HEROE = ((7.0, 5.0, 36.0), (0.0, 17.6, 0.0), 62)
+CAMARA_CABEZA = ((-8.0, 18.0, 23.0), (0.0, 24.8, 2.0), 58)
 
 
 def escena(cual, camara, nombre, sub, n_motas):
@@ -217,7 +217,7 @@ def cuatro():
              amb=(0.22, 0.21, 0.26), niebla=(0.06, 0.05, 0.09), niebla_d=(180, 330),
              cielo=((0.01, 0.012, 0.03), (0.05, 0.05, 0.1), (0.16, 0.13, 0.22)), motas=(230, 230, 255))
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
-    cam = vr.Camara((0.0, 14.0, 215.0), (0.0, 14.0, 0.0), 22, W * SS, H * SS)
+    cam = vr.Camara((0.0, 16.0, 225.0), (0.0, 16.5, 0.0), 22, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
     for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
         qs, info = om.ofidia(cual)
@@ -268,9 +268,9 @@ def materiales():
     guardar(img, 'materiales')
 
 
-CAMARA_CARTEL = ((-9.0, 12.5, 25.0), (0.0, 21.2, 2.0), 46)
-CAMARA_FRENTE = ((0.0, 16.0, 30.0), (0.0, 19.5, 2.0), 52)
-CAMARA_LADO = ((-54.0, 15.5, 2.0), (0.0, 15.5, 1.0), 44)
+CAMARA_CARTEL = ((-9.0, 15.5, 25.0), (0.0, 24.4, 2.0), 46)
+CAMARA_FRENTE = ((0.0, 19.0, 31.0), (0.0, 22.6, 2.0), 52)
+CAMARA_LADO = ((-60.0, 17.5, 2.0), (0.0, 17.5, 1.0), 44)
 
 
 def cartel(cual):
