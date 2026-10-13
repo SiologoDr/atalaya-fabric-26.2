@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta once versiones:
+como tal». Hicieron falta doce versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -45,6 +45,9 @@ como tal». Hicieron falta once versiones:
     - las alas de murciélago de antes, sin el cubo encendido de la muñeca;
     - la boca, más larga: la de abajo, más abierta, y el gancho negro en la punta de la de
       arriba, como en el cartel.
+12. La duodécima adelgazó el cuerpo: «hazlo menos ancho del cuerpo de Ofidia, en
+    general». Sigue yendo de menor a mayor y de mayor a menor, pero unos tres cuartos de
+    ancho. El cuerpo es de cajas cuadradas, y visto en diagonal parecía aún más ancho.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -77,7 +80,7 @@ En la forma de monstruo se ve:
   - el pecho;
   - la cintura, pequeña;
   - tambores de mármol, un poco abombados, que van de menor a mayor y de mayor a menor;
-    lo más gordo, a la mitad, es algo más del doble que la cintura, sin llegar a gordo;
+    lo más gordo, a la mitad, es el doble que la cintura; en general, es estrecho;
   - la aleta roja.
 
   Mide unos 33 bloques de alto con los cebos.

@@ -22,8 +22,7 @@ bien su portada».
       rosas gruesas que brillan, con el canto blanco, que se abren hacia arriba, con huecos
       oscuros entre ellas, la columna detras y el esternon delante); la cintura, pequena; y
       debajo, tambores de marmol con su cinturon que van de menor a mayor y de mayor a menor
-      hasta la cola (lo mas gordo, a la mitad, algo mas del doble que la cintura, sin llegar a
-      gordo);
+      hasta la cola (lo mas gordo, a la mitad, el doble que la cintura, sin llegar a ancho);
     - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante) y cuatro dedos
       largos en abanico, con la membrana azul noche tendida solo entre ellos y el borde libre en
       arcos (nada en las axilas). No llevan luz;
@@ -487,12 +486,13 @@ def _jirones(out, a, b, largo, P, semilla=0, vuelo=(0.0, 0.0, 0.0)):
 # ----------------------------------------------------------------------
 #  El cuerpo en ese: tambores de marmol con su cinturon, de menor a mayor y de mayor a menor
 # ----------------------------------------------------------------------
-CINTURA = 0.8                     # la cintura, lo mas fino del cuerpo
+CINTURA = 0.65                    # la cintura, lo mas fino del cuerpo
 # el grueso del cuerpo por la ese (fraccion del largo, radio): la cintura, pequena; el primer
-# tambor; crece hasta lo mas gordo, a la mitad (algo mas del doble que la cintura, sin llegar a
-# gordo), y de ahi mengua hasta la cola
-PERFIL = ((0.0, CINTURA), (0.09, CINTURA), (0.0901, 1.25), (0.25, 1.55), (0.45, 1.9), (0.6, 1.85), (0.75, 1.5),
-          (0.88, 1.1), (1.0, 0.65))
+# tambor; crece hasta lo mas gordo, a la mitad (el doble que la cintura, sin llegar a ancho), y
+# de ahi mengua hasta la cola. Juan lo quiso menos ancho «en general»: el cuerpo es de cajas
+# cuadradas y, visto en diagonal, parece aun mas ancho
+PERFIL = ((0.0, CINTURA), (0.09, CINTURA), (0.0901, 0.95), (0.25, 1.15), (0.45, 1.42), (0.6, 1.4), (0.75, 1.12),
+          (0.88, 0.85), (1.0, 0.5))
 INCLINA = 24.0                    # el torso se echa hacia delante (grados)
 ANCLA = np.array((0.0, 23.0, 0.0))  # la base del costillar: de aqui cuelga el cuerpo en ese
 
@@ -512,8 +512,8 @@ def _radio(f):
 def cuerpo_ese(out, V, P):
     """De la base del costillar a la aleta, por la ese: la cintura, pequena, y debajo tambores de
     marmol, un poco abombados, con un cinturon entre uno y otro, que van de menor a mayor (lo
-    mas gordo, a la mitad) y de mayor a menor hasta la cola; cada tambor es tan largo como 0,9
-    veces su grueso. Al final, la aleta roja que apunta hacia atras."""
+    mas gordo, a la mitad) y de mayor a menor hasta la cola; cada tambor es un poco mas largo que
+    grueso. Al final, la aleta roja que apunta hacia atras."""
     curva, _ = em.catmull(ESE, 800)
     curva = [np.asarray(p, float) for p in curva]
     L = [0.0]
@@ -528,7 +528,7 @@ def cuerpo_ese(out, V, P):
 
     cortes = [0.0, PERFIL[1][0] * total]                                          # los cinturones
     while True:
-        largo = max(1.6, 1.8 * _radio((cortes[-1] + 1.0) / total))
+        largo = max(1.8, 2.2 * _radio((cortes[-1] + 1.0) / total))
         if cortes[-1] + largo > total - 0.8:
             break
         cortes.append(cortes[-1] + largo)
