@@ -4,7 +4,9 @@ una en la misma explanada de noche con agujas de catedral detras (como el cartel
 y alumbrada por su neon; las cabezas de cerca; las cuatro juntas con un jugador; y la lamina
 de materiales.
 
-Las fotos salen sin letras: las fichas no llevan titulo ni texto encima de los renders.
+Las fotos salen sin letras: las fichas no llevan titulo ni texto encima de los renders. Todas
+llevan el contorno blanco del cartel alrededor de Ofidia (a Juan le gusto: «me gusto como el boss
+tiene ese borde blanco»).
 
 Uso: python ofidia_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
      (con RAPIDO=1 en el entorno, a media resolucion para probar)
@@ -245,9 +247,16 @@ def cuatro():
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
     cam = vr.Camara((0.0, 21.0, 255.0), (0.0, 21.5, 0.0), 22, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
+    figura = np.zeros(lz.z.shape, bool)                       # para el contorno blanco de las cuatro
     for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
         qs, info = om.ofidia(cual)
-        om.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(-50 * D)), S['luces'], S['amb'], niebla)
+        qs = qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(-50 * D))
+        n = info['n_alas']
+        om.dibujar(lz, cam, qs[len(qs) - n:], S['luces'], S['amb'], niebla)
+        z0 = lz.z.copy()
+        om.dibujar(lz, cam, qs[:len(qs) - n], S['luces'], S['amb'], niebla)
+        figura |= lz.z < z0
+    perfilar(lz, figura, max(1, int(round(2 * SS * K))))
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(0.0, 20.0, 0)), S['luces'], S['amb'], niebla)
     guardar(revelar(lz, cam, W, H, S, n_motas=0), 'cuatro')
 
@@ -302,8 +311,10 @@ ESCENAS = {'heroe_' + c: (lambda c=c: heroe(c)) for c in 'OABC'}
 ESCENAS.update({'cabeza_' + c: (lambda c=c: cabeza(c)) for c in 'OABC'})
 ESCENAS.update({'cuatro': cuatro, 'materiales': materiales})
 ESCENAS.update({'cartel_' + c: (lambda c=c: cartel(c)) for c in 'OABC'})
-ESCENAS.update({'lado_' + c: (lambda c=c: guardar(escena(c, CAMARA_LADO, NOMBRE[c], SUB_CABEZA[c], 30), 'lado_' + c)) for c in 'OABC'})
-ESCENAS.update({'frente_' + c: (lambda c=c: guardar(escena(c, CAMARA_FRENTE, NOMBRE[c], SUB_CABEZA[c], 40), 'frente_' + c)) for c in 'OABC'})
+ESCENAS.update({'lado_' + c: (lambda c=c: guardar(escena(c, CAMARA_LADO, NOMBRE[c], SUB_CABEZA[c], 30, contorno=True), 'lado_' + c))
+                for c in 'OABC'})
+ESCENAS.update({'frente_' + c: (lambda c=c: guardar(escena(c, CAMARA_FRENTE, NOMBRE[c], SUB_CABEZA[c], 40, contorno=True),
+                                                   'frente_' + c)) for c in 'OABC'})
 
 if __name__ == '__main__':
     pedidas = sys.argv[3].split(',') if len(sys.argv) > 3 else list(ESCENAS)

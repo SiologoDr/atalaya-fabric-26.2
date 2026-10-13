@@ -72,7 +72,9 @@ como tal». Hicieron falta quince versiones:
     borde en escalera); las costillas son huesos curvos, de la columna al esternón; y los
     huesos de las alas llevan una veta del neón que brilla un poco. Desde esta versión, las
     fotos van sin letras: «todas las fichas que guardes no deben de tener letras en las
-    fotos».
+    fotos». Y todas llevan el borde blanco del cartel («me gustó cómo el boss tiene ese
+    borde blanco»); en el juego, Ofidia lo llevará siempre, hecho por nosotros (que lo
+    tapen las paredes), cuando entre al mod.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
