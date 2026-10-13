@@ -1,8 +1,11 @@
-# Ofidia y sus variantes
+# Lumara y sus variantes
 
-Ofidia es la sirena-sierpe de la tercera dungeon de **Dedsafio 4**, con diseño de
-Eufonia Studio. Su cartel oficial está en
-https://x.com/dedsafio/status/2109039127597560179.
+**Lumara, la Sirena de los Cebos.** Empezó como un estudio de **Ofidia**, la sirena-sierpe
+de la tercera dungeon de **Dedsafio 4**, con diseño de Eufonia Studio (su cartel oficial
+está en https://x.com/dedsafio/status/2109039127597560179). El 13-10-2026 Juan pidió un
+nombre propio: «cámbiale el nombre a uno que te guste, ya no Ofidia». Se llama Lumara
+por la lumbre: los cebos que brillan, el costillar encendido y el borde blanco. Mientras
+fue un estudio se llamó Ofidia, y así sale en las versiones de abajo.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
 como tal». Hicieron falta quince versiones:
@@ -75,11 +78,18 @@ como tal». Hicieron falta quince versiones:
     fotos». Y todas llevan el borde blanco del cartel («me gustó cómo el boss tiene ese
     borde blanco»); en el juego, Ofidia lo llevará siempre, hecho por nosotros (que lo
     tapen las paredes), cuando entre al mod.
+16. La decimosexta: «te faltó en las alas ese borde blanco»; «a cada tipo de variante debe
+    tener esta presentación de imagen», la del cartel; y «cámbiale el nombre a uno que te
+    guste, ya no Ofidia». El borde blanco rodea también las alas; cada variante tiene su
+    cartel, con el cielo y la luz de su neón; y pasó a llamarse Lumara. Las fichas se
+    ordenaron en `materiales/fichas/bosses/` (los jefes) y `materiales/fichas/mobs/` (las
+    Guaridas).
 
-**La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
-variantes. A Juan le gustó la Encadenada.
+**La original sigue muy cerca de la Ofidia de Dedsafio; para el mod, mejor una de las
+variantes.** A Juan le gustó la Encadenada. En el juego, Lumara llevará siempre el borde
+blanco, hecho por nosotros.
 
-## Cómo es Ofidia de verdad
+## Cómo es Lumara
 
 Las fuentes son cinco:
 
@@ -150,7 +160,7 @@ En la forma de monstruo se ve:
 
 ## Las variantes
 
-Las tres tienen el mismo cuerpo que Ofidia: flotan con la cola colgando hasta la aleta, y
+Las tres tienen el mismo cuerpo que la original: flotan con la cola colgando hasta la aleta, y
 tienen el costillar, las alas de murciélago y la misma boca. Cambian la forma de lo que
 enmarca la cabeza, el material y el neón.
 
@@ -170,9 +180,16 @@ enmarca la cabeza, el material y el neón.
 
 ## Los bocetos
 
-Salen de `materiales/generadores/ofidia_modelo.py` (`ofidia('O' | 'A' | 'B' | 'C')`) y
-de `ofidia_escenas.py`, con las escenas `heroe_X`, `cabeza_X` (de tres cuartos y desde
-abajo, como la portada), `cuatro` y `materiales`. Para comparar con las referencias hay
-tres escenas más: `cartel_X` (como la portada: de cerca y desde abajo, con el violeta, la boca
-que alumbra y el contorno blanco), `frente_X` (el del plano de
-frente del directo) y `lado_X` (de perfil, para compararla con el fotograma de lado).
+Salen de `materiales/generadores/lumara_modelo.py` (`lumara('O' | 'A' | 'B' | 'C')`) y
+de `lumara_escenas.py`, con las escenas:
+
+- `cartel_X`, la presentación del cartel: de cerca y desde abajo, con el cielo y la luz de
+  su neón, la boca que alumbra y el contorno blanco;
+- `heroe_X` y `cabeza_X` (de tres cuartos y desde abajo);
+- `cuatro` (las cuatro juntas con un jugador) y `materiales`;
+- `frente_X` (el plano de frente del directo) y `lado_X` (de perfil, para compararla con
+  el fotograma de lado).
+
+Todas salen sin letras y con el borde blanco, alas incluidas. Los archivos se llaman
+`lumara_<variante>_<vista>.jpg`, con la variante en `original`, `capucha`, `faroles` o
+`encadenada`.

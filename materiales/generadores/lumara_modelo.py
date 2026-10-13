@@ -1,4 +1,7 @@
 """
+Lumara, la Sirena de los Cebos. Empezo el 12-10-2026 como un estudio de la Ofidia de Dedsafio 4 y el
+13-10 Juan le pidio un nombre propio: «cambiale el nombre a uno que te guste, ya no Ofidia».
+
 Estudio de Ofidia (12-10-2026). Juan: «recrea igual a Ofidia, o hazle sub variantes; pon la
 original y sus variantes para no copiarla como tal». Tras la primera version: «no son
 iguales en modelo a Ofidia, que tiene boca de monstruo, cola... fijate bien como es». Y tras la
@@ -222,7 +225,7 @@ def pintores(V):
     P = {}
 
     def reg(nombre, fn, pleno=False):
-        fn.__name__ = 'ofi%s_%s' % (k, nombre)
+        fn.__name__ = 'lum%s_%s' % (k, nombre)
         if pleno:
             bm.PLENOS.add(fn)
         P[nombre] = fn
@@ -749,9 +752,9 @@ def aleta(out, p, t, P):
 
 
 # ======================================================================
-#  OFIDIA
+#  LUMARA
 # ======================================================================
-def ofidia(variante='O'):
+def lumara(variante='O'):
     V = VARIANTES[variante]
     P = pintores(V)
     k = V['clave']
@@ -932,7 +935,7 @@ def colmillo(out, M, ancho, largo, grueso, pintor, semilla=0):
 
 
 def cabeza(out, Mh, V, P):
-    """La cabeza, grande y maciza como en el cartel (se hace sin escala; ofidia() la agranda):
+    """La cabeza, grande y maciza como en el cartel (se hace sin escala; lumara() la agranda):
     la capucha alta, en capas, con el pico en escalones hacia atras, las melenas oscuras que se
     rizan detras como algas y una fila de pinchos en el borde de atras; los faldones a los lados;
     y la boca de dos mandibulas, medio rectangulo y medio triangulo cada una: la de arriba, lila,

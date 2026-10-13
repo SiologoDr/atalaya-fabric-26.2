@@ -1,14 +1,15 @@
 """
-Renders del estudio de Ofidia (12-10-2026): la original recreada y sus tres variantes, cada
+Renders de Lumara, la Sirena de los Cebos (empezo el 12-10-2026 como estudio de la Ofidia de
+Dedsafio 4 y el 13-10 Juan le pidio un nombre propio): la original y sus tres variantes, cada
 una en la misma explanada de noche con agujas de catedral detras (como el cartel de Dedsafio 4)
 y alumbrada por su neon; las cabezas de cerca; las cuatro juntas con un jugador; y la lamina
 de materiales.
 
 Las fotos salen sin letras: las fichas no llevan titulo ni texto encima de los renders. Todas
-llevan el contorno blanco del cartel alrededor de Ofidia (a Juan le gusto: «me gusto como el boss
+llevan el contorno blanco del cartel alrededor de Lumara, alas incluidas (a Juan le gusto: «me gusto como el boss
 tiene ese borde blanco»).
 
-Uso: python ofidia_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
+Uso: python lumara_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
      (con RAPIDO=1 en el entorno, a media resolucion para probar)
 """
 import math, os, random, sys
@@ -22,7 +23,7 @@ import quimeras_modelo as qm
 import quimeras_escenas as qe         # el lienzo, la niebla y el revelado
 import bestias_modelo as bm
 import sierpe_modelo as sm
-import ofidia_modelo as om
+import lumara_modelo as om
 
 RAIZ, OUT = sys.argv[1], sys.argv[2]
 os.makedirs(OUT, exist_ok=True)
@@ -52,7 +53,7 @@ def sitio(v):
 
 
 SUELO = _r('120e1c', '181424', '1e1a2c', '262036', '2e2842')
-qm._reg('suelo_ofi', qm._suelo_grande(91, SUELO, None, grietas=False))
+qm._reg('suelo_lum', qm._suelo_grande(91, SUELO, None, grietas=False))
 
 
 def p_roca(tw, th, cara, s):
@@ -71,7 +72,7 @@ def p_torre(tw, th, cara, s):
 
 
 for _f in (p_roca, p_torre):
-    _f.__name__ = 'ofi_' + _f.__name__
+    _f.__name__ = 'lum_' + _f.__name__
 
 
 def suelo(lz, cam, niebla, S, ext=180, paso=32, cerca=48, paso_cerca=8):
@@ -80,7 +81,7 @@ def suelo(lz, cam, niebla, S, ext=180, paso=32, cerca=48, paso_cerca=8):
     def baldosa(gx, gz, p):
         k = p / 4
         P = [(gx + p, 0.0, gz), (gx, 0.0, gz), (gx, 0.0, gz + p), (gx + p, 0.0, gz + p)]
-        qs.append(([np.array(q, float) for q in P], [(k, 0), (0, 0), (0, k), (k, k)], 'suelo_ofi'))
+        qs.append(([np.array(q, float) for q in P], [(k, 0), (0, 0), (0, k), (k, k)], 'suelo_lum'))
 
     cx, cz = cam.ojo[0], cam.ojo[2]
     for gx in range(-ext, ext, paso):
@@ -173,7 +174,7 @@ def guardar(img, nombre):
     return img
 
 
-NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
+NOMBRE = {'O': 'Lumara, la original', 'A': 'Lumara de la Capucha', 'B': 'Lumara de los Faroles', 'C': 'Lumara Encadenada'}
 SUB_HEROE = {
     'O': 'la cabeza grande y maciza delante del pecho, las alas oscuras y el cuerpo que crece y mengua hasta la aleta',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
@@ -216,14 +217,12 @@ def escena(cual, camara, nombre, sub, n_motas, contorno=False, brillo=0.9, S=Non
     cam = vr.Camara(ojo, obj, fov, W * SS, H * SS)
     suelo(lz, cam, niebla, S)
     explanada(lz, cam, niebla, S)
-    qs, info = om.ofidia(cual)
+    qs, info = om.lumara(cual)
     # la boca alumbra lo que tiene cerca, como en el cartel
     luces = S['luces'] + [(tuple(info['boca']) + (9.0,), _c(om.VARIANTES[cual]['neon'][1]), 1.6, 'punto')]
-    n = info['n_alas']
-    om.dibujar(lz, cam, qs[len(qs) - n:], luces, S['amb'], niebla)               # las alas, sin contorno
     z0 = lz.z.copy()
-    om.dibujar(lz, cam, qs[:len(qs) - n], luces, S['amb'], niebla)
-    if contorno:
+    om.dibujar(lz, cam, qs, luces, S['amb'], niebla)
+    if contorno:                                                                   # el contorno blanco, alas incluidas
         perfilar(lz, lz.z < z0, max(1, int(round(3 * SS * K))))
     # sin letras: las fotos de las fichas no llevan titulo ni texto encima (Juan, 13-10)
     return revelar(lz, cam, W, H, S, n_motas=n_motas, brillo=brillo)
@@ -249,12 +248,10 @@ def cuatro():
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
     figura = np.zeros(lz.z.shape, bool)                       # para el contorno blanco de las cuatro
     for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
-        qs, info = om.ofidia(cual)
+        qs, info = om.lumara(cual)
         qs = qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(-50 * D))
-        n = info['n_alas']
-        om.dibujar(lz, cam, qs[len(qs) - n:], S['luces'], S['amb'], niebla)
         z0 = lz.z.copy()
-        om.dibujar(lz, cam, qs[:len(qs) - n], S['luces'], S['amb'], niebla)
+        om.dibujar(lz, cam, qs, S['luces'], S['amb'], niebla)
         figura |= lz.z < z0
     perfilar(lz, figura, max(1, int(round(2 * SS * K))))
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(0.0, 20.0, 0)), S['luces'], S['amb'], niebla)
@@ -293,18 +290,26 @@ def materiales():
 
 
 CAMARA_CARTEL = ((-23.0, 21.0, 31.0), (0.0, 32.5, 6.0), 52)
-SUB_CARTEL = {'O': 'como en el cartel: de cerca y desde abajo, con la boca que alumbra y el contorno blanco'}
 CAMARA_FRENTE = ((0.0, 23.0, 50.0), (0.0, 28.0, 6.0), 52)
 CAMARA_LADO = ((-72.0, 22.5, 4.0), (0.0, 22.5, 4.0), 44)
 
 
+# el cartel de cada una con el cielo y la luz de su neon: (cielo, niebla, ambiente, luz de frente)
+CARTEL_LUZ = {
+    'O': (((0.04, 0.02, 0.09), (0.26, 0.1, 0.4), (0.52, 0.22, 0.68)), (0.2, 0.09, 0.3), (0.26, 0.2, 0.34), (0.78, 0.6, 1.0)),
+    'A': (((0.02, 0.03, 0.08), (0.07, 0.18, 0.38), (0.18, 0.42, 0.66)), (0.06, 0.14, 0.28), (0.18, 0.23, 0.32), (0.62, 0.8, 1.0)),
+    'B': (((0.02, 0.05, 0.04), (0.06, 0.24, 0.18), (0.16, 0.5, 0.36)), (0.05, 0.18, 0.13), (0.17, 0.27, 0.22), (0.62, 1.0, 0.78)),
+    'C': (((0.07, 0.02, 0.03), (0.32, 0.07, 0.1), (0.62, 0.16, 0.2)), (0.24, 0.06, 0.08), (0.32, 0.18, 0.2), (1.0, 0.62, 0.62)),
+}
+
+
 def cartel(cual):
-    """La misma vista que el cartel (de abajo y de tres cuartos), para compararla con el."""
-    S = sitio(cual)                                  # el violeta del cartel
-    S.update(cielo=((0.04, 0.02, 0.09), (0.26, 0.1, 0.4), (0.52, 0.22, 0.68)), niebla=(0.2, 0.09, 0.3), amb=(0.26, 0.2, 0.34),
-             luces=[((-0.6, 0.35, 0.8), (0.78, 0.6, 1.0), 0.95, 'llave')] + S['luces'][1:])
-    guardar(escena(cual, CAMARA_CARTEL, NOMBRE[cual], SUB_CARTEL.get(cual, SUB_CABEZA[cual]), 60, contorno=True, brillo=1.25, S=S),
-            'cartel_' + cual)
+    """La presentacion del cartel: de cerca y desde abajo, con el cielo y la luz de su neon, la boca
+    que alumbra y el contorno blanco."""
+    cielo_, niebla_, amb_, llave = CARTEL_LUZ[cual]
+    S = sitio(cual)
+    S.update(cielo=cielo_, niebla=niebla_, amb=amb_, luces=[((-0.6, 0.35, 0.8), llave, 0.95, 'llave')] + S['luces'][1:])
+    guardar(escena(cual, CAMARA_CARTEL, NOMBRE[cual], '', 60, contorno=True, brillo=1.25, S=S), 'cartel_' + cual)
 
 
 ESCENAS = {'heroe_' + c: (lambda c=c: heroe(c)) for c in 'OABC'}
