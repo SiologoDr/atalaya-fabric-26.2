@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta trece versiones:
+como tal». Hicieron falta catorce versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -60,6 +60,11 @@ como tal». Hicieron falta trece versiones:
     - el mármol, dibujado a mano;
     - la vista del cartel: de cerca y desde abajo, con el violeta, la boca que alumbra y el
       contorno blanco.
+14. La decimocuarta: «en la cabeza los dientes no los hagas como bloques sino como una
+    vista… como hoja bond, no como cubos» y «al agrandar la cabeza nos falta el cuello y las
+    costillas que se vean más abajo, y luego que esté lo demás». Los dientes son hojas con
+    los dientes dibujados (la fila de colmillos de arriba y los dientes rojos de abajo), y la
+    cabeza va sobre un cuello de dos tambores de mármol, con el costillar a la vista debajo.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -89,13 +94,14 @@ En la forma de monstruo se ve:
 
   Flota: no toca el suelo.
 - **El cuerpo va por tramos**, de arriba abajo, cada uno con su cinturón de remaches:
-  - el pecho;
+  - la cabeza, sobre un cuello de dos tambores de mármol que sube del pecho y se adelanta;
+  - el pecho, a la vista debajo de la cabeza;
   - la cintura, pequeña;
   - tambores de mármol, un poco abombados, que van de menor a mayor y de mayor a menor;
     lo más gordo, a la mitad, es el doble que la cintura; en general, es estrecho;
   - la aleta roja.
 
-  Mide unos 39 bloques de alto con los cebos.
+  Mide unos 47 bloques de alto con los cebos.
 - **El pecho es solo costillas**: barras rosas que brillan, de arriba abajo alrededor del
   pecho como una jaula (así en la portada y en el directo), más juntas abajo que arriba,
   con huecos oscuros entre ellas y la columna detrás.
@@ -117,9 +123,10 @@ En la forma de monstruo se ve:
 - **La boca**: las dos mandíbulas son medio rectángulo y medio triángulo, rectas atrás y
   en punta delante, con la bisagra atrás.
   - La de arriba es larga y recta, lila por encima y en la punta, con la gema blanca en
-    la arista. Lleva los colmillos planos rosas y blancos por todo el borde del paladar.
+    la arista. Lleva por todo el borde del paladar una fila de colmillos rosas y blancos
+    dibujados en hojas, no hechos de cubos.
   - La de abajo es una bandeja rosa por dentro, con el borde de mármol y los dientes rojos
-    en escalón. Cuelga muy abierta, en diagonal.
+    en escalón, también dibujados en hojas. Cuelga muy abierta, en diagonal.
   - De frente se ve el escudo rosa que acaba en punta debajo de la visera, delante del
     pecho, como en la portada.
 - **Los tres cebos**, de varillas gruesas: el de arriba sale del tallo negro, sube y se dobla hacia atrás, y

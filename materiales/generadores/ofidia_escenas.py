@@ -182,8 +182,8 @@ SUB_CABEZA = {
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((28.0, 8.0, 31.0), (0.0, 20.5, 1.5), 62)
-CAMARA_CABEZA = ((-10.0, 19.5, 37.0), (0.0, 27.0, 8.0), 56)
+CAMARA_HEROE = ((32.0, 10.0, 37.0), (0.0, 24.0, 2.0), 64)
+CAMARA_CABEZA = ((-10.0, 24.0, 38.0), (0.0, 32.0, 8.0), 56)
 
 
 def perfilar(lz, mascara, grosor, color=(1.0, 0.97, 1.0)):
@@ -241,7 +241,7 @@ def cuatro():
              amb=(0.22, 0.21, 0.26), niebla=(0.06, 0.05, 0.09), niebla_d=(180, 330),
              cielo=((0.01, 0.012, 0.03), (0.05, 0.05, 0.1), (0.16, 0.13, 0.22)), motas=(230, 230, 255))
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
-    cam = vr.Camara((0.0, 18.0, 235.0), (0.0, 18.5, 0.0), 22, W * SS, H * SS)
+    cam = vr.Camara((0.0, 21.0, 255.0), (0.0, 21.5, 0.0), 22, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
     for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
         qs, info = om.ofidia(cual)
@@ -261,7 +261,7 @@ def materiales():
         propio = {'O': ('vara', 'varilla', 'der', 4, 20), 'A': ('cobra', 'capucha', 'frente', 40, 34),
                   'B': ('hierro', 'hierro', 'der', 8, 16), 'C': ('oxido', 'oxido', 'der', 8, 16)}[c]
         fila = [(P['marmol'], 'marmol', 'der', 24, 24), (P['cinto'], 'cinturon', 'frente', 24, 6), (P['capucha'], 'capucha', 'arriba', 24, 24),
-                (P['colmillo'], 'colmillo', 'frente', 4, 16), (P['costilla'], 'costilla', 'frente', 8, 24),
+                (P['colmillos'], 'colmillos', 'frente', 24, 10), (P['costilla'], 'costilla', 'frente', 8, 24),
                 (P['ala_hueso'], 'hueso del ala', 'der', 24, 24), (P['membrana'], 'membrana', 'frente', 32, 24),
                 (P[propio[0]], propio[1], propio[2], propio[3], propio[4])]
         filas.append((c, fila))
@@ -292,10 +292,10 @@ def materiales():
     guardar(img, 'materiales')
 
 
-CAMARA_CARTEL = ((-22.0, 16.0, 29.0), (0.0, 25.5, 6.0), 50)
+CAMARA_CARTEL = ((-23.0, 21.0, 31.0), (0.0, 32.5, 6.0), 52)
 SUB_CARTEL = {'O': 'como en el cartel: de cerca y desde abajo, con la boca que alumbra y el contorno blanco'}
-CAMARA_FRENTE = ((0.0, 21.0, 46.0), (0.0, 25.0, 6.0), 52)
-CAMARA_LADO = ((-66.0, 20.0, 3.5), (0.0, 20.0, 3.5), 44)
+CAMARA_FRENTE = ((0.0, 23.0, 50.0), (0.0, 28.0, 6.0), 52)
+CAMARA_LADO = ((-72.0, 22.5, 4.0), (0.0, 22.5, 4.0), 44)
 
 
 def cartel(cual):

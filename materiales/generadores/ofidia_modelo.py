@@ -300,6 +300,46 @@ def pintores(V):
         return tex, _emis(tex, idx >= 2, 150)
     reg('colmillo', colmillo)
 
+    def _hojas_de_dientes(tw, th, rampa, colgando, brillo=None):
+        """Una fila de dientes dibujada en una hoja, como en el cartel (no hecha de cubos): cada
+        diente, de cuatro pixeles de ancho, con la raya clara por el medio, el borde oscuro y la
+        punta en escalon; uno largo y uno corto; entre uno y otro, hueco. Si cuelgan, la raiz va
+        arriba de la textura; si estan de pie, abajo."""
+        t = np.zeros((th, tw, 4), np.uint8)
+        c = [(*cc, 255) for cc in rampa]
+        n = max(1, (tw + 1) // 5)
+        x0 = (tw - (n * 5 - 1)) // 2
+        for i in range(n):
+            x = x0 + i * 5
+            largo = th if i % 2 == 0 else max(2, int(round(th * 0.68)))
+            for k_ in range(largo):
+                y = k_ if colgando else th - 1 - k_
+                f = k_ / max(largo - 1, 1)                     # 0 en la raiz, 1 en la punta
+                if f > 0.85:
+                    pix = ((x + 1, c[4]),)
+                elif f > 0.6:
+                    pix = ((x + 1, c[4]), (x + 2, c[3]))
+                else:
+                    pix = ((x, c[2]), (x + 1, c[4]), (x + 2, c[3]), (x + 3, c[1]))
+                for xx, col in pix:
+                    if 0 <= xx < tw:
+                        t[y, xx] = col
+            y = 0 if colgando else th - 1                      # la raiz, mas oscura
+            for xx in range(max(x, 0), min(x + 4, tw)):
+                t[y, xx] = c[1]
+        return t, (_emis(t, t[..., 3] > 0, brillo) if brillo else None)
+
+    def colmillos(tw, th, cara, s):
+        """Los colmillos de arriba: una hoja que cuelga del borde del paladar, con los dientes
+        rosas y blancos dibujados; brillan un poco."""
+        return _hojas_de_dientes(tw, th, V['colmillo'], True, 150)
+    reg('colmillos', colmillos)
+
+    def dientes(tw, th, cara, s):
+        """Los dientes rojos de abajo: una hoja de pie sobre el borde de la bandeja rosa."""
+        return _hojas_de_dientes(tw, th, V['diente_bajo'], False)
+    reg('dientes', dientes)
+
     def diente_bajo(tw, th, cara, s):
         idx = np.full((th, tw), 2)
         if tw >= 2:
@@ -662,6 +702,29 @@ def cuerpo_ese(out, V, P):
     return pts
 
 
+def cuello(out, ctrl, P, r=1.2):
+    """El cuello: dos tambores de marmol, un poco abombados, con su cinturon, que suben de lo
+    alto del pecho a la cabeza; devuelve la punta de arriba."""
+    curva, _ = em.catmull(ctrl, 300)
+    curva = [np.asarray(p, float) for p in curva]
+    L = [0.0]
+    for a, b in zip(curva, curva[1:]):
+        L.append(L[-1] + float(np.linalg.norm(b - a)))
+    total = L[-1]
+    n = max(4, 2 * int(math.ceil(total / 1.6)))
+    pts = [curva[min(int(np.searchsorted(L, total * i / n)), len(curva) - 1)] for i in range(n + 1)]
+    marcos = sm._marcos(pts, (0, 0, 1))
+    for i, M in enumerate(marcos):
+        Ls = float(np.linalg.norm(pts[i + 1] - pts[i]))
+        u = ((i + 0.5) / n * 2) % 1.0
+        rr = r * (0.9 + 0.1 * math.sin(math.pi * u))
+        cubo(out, M, -rr, -rr, -0.3, 2 * rr, 2 * rr, Ls + 0.6, P['marmol'], semilla=80 + i)
+    rb = r * 1.08
+    for i in (0, n // 2):
+        cubo(out, marcos[i] @ vr.T(0, 0, -0.38), -rb, -rb, 0, 2 * rb, 2 * rb, 0.76, P['cinto'], semilla=90 + i)
+    return pts[-1]
+
+
 def aleta(out, p, t, P):
     """La aleta roja del final de la cola: un abanico de hojas planas en el plano de perfil y unas
     pocas fuera de el, para que tenga bulto."""
@@ -720,11 +783,11 @@ def ofidia(variante='O'):
     # el cuerpo en ese, de la base del costillar a la aleta
     cuerpo_ese(out, V, P)
 
-    # el cuello, corto, y la cabeza delante del pecho, a la altura del costillar y mirando al frente
-    # (como en el directo); la mandibula de abajo cuelga por delante del cuerpo
-    arriba = punto(G, (0.0, 24.3, 0.8))
-    Hc = arriba + np.array((0.0, -1.6, 4.0))
-    viga(out, arriba, Hc + np.array((0.0, 0.2, -2.6)), 2.2, 2.2, P['marmol'], extra=0.3, semilla=40)
+    # el cuello sube de lo alto del pecho y se adelanta; encima va la cabeza, y debajo de ella se
+    # ve el costillar (Juan: «nos falta el cuello y las costillas que se vean mas abajo»)
+    b = punto(G, (0.0, 24.6, 0.3))
+    tope = cuello(out, [b, b + np.array((0.0, 1.8, 0.3)), b + np.array((0.0, 3.6, 1.1)), b + np.array((0.0, 5.0, 2.0))], P)
+    Hc = tope + np.array((0.0, 0.3, 2.9))
     # la cabeza se hace en su sitio, sin escala, y se pone agrandada; mientras se pinta, el pixel se
     # hace mas pequeno para que, ya agrandado, mida lo mismo que el del cuerpo
     cab = []
@@ -831,6 +894,22 @@ def borde5(ancho, recto, largo, paso):
     return puntos
 
 
+def _hilera(out, M, ancho, recto, largo, y, alto, pintor, semilla=0, mete=0.2):
+    """Los dientes de una mandibula como hojas (no cubos), una por cada lado de la planta de
+    prisma5, metidas un poco hacia dentro del borde: de y a y + alto en el marco M (con alto
+    negativo, cuelgan; con alto positivo, estan de pie)."""
+    a = ancho / 2 - mete
+    planta = [(-a, mete), (-a, recto), (0.0, largo - mete * 1.6), (a, recto), (a, mete)]
+    for j, ((x0, z0), (x1, z1)) in enumerate(zip(planta, planta[1:])):
+        A, B = punto(M, (x0, y, z0)), punto(M, (x1, y, z1))
+        A2, B2 = punto(M, (x0, y + alto, z0)), punto(M, (x1, y + alto, z1))
+        lado, h = float(np.linalg.norm(B - A)), float(np.linalg.norm(A2 - A))
+        if alto < 0:                                   # arriba de la textura, la raiz
+            lamina(out, (A2, B2, B, A), pintor, lado, h, semilla + j)
+        else:                                          # arriba de la textura, las puntas
+            lamina(out, (A, B, B2, A2), pintor, lado, h, semilla + j)
+
+
 def colmillo(out, M, ancho, largo, grueso, pintor, semilla=0):
     """Un colmillo plano de dos escalones que cuelga a lo largo de -y local: la hoja y la punta,
     como los de Ofidia (rectangulares, con la punta en escalon)."""
@@ -878,18 +957,12 @@ def cabeza(out, Mh, V, P):
     n = _dir(Mu, (0.0, 0.0, 1.0))
     Mg = em.marco(punto(Mu, (0.0, 1.0, L)) + n * 0.05, n)
     cubo(out, Mg @ vr.Rz(45 * D), -0.4, -0.4, 0, 0.8, 0.8, 0.06, None, caras={'frente': P['gema']}, semilla=9)
-    for j, (x, z, ang) in enumerate(borde5(W - 0.45, R, L - 0.35, 0.45)):
-        M = Mu @ vr.T(x, 0.05, z) @ vr.Ry(ang + math.pi / 2)
-        colmillo(out, M, 0.5, 1.15 + 0.45 * (j % 2), 0.18, P['colmillo'], semilla=12 + j % 9)
+    _hilera(out, Mu, W, R, L, 0.02, -1.6, P['colmillos'], semilla=12)                             # los colmillos, en hoja
     # la de abajo: la bandeja rosa con el borde de marmol y los dientes rojos en escalon
     Ml = Mh @ vr.T(0, -0.3, -0.2) @ vr.Rx(46 * D)
     prisma5(out, Ml, 4.3, -1.5, 0.0, 3.2, 6.0, {'arriba': P['boca'], 'abajo': P['marmol'], 'lados': P['marmol'],
                                                  'proa': P['marmol'], 'atras': P['capucha']}, semilla=33)
-    for j, (x, z, ang) in enumerate(borde5(4.3 - 0.4, 3.2, 6.0 - 0.35, 0.52)):
-        M = Ml @ vr.T(x, 0, z) @ vr.Ry(ang)
-        alto = 0.5 + 0.16 * (j % 2)
-        cubo(out, M, -0.15, 0, -0.15, 0.3, alto, 0.3, P['diente_bajo'], semilla=40 + j % 7)
-        cubo(out, M, -0.11, alto, -0.11, 0.22, 0.2, 0.22, P['diente_bajo'], semilla=47 + j % 7)
+    _hilera(out, Ml, 4.3, 3.2, 6.0, 0.0, 0.85, P['dientes'], semilla=40, mete=0.25)              # los dientes rojos, en hoja
     # al fondo de la boca, la garganta que brilla
     Mv = em.marco(punto(Mh, (0.0, -0.2, 0.05)), _dir(Mh, (0.0, 0.05, 1.0)))
     cubo(out, Mv, -1.5, -1.5, 0, 3.0, 3.0, 0.05, None, caras={'frente': P['nucleo']}, semilla=49)
