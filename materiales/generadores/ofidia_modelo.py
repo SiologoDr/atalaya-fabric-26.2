@@ -9,8 +9,9 @@ bien su portada».
   Estudiada en el cartel, en el retrato de su barra y en la presentacion del directo del
   10-10-2026 (los fotogramas estan en el scratchpad, ded/intro6). Su forma de monstruo:
 
-    - la cola: una sierpe de tambores de marmol azul con cinturones granates con remaches,
-      que se enrosca en el suelo y se alza;
+    - flota erguida, como una sirena: la cola es una sierpe de tambores de marmol azul con
+      cinturones granates con remaches, que cuelga del cinturon de la cintura, hace una ese
+      suave y acaba en una aleta roja de hojas en abanico;
     - la cintura: un cinturon con remaches;
     - el torso: un costillar abierto que brilla rosa por dentro, con costillas blancas y la
       columna oscura de vertebras grises por delante;
@@ -20,10 +21,12 @@ bien su portada».
     - la cabeza: una capucha puntiaguda de azul noche, una visera lila con una gema blanca
       que brilla, dos cuernos lila, una media luna lila, una espina rosa, un gancho negro con
       remaches turquesa y un tallo negro con muescas en la coronilla;
-    - la boca, de dos cunas (medio rectangulo partido en diagonal cada una): la de arriba, con
-      la visera lila en rampa y la gema, y los colmillos colgando del paladar; la de abajo, al
-      reves, llana por dentro y en rampa por fuera, que se estrecha hasta la barbilla, con los
-      dientes rojos en escalon por los cantos; abierta, por dentro es el triangulo rosa;
+    - la boca: las dos mandibulas son medio rectangulo y medio triangulo (la planta acaba en
+      punta), con la bisagra atras. La de arriba, lila por encima y en la proa, con la gema en
+      la arista y los colmillos rosas y blancos por todo el borde; la de abajo, una bandeja rosa
+      por dentro con el borde de marmol y los dientes rojos en escalon. De lado se ve la caja
+      con los dientes rojos por el borde de arriba; de frente, el escudo rosa que acaba en
+      punta debajo de la visera (asi en la portada y en el directo);
     - tres cebos: el de arriba sale del tallo negro, sube y se dobla hacia atras, y los de los
       lados salen de la capucha y se doblan hacia atras y abajo; acaban en cubos rosas.
 
@@ -246,6 +249,19 @@ def pintores(V):
         return t, _emis(t, dd >= 0.2, 235)
     reg('boca', boca)
 
+    def aleta(tw, th, cara, s):
+        """Las hojas de la aleta de la cola: rojas, con la raiz oscura, una veta clara por el medio y
+        la punta clara."""
+        ys, xs = np.mgrid[0:th, 0:tw]
+        v = ys / max(th - 1, 1)                        # 0 en la punta (arriba de la textura), 1 en la raiz
+        idx = np.where(v > 0.7, 1, np.where(v > 0.25, 2, 3))
+        if tw >= 4:
+            idx = np.where(np.abs(xs - (tw - 1) / 2) < 0.6, np.minimum(idx + 1, 4), idx)
+        if th >= 4:
+            idx[0, :] = 4
+        return _imagen(idx, V['diente_bajo']), None
+    reg('aleta', aleta)
+
     def pecho(tw, th, cara, s):
         """Lo de dentro del costillar: el neon en escalones, mas claro en el centro y hondo en
         los bordes, con lineas horizontales suaves."""
@@ -447,28 +463,46 @@ def _jirones(out, a, b, largo, P, semilla=0, vuelo=(0.0, 0.0, 0.0)):
 # ----------------------------------------------------------------------
 #  La cola: tambores de marmol con su cinturon, enroscada en el suelo y alzandose
 # ----------------------------------------------------------------------
-COLA = [(8.6, 0.55, -7.8), (5.2, 0.9, -10.2), (0.4, 1.25, -10.4), (-3.8, 1.55, -7.6), (-4.8, 1.8, -3.4),
-        (-2.8, 2.1, 0.0), (-0.6, 4.0, 0.9), (0.1, 7.2, 0.6), (0.0, 10.2, 0.0)]
+COLA = [(0.0, 12.0, 0.0), (0.0, 9.4, 0.7), (0.0, 6.6, 0.6), (0.0, 4.6, -0.4), (0.0, 3.3, -1.7)]
 
 
 def cola(out, V, P):
-    pts = sm._por_longitud(COLA, 2.3)
-    marcos = sm._marcos(pts, (0, 1, 0))
+    """La cola: tambores de marmol con su cinturon que cuelgan del cinturon de la cintura,
+    hacen una ese suave y acaban en la aleta roja."""
+    pts = sm._por_longitud(COLA, 1.9)
+    marcos = sm._marcos(pts, (0, 0, 1))
     n = len(marcos)
     for i, M in enumerate(marcos):
         t = i / max(n - 1, 1)
-        r = 0.5 + 1.75 * t ** 0.6
+        r = 2.0 - 1.2 * t
         L = float(np.linalg.norm(pts[i + 1] - pts[i]))
         cubo(out, M, -r, -r, -0.15, 2 * r, 2 * r, L + 0.3, P['marmol'], semilla=i)
-        if i > 0:
-            rb = r * 1.16
-            cubo(out, M @ vr.T(0, 0, -0.28), -rb, -rb, 0, 2 * rb, 2 * rb, 0.56, P['cinto'], semilla=i)
-        if V['clave'] == 'C' and i % 2 == 1 and 0.25 < t < 0.95:          # cadenas que cruzan el tambor
+        rb = r * 1.16
+        cubo(out, M @ vr.T(0, 0, -0.28), -rb, -rb, 0, 2 * rb, 2 * rb, 0.56, P['cinto'], semilla=i)
+        if V['clave'] == 'C' and i % 2 == 1:                                    # cadenas que cruzan el tambor
             for s in (1, -1):
-                cadena(out, punto(M, (-s * r * 1.08, r * 1.08, 0.3)), punto(M, (s * r * 1.08, r * 1.08, L - 0.3)), 0.9,
+                cadena(out, punto(M, (-s * r * 1.08, r * 1.08, 0.3)), punto(M, (s * r * 1.08, r * 1.08, L - 0.3)), 0.8,
                        P['oxido'], semilla=i)
-    pua(out, marcos[0] @ vr.Rx(-90 * D), 0.42, 1.8, P['marmol'], semilla=99)        # la punta de la cola
+    fin = pts[-1]
+    t = pts[-1] - pts[-2]
+    aleta(out, fin, t / np.linalg.norm(t), P)
     return pts
+
+
+def aleta(out, p, t, P):
+    """La aleta roja del final de la cola: un abanico de hojas planas en el plano de perfil y unas
+    pocas fuera de el, para que tenga bulto."""
+    cubo(out, vr.T(*p), -0.55, -0.55, -0.55, 1.1, 1.1, 1.1, P['cinto'], semilla=95)
+    for j, (phi, largo, x) in enumerate(((0, 4.4, 0.0), (20, 4.0, 0.0), (-20, 4.0, 0.0), (40, 3.4, 0.0), (-40, 3.4, 0.0),
+                                         (60, 2.7, 0.0), (-60, 2.7, 0.0), (10, 3.6, 0.7), (-10, 3.6, -0.7), (30, 3.0, -0.65),
+                                         (-30, 3.0, 0.65), (50, 2.4, 0.5), (-50, 2.4, -0.5))):
+        c, s_ = math.cos(math.radians(phi)), math.sin(math.radians(phi))
+        d = np.array((x, t[1] * c - t[2] * s_, t[1] * s_ + t[2] * c))
+        d = d / np.linalg.norm(d)
+        Mb = em.marco(p, d, up=(1, 0, 0))
+        w = 0.78 - 0.06 * abs(phi) / 20
+        cubo(out, Mb, -w / 2, -0.09, 0, w, 0.18, largo * 0.72, P['aleta'], semilla=96 + j)
+        cubo(out, Mb, -w * 0.3, -0.07, largo * 0.72, w * 0.6, 0.14, largo * 0.28, P['aleta'], semilla=97 + j)
 
 
 # ======================================================================
@@ -479,7 +513,6 @@ def ofidia(variante='O'):
     P = pintores(V)
     k = V['clave']
     out = []
-    cola(out, V, P)
     cubo(out, vr.T(0, 10.3, 0.0), -2.6, -0.4, -2.6, 5.2, 0.8, 5.2, P['cinto'], semilla=1)         # el cinturon de la cintura
 
     # el torso: el costillar abierto, que brilla por dentro
@@ -509,7 +542,7 @@ def ofidia(variante='O'):
     # el cuello y la cabeza
     viga(out, np.array((0, 15.2, 0.3)), np.array((0, 18.0, 1.6)), 2.0, 2.0, P['marmol'], extra=0.3, semilla=40)
     cubo(out, em.marco(np.array((0, 16.4, 0.85)), (0, 2.8, 1.3)), -1.2, -1.2, -0.3, 2.4, 2.4, 0.6, P['cinto'], semilla=41)
-    Mh = em.marco(np.array((0.0, 20.0, 3.3)), (0.0, -0.58, 1.0)) @ np.diag([1.3, 1.3, 1.3, 1.0])
+    Mh = em.marco(np.array((0.0, 20.0, 3.0)), (0.0, -0.3, 1.0)) @ np.diag([1.25, 1.25, 1.25, 1.0])
     cabeza(out, Mh, V, P)
     if k == 'O':
         _corona_original(out, Mh, P)
@@ -519,7 +552,11 @@ def ofidia(variante='O'):
         _corona_faroles(out, Mh, P)
     else:
         _corona_encadenada(out, Mh, P)
-    return out, {'cabeza': Mh}
+    # flota: todo lo de arriba sube y la cola cuelga hasta la aleta, sin tocar el suelo
+    sube = vr.T(0, 2.0, 0)
+    out = qm.transformar(out, sube)
+    cola(out, V, P)
+    return out, {'cabeza': sube @ Mh}
 
 
 def _pano(out, raiz, a, b, pintor, semilla=0):
@@ -539,7 +576,7 @@ def ala(out, s, V, P):
     muneca = np.array((s * 10.0, 20.4, -1.2))
     dedos = [np.array((s * 16.0, 23.0, -3.6)), np.array((s * 18.6, 18.0, -5.2)), np.array((s * 16.8, 12.6, -5.8)),
              np.array((s * 12.2, 9.4, -5.0))]
-    costado = np.array((s * 3.2, 10.8, -1.8))
+    costado = np.array((s * 3.0, 10.4, -1.8))
     cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)            # el hombro, con remaches
     viga(out, hombro, codo, 1.35, 1.3, P['marmol'], extra=0.3, semilla=21)
     viga(out, codo, muneca, 1.1, 1.05, P['marmol'], extra=0.28, semilla=22)
@@ -569,21 +606,54 @@ def ala(out, s, V, P):
             cadena(out, p + np.array((0, -0.9, 0)), p + np.array((s * 0.3, -4.2, 0.4)), 0.75, P['oxido'], semilla=41)
 
 
-def solido(out, esquinas, pintores, semilla=0):
-    """Un bloque de 8 esquinas cualesquiera (una cuna, por ejemplo), con su pintor por cara.
-    Las esquinas van a b c d (atras: abajo-izq, abajo-der, arriba-der, arriba-izq) y e f g h
-    (delante, igual); pintores dice el de cada cara ('atras', 'frente', 'arriba', 'abajo',
-    'izq', 'der'), y la que no tiene pintor no se dibuja."""
-    a, b, c, d, e, f, g, h = [np.asarray(p, float) for p in esquinas]
-    caras = {'atras': (b, a, d, c), 'frente': (e, f, g, h), 'arriba': (h, g, c, d), 'abajo': (a, b, f, e),
-             'izq': (a, e, h, d), 'der': (f, b, c, g)}
-    for k, (p0, p1, p2, p3) in caras.items():
-        pin = pintores.get(k)
-        if pin is None:
+def prisma5(out, M, ancho, y0, y1, recto, largo, pintores, semilla=0):
+    """Un prisma cuya planta es medio rectangulo y medio triangulo: de z=0 a z=recto, el
+    rectangulo de 'ancho'; de ahi a z=largo, el triangulo que acaba en punta. Va de y0 a y1.
+    pintores dice el de cada cara: 'arriba', 'abajo', 'atras', 'lados' (los dos lados rectos)
+    y 'proa' (las dos caras de la punta); la que no tiene pintor no se dibuja."""
+    a = ancho / 2
+    planta = [(-a, 0.0), (a, 0.0), (a, recto), (0.0, largo), (-a, recto)]
+    pa = lambda x, z: punto(M, (x, y1, z))
+    pb = lambda x, z: punto(M, (x, y0, z))
+    alto = abs(y1 - y0)
+    caras = []
+    if pintores.get('atras'):
+        caras.append(((pb(a, 0), pb(-a, 0), pa(-a, 0), pa(a, 0)), pintores['atras']))
+    if pintores.get('lados'):
+        caras.append(((pb(-a, 0), pb(-a, recto), pa(-a, recto), pa(-a, 0)), pintores['lados']))
+        caras.append(((pb(a, recto), pb(a, 0), pa(a, 0), pa(a, recto)), pintores['lados']))
+    if pintores.get('proa'):
+        caras.append(((pb(-a, recto), pb(0, largo), pa(0, largo), pa(-a, recto)), pintores['proa']))
+        caras.append(((pb(0, largo), pb(a, recto), pa(a, recto), pa(0, largo)), pintores['proa']))
+    for k, (P4, pin) in enumerate(caras):
+        p0, p1, p2, p3 = P4
+        lamina(out, P4, pin, float(max(np.linalg.norm(p1 - p0), 0.05)), float(max(alto, 0.05)), semilla + k)
+    for clave, f in (('arriba', pa), ('abajo', pb)):
+        pin = pintores.get(clave)
+        if not pin:
             continue
-        ancho = max(np.linalg.norm(p1 - p0), np.linalg.norm(p2 - p3), 0.05)
-        alto = max(np.linalg.norm(p3 - p0), np.linalg.norm(p2 - p1), 0.05)
-        lamina(out, (p0, p1, p2, p3), pin, float(ancho), float(alto), semilla)
+        rect = (f(-a, 0), f(a, 0), f(a, recto), f(-a, recto))
+        tri = (f(-a, recto), f(a, recto), f(0, largo), f(0, largo))
+        if clave == 'abajo':
+            rect, tri = rect[::-1], tri[::-1]
+        lamina(out, rect, pin, ancho, recto, semilla + 10)
+        lamina(out, tri, pin, ancho, largo - recto, semilla + 11)
+    return planta
+
+
+def borde5(ancho, recto, largo, paso):
+    """Puntos a lo largo del borde de la planta de prisma5 (los dos lados y la punta), con la
+    direccion del borde en cada uno, para poner dientes."""
+    a = ancho / 2
+    tramos = [((-a, 0.0), (-a, recto)), ((-a, recto), (0.0, largo)), ((0.0, largo), (a, recto)), ((a, recto), (a, 0.0))]
+    puntos = []
+    for (x0, z0), (x1, z1) in tramos:
+        L = math.hypot(x1 - x0, z1 - z0)
+        n = max(1, int(L / paso))
+        for i in range(n):
+            t = (i + 0.5) / n
+            puntos.append((x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, math.atan2(x1 - x0, z1 - z0)))
+    return puntos
 
 
 def colmillo(out, M, ancho, largo, grueso, pintor, semilla=0):
@@ -594,9 +664,10 @@ def colmillo(out, M, ancho, largo, grueso, pintor, semilla=0):
 
 
 def cabeza(out, Mh, V, P):
-    """La cabeza: la capucha puntiaguda y la boca de dos cunas, medio rectangulo cada una: la
-    de arriba con la visera lila en rampa, la gema y los colmillos colgando del paladar; la de
-    abajo al reves, que se estrecha hasta la barbilla y por dentro es el triangulo rosa."""
+    """La cabeza: la capucha puntiaguda y la boca de dos mandibulas, medio rectangulo y medio
+    triangulo cada una: la de arriba, lila, con la gema en la arista y los colmillos por el
+    borde; la de abajo, una bandeja rosa con los dientes rojos por el borde, que de frente es
+    el escudo rosa que acaba en punta."""
     k = V['clave']
     # la capucha, que acaba en pico hacia atras
     cubo(out, Mh, -2.05, -0.5, -3.0, 4.1, 2.7, 3.8, P['capucha'], semilla=1)
@@ -607,51 +678,46 @@ def cabeza(out, Mh, V, P):
     for s in (1, -1):                                                                              # los faldones de la capucha
         x0 = 2.0 if s > 0 else -2.4
         cubo(out, Mh, x0, -1.9, -3.0, 0.4, 3.9, 3.4, P['capucha'], semilla=6)
-    # la mandibula de arriba: una cuna (medio rectangulo partido en diagonal). Por encima, la
-    # visera lila que baja en rampa hasta el morro, con la gema; delante, la banda oscura con
-    # remaches; por debajo, el paladar encendido, del que cuelgan los colmillos
-    mh = lambda x, y, z: punto(Mh, (x, y, z))
-    solido(out, [mh(-2.15, -0.55, 0.2), mh(2.15, -0.55, 0.2), mh(2.15, 1.95, 0.2), mh(-2.15, 1.95, 0.2),
-                 mh(-2.15, -0.55, 3.25), mh(2.15, -0.55, 3.25), mh(2.15, -0.05, 3.25), mh(-2.15, -0.05, 3.25)],
-           {'arriba': P['hueso'], 'frente': P['gancho'], 'abajo': P['boca'], 'izq': P['capucha'], 'der': P['capucha']}, semilla=7)
-    n = _dir(Mh, (0.0, 3.05, 2.0))
-    n = n / np.linalg.norm(n)
-    Mg = em.marco(mh(0.0, 0.66, 2.17) + n * 0.04, n)
-    cubo(out, Mg @ vr.Rz(45 * D), -0.42, -0.42, 0, 0.84, 0.84, 0.06, None, caras={'frente': P['gema']}, semilla=9)
-    cubo(out, Mh, -0.32, 1.9, -1.8, 0.64, 0.42, 2.0, P['hueso'], semilla=11)                       # la cresta
-    for j in range(8):                                                                             # los colmillos de delante
-        x = -1.75 + j * 0.5
-        colmillo(out, Mh @ vr.T(x, -0.5, 3.08), 0.42, 0.8 + 0.28 * (j % 2), 0.16, P['colmillo'], semilla=12 + j)
-    for s in (1, -1):                                                                              # los de los lados
-        for j in range(4):
-            M = Mh @ vr.T(s * 1.98, -0.5, 0.75 + j * 0.62) @ vr.Ry(90 * D)
-            colmillo(out, M, 0.5, 0.75 + 0.25 * ((j + 1) % 2), 0.16, P['colmillo'], semilla=20 + j)
-    # la mandibula de abajo: la otra cuna, al reves (llana por dentro y en rampa por fuera), que
-    # se estrecha hasta la barbilla; abierta, cuelga casi recta y por dentro es el triangulo rosa
-    Mj = Mh @ vr.T(0, -0.55, 0.35) @ vr.Rx(46 * D)
-    mj = lambda x, y, z: punto(Mj, (x, y, z))
-    L = 3.7
-    solido(out, [mj(-2.0, -1.9, 0), mj(2.0, -1.9, 0), mj(2.0, 0, 0), mj(-2.0, 0, 0),
-                 mj(-0.55, -0.32, L), mj(0.55, -0.32, L), mj(0.55, 0, L), mj(-0.55, 0, L)],
-           {'arriba': P['boca'], 'abajo': P['marmol'], 'izq': P['marmol'], 'der': P['marmol'], 'frente': P['marmol'],
-            'atras': P['capucha']}, semilla=33)
-    for lado in (1, -1):                                                                           # los dientes rojos, en escalon
-        for j in range(7):
-            t = (j + 0.5) / 7
-            x = lado * (2.0 + (0.55 - 2.0) * t - 0.16)
-            M = Mj @ vr.T(x, 0, t * L)
-            alto = 0.32 + 0.12 * (j % 2)
-            cubo(out, M, -0.11, 0, -0.15, 0.22, alto, 0.3, P['diente_bajo'], semilla=40 + j)
-            cubo(out, M, -0.08, alto, -0.15, 0.16, 0.16, 0.17, P['diente_bajo'], semilla=47 + j)
+    # la boca: las dos mandibulas son medio rectangulo y medio triangulo (la planta acaba en
+    # punta), con la bisagra atras. La de arriba: lila por encima y en la proa, con la gema en
+    # la arista, y los colmillos colgando por todo el borde del paladar. La de abajo: una bandeja
+    # rosa por dentro, con el borde de marmol y los dientes rojos en escalon; abierta, de frente
+    # es el escudo rosa que acaba en punta debajo de la visera.
+    Mu = _mandibula_arriba(Mh)
+    W, R, L = 4.1, 2.6, 4.5
+    prisma5(out, Mu, W, 0.0, 1.6, R, L, {'arriba': P['hueso'], 'proa': P['hueso'], 'lados': P['capucha'], 'atras': P['capucha'],
+                                         'abajo': P['boca']}, semilla=7)
+    n = _dir(Mu, (0.0, 0.0, 1.0))
+    Mg = em.marco(punto(Mu, (0.0, 0.85, L)) + n * 0.05, n)
+    cubo(out, Mg @ vr.Rz(45 * D), -0.36, -0.36, 0, 0.72, 0.72, 0.06, None, caras={'frente': P['gema']}, semilla=9)
+    cubo(out, Mh, -0.32, 2.0, -1.8, 0.64, 0.42, 1.9, P['hueso'], semilla=11)                       # la cresta
+    for j, (x, z, ang) in enumerate(borde5(W - 0.45, R, L - 0.35, 0.5)):                           # los colmillos, por el borde
+        M = Mu @ vr.T(x, 0.05, z) @ vr.Ry(ang + math.pi / 2)
+        colmillo(out, M, 0.44, 0.95 + 0.35 * (j % 2), 0.16, P['colmillo'], semilla=12 + j % 9)
+    # la de abajo
+    Ml = Mh @ vr.T(0, -0.3, -0.2) @ vr.Rx(40 * D)
+    prisma5(out, Ml, 3.9, -1.3, 0.0, 2.3, 4.3, {'arriba': P['boca'], 'abajo': P['marmol'], 'lados': P['marmol'],
+                                                 'proa': P['marmol'], 'atras': P['capucha']}, semilla=33)
+    for j, (x, z, ang) in enumerate(borde5(3.9 - 0.4, 2.3, 4.3 - 0.35, 0.52)):                     # los dientes rojos, en escalon
+        M = Ml @ vr.T(x, 0, z) @ vr.Ry(ang)
+        alto = 0.42 + 0.14 * (j % 2)
+        cubo(out, M, -0.12, 0, -0.13, 0.24, alto, 0.26, P['diente_bajo'], semilla=40 + j % 7)
+        cubo(out, M, -0.09, alto, -0.1, 0.18, 0.18, 0.18, P['diente_bajo'], semilla=47 + j % 7)
     # al fondo de la boca, la garganta que brilla
-    Mv = em.marco(punto(Mh, (0.0, -1.0, 0.45)), _dir(Mh, (0.0, 0.1, 1.0)))
-    cubo(out, Mv, -1.15, -1.15, 0, 2.3, 2.3, 0.05, None, caras={'frente': P['nucleo']}, semilla=49)
+    Mv = em.marco(punto(Mh, (0.0, -0.2, 0.05)), _dir(Mh, (0.0, 0.05, 1.0)))
+    cubo(out, Mv, -1.3, -1.3, 0, 2.6, 2.6, 0.05, None, caras={'frente': P['nucleo']}, semilla=49)
     if k == 'C':
         return
     # los dos cuernos lila de la visera
     for s in (1, -1):
-        p = punto(Mh, (s * 1.55, 1.75, 0.5))
+        Mu = _mandibula_arriba(Mh)
+        p = punto(Mu, (s * 1.45, 1.5, 0.9))
         pua(out, em.marco(p, _dir(Mh, (s * 0.5, 1.0, -0.25))) @ vr.Rx(90 * D), 0.26, 3.2, P['hueso'], semilla=50)
+
+
+def _mandibula_arriba(Mh):
+    """El marco de la mandibula de arriba: bisagra atras y un poco levantada."""
+    return Mh @ vr.T(0, -0.3, -0.2) @ vr.Rx(-14 * D)
 
 
 def _media_luna(out, Mh, P, x=1.15):
@@ -772,16 +838,17 @@ def _corona_encadenada(out, Mh, P):
         cadena(out, base, fin, 0.8, P['oxido'], semilla=118)
         cubo(out, vr.T(*fin) @ vr.Ry(s * 20 * D), -0.6, -0.9, -0.6, 1.2, 0.9, 1.2, P['oxido'], semilla=119)
     # el bozal de hierro, roto: tres aros sobre el hocico (el de delante, partido) y dos barras
-    for j, z in enumerate((0.8, 1.8, 2.8)):
-        y0, y1 = -0.7, 2.1 - 0.66 * z
+    Mu = _mandibula_arriba(Mh)
+    for j, z in enumerate((0.6, 1.5, 2.4)):
+        y0, y1 = -0.15, 1.8
         for s in (1, -1):
             if j == 2 and s < 0:
                 continue
-            viga(out, punto(Mh, (s * 2.32, y0, z)), punto(Mh, (s * 2.32, y1, z)), 0.34, 0.34, P['oxido'], semilla=114)
-        viga(out, punto(Mh, (-2.32 if j < 2 else 0.4, y1, z)), punto(Mh, (2.32, y1, z)), 0.34, 0.34, P['oxido'], semilla=115)
+            viga(out, punto(Mu, (s * 2.3, y0, z)), punto(Mu, (s * 2.3, y1, z)), 0.34, 0.34, P['oxido'], semilla=114)
+        viga(out, punto(Mu, (-2.3 if j < 2 else 0.4, y1, z)), punto(Mu, (2.3, y1, z)), 0.34, 0.34, P['oxido'], semilla=115)
     for s in (1, -1):
-        viga(out, punto(Mh, (s * 0.9, 2.0, 0.4)), punto(Mh, (s * 0.9, 0.2, 3.1)), 0.3, 0.3, P['oxido'], semilla=116)
-    p0 = punto(Mh, (-2.32, -0.6, 2.8))                                             # una cadena rota que cuelga del bozal
+        viga(out, punto(Mu, (s * 0.9, 1.82, 0.3)), punto(Mu, (s * 0.9, 1.82, 3.2)), 0.3, 0.3, P['oxido'], semilla=116)
+    p0 = punto(Mu, (-2.3, -0.1, 2.4))                                             # una cadena rota que cuelga del bozal
     cadena(out, p0, p0 + np.array((-0.4, -4.2, 0.4)), 0.8, P['oxido'], semilla=117)
     _gancho_negro(out, Mh, P, 1)
 

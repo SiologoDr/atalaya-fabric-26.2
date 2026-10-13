@@ -171,19 +171,19 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'cola de tambores, costillar abierto, alas de murcielago, boca de dos cunas y tres cebos',
+    'O': 'flota: costillar abierto, alas de murcielago, boca de dos mitades y la cola hasta la aleta roja',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
     'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza, a los lados y en las alas',
     'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
 }
 SUB_CABEZA = {
-    'O': 'la boca de dos cunas: la visera en rampa con la gema y los colmillos, y la de abajo, el triangulo rosa',
+    'O': 'la boca: dos mitades de una caja que se abren en triangulo, colmillos arriba y dientes rojos abajo',
     'A': 'la capucha de cobra se abre detras de la cabeza y sus dos ojos falsos miran',
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((6.5, 4.2, 28.0), (0.0, 14.4, 0.0), 62)
-CAMARA_CABEZA = ((-8.0, 10.5, 21.0), (0.0, 17.2, 2.5), 52)
+CAMARA_HEROE = ((7.0, 4.0, 30.0), (0.0, 15.2, 0.0), 62)
+CAMARA_CABEZA = ((-8.0, 13.5, 22.0), (0.0, 19.8, 3.0), 52)
 
 
 def escena(cual, camara, nombre, sub, n_motas):
@@ -217,9 +217,9 @@ def cuatro():
              amb=(0.22, 0.21, 0.26), niebla=(0.06, 0.05, 0.09), niebla_d=(180, 330),
              cielo=((0.01, 0.012, 0.03), (0.05, 0.05, 0.1), (0.16, 0.13, 0.22)), motas=(230, 230, 255))
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
-    cam = vr.Camara((0.0, 11.0, 172.0), (0.0, 10.0, 0.0), 22, W * SS, H * SS)
+    cam = vr.Camara((0.0, 14.0, 215.0), (0.0, 14.0, 0.0), 22, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
-    for cual, x in (('O', -45.0), ('A', -15.0), ('B', 15.0), ('C', 45.0)):
+    for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
         qs, info = om.ofidia(cual)
         om.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0)), S['luces'], S['amb'], niebla)
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(0.0, 20.0, 0)), S['luces'], S['amb'], niebla)
@@ -268,9 +268,9 @@ def materiales():
     guardar(img, 'materiales')
 
 
-CAMARA_CARTEL = ((-9.0, 8.0, 25.0), (0.0, 16.4, 2.0), 46)
-CAMARA_FRENTE = ((0.0, 13.5, 24.0), (0.0, 17.0, 3.0), 44)
-CAMARA_LADO = ((-30.0, 18.0, 6.0), (0.0, 18.0, 5.0), 30)
+CAMARA_CARTEL = ((-9.0, 10.0, 25.0), (0.0, 18.6, 2.0), 46)
+CAMARA_FRENTE = ((0.0, 16.0, 24.0), (0.0, 19.4, 3.0), 44)
+CAMARA_LADO = ((-52.0, 15.0, 2.0), (0.0, 15.5, 1.5), 44)
 
 
 def cartel(cual):

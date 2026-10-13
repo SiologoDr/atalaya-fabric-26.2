@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta cinco versiones:
+como tal». Hicieron falta seis versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -17,27 +17,35 @@ como tal». Hicieron falta cinco versiones:
    directo, lado a lado y desde el mismo ángulo. Aun así: «su mandíbula está rara; tanto su
    mandíbula superior e inferior deben ser medio rectángulo triangular, y sus alas deben
    ser como las de un murciélago».
-5. Esta quinta hace las dos mandíbulas como cuñas y las alas de murciélago, y se comprobó
-   de frente, de tres cuartos y de lado.
+5. La quinta hizo las mandíbulas como cuñas y las alas de murciélago, pero Juan mandó una
+   imagen de Ofidia volando de lado: «la mandíbula superior e inferior… y mira bien su
+   anatomía de Ofidia, no es como me presentas».
+6. Esta sexta corrige la anatomía con esa imagen: flota erguida y la cola cuelga hasta una
+   aleta roja. Las dos mandíbulas son medio rectángulo y medio triángulo, como en la
+   portada y en los primeros planos del directo. Se comprobó de frente, de tres cuartos y
+   de lado.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
 
 ## Cómo es Ofidia de verdad
 
-Las fuentes son cuatro:
+Las fuentes son cinco:
 
 - la portada oficial, la más fiel;
 - el retrato de su barra de jefe;
 - la presentación del directo del 10-10-2026 (día 18 de farfadox en Kick), sobre todo
   el plano de frente;
-- un vuelo en la pelea del mismo directo (a las 5:22:13), con las alas abiertas.
+- un vuelo en la pelea del mismo directo (a las 5:22:13), con las alas abiertas;
+- la imagen que mandó Juan de Ofidia volando de lado: erguida, con el costillar rosa y la
+  cola que cuelga en ese hasta una aleta roja.
 
 En la forma de monstruo se ve:
 
-- **La cola**: una sierpe de tambores de mármol azul con cinturones granates con
-  remaches. Se enrosca en el suelo y se alza.
-- **La cintura**: un cinturón con remaches.
+- **Flota erguida**, como una sirena; no se apoya en el suelo.
+- **La cola**: tambores de mármol azul con cinturones granates con remaches, que cuelgan
+  del cinturón de la cintura, hacen una ese suave y acaban en una aleta roja de hojas en
+  abanico.
 - **El torso**: un costillar abierto que brilla rosa por dentro. Las costillas son
   blancas y la columna, oscura con vértebras grises.
 - **Dos alas de murciélago, no brazos**:
@@ -52,14 +60,15 @@ En la forma de monstruo se ve:
   - dos cuernos lila, una media luna lila y una espina rosa;
   - un gancho negro con remaches turquesa;
   - un tallo negro con muescas en la coronilla.
-- **La boca es de dos cuñas**: cada mandíbula es medio rectángulo partido en diagonal.
-  - La de arriba lleva encima la visera lila en rampa, con la gema blanca. Delante tiene
-    una banda oscura con remaches turquesa, y debajo, el paladar rosa, del que cuelgan los
-    colmillos planos rosas y blancos, con la punta en escalón.
-  - La de abajo es la cuña al revés: llana y rosa por dentro, en rampa por fuera. Se
-    estrecha hasta la barbilla y lleva dientes rojos en escalón por los bordes.
-  - Abierta, de lado se ven las dos cuñas, y de frente, un triángulo rosa justo debajo de
-    la visera.
+- **La boca**: las dos mandíbulas son medio rectángulo y medio triángulo, rectas atrás y
+  en punta delante, con la bisagra atrás.
+  - La de arriba es lila por encima y en la punta, con la gema blanca en la arista.
+    Lleva los colmillos planos rosas y blancos por todo el borde del paladar.
+  - La de abajo es una bandeja rosa por dentro, con el borde de mármol y los dientes rojos
+    en escalón.
+  - Abierta, de lado se ve la caja con los dientes rojos por el borde de arriba, como en
+    los primeros planos del directo. De frente se ve el escudo rosa que acaba en punta
+    debajo de la visera, como en la portada.
 - **Los tres cebos**: el de arriba sale del tallo negro, sube y se dobla hacia atrás, y
   los de los lados salen de la capucha y se doblan hacia atrás y abajo. Acaban en cubos
   rosas encendidos.
@@ -69,8 +78,9 @@ En la forma de monstruo se ve:
 
 ## Las variantes
 
-Las tres tienen el mismo cuerpo que Ofidia: la cola, el costillar, las dos alas y la
-boca triangular. Cambian la forma de lo que enmarca la cabeza, el material y el neón.
+Las tres tienen el mismo cuerpo que Ofidia: flotan con la cola colgando hasta la aleta, y
+tienen el costillar, las alas de murciélago y la misma boca. Cambian la forma de lo que
+enmarca la cabeza, el material y el neón.
 
 - **De la Capucha (azul hielo).** Su capucha se abre en una capucha de cobra enorme, con
   dos ojos falsos. No lleva cebos. Mármol de luna y cinturones de hierro.
