@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta doce versiones:
+como tal». Hicieron falta trece versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -48,6 +48,18 @@ como tal». Hicieron falta doce versiones:
 12. La duodécima adelgazó el cuerpo: «hazlo menos ancho del cuerpo de Ofidia, en
     general». Sigue yendo de menor a mayor y de mayor a menor, pero unos tres cuartos de
     ancho. El cuerpo es de cajas cuadradas, y visto en diagonal parecía aún más ancho.
+13. La decimotercera es un repaso entero para que se parezca a la portada. Juan preguntó:
+    «¿por qué sigue siendo tan diferente tu diseño con el modelo original de Ofidia?». Al
+    ponerlas lado a lado se veía que la nuestra era de palitos y que lo que mandaba eran las
+    alas; en la portada manda la cabeza. Cambió:
+    - la cabeza, grande y maciza (1,4 veces), con la capucha alta en capas, melenas que se
+      rizan detrás, una fila de pinchos y unas mandíbulas enormes;
+    - las alas, oscuras, para que no le quiten la vista a la cabeza;
+    - el costillar, de barras rosas de arriba abajo, como una jaula (así en la portada y en
+      el directo);
+    - el mármol, dibujado a mano;
+    - la vista del cartel: de cerca y desde abajo, con el violeta, la boca que alumbra y el
+      contorno blanco.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -83,22 +95,24 @@ En la forma de monstruo se ve:
     lo más gordo, a la mitad, es el doble que la cintura; en general, es estrecho;
   - la aleta roja.
 
-  Mide unos 33 bloques de alto con los cebos.
-- **El pecho es solo costillas**: cinco pares de costillas rosas gruesas que brillan, con
-  el canto blanco y huecos oscuros entre ellas. Se abren hacia arriba (estrecho abajo,
-  ancho arriba), con la columna detrás y el esternón oscuro delante.
+  Mide unos 39 bloques de alto con los cebos.
+- **El pecho es solo costillas**: barras rosas que brillan, de arriba abajo alrededor del
+  pecho como una jaula (así en la portada y en el directo), más juntas abajo que arriba,
+  con huecos oscuros entre ellas y la columna detrás.
 - **Dos alas de murciélago, no brazos**:
   - el brazo, con el codo hacia atrás y la muñeca hacia delante;
   - cuatro dedos largos que salen de la muñeca en abanico;
   - la membrana azul noche tendida entre los dedos, con el borde en arcos;
   - en las axilas no hay membrana;
-  - no llevan luz.
-- **La cabeza** tiene:
-  - una capucha puntiaguda de azul noche;
+  - no llevan luz, y son oscuras (los huesos, del azul de la capucha), para que no le
+    quiten la vista a la cabeza.
+- **La cabeza** es grande y maciza, como en la portada, y tiene:
+  - una capucha alta de azul noche, en capas, con el pico en escalones hacia atrás, unas
+    melenas oscuras que se rizan detrás como algas y una fila de pinchos;
   - una visera lila con una gema blanca;
   - dos cuernos lila, una media luna lila y una espina rosa;
-  - un gancho negro con remaches turquesa, que sale de un lado de la punta de la
-    mandíbula de arriba y sube, como en el cartel;
+  - un gancho negro, que sale de un lado de la punta de la mandíbula de arriba y sube,
+    como en el cartel;
   - un tallo negro con muescas en la coronilla.
 - **La boca**: las dos mandíbulas son medio rectángulo y medio triángulo, rectas atrás y
   en punta delante, con la bisagra atrás.
@@ -108,7 +122,7 @@ En la forma de monstruo se ve:
     en escalón. Cuelga muy abierta, en diagonal.
   - De frente se ve el escudo rosa que acaba en punta debajo de la visera, delante del
     pecho, como en la portada.
-- **Los tres cebos**: el de arriba sale del tallo negro, sube y se dobla hacia atrás, y
+- **Los tres cebos**, de varillas gruesas: el de arriba sale del tallo negro, sube y se dobla hacia atrás, y
   los de los lados salen de la capucha y se doblan hacia atrás y abajo, hasta la altura
   de la visera. Acaban en cubos rosas encendidos.
 - Fuera del combate tiene una **forma de sirena**: sentada en una roca en el mar, con
@@ -140,5 +154,6 @@ enmarca la cabeza, el material y el neón.
 Salen de `materiales/generadores/ofidia_modelo.py` (`ofidia('O' | 'A' | 'B' | 'C')`) y
 de `ofidia_escenas.py`, con las escenas `heroe_X`, `cabeza_X` (de tres cuartos y desde
 abajo, como la portada), `cuatro` y `materiales`. Para comparar con las referencias hay
-tres escenas más: `cartel_X` (el ángulo de la portada), `frente_X` (el del plano de
+tres escenas más: `cartel_X` (como la portada: de cerca y desde abajo, con el violeta, la boca
+que alumbra y el contorno blanco), `frente_X` (el del plano de
 frente del directo) y `lado_X` (de perfil, para compararla con el fotograma de lado).

@@ -247,6 +247,12 @@ def iluminar(n, cam, centro, luces, ambiente):
         n = -n   # caras de doble lado (la capa): se ilumina la que se ve
     col = np.array(ambiente, float)
     for (dirl, color, k, tipo) in luces:
+        if tipo == 'punto':   # una luz que sale de un punto: dirl = (x, y, z, alcance)
+            pl = np.array(dirl[:3], float) - centro
+            d = float(np.linalg.norm(pl))
+            if d > 1e-6:
+                col += np.array(color) * k * max(0.0, n @ (pl / d)) / (1 + (d / dirl[3]) ** 2)
+            continue
         dl = np.array(dirl, float); dl /= np.linalg.norm(dl)
         if tipo == 'llave':
             col += np.array(color) * k * max(0.0, n @ dl)

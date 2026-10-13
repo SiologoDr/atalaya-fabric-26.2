@@ -146,7 +146,7 @@ def motas(img, n, semilla, color):
     return Image.alpha_composite(Image.alpha_composite(Image.alpha_composite(img.convert('RGBA'), glow), glow), capa)
 
 
-def revelar(lz, cam, W, H, S, n_motas=150, semilla=3, fuerza_vineta=0.45):
+def revelar(lz, cam, W, H, S, n_motas=150, semilla=3, fuerza_vineta=0.45, brillo=0.9):
     def a_img(x):
         return Image.fromarray((np.clip(x, 0, 1) * 255).astype(np.uint8)).resize((W, H), Image.LANCZOS)
     alfa = np.array(a_img(lz.alfa)).astype(float)[..., None] / 255
@@ -155,7 +155,7 @@ def revelar(lz, cam, W, H, S, n_motas=150, semilla=3, fuerza_vineta=0.45):
     horiz = cam.proyectar(np.array([cam.ojo[0] + cam.f[0] * 400, 0.0, cam.ojo[2] + cam.f[2] * 400]))[1] / SS
     fondo = cielo(W, H, horiz, S)
     arr = col * alfa + fondo * (1 - alfa)
-    arr = qe.tono(qe.bloom(arr, emis * 0.9, radios=((2 * K, 0.5), (10 * K, 0.4), (40 * K, 0.35))))
+    arr = qe.tono(qe.bloom(arr, emis * brillo, radios=((2 * K, 0.5), (10 * K, 0.4), (40 * K, 0.35))))
     arr = qe.vineta(arr, fuerza_vineta)
     img = Image.fromarray((np.clip(arr, 0, 1) * 255).astype(np.uint8))
     if n_motas > 0:
@@ -171,7 +171,7 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'como en el directo: la cabeza delante del pecho, las alas sin luz y el cuerpo que crece y mengua hasta la aleta',
+    'O': 'la cabeza grande y maciza delante del pecho, las alas oscuras y el cuerpo que crece y mengua hasta la aleta',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
     'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza y a los lados',
     'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
@@ -182,31 +182,55 @@ SUB_CABEZA = {
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((26.0, 6.0, 28.0), (0.0, 18.0, 0.5), 62)
-CAMARA_CABEZA = ((-9.0, 18.5, 33.0), (0.0, 25.5, 6.5), 56)
+CAMARA_HEROE = ((28.0, 8.0, 31.0), (0.0, 20.5, 1.5), 62)
+CAMARA_CABEZA = ((-10.0, 19.5, 37.0), (0.0, 27.0, 8.0), 56)
 
 
-def escena(cual, camara, nombre, sub, n_motas):
+def perfilar(lz, mascara, grosor, color=(1.0, 0.97, 1.0)):
+    """El contorno blanco del cartel: los pixeles de fuera que tocan la figura y quedan detras de
+    ella (lo que tiene delante, como un ala, no se pinta)."""
+    zc = np.where(mascara, lz.z, np.inf)
+    for _ in range(grosor):
+        e = zc.copy()
+        e[1:] = np.minimum(e[1:], zc[:-1])
+        e[:-1] = np.minimum(e[:-1], zc[1:])
+        e[:, 1:] = np.minimum(e[:, 1:], zc[:, :-1])
+        e[:, :-1] = np.minimum(e[:, :-1], zc[:, 1:])
+        zc = np.where(mascara, zc, e)
+    borde = ~mascara & np.isfinite(zc) & (lz.z > zc)
+    lz.color[borde] = color
+    lz.alfa[borde] = 1.0
+    lz.emis[borde] = np.array(color) * 0.15
+
+
+def escena(cual, camara, nombre, sub, n_motas, contorno=False, brillo=0.9, S=None):
     W, H = int(1600 * K), int(1000 * K)
     lz = qe.Lienzo(W * SS, H * SS)
-    S = sitio(cual)
+    S = S or sitio(cual)
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
     ojo, obj, fov = camara
     cam = vr.Camara(ojo, obj, fov, W * SS, H * SS)
     suelo(lz, cam, niebla, S)
     explanada(lz, cam, niebla, S)
     qs, info = om.ofidia(cual)
-    om.dibujar(lz, cam, qs, S['luces'], S['amb'], niebla)
-    img = revelar(lz, cam, W, H, S, n_motas=n_motas)
+    # la boca alumbra lo que tiene cerca, como en el cartel
+    luces = S['luces'] + [(tuple(info['boca']) + (9.0,), _c(om.VARIANTES[cual]['neon'][1]), 1.6, 'punto')]
+    n = info['n_alas']
+    om.dibujar(lz, cam, qs[len(qs) - n:], luces, S['amb'], niebla)               # las alas, sin contorno
+    z0 = lz.z.copy()
+    om.dibujar(lz, cam, qs[:len(qs) - n], luces, S['amb'], niebla)
+    if contorno:
+        perfilar(lz, lz.z < z0, max(1, int(round(3 * SS * K))))
+    img = revelar(lz, cam, W, H, S, n_motas=n_motas, brillo=brillo)
     return qe.rotular(img, nombre, sub)
 
 
 def heroe(cual):
-    guardar(escena(cual, CAMARA_HEROE, NOMBRE[cual], SUB_HEROE[cual], 150), 'heroe_' + cual)
+    guardar(escena(cual, CAMARA_HEROE, NOMBRE[cual], SUB_HEROE[cual], 150, contorno=True), 'heroe_' + cual)
 
 
 def cabeza(cual):
-    guardar(escena(cual, CAMARA_CABEZA, NOMBRE[cual], SUB_CABEZA[cual], 90), 'cabeza_' + cual)
+    guardar(escena(cual, CAMARA_CABEZA, NOMBRE[cual], SUB_CABEZA[cual], 90, contorno=True), 'cabeza_' + cual)
 
 
 def cuatro():
@@ -217,7 +241,7 @@ def cuatro():
              amb=(0.22, 0.21, 0.26), niebla=(0.06, 0.05, 0.09), niebla_d=(180, 330),
              cielo=((0.01, 0.012, 0.03), (0.05, 0.05, 0.1), (0.16, 0.13, 0.22)), motas=(230, 230, 255))
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
-    cam = vr.Camara((0.0, 16.0, 225.0), (0.0, 16.5, 0.0), 22, W * SS, H * SS)
+    cam = vr.Camara((0.0, 18.0, 235.0), (0.0, 18.5, 0.0), 22, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
     for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
         qs, info = om.ofidia(cual)
@@ -237,8 +261,8 @@ def materiales():
         propio = {'O': ('vara', 'varilla', 'der', 4, 20), 'A': ('cobra', 'capucha', 'frente', 40, 34),
                   'B': ('hierro', 'hierro', 'der', 8, 16), 'C': ('oxido', 'oxido', 'der', 8, 16)}[c]
         fila = [(P['marmol'], 'marmol', 'der', 24, 24), (P['cinto'], 'cinturon', 'frente', 24, 6), (P['capucha'], 'capucha', 'arriba', 24, 24),
-                (P['colmillo'], 'colmillo', 'frente', 4, 16), (P['pecho'], 'costillar', 'frente', 24, 24),
-                (P['membrana'], 'membrana', 'frente', 32, 24), (P['nucleo'], 'garganta', 'frente', 24, 24),
+                (P['colmillo'], 'colmillo', 'frente', 4, 16), (P['costilla'], 'costilla', 'frente', 8, 24),
+                (P['ala_hueso'], 'hueso del ala', 'der', 24, 24), (P['membrana'], 'membrana', 'frente', 32, 24),
                 (P[propio[0]], propio[1], propio[2], propio[3], propio[4])]
         filas.append((c, fila))
     celda = 168
@@ -268,14 +292,19 @@ def materiales():
     guardar(img, 'materiales')
 
 
-CAMARA_CARTEL = ((-10.0, 16.0, 34.0), (0.0, 24.5, 6.5), 46)
-CAMARA_FRENTE = ((0.0, 20.0, 41.0), (0.0, 23.5, 5.0), 52)
-CAMARA_LADO = ((-62.0, 18.5, 3.0), (0.0, 18.5, 3.0), 44)
+CAMARA_CARTEL = ((-22.0, 16.0, 29.0), (0.0, 25.5, 6.0), 50)
+SUB_CARTEL = {'O': 'como en el cartel: de cerca y desde abajo, con la boca que alumbra y el contorno blanco'}
+CAMARA_FRENTE = ((0.0, 21.0, 46.0), (0.0, 25.0, 6.0), 52)
+CAMARA_LADO = ((-66.0, 20.0, 3.5), (0.0, 20.0, 3.5), 44)
 
 
 def cartel(cual):
     """La misma vista que el cartel (de abajo y de tres cuartos), para compararla con el."""
-    guardar(escena(cual, CAMARA_CARTEL, NOMBRE[cual], SUB_CABEZA[cual], 60), 'cartel_' + cual)
+    S = sitio(cual)                                  # el violeta del cartel
+    S.update(cielo=((0.04, 0.02, 0.09), (0.26, 0.1, 0.4), (0.52, 0.22, 0.68)), niebla=(0.2, 0.09, 0.3), amb=(0.26, 0.2, 0.34),
+             luces=[((-0.6, 0.35, 0.8), (0.78, 0.6, 1.0), 0.95, 'llave')] + S['luces'][1:])
+    guardar(escena(cual, CAMARA_CARTEL, NOMBRE[cual], SUB_CARTEL.get(cual, SUB_CABEZA[cual]), 60, contorno=True, brillo=1.25, S=S),
+            'cartel_' + cual)
 
 
 ESCENAS = {'heroe_' + c: (lambda c=c: heroe(c)) for c in 'OABC'}
