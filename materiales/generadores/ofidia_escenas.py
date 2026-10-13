@@ -171,7 +171,7 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'flota: cola fina, una pieza un poco grande, la cintura pequena, el costillar de solo costillas y alas de murcielago',
+    'O': 'en ese: la cabeza al frente, el costillar de costillas, la cintura fina y la cola que baja en ese hasta la aleta',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
     'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza, a los lados y en las alas',
     'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
@@ -182,8 +182,8 @@ SUB_CABEZA = {
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((7.0, 5.0, 36.0), (0.0, 17.6, 0.0), 62)
-CAMARA_CABEZA = ((-8.0, 18.0, 23.0), (0.0, 24.8, 2.0), 58)
+CAMARA_HEROE = ((26.0, 6.0, 28.0), (0.0, 18.0, 0.5), 62)
+CAMARA_CABEZA = ((-9.0, 23.0, 30.0), (0.0, 30.0, 4.0), 56)
 
 
 def escena(cual, camara, nombre, sub, n_motas):
@@ -221,7 +221,7 @@ def cuatro():
     suelo(lz, cam, niebla, S, ext=280, paso=32, cerca=40)
     for cual, x in (('O', -60.0), ('A', -20.0), ('B', 20.0), ('C', 60.0)):
         qs, info = om.ofidia(cual)
-        om.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0)), S['luces'], S['amb'], niebla)
+        om.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(-50 * D)), S['luces'], S['amb'], niebla)
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(0.0, 20.0, 0)), S['luces'], S['amb'], niebla)
     img = revelar(lz, cam, W, H, S, n_motas=0)
     P = np.array([p for q in om.ofidia('O')[0] for p in q[0]])
@@ -268,9 +268,9 @@ def materiales():
     guardar(img, 'materiales')
 
 
-CAMARA_CARTEL = ((-9.0, 15.5, 25.0), (0.0, 24.4, 2.0), 46)
-CAMARA_FRENTE = ((0.0, 19.0, 31.0), (0.0, 22.6, 2.0), 52)
-CAMARA_LADO = ((-60.0, 17.5, 2.0), (0.0, 17.5, 1.0), 44)
+CAMARA_CARTEL = ((-10.0, 20.5, 31.0), (0.0, 29.0, 4.0), 46)
+CAMARA_FRENTE = ((0.0, 23.0, 38.0), (0.0, 26.5, 3.0), 52)
+CAMARA_LADO = ((-62.0, 18.5, 1.0), (0.0, 18.5, 1.0), 44)
 
 
 def cartel(cual):

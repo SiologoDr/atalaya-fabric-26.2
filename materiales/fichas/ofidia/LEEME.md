@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta ocho versiones:
+como tal». Hicieron falta nueve versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -25,9 +25,11 @@ como tal». Hicieron falta ocho versiones:
    portada y en los primeros planos del directo.
 7. La séptima ajustó las proporciones: «mejora la proporción del cuerpo, que debería ser
    primero pequeño y luego subir un poco más; en el pecho, solo mostrando sus costillas».
-8. Esta octava divide el cuerpo por tramos («es como pequeño, un poco grande, pequeño de
-   vuelta y luego sigue lo demás, sus costillas»). La hace más alta y alarga la mandíbula.
-   Las alas ya no tienen membrana en las axilas.
+8. La octava dividió el cuerpo por tramos («es como pequeño, un poco grande, pequeño de
+   vuelta y luego sigue lo demás, sus costillas»), la hizo más alta, alargó la mandíbula y
+   quitó la membrana de las axilas.
+9. Esta novena le da la pose en ese del dibujo de Juan («la pose está muy tiesa; vamos a
+   hacer que tenga una pose como una S»), con la cintura más fina y el cuerpo más largo.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -46,16 +48,23 @@ Las fuentes son cinco:
 
 En la forma de monstruo se ve:
 
-- **Flota erguida**, como una sirena; no se apoya en el suelo.
-- **El cuerpo va por tramos**, de abajo arriba, cada uno con su cinturón de remaches:
-  - la aleta roja;
-  - la cola: tramos finos, con la rodilla hacia delante (pequeño);
-  - un tambor un poco más grande;
-  - otro pequeño, igual que el tramo de arriba de la cola (la cintura);
-  - el pecho, encima;
-  - la cabeza, casi sin cuello.
+- **La pose, en ese** (el dibujo de Juan, de perfil):
+  - la cabeza arriba, mirando al frente, con las alas abiertas un poco hacia atrás;
+  - el torso se echa hacia delante;
+  - debajo, el cuerpo baja hacia atrás y vuelve hacia delante;
+  - al final, la cola se va hacia atrás con la aleta roja.
 
-  Es alta y esbelta: unos 35 bloques con los cebos y la aleta.
+  Flota: no toca el suelo.
+- **El cuerpo va por tramos**, de arriba abajo por la ese, cada uno con su cinturón de
+  remaches:
+  - la cabeza, casi sin cuello;
+  - el pecho;
+  - la cintura, lo más fino del cuerpo;
+  - un tambor un poco más grande;
+  - la cola: tramos finos que se estrechan;
+  - la aleta roja.
+
+  Es larga y esbelta: unos 38 bloques de alto con los cebos.
 - **El pecho es solo costillas**: cinco pares de costillas rosas gruesas que brillan, con
   el canto blanco y huecos oscuros entre ellas. Se abren hacia arriba (estrecho abajo,
   ancho arriba), con la columna detrás y el esternón oscuro delante.
