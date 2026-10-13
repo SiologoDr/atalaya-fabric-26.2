@@ -43,7 +43,7 @@ dos o tres criaturas mezcladas con algo nuevo. No un animal de verdad agrandado.
 | Cráneos cúbicos | se leen como la calavera de Minecraft | Quimeras |
 | Objetos y arquitectura (velas, papel, máscaras, torres) | gustan menos que lo orgánico | Quimeras, Fauces |
 | Copiar a Ofidia tal cual | hay que hacer variantes propias | Ofidia |
-| Recrear de memoria o de una sola imagen | la primera Ofidia no se parecía; la segunda tenía brazos en vez de alas y la boca no era triangular | Ofidia |
+| Recrear de memoria o de una sola imagen | la primera Ofidia no se parecía; la segunda tenía brazos en vez de alas; la tercera, la mandíbula rara | Ofidia |
 
 ## Lo que hay hasta ahora
 
@@ -79,6 +79,10 @@ El siguiente debería tener una forma de cuerpo que no esté.
    - Hay que mirarlo de frente, de lado y de arriba, y apuntar cada pieza.
    - La portada oficial manda: hay que cotejar cada pieza con ella a resolución completa,
      sobre todo la silueta de la boca y si lo que sale del cuerpo son brazos o alas.
+   - Antes de enseñarlo, hay que renderizarlo desde el mismo ángulo que la portada y que
+     algún fotograma (de frente, en vuelo) y ponerlo lado a lado. Hay que corregirlo hasta
+     que las siluetas coincidan, mirando más los fotogramas de frente y en vuelo que lo
+     que uno se imagina.
 3. **Pensar la mezcla y lo nuevo**: qué dos o tres criaturas lo forman, qué enmarca la
    cabeza y qué detalle no tiene ningún otro.
 4. **Pensar las tres variantes de forma**: qué cambia en la silueta de cada una.

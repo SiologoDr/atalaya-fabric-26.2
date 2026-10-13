@@ -183,7 +183,7 @@ SUB_CABEZA = {
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
 CAMARA_HEROE = ((6.5, 4.2, 28.0), (0.0, 14.4, 0.0), 62)
-CAMARA_CABEZA = ((13.5, 13.5, 17.0), (0.0, 17.2, 2.5), 52)
+CAMARA_CABEZA = ((-8.0, 10.5, 21.0), (0.0, 17.2, 2.5), 52)
 
 
 def escena(cual, camara, nombre, sub, n_motas):
@@ -268,9 +268,20 @@ def materiales():
     guardar(img, 'materiales')
 
 
+CAMARA_CARTEL = ((-9.0, 8.0, 25.0), (0.0, 16.4, 2.0), 46)
+CAMARA_FRENTE = ((0.0, 13.5, 24.0), (0.0, 17.0, 3.0), 44)
+
+
+def cartel(cual):
+    """La misma vista que el cartel (de abajo y de tres cuartos), para compararla con el."""
+    guardar(escena(cual, CAMARA_CARTEL, NOMBRE[cual], SUB_CABEZA[cual], 60), 'cartel_' + cual)
+
+
 ESCENAS = {'heroe_' + c: (lambda c=c: heroe(c)) for c in 'OABC'}
 ESCENAS.update({'cabeza_' + c: (lambda c=c: cabeza(c)) for c in 'OABC'})
 ESCENAS.update({'cuatro': cuatro, 'materiales': materiales})
+ESCENAS.update({'cartel_' + c: (lambda c=c: cartel(c)) for c in 'OABC'})
+ESCENAS.update({'frente_' + c: (lambda c=c: guardar(escena(c, CAMARA_FRENTE, NOMBRE[c], SUB_CABEZA[c], 40), 'frente_' + c)) for c in 'OABC'})
 
 if __name__ == '__main__':
     pedidas = sys.argv[3].split(',') if len(sys.argv) > 3 else list(ESCENAS)
