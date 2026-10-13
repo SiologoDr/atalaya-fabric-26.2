@@ -136,6 +136,9 @@ grande.
 - La carpeta es `materiales/fichas/<nombre>/`.
 - Los renders se llaman `<nombre>_<variante>_heroe.jpg` y `<nombre>_<variante>_cabeza.jpg`,
   más `<nombre>_tres_variantes.jpg` (o `_cuatro_`) y `<nombre>_materiales.jpg`.
+- **Las fotos van sin letras** (Juan, 13-10-2026: «todas las fichas que guardes no deben de
+  tener letras en las fotos»): nada de título ni subtítulo encima del render, ni rótulos en
+  la lámina de materiales. Lo que haya que decir va en el texto de la ficha.
 - El `LEEME.md` lleva:
   - lo que comparten las variantes;
   - cada variante;

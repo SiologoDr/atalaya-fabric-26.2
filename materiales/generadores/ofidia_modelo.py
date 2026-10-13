@@ -18,16 +18,16 @@ bien su portada».
       con la mandibula de abajo colgando por delante; las alas, abiertas a los lados; debajo de
       la cintura, el cuerpo baja, se abomba hacia delante por debajo de la cabeza y se curva
       hacia atras hasta la aleta roja;
-    - de arriba abajo, por la ese: el costillar, que es solo costillas (barras rosas que
-      brillan, de arriba abajo alrededor del pecho como una jaula, asi en el cartel y en el
-      directo; mas juntas abajo que arriba, con huecos oscuros y la columna detras); la cintura,
-      pequena; y
+    - de arriba abajo, por la ese: el costillar, que es solo costillas (seis pares de huesos
+      curvos que brillan: salen de la columna, rodean el pecho bajando un poco y vuelven por
+      delante hasta el esternon; las del medio, las mas anchas; las dos de abajo, sueltas); la
+      cintura, pequena; y
       debajo, tambores de marmol con su cinturon que van de menor a mayor y de mayor a menor
       hasta la cola (lo mas gordo, a la mitad, el doble que la cintura, sin llegar a ancho);
     - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante) y cuatro dedos
       largos en abanico, con la membrana azul noche tendida solo entre ellos y el borde libre en
-      arcos (nada en las axilas). No llevan luz y son oscuras (los huesos, del azul de la
-      capucha), para que no le quiten la vista a la cabeza;
+      arcos (nada en las axilas). Sin cubos de luz; los huesos, de marmol oscuro, llevan una
+      veta del neon que brilla un poco;
     - la cabeza, GRANDE Y MACIZA como en el cartel (se hace sin escala y se pone 1,4 veces mas
       grande, con el pixel del mismo tamano que el del cuerpo): una capucha alta de azul noche,
       en capas, con el pico en escalones hacia atras, melenas oscuras que se rizan detras como
@@ -254,10 +254,19 @@ def pintores(V):
     reg('capucha', capucha)
 
     def ala_hueso(tw, th, cara, s):
-        """Los huesos de las alas: oscuros, del azul de la capucha con manchas azules, para que
-        las alas no le quiten la vista a la cabeza."""
-        idx = np.array([0, 1, 2, 3, 4])[_tesela(tw, th, s + 9)]
-        return _imagen(_bisel(idx), V['capucha']), None
+        """Los huesos de las alas: el marmol, mas oscuro que el del cuerpo, con una veta del neon
+        a lo largo que brilla un poco (Juan: «quiero que tenga ese toque de iluminado un poco»)."""
+        idx = np.array([0, 1, 1, 2, 3])[_tesela(tw, th, s + 9)]
+        tex = _imagen(_bisel(idx), V['marmol'])
+        veta = np.zeros((th, tw), bool)
+        if tw >= th and th >= 3:
+            veta[th // 2, 1:-1] = True
+        elif tw >= 3:
+            veta[1:-1, tw // 2] = True
+        if not veta.any():
+            return tex, None
+        tex[veta] = (*nm._hex(V['neon'][1]), 255)
+        return tex, _emis(tex, veta, 110)
     reg('ala_hueso', ala_hueso)
 
     def cinto(tw, th, cara, s):
@@ -642,11 +651,20 @@ def _radio(f):
     return float(np.interp(f, xs, rs))
 
 
+def _marco_sin_giro(p, d):
+    """Un marco con +Z hacia d que no gira alrededor de la ese: como la ese va de perfil (en el
+    plano y-z), su eje x es siempre el x del mundo."""
+    d = np.asarray(d, float)
+    d = d / np.linalg.norm(d)
+    return em.marco(p, d, up=(0.0, -d[2], d[1]) if abs(d[0]) < 0.9 else (0.0, 1.0, 0.0))
+
+
 def cuerpo_ese(out, V, P):
-    """De la base del costillar a la aleta, por la ese: la cintura, pequena, y debajo tambores de
-    marmol, un poco abombados, con un cinturon entre uno y otro, que van de menor a mayor (lo
-    mas gordo, a la mitad) y de mayor a menor hasta la cola; cada tambor es un poco mas largo que
-    grueso. Al final, la aleta roja que apunta hacia atras."""
+    """De la base del costillar a la aleta, por la ese, en tambores de marmol rectos y de una
+    pieza, como en el cartel (no en rodajas), con un cinturon grueso en cada junta que tapa el
+    codo: la cintura, pequena, y debajo los tambores, que van de menor a mayor (lo mas gordo, a
+    la mitad) y de mayor a menor hasta la cola. No se tuercen: siguen la ese sin girar. Al
+    final, la aleta roja que apunta hacia atras."""
     curva, _ = em.catmull(ESE, 800)
     curva = [np.asarray(p, float) for p in curva]
     L = [0.0]
@@ -659,43 +677,31 @@ def cuerpo_ese(out, V, P):
         f = (m - L[i - 1]) / max(L[i] - L[i - 1], 1e-9)
         return curva[i - 1] + (curva[i] - curva[i - 1]) * min(max(f, 0.0), 1.0)
 
-    cortes = [0.0, PERFIL[1][0] * total]                                          # los cinturones
+    cortes = [0.0, PERFIL[1][0] * total]                                          # las juntas
     while True:
-        largo = max(1.8, 2.2 * _radio((cortes[-1] + 1.0) / total))
-        if cortes[-1] + largo > total - 0.8:
+        largo = max(2.0, 2.5 * _radio((cortes[-1] + 1.2) / total))                # cada tambor, algo mas largo que grueso
+        if cortes[-1] + largo > total - 1.0:
             break
         cortes.append(cortes[-1] + largo)
     cortes.append(total)
-    marcas, cual, inicio = [], [], []                                             # cada tambor, en trozos de un bloque
-    for j in range(len(cortes) - 1):
-        c0, c1 = cortes[j], cortes[j + 1]
-        n = max(1, int(math.ceil((c1 - c0) / 1.0)))
-        inicio.append(len(marcas))
-        for q in range(n):
-            marcas.append(c0 + (c1 - c0) * q / n)
-            cual.append((j, (q + 0.5) / n))
-    marcas.append(total)
-    pts = [en(m) for m in marcas]
-    marcos = sm._marcos(pts, (0, 0, 1))
-    for i, M in enumerate(marcos):
-        j, u = cual[i]
-        Ls = float(np.linalg.norm(pts[i + 1] - pts[i]))
-        r = _radio((marcas[i] + marcas[i + 1]) / 2 / total)
-        if j > 0:
-            r *= 0.9 + 0.1 * math.sin(math.pi * u)                                # el tambor, un poco abombado
-        cubo(out, M, -r, -r, -0.3, 2 * r, 2 * r, Ls + 0.6, P['marmol'], semilla=i)
-    for j in range(len(cortes) - 1):                                              # el cinturon de arriba de cada tambor
-        M = marcos[inicio[j]]
-        c = cortes[j]
-        rb = max(_radio(max(c - 0.05, 0.0) / total) * 0.9, _radio((c + 0.05) / total) * 0.9) * 1.16
-        rb = max(rb, CINTURA * 1.2)
-        cubo(out, M @ vr.T(0, 0, -0.38), -rb, -rb, 0, 2 * rb, 2 * rb, 0.76, P['cinto'], semilla=60 + j)
+    pts = [en(m) for m in cortes]
+    for j in range(len(pts) - 1):                                                 # los tambores
+        d = pts[j + 1] - pts[j]
+        r = _radio((cortes[j] + cortes[j + 1]) / 2 / total)
+        cubo(out, _marco_sin_giro(pts[j], d), -r, -r, -0.35, 2 * r, 2 * r, float(np.linalg.norm(d)) + 0.7, P['marmol'],
+             semilla=j)
+    for j in range(len(pts) - 1):                                                 # los cinturones, en cada junta
+        d = pts[j + 1] - pts[max(j - 1, 0)]
+        r = max(_radio(max(cortes[j] - 0.1, 0.0) / total), _radio((cortes[j] + 0.1) / total))
+        rb = r * 1.15
+        cubo(out, _marco_sin_giro(pts[j], d), -rb, -rb, -0.45, 2 * rb, 2 * rb, 0.9, P['cinto'], semilla=60 + j)
         if V['clave'] == 'C' and j >= 1 and j % 2 == 1:                           # cadenas que cruzan el tambor
-            i = inicio[j] + (inicio[j + 1] - inicio[j]) // 2 if j + 1 < len(inicio) else inicio[j]
-            Mm = marcos[i]
-            r = _radio(marcas[i] / total) * 1.02
+            dd = pts[j + 1] - pts[j]
+            Mm = _marco_sin_giro(pts[j], dd)
+            Lj = float(np.linalg.norm(dd))
+            r = _radio((cortes[j] + cortes[j + 1]) / 2 / total) * 1.02
             for sx in (1, -1):
-                cadena(out, punto(Mm, (-sx * r, r, -0.8)), punto(Mm, (sx * r, r, 1.6)), 0.7, P['oxido'], semilla=j)
+                cadena(out, punto(Mm, (-sx * r, r, 0.5)), punto(Mm, (sx * r, r, Lj - 0.5)), 0.7, P['oxido'], semilla=j)
     fin = pts[-1]
     t = pts[-1] - pts[-2]
     aleta(out, fin, t / np.linalg.norm(t), P)
@@ -754,19 +760,27 @@ def ofidia(variante='O'):
     torso = []
     Mt = vr.T(0, 21.75, 0.0) @ np.diag([1.0, 1.12, 1.0, 1.0])
     cubo(torso, Mt, -0.55, -2.6, -1.85, 1.1, 5.3, 0.95, P['columna'], semilla=4)                  # la columna
-    cubo(torso, Mt, -1.6, -2.4, -1.4, 3.2, 4.8, 2.9, P['capucha'], semilla=6)                     # lo de dentro, oscuro
-    # las costillas, como en el cartel y en el directo: barras rosas que brillan, de arriba abajo
-    # alrededor del pecho, como una jaula, mas juntas abajo que arriba y con huecos oscuros
-    for j, th in enumerate((-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150)):
-        a = math.radians(th)
-        p_arriba = punto(Mt, (2.55 * math.sin(a), 2.25, 1.85 * math.cos(a)))
-        p_abajo = punto(Mt, (2.0 * math.sin(a), -2.45, 1.5 * math.cos(a)))
-        viga(torso, p_abajo, p_arriba, 0.62, 0.62, P['costilla'], extra=0.1, semilla=7 + j % 5)
+    cubo(torso, Mt, -0.4, -1.5, 1.5, 0.8, 4.0, 0.5, P['columna'], semilla=5)                      # el esternon
+    cubo(torso, Mt, -2.0, -2.4, -1.45, 4.0, 4.8, 2.95, P['capucha'], semilla=6)                   # lo de dentro, oscuro
+    # las costillas (Juan: «no parecen costillas sino barras»): seis pares de huesos curvos que
+    # salen de la columna, rodean el pecho bajando un poco y vuelven por delante hasta el
+    # esternon; las del medio son las mas anchas (el pecho, como un barril) y las dos de abajo
+    # quedan sueltas, sin llegar al esternon. Brillan, con huecos oscuros entre ellas
+    for j, (y, a, suelta) in enumerate(((2.15, 1.9, False), (1.35, 2.35, False), (0.55, 2.6, False),
+                                        (-0.25, 2.6, False), (-1.05, 2.4, True), (-1.85, 2.0, True))):
+        for sx in (1, -1):
+            ctrl = [(sx * 0.45, y + 0.2, -1.5), (sx * a * 0.85, y, -1.0), (sx * a, y - 0.3, 0.1),
+                    (sx * a * 0.8, y - 0.6, 1.1), (sx * (0.95 if suelta else 0.45), y - 0.85, 1.3 if suelta else 1.7)]
+            pts, _ = em.catmull([punto(Mt, c) for c in ctrl], 9)
+            for q in range(len(pts) - 1):
+                viga(torso, pts[q], pts[q + 1], 0.5, 0.42, P['costilla'], extra=0.12, semilla=7 + (j + q) % 5)
     cubo(torso, Mt, -2.9, 2.45, -1.7, 5.8, 0.6, 3.5, P['cinto'], semilla=13)                      # los hombros
     cubo(torso, Mt, -2.3, -2.95, -1.75, 4.6, 0.55, 3.4, P['cinto'], semilla=14)                   # el cinturon de abajo
     if k == 'C':                                                                                  # barrotes: el pecho es una celda
-        for y in (1.3, 0.0, -1.3):
-            viga(torso, punto(Mt, (-2.5, y, 2.1)), punto(Mt, (2.5, y, 2.1)), 0.26, 0.26, P['oxido'], semilla=15)
+        for x in (-1.6, -0.85, 0.85, 1.6):
+            viga(torso, punto(Mt, (x, 2.4, 2.25)), punto(Mt, (x, -2.6, 2.25)), 0.24, 0.24, P['oxido'], semilla=14)
+        for y in (1.1, -1.2):
+            viga(torso, punto(Mt, (-2.4, y, 2.3)), punto(Mt, (2.4, y, 2.3)), 0.22, 0.22, P['oxido'], semilla=15)
     G = vr.T(*ANCLA) @ vr.Rx(INCLINA * D) @ vr.T(0, -18.8, 0)
     out += qm.transformar(torso, G)
 

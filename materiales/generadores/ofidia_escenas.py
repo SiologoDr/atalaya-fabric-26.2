@@ -4,6 +4,8 @@ una en la misma explanada de noche con agujas de catedral detras (como el cartel
 y alumbrada por su neon; las cabezas de cerca; las cuatro juntas con un jugador; y la lamina
 de materiales.
 
+Las fotos salen sin letras: las fichas no llevan titulo ni texto encima de los renders.
+
 Uso: python ofidia_escenas.py <raiz del proyecto> <carpeta de salida> [escena,escena...]
      (con RAPIDO=1 en el entorno, a media resolucion para probar)
 """
@@ -221,8 +223,8 @@ def escena(cual, camara, nombre, sub, n_motas, contorno=False, brillo=0.9, S=Non
     om.dibujar(lz, cam, qs[:len(qs) - n], luces, S['amb'], niebla)
     if contorno:
         perfilar(lz, lz.z < z0, max(1, int(round(3 * SS * K))))
-    img = revelar(lz, cam, W, H, S, n_motas=n_motas, brillo=brillo)
-    return qe.rotular(img, nombre, sub)
+    # sin letras: las fotos de las fichas no llevan titulo ni texto encima (Juan, 13-10)
+    return revelar(lz, cam, W, H, S, n_motas=n_motas, brillo=brillo)
 
 
 def heroe(cual):
@@ -247,10 +249,7 @@ def cuatro():
         qs, info = om.ofidia(cual)
         om.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(-50 * D)), S['luces'], S['amb'], niebla)
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(0.0, 20.0, 0)), S['luces'], S['amb'], niebla)
-    img = revelar(lz, cam, W, H, S, n_motas=0)
-    P = np.array([p for q in om.ofidia('O')[0] for p in q[0]])
-    guardar(qe.rotular(img, 'La original y sus tres variantes', 'la original · de la Capucha · de los Faroles · Encadenada · '
-                       'un jugador (1,8) delante · unos %.0f bloques de alto' % P[:, 1].max()), 'cuatro')
+    guardar(revelar(lz, cam, W, H, S, n_motas=0), 'cuatro')
 
 
 def materiales():
@@ -265,30 +264,22 @@ def materiales():
                 (P['ala_hueso'], 'hueso del ala', 'der', 24, 24), (P['membrana'], 'membrana', 'frente', 32, 24),
                 (P[propio[0]], propio[1], propio[2], propio[3], propio[4])]
         filas.append((c, fila))
+    # sin letras: el orden de las muestras se explica en la ficha
     celda = 168
-    H = 130 + len(filas) * (celda + 76)
+    H = 40 + len(filas) * (celda + 30) + 10
     img = Image.new('RGB', (W, H), (16, 15, 20))
     d = ImageDraw.Draw(img)
-    try:
-        f1 = ImageFont.truetype(FUENTE + 'georgiab.ttf', 40)
-        f2 = ImageFont.truetype(FUENTE + 'consola.ttf', 17)
-        f3 = ImageFont.truetype(FUENTE + 'georgiab.ttf', 24)
-    except OSError:
-        f1 = f2 = f3 = ImageFont.load_default()
-    d.text((48, 34), 'Materiales: dibujados a 8 pixeles por bloque, sin ruido', font=f1, fill=(244, 234, 210))
     for fi, (c, fila) in enumerate(filas):
-        y0 = 120 + fi * (celda + 76)
-        d.text((48, y0 + celda // 2 - 14), c, font=f3, fill=(244, 234, 210))
+        y0 = 40 + fi * (celda + 30)
         for k, (pintor, nombre, cara, tw, th) in enumerate(fila):
             t, e = pintor(tw, th, cara, 7)
             fondo = Image.new('RGBA', (tw, th), (40, 36, 46, 255))
             fondo.alpha_composite(Image.fromarray(t))
             esc = min(celda / tw, celda / th)
             im = fondo.resize((max(1, int(tw * esc)), max(1, int(th * esc))), Image.NEAREST)
-            cx = 96 + k * 186
+            cx = 48 + k * 192
             img.paste(im.convert('RGB'), (cx + (celda - im.width) // 2, y0 + (celda - im.height) // 2))
             d.rectangle((cx - 1, y0 - 1, cx + celda, y0 + celda), outline=(70, 64, 80))
-            d.text((cx, y0 + celda + 8), nombre, font=f2, fill=(220, 212, 196))
     guardar(img, 'materiales')
 
 

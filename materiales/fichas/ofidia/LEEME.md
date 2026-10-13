@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta catorce versiones:
+como tal». Hicieron falta quince versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -65,6 +65,14 @@ como tal». Hicieron falta catorce versiones:
     costillas que se vean más abajo, y luego que esté lo demás». Los dientes son hojas con
     los dientes dibujados (la fila de colmillos de arriba y los dientes rojos de abajo), y la
     cabeza va sobre un cuello de dos tambores de mármol, con el costillar a la vista debajo.
+15. La decimoquinta: «el cuerpo de ese después de las costillas me sigue pareciendo raro»;
+    «las costillas no parecen costillas sino barras»; y en los huesos de las alas, «quiero
+    que tenga ese toque de iluminado un poco». El cuerpo va en tambores rectos de una pieza,
+    con un cinturón grueso en cada junta, en vez de rodajas de un bloque (que hacían el
+    borde en escalera); las costillas son huesos curvos, de la columna al esternón; y los
+    huesos de las alas llevan una veta del neón que brilla un poco. Desde esta versión, las
+    fotos van sin letras: «todas las fichas que guardes no deben de tener letras en las
+    fotos».
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -97,21 +105,23 @@ En la forma de monstruo se ve:
   - la cabeza, sobre un cuello de dos tambores de mármol que sube del pecho y se adelanta;
   - el pecho, a la vista debajo de la cabeza;
   - la cintura, pequeña;
-  - tambores de mármol, un poco abombados, que van de menor a mayor y de mayor a menor;
+  - tambores de mármol rectos, de una pieza, con un cinturón grueso en cada junta, que van
+    de menor a mayor y de mayor a menor;
     lo más gordo, a la mitad, es el doble que la cintura; en general, es estrecho;
   - la aleta roja.
 
   Mide unos 47 bloques de alto con los cebos.
-- **El pecho es solo costillas**: barras rosas que brillan, de arriba abajo alrededor del
-  pecho como una jaula (así en la portada y en el directo), más juntas abajo que arriba,
-  con huecos oscuros entre ellas y la columna detrás.
+- **El pecho es solo costillas**: seis pares de huesos curvos rosas que brillan. Salen de
+  la columna, rodean el pecho bajando un poco y vuelven por delante hasta el esternón; las
+  del medio son las más anchas y las dos de abajo quedan sueltas. Entre ellas, huecos
+  oscuros.
 - **Dos alas de murciélago, no brazos**:
   - el brazo, con el codo hacia atrás y la muñeca hacia delante;
   - cuatro dedos largos que salen de la muñeca en abanico;
   - la membrana azul noche tendida entre los dedos, con el borde en arcos;
   - en las axilas no hay membrana;
-  - no llevan luz, y son oscuras (los huesos, del azul de la capucha), para que no le
-    quiten la vista a la cabeza.
+  - no llevan cubos de luz; los huesos, de mármol oscuro, tienen una veta del neón que
+    brilla un poco.
 - **La cabeza** es grande y maciza, como en la portada, y tiene:
   - una capucha alta de azul noche, en capas, con el pico en escalones hacia atrás, unas
     melenas oscuras que se rizan detrás como algas y una fila de pinchos;
