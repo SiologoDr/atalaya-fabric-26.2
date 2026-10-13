@@ -5,7 +5,7 @@ Eufonia Studio. Su cartel oficial está en
 https://x.com/dedsafio/status/2109039127597560179.
 
 Juan pidió el 12-10-2026 recrearla igual y hacerle variantes propias, «para no copiarla
-como tal». Hicieron falta seis versiones:
+como tal». Hicieron falta siete versiones:
 
 1. La primera no se parecía: «fíjate bien cómo es Ofidia… date tu tiempo, investiga
    más».
@@ -20,10 +20,13 @@ como tal». Hicieron falta seis versiones:
 5. La quinta hizo las mandíbulas como cuñas y las alas de murciélago, pero Juan mandó una
    imagen de Ofidia volando de lado: «la mandíbula superior e inferior… y mira bien su
    anatomía de Ofidia, no es como me presentas».
-6. Esta sexta corrige la anatomía con esa imagen: flota erguida y la cola cuelga hasta una
-   aleta roja. Las dos mandíbulas son medio rectángulo y medio triángulo, como en la
-   portada y en los primeros planos del directo. Se comprobó de frente, de tres cuartos y
-   de lado.
+6. La sexta corrigió la anatomía con esa imagen: flota erguida y la cola cuelga hasta una
+   aleta roja; y las dos mandíbulas son medio rectángulo y medio triángulo, como en la
+   portada y en los primeros planos del directo.
+7. Esta séptima ajusta las proporciones: «mejora la proporción del cuerpo, que debería ser
+   primero pequeño y luego subir un poco más; en el pecho, solo mostrando sus costillas».
+   Las proporciones se midieron en la imagen de Juan. Se comprobó de frente, de tres cuartos
+   y de lado.
 
 **La original es solo para estudiarla; no va al mod.** Las candidatas son las tres
 variantes. A Juan le gustó la Encadenada.
@@ -43,11 +46,16 @@ Las fuentes son cinco:
 En la forma de monstruo se ve:
 
 - **Flota erguida**, como una sirena; no se apoya en el suelo.
-- **La cola**: tambores de mármol azul con cinturones granates con remaches, que cuelgan
-  del cinturón de la cintura, hacen una ese suave y acaban en una aleta roja de hojas en
-  abanico.
-- **El torso**: un costillar abierto que brilla rosa por dentro. Las costillas son
-  blancas y la columna, oscura con vértebras grises.
+- **Las proporciones**, de abajo arriba, medidas en la imagen de Juan sobre el alto total:
+  - la aleta roja, 16 %;
+  - la cola fina, con la rodilla hacia delante, 22 %;
+  - las caderas, 18 %: dos tambores gordos de mármol con su cinturón, la parte más ancha;
+  - el cinturón y la cintura estrecha, 10 %;
+  - el pecho, más arriba, 17 %;
+  - la cabeza, casi sin cuello, 18 %.
+- **El pecho es solo costillas**: cinco pares de costillas rosas gruesas que brillan, con
+  el canto blanco y huecos oscuros entre ellas. Se abren hacia arriba (estrecho abajo,
+  ancho arriba), con la columna detrás y el esternón oscuro delante.
 - **Dos alas de murciélago, no brazos**:
   - el brazo, con el codo hacia atrás y la muñeca hacia delante;
   - un cubo rosa encendido en la muñeca, que hace de pulgar;

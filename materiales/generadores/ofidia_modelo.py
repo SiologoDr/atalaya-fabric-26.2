@@ -13,8 +13,12 @@ bien su portada».
       cinturones granates con remaches, que cuelga del cinturon de la cintura, hace una ese
       suave y acaba en una aleta roja de hojas en abanico;
     - la cintura: un cinturon con remaches;
-    - el torso: un costillar abierto que brilla rosa por dentro, con costillas blancas y la
-      columna oscura de vertebras grises por delante;
+    - de abajo arriba (medido en la imagen de Juan): la aleta roja (16 %), la cola fina con la
+      rodilla hacia delante (22 %), las caderas, dos tambores gordos mas anchos que el costillar
+      (18 %), el cinturon, la cintura estrecha (6 %) y, mas arriba, el costillar (17 %), que es
+      solo costillas: cinco pares de barras rosas gruesas que brillan, con el canto blanco, que se
+      abren hacia arriba, con huecos oscuros entre ellas, la columna detras y el esternon delante;
+      encima, sin apenas cuello, la cabeza (18 %);
     - dos alas de murcielago: el brazo (codo hacia atras, muneca hacia delante con un cubo rosa
       encendido por pulgar) y cuatro dedos largos en abanico, con la membrana azul noche tendida
       entre ellos y el borde libre en arcos;
@@ -278,14 +282,19 @@ def pintores(V):
     reg('pecho', pecho)
 
     def costilla(tw, th, cara, s):
-        idx = np.full((th, tw), 3)
+        """Una costilla: una barra del neon con el canto de arriba casi blanco y la sombra abajo;
+        brilla entera."""
+        c_n, c_m, c_h = nm._hex(nuc), nm._hex(neo), nm._hex(hon)
+        t = np.zeros((th, tw, 4), np.uint8)
+        t[..., :3] = c_m
+        t[..., 3] = 255
         if th >= 3:
-            idx[0, :] = 4
-            idx[-1, :] = 1
-        if tw >= 3 and cara in ('der', 'izq'):
-            idx[:, -1] = 2
-        tex = _imagen(idx, V['costilla'])
-        return tex, _emis(tex, idx >= 3, 70)
+            t[0, :, :3] = qm._mezcla(c_m, c_n, 0.75)
+            t[1, :, :3] = qm._mezcla(c_m, c_n, 0.4)
+            t[-1, :, :3] = qm._mezcla(c_h, c_m, 0.5)
+        if tw >= 4:
+            t[:, ::4, :3] = qm._mezcla(c_m, c_n, 0.25)
+        return t, _emis(t, np.ones((th, tw), bool), 215)
     reg('costilla', costilla)
 
     def columna(tw, th, cara, s):
@@ -463,21 +472,28 @@ def _jirones(out, a, b, largo, P, semilla=0, vuelo=(0.0, 0.0, 0.0)):
 # ----------------------------------------------------------------------
 #  La cola: tambores de marmol con su cinturon, enroscada en el suelo y alzandose
 # ----------------------------------------------------------------------
-COLA = [(0.0, 12.0, 0.0), (0.0, 9.4, 0.7), (0.0, 6.6, 0.6), (0.0, 4.6, -0.4), (0.0, 3.3, -1.7)]
+COLA = [(0.0, 14.1, 0.0), (0.0, 11.9, 0.2), (0.0, 9.7, 0.6), (0.0, 7.7, 1.7), (0.0, 5.8, 1.3), (0.0, 4.5, -0.1), (0.0, 3.7, -1.3)]
 
 
 def cola(out, V, P):
-    """La cola: tambores de marmol con su cinturon que cuelgan del cinturon de la cintura,
-    hacen una ese suave y acaban en la aleta roja."""
+    """La cola: cuelga del cinturon. Arriba, las caderas: dos tambores gordos, mas anchos que el
+    costillar; luego se estrecha de golpe, hace la rodilla hacia delante y baja fina hasta la
+    aleta roja. Cada tambor lleva su cinturon con remaches."""
     pts = sm._por_longitud(COLA, 1.9)
     marcos = sm._marcos(pts, (0, 0, 1))
-    n = len(marcos)
+    acum = 0.0
     for i, M in enumerate(marcos):
-        t = i / max(n - 1, 1)
-        r = 2.0 - 1.2 * t
         L = float(np.linalg.norm(pts[i + 1] - pts[i]))
+        m = acum + L / 2
+        if m < 5.0:
+            r = 2.65
+        elif m < 6.6:
+            r = 2.65 + (1.0 - 2.65) * (m - 5.0) / 1.6
+        else:
+            r = max(0.62, 1.0 - 0.06 * (m - 6.6))
+        acum += L
         cubo(out, M, -r, -r, -0.15, 2 * r, 2 * r, L + 0.3, P['marmol'], semilla=i)
-        rb = r * 1.16
+        rb = r * 1.14
         cubo(out, M @ vr.T(0, 0, -0.28), -rb, -rb, 0, 2 * rb, 2 * rb, 0.56, P['cinto'], semilla=i)
         if V['clave'] == 'C' and i % 2 == 1:                                    # cadenas que cruzan el tambor
             for s in (1, -1):
@@ -501,6 +517,7 @@ def aleta(out, p, t, P):
         d = d / np.linalg.norm(d)
         Mb = em.marco(p, d, up=(1, 0, 0))
         w = 0.78 - 0.06 * abs(phi) / 20
+        largo *= 1.2
         cubo(out, Mb, -w / 2, -0.09, 0, w, 0.18, largo * 0.72, P['aleta'], semilla=96 + j)
         cubo(out, Mb, -w * 0.3, -0.07, largo * 0.72, w * 0.6, 0.14, largo * 0.28, P['aleta'], semilla=97 + j)
 
@@ -513,36 +530,43 @@ def ofidia(variante='O'):
     P = pintores(V)
     k = V['clave']
     out = []
-    cubo(out, vr.T(0, 10.3, 0.0), -2.6, -0.4, -2.6, 5.2, 0.8, 5.2, P['cinto'], semilla=1)         # el cinturon de la cintura
+    # de abajo arriba: la cola (con las caderas anchas arriba), el cinturon, la cintura estrecha
+    # (solo la columna) y, mas arriba, el costillar de solo costillas
+    cola(out, V, P)
+    cubo(out, vr.T(0, 14.3, 0.0), -2.5, -0.35, -2.5, 5.0, 0.7, 5.0, P['cinto'], semilla=1)        # el cinturon
+    cubo(out, vr.T(0, 14.6, -0.1), -1.15, 0, -1.05, 2.3, 1.9, 2.1, P['marmol'], semilla=2)        # la cintura, estrecha
+    cubo(out, vr.T(0, 15.2, -0.1), -1.35, 0, -1.25, 2.7, 0.42, 2.5, P['cinto'], semilla=3)        # su anillo
+    cubo(out, vr.T(0, 14.6, -1.25), -0.45, 0, -0.3, 0.9, 1.9, 0.6, P['columna'], semilla=2)        # la columna, detras
 
-    # el torso: el costillar abierto, que brilla por dentro
-    Mt = vr.T(0, 12.9, 0.2) @ vr.Rx(6 * D) @ np.diag([1.1, 1.05, 1.1, 1.0])
-    cubo(out, Mt, -2.2, -2.3, -1.1, 4.4, 4.6, 2.3, None, caras={'frente': P['pecho'], 'der': P['pecho'], 'izq': P['pecho'],
-                                                                'arriba': P['pecho'], 'abajo': P['pecho']}, semilla=2)
-    cubo(out, Mt, -2.45, -2.4, -1.75, 4.9, 4.8, 0.85, P['marmol'], semilla=3)                     # la espalda
-    cubo(out, Mt, -0.4, -2.45, 1.0, 0.8, 4.9, 0.5, P['columna'], semilla=4)                       # la columna
-    for j, y in enumerate((1.55, 0.6, -0.35, -1.3)):
-        for s in (1, -1):
-            p0 = punto(Mt, (s * 0.35, y, 1.25))
-            p1 = punto(Mt, (s * 2.35, y - 0.3, 1.25))
-            p2 = punto(Mt, (s * 2.35, y - 0.85, -1.2))
-            viga(out, p0, p1, 0.36, 0.36, P['costilla'], extra=0.12, semilla=5 + j)
-            viga(out, p1, p2, 0.36, 0.36, P['costilla'], extra=0.12, semilla=9 + j)
-    cubo(out, Mt, -2.55, 2.2, -1.75, 5.1, 0.55, 3.3, P['cinto'], semilla=13)                      # el cuello del costillar
+    # el costillar: la columna detras, el esternon delante y cinco pares de costillas gruesas que
+    # se abren hacia arriba (estrecho abajo, ancho arriba), con huecos oscuros entre ellas
+    Mt = vr.T(0, 18.9, 0.0)
+    cubo(out, Mt, -0.55, -2.6, -1.85, 1.1, 5.3, 0.95, P['columna'], semilla=4)                    # la columna
+    cubo(out, Mt, -0.45, -2.3, 1.55, 0.9, 4.8, 0.55, P['columna'], semilla=5)                     # el esternon
+    cubo(out, Mt, -1.45, -2.4, -1.2, 2.9, 4.8, 2.6, P['capucha'], semilla=6)                      # lo de dentro, oscuro
+    for j, y in enumerate((-2.1, -1.05, 0.0, 1.05, 2.1)):
+        a = 1.95 + 0.2 * j                                                                      # media anchura de la costilla
+        for sx in (1, -1):
+            p0 = punto(Mt, (sx * 0.5, y + 0.15, -1.45))
+            p1 = punto(Mt, (sx * a, y - 0.1, -0.8))
+            p2 = punto(Mt, (sx * (a + 0.2), y - 0.35, 0.6))
+            p3 = punto(Mt, (sx * 0.5, y - 0.6, 1.8))
+            for q, (pa, pb) in enumerate(((p0, p1), (p1, p2), (p2, p3))):
+                viga(out, pa, pb, 0.6, 0.6, P['costilla'], extra=0.2, semilla=7 + j + q)
+    cubo(out, Mt, -2.9, 2.45, -1.7, 5.8, 0.6, 3.5, P['cinto'], semilla=13)                        # los hombros
     if k == 'C':                                                                                  # barrotes: el pecho es una celda
-        for x in (-1.6, -0.95, 0.95, 1.6):
-            viga(out, punto(Mt, (x, 2.2, 1.55)), punto(Mt, (x, -2.4, 1.55)), 0.24, 0.24, P['oxido'], semilla=14)
-        for y in (1.1, -1.0):
-            viga(out, punto(Mt, (-2.3, y, 1.6)), punto(Mt, (2.3, y, 1.6)), 0.22, 0.22, P['oxido'], semilla=15)
+        for x in (-1.6, -0.85, 0.85, 1.6):
+            viga(out, punto(Mt, (x, 2.4, 2.25)), punto(Mt, (x, -2.6, 2.25)), 0.24, 0.24, P['oxido'], semilla=14)
+        for y in (1.1, -1.2):
+            viga(out, punto(Mt, (-2.4, y, 2.3)), punto(Mt, (2.4, y, 2.3)), 0.22, 0.22, P['oxido'], semilla=15)
 
-    # las dos alas, abiertas a los lados
+    # las dos alas, abiertas a los lados, desde los hombros
     for s in (1, -1):
-        ala(out, s, V, P)
+        ala(out, s, V, P, dy=5.2)
 
-    # el cuello y la cabeza
-    viga(out, np.array((0, 15.2, 0.3)), np.array((0, 18.0, 1.6)), 2.0, 2.0, P['marmol'], extra=0.3, semilla=40)
-    cubo(out, em.marco(np.array((0, 16.4, 0.85)), (0, 2.8, 1.3)), -1.2, -1.2, -0.3, 2.4, 2.4, 0.6, P['cinto'], semilla=41)
-    Mh = em.marco(np.array((0.0, 20.0, 3.0)), (0.0, -0.3, 1.0)) @ np.diag([1.25, 1.25, 1.25, 1.0])
+    # el cuello, corto, y la cabeza justo encima del costillar
+    viga(out, np.array((0, 21.5, 0.0)), np.array((0, 22.9, 0.9)), 1.8, 1.8, P['marmol'], extra=0.3, semilla=40)
+    Mh = em.marco(np.array((0.0, 24.2, 2.0)), (0.0, -0.2, 1.0)) @ np.diag([1.05, 1.05, 1.05, 1.0])
     cabeza(out, Mh, V, P)
     if k == 'O':
         _corona_original(out, Mh, P)
@@ -552,11 +576,7 @@ def ofidia(variante='O'):
         _corona_faroles(out, Mh, P)
     else:
         _corona_encadenada(out, Mh, P)
-    # flota: todo lo de arriba sube y la cola cuelga hasta la aleta, sin tocar el suelo
-    sube = vr.T(0, 2.0, 0)
-    out = qm.transformar(out, sube)
-    cola(out, V, P)
-    return out, {'cabeza': sube @ Mh}
+    return out, {'cabeza': Mh}
 
 
 def _pano(out, raiz, a, b, pintor, semilla=0):
@@ -565,18 +585,19 @@ def _pano(out, raiz, a, b, pintor, semilla=0):
     lamina(out, (raiz, raiz, b, a), pintor, float(np.linalg.norm(b - a)), float(np.linalg.norm((a + b) / 2 - raiz)), semilla)
 
 
-def ala(out, s, V, P):
+def ala(out, s, V, P, dy=0.0):
     """Un ala de murcielago: el brazo (hombro, codo hacia atras y muneca hacia delante, con el
     cubo encendido por pulgar) y cuatro dedos largos que se abren en abanico desde la muneca; la
     membrana va tendida entre los dedos, con el borde libre en arcos, y del ultimo dedo baja
     hasta el costado."""
     k = V['clave']
-    hombro = np.array((s * 2.7, 16.0, -0.8))
-    codo = np.array((s * 6.4, 17.0, -3.2))
-    muneca = np.array((s * 10.0, 20.4, -1.2))
-    dedos = [np.array((s * 16.0, 23.0, -3.6)), np.array((s * 18.6, 18.0, -5.2)), np.array((s * 16.8, 12.6, -5.8)),
-             np.array((s * 12.2, 9.4, -5.0))]
-    costado = np.array((s * 3.0, 10.4, -1.8))
+    sube = np.array((0.0, dy, 0.0))
+    hombro = np.array((s * 2.7, 16.0, -0.8)) + sube
+    codo = np.array((s * 6.4, 17.0, -3.2)) + sube
+    muneca = np.array((s * 10.0, 20.4, -1.2)) + sube
+    dedos = [np.array((s * 16.0, 23.0, -3.6)) + sube, np.array((s * 18.6, 18.0, -5.2)) + sube,
+             np.array((s * 16.8, 12.6, -5.8)) + sube, np.array((s * 12.2, 9.4, -5.0)) + sube]
+    costado = np.array((s * 1.4, 15.6, -1.0))
     cubo(out, vr.T(*hombro), -1.0, -0.9, -1.1, 2.0, 1.8, 2.2, P['gancho'], semilla=20)            # el hombro, con remaches
     viga(out, hombro, codo, 1.35, 1.3, P['marmol'], extra=0.3, semilla=21)
     viga(out, codo, muneca, 1.1, 1.05, P['marmol'], extra=0.28, semilla=22)
@@ -755,7 +776,7 @@ def _cebos(out, Mh, P, tope, final=None):
                     afina=0.06)]
     for s in (1, -1):
         base = punto(Mh, (s * 2.1, 1.1, -1.4))
-        puntas.append(_ruta(out, base, ((s * 1.3, 0.5, -0.2), (s * 0.5, 0.1, -2.4), (s * 0.2, -1.8, -0.4)), Mh, 0.36, P['vara'],
+        puntas.append(_ruta(out, base, ((s * 1.5, 0.5, -0.2), (s * 0.7, 0.1, -1.6), (s * 0.15, -6.4, 0.4)), Mh, 0.36, P['vara'],
                             semilla=66 + (s > 0) * 3, afina=0.06))
     for j, p in enumerate(puntas):
         lado = 1.45 if j == 0 else 1.25
@@ -814,7 +835,7 @@ def _corona_faroles(out, Mh, P):
     # los cebos de los lados tambien son faroles
     for s in (1, -1):
         base = punto(Mh, (s * 2.1, 1.1, -1.4))
-        p = _ruta(out, base, ((s * 1.3, 0.5, -0.2), (s * 0.5, 0.1, -2.4), (s * 0.2, -1.4, -0.4)), Mh, 0.36, P['vara'],
+        p = _ruta(out, base, ((s * 1.5, 0.5, -0.2), (s * 0.7, 0.1, -1.6), (s * 0.15, -6.0, 0.4)), Mh, 0.36, P['vara'],
                   semilla=98, afina=0.06)
         farol(out, p + np.array((0, -0.2, 0)), P, semilla=99, g=0.6)
 

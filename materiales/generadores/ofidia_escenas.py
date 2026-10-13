@@ -171,7 +171,7 @@ def guardar(img, nombre):
 
 NOMBRE = {'O': 'Ofidia, la original (estudio)', 'A': 'Ofidia de la Capucha', 'B': 'Ofidia de los Faroles', 'C': 'Ofidia Encadenada'}
 SUB_HEROE = {
-    'O': 'flota: costillar abierto, alas de murcielago, boca de dos mitades y la cola hasta la aleta roja',
+    'O': 'flota: cola fina hasta la aleta, caderas, cintura estrecha, costillar de solo costillas y alas de murcielago',
     'A': 'el mismo cuerpo; la capucha se abre en una capucha de cobra con dos ojos falsos; azul hielo',
     'B': 'el mismo cuerpo; los cebos son faroles con almas: en la cabeza, a los lados y en las alas',
     'C': 'el mismo cuerpo, encadenado: grilletes en las alas, barrotes en el pecho, bozal roto y cuernos',
@@ -182,8 +182,8 @@ SUB_CABEZA = {
     'B': 'de cada varilla cuelga un farol con un alma dentro',
     'C': 'el bozal se le ha roto por delante y la mandibula ha quedado libre',
 }
-CAMARA_HEROE = ((7.0, 4.0, 30.0), (0.0, 15.2, 0.0), 62)
-CAMARA_CABEZA = ((-8.0, 13.5, 22.0), (0.0, 19.8, 3.0), 52)
+CAMARA_HEROE = ((7.0, 4.5, 33.0), (0.0, 15.6, 0.0), 62)
+CAMARA_CABEZA = ((-8.0, 15.0, 22.0), (0.0, 21.6, 2.0), 56)
 
 
 def escena(cual, camara, nombre, sub, n_motas):
@@ -268,9 +268,9 @@ def materiales():
     guardar(img, 'materiales')
 
 
-CAMARA_CARTEL = ((-9.0, 10.0, 25.0), (0.0, 18.6, 2.0), 46)
-CAMARA_FRENTE = ((0.0, 16.0, 24.0), (0.0, 19.4, 3.0), 44)
-CAMARA_LADO = ((-52.0, 15.0, 2.0), (0.0, 15.5, 1.5), 44)
+CAMARA_CARTEL = ((-9.0, 12.5, 25.0), (0.0, 21.2, 2.0), 46)
+CAMARA_FRENTE = ((0.0, 16.0, 30.0), (0.0, 19.5, 2.0), 52)
+CAMARA_LADO = ((-54.0, 15.5, 2.0), (0.0, 15.5, 1.0), 44)
 
 
 def cartel(cual):
