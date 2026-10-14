@@ -50,6 +50,14 @@ nuevo. No un animal de verdad agrandado.
 | Costillas como barras rectas | «no parecen costillas sino barras»: huesos curvos, de la columna al esternón | Lumara |
 | Un cuerpo en rodajas | el borde sale en escalera; mejor tambores de una pieza con un cinturón en cada junta | Lumara |
 | Engordar el cuerpo para copiar un fotograma | «la proporción se ve muy gorda, ese no era el objetivo» | Lumara |
+| Una mezcla que no impone | «parece un cachorro» | Melenara |
+| Una piedra que parece estatua | una gárgola de piedra se lee como estatua, no como monstruo | Almenara |
+| Una jefa que es solo una chica bonita con un adorno | «el típico doncella con colas»: lo femenino es la anatomía, y encima, lo que la hace jefa | Vulpina |
+| Una mujer-monstruo poco atractiva | «la mujer puede ser más atractiva y verse más femenina» | Hilandra |
+| La cara de una jefa esculpida en bloques (a lo Amuna) | «la cara sigue siendo el problema» | Vulpina y la Gorgona |
+| Codos y rodillas con una bola en la junta | «la rodilla está rara»: doblan por el canto de fuera | la Gorgona |
+| Proporciones de niña (cuatro cabezas) | «debe verse como una mujer adulta» | muestrario de jefas |
+| La cara kawaii | «no parece intimidante o imponente» | Vulpina y la Gorgona |
 
 ## Lo que hay hasta ahora
 
@@ -63,14 +71,16 @@ Los jefes van en `bosses/` y los bichos normales en `mobs/`.
 | `bosses/tenazara/` | alacrana de tenazas-fauces, en 3 tipos | guardada, pero es un animal literal |
 | `bosses/lernara/` | hidra de 3, 5 y 2 cabezas | guardada; primera con variantes de forma |
 | `bosses/lumara/` | Lumara, la Sirena de los Cebos: empezó como estudio de la Ofidia de Dedsafio 4 y ahora tiene nombre propio; la original y 3 variantes | **el mejor diseño hasta ahora** (13-10); le gustó la Encadenada |
+| `bosses/vulpina/` | Vulpina, la Dama de las Nueve Colas: kitsune, en 3 tipos (del Abanico, de la Llama y del Manto) | le gustó (13-10), tras cambiar la cara a la C3 con mirada de jefa |
+| `bosses/gorgona/` | la Gorgona y sus hermanas: Medusa, Esteno (la arquera) y Euríale (la alada) | le gustó (13-10), tras cambiar la cara |
 | `mobs/guaridas/` | yeti, sapo-caimán, buitre y topo | bien, no excelentes |
 
 Formas de cuerpo que ya están, contando los jefes del mod:
 
 - **Jefes del mod:** mar (Nerea), mariposa (Aeralis), jaguar (Rajang) y caballero (Novilis).
 - **Fichas guardadas:** zarza (Espinara), sierpe (Simara), dragona (Riscara), alacrana
-  (Tenazara), hidra (Lernara), sirena-sierpe (Lumara), y yeti, sapo, buitre y topo
-  (Guaridas).
+  (Tenazara), hidra (Lernara), sirena-sierpe (Lumara), mujer (Vulpina y la Gorgona), y
+  yeti, sapo, buitre y topo (Guaridas).
 
 El siguiente debería tener una forma de cuerpo que no esté.
 
@@ -109,6 +119,31 @@ El siguiente debería tener una forma de cuerpo que no esté.
    cuando Juan lo diga.
 10. **No implementarla en el juego** hasta que Juan lo pida.
 
+## Las jefas (cuerpo de mujer)
+
+Las jefas no siguen la receta de las fauces: lo que manda es una mujer adulta bien hecha,
+con lo que la hace jefa bien a la vista. Juan eligió las piezas en el muestrario
+(`catalogo_dama.py`, 13-10-2026), y todas salen de `jefa_modelo.py`:
+
+- **El cuerpo de mujer adulta**, de cajas como un modelo de Blockbench:
+  - la cabeza mide 8 píxeles de piel y el cuerpo 51,5 (seis cabezas y media);
+  - el cuello es largo, la cintura estrecha, las caderas llevan grupa y las piernas son
+    la mitad de la altura;
+  - todo se escala a la escena con `ESCALA` (unos 30 bloques hasta la coronilla).
+- **La cara C3 con mirada de jefa** (`C3_FEROZ`): la C3 del muestrario, pero con el
+  párpado en ángulo, la pupila rasgada y el iris que brilla, las cejas en ceño, la pintura
+  de guerra y la boca fina con media sonrisa. La C3 tal cual era «muy kawaii».
+- **Solo las piezas elegidas**: brazos B2 (de bloque), B3 (guante largo), B5 (armadura)
+  y B6 (garra); piernas L2 (rodilla limpia), L3 (botas altas), L4 (medias con liga) y L5
+  (estilizada); y el pecho P1.
+- **Codos y rodillas doblan por el canto de fuera** (la espalda del codo, el frente de la
+  rodilla), como un cartón doblado: sin hueco y sin bola.
+- **Lo de cada jefa, también de bloques**:
+  - Vulpina: orejas, colas de tubos de ocho lados con fuego y el kimono;
+  - la Gorgona: serpientes con cabeza y boca, el quitón, el arco y las alas.
+- **Los tres tipos** cambian la forma (colas, alas, arma), la pose y los brazos y las
+  piernas del muestrario.
+
 ## Las herramientas
 
 - `bestias_modelo.py` tiene la caja con las caras pintadas (`cubo`), la viga entre dos
@@ -129,6 +164,13 @@ El siguiente debería tener una forma de cuerpo que no esté.
   escala que se pone agrandada sin cambiar el tamaño del píxel. `lumara_escenas.py` tiene
   el contorno blanco (`perfilar`) y la luz que sale de la boca (`'punto'` en
   `vigia_render.iluminar`).
+- `jefa_modelo.py` tiene el cuerpo de las jefas:
+  - el torso (`torso`), los brazos (`brazo`), las piernas (`pierna`) y las manos (`mano`);
+  - la cabeza con la cara (`cabeza`, `cara_c3`) y el pelo de base;
+  - los tubos de bloques de ocho lados (`tubo`) y el fuego (`llama`).
+
+  `catalogo_dama.py` hace el muestrario de piezas con el fondo de estudio (`foto`), que
+  también usan las escenas `cara_X`.
 
 Cada ficha tiene las mismas escenas: `heroe_X` (el monstruo en su sitio, plano bajo),
 `cabeza_X` (de cerca, un poco por debajo de la cabeza para mirar dentro de las fauces),
@@ -149,8 +191,9 @@ grande.
 
 - La carpeta es `materiales/fichas/bosses/<nombre>/` si es un jefe, o
   `materiales/fichas/mobs/<nombre>/` si es un bicho normal (como las Guaridas).
-- Los renders se llaman `<nombre>_<variante>_heroe.jpg` y `<nombre>_<variante>_cabeza.jpg`,
-  más `<nombre>_tres_variantes.jpg` (o `_cuatro_`) y `<nombre>_materiales.jpg`.
+- Los renders se llaman `<nombre>_<variante>_heroe.jpg` y `<nombre>_<variante>_cabeza.jpg`
+  (y, si los hay, `_cartel` y `_cara`), más `<nombre>_tres_variantes.jpg` (o `_cuatro_`) y
+  `<nombre>_materiales.jpg`.
 - **Las fotos van sin letras** (Juan, 13-10-2026: «todas las fichas que guardes no deben de
   tener letras en las fotos»): nada de título ni subtítulo encima del render, ni rótulos en
   la lámina de materiales. Lo que haya que decir va en el texto de la ficha.
