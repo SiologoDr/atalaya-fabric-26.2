@@ -78,6 +78,7 @@ nuevo. No un animal de verdad agrandado.
 | Rediseñar un mob de vanilla hasta que deje de parecerse | tres diseños nuevos del Blaze: «no parecen blazes, parece que lo quieren replicar»; y el de vanilla agrandado con piezas encima tampoco. Se quedan la silueta y las señas del mob (en el Blaze: la cabeza de bloque, el fuego y lo que gira), y lo que gira se convierte en algo grande | Blaze (las dos primeras vueltas) |
 | Un cristal hecho de cajas cruzadas, o con vetas y motas | sale una estrella llena de rayas: «la textura de los cristales está media rara». Una sola caja en rombo, caras lisas de un color y los filos algo más claros | Blaze (el de los Cristales) |
 | Un núcleo pequeño entre los ojos, o un charco con el borde encendido en cada losa | el núcleo se lee como una nariz (va grande y detrás de la cara, como en vanilla); el charco, como una placa de circuitos | Slime (pruebas) |
+| Un mob que es un cacharro | el Izador, un globo vivo con una jaula de costillas que te sube: «se ve raro y su cara no me gustó; la mecánica es buena, la idea del globo está bien pero se siente falso». El mob tiene que ser un bicho creíble, con una cara que se lea | Izador |
 
 ## Lo que hay hasta ahora
 
@@ -103,6 +104,7 @@ Los jefes van en `bosses/` y los bichos normales en `mobs/`.
 | `mobs/guaridas/` | yeti, sapo-caimán, buitre y topo | bien, no excelentes |
 | `mobs/blaze/` | el Blaze rediseñado, a partir de dos referencias de Juan: sigue siendo un Blaze (cabeza de bloque que flota, fuego debajo, lo que gira alrededor), pero las varas se vuelven espadas, cristales o lanzas grandes, y lleva cuernos y el cuerpo en columna; el de las Espadas, el de los Cristales (amatista) y el de las Lanzas | le gustó (15-10): «ahora sí me gustó, guárdalo en mobs», tras dos vueltas rechazadas («no parecen blazes») y unos cambios (caras de monstruo, cristales con punta en los dos lados y textura natural) |
 | `mobs/slime/` | el Slime rediseñado: sigue siendo un Slime (el cubo de gelatina translúcida, el cubo de dentro con la cara delante y el charco), con una cara de monstruo y una cosa grande por tipo; el Tragón (se abre en fauces), el Erizo (armas clavadas) y el Fundido (se derrite en ácido) | le gustó a la primera (15-10): «guarda el mob» |
+| `mobs/trasgo/` | el Trasgo, el primer mob que hace algo: el duende de las leyendas de Asturias y Cantabria (gorro de lana, orejas en punta, nariz ganchuda, ojos rasgados que brillan, brazos larguísimos con garras), que te salta encima y se te aferra; el Colgón (a la espalda), el Jinete (a los hombros, te tapa los ojos) y el Ladrón (al brazo, te roba) | le gustó a la primera (15-10): «guárdalos en mobs» |
 
 Formas de cuerpo que ya están, contando los jefes del mod:
 
