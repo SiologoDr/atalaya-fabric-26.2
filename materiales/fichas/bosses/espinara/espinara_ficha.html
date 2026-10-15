@@ -1,0 +1,136 @@
+<title>Espinara, la Zarza que Florece</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Un bestiario: una columna de lectura sobre tinta, cada quimera con su ficha y su tono; el tono de cada una manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b10; --hoja:#16121a; --hoja2:#1e1823; --filo:#3a2f40;
+  --texto:#ece4d6; --texto2:#b4a9b8; --tenue:#8a7f8e;
+  --ambar:#f0b45a; --carmin:#ff5a6a; --savia:#93ff5e;
+  --tono:var(--ambar);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+a{color:var(--tono);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,16,0) 40%, rgba(13,11,16,.94) 92%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:64ch;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+h2 .letra{color:var(--tono); margin-right:12px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+/* lo que tiene Ofidia */
+.ofidia{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:16px 0 10px;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 8px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:4px 0;}
+.pieza li b{color:var(--texto);}
+.regla{font-family:var(--cursiva); font-style:italic; font-size:clamp(20px,2.6vw,26px); color:var(--texto); border-left:2px solid var(--tenue); padding:2px 0 2px 16px; margin:22px 0; max-width:42ch;}
+
+/* cada quimera */
+.quimera{margin-top:8px;}
+.quimera.a{--tono:var(--ambar);}
+.quimera.b{--tono:var(--carmin);}
+.quimera.c{--tono:var(--savia);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+.nuevo{margin:14px 0 0; padding:12px 14px; border-radius:6px; background:var(--hoja2); border:1px solid var(--tono);}
+.nuevo b{color:var(--tono); font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; display:block; margin-bottom:4px;}
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+.juego{font-family:var(--cursiva); font-style:italic; color:var(--texto2); margin:14px 0 0;}
+.juego b{font-style:normal; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tono); font-weight:500; margin-right:6px;}
+
+/* decidir */
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto);}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="espinara_heroe.jpg" alt="Espinara enroscada con la flor abierta y el néctar encendido">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 12-10-2026</div>
+      <h1>Espinara, la Zarza que Florece</h1>
+    </div>
+  </header>
+
+  <p class="lede">Espinara salió de la ficha del quinto jefe, el «Bestiario de las Quimeras» (12-10-2026). De las tres quimeras, fue la que más le gustó a Juan: la que representa la naturaleza. Las otras dos no se guardaron.</p>
+
+  <section class="quimera c">
+    <h2><span class="letra">C</span>Espinara, la Zarza que Florece</h2>
+    <p class="lede">Una zarza trenzada que se enrosca como una sierpe y florece por la cabeza. La flor es su boca: los pétalos se
+    abren como fauces con dientes de espina y dentro, en el néctar que arde verde, la mira el cráneo de una bestia de cuatro ojos.</p>
+    <div class="dos">
+      <img src="espinara_heroe.jpg" alt="Espinara enroscada con la flor abierta y el néctar encendido">
+      <img src="espinara_cabeza.jpg" alt="La flor-fauce de Espinara con el cráneo de cuatro ojos en el centro">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>La receta</h3>
+        <dl>
+          <dt>Cuerpo</dt><dd>zarza de tres tallos trenzados alrededor de uno, con espinas, hojas, rosas de añil y vetas de savia</dd>
+          <dt>Cabeza</dt><dd>flor carnívora: siete pétalos-mandíbula cóncavos, con dientes de espina por dentro</dd>
+          <dt>Dentro</dt><dd>el cráneo de una bestia que no existe: cuatro órbitas en dos filas, pico ganchudo y cuernecillos, atado por la zarza</dd>
+          <dt>Estambres</dt><dd>diez tentáculos con polen encendido, y un pistilo-lengua partido</dd>
+          <dt>Detalle</dt><dd>farolillos de semilla colgando, gorguera de sépalos y raíces que se hunden en el suelo</dd>
+        </dl>
+        <div class="nuevo"><b>Lo que no tiene nadie</b>La flor es la boca, y lo que te mira desde el néctar es un cráneo. Brilla por dentro como un farol.</div>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>≈ 60 bloques de largo; la flor, a 15 de alto, abre unos 14 de diámetro.</li>
+          <li>La más viva de las tres: florece, suelta polen y echa farolillos.</li>
+          <li>El foco es el centro de la flor, como la fauce de Ofidia, pero en verde y con un cráneo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#132014"></i>zarza</span>
+          <span><i style="background:#2a2466"></i>pétalo</span>
+          <span><i style="background:#7aff3a"></i>néctar</span>
+          <span><i style="background:#cbbfa2"></i>hueso</span>
+          <span><i style="background:#2a1a1e"></i>espina</span>
+        </div>
+        <p class="juego"><b>En pelea</b>la flor se cierra y se abre; con los pétalos abiertos, el cráneo queda al aire.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los materiales</h2>
+  <p class="lede">La lámina es solo suya y sin rótulos: de izquierda a derecha y de arriba abajo, la corteza de zarza, la espina, el pétalo, la hoja, el farolillo, el hueso del cráneo, los dientes, las fauces, la savia y el polen.</p>
+  <img src="espinara_materiales.jpg" alt="Lámina de materiales dibujados para las tres quimeras">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>La que más le gustó de las quimeras (12-10-2026). Desde el 13-10 sus fotos van sin letras y con el borde blanco: «a Espinara su diseño de ficha quítale las letras para que se vea más claro y pongámosle borde blanco también».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/quimeras_modelo.py (espinara()) y quimeras_escenas.py.</p>
+</div>

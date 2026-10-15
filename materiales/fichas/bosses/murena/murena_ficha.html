@@ -1,0 +1,192 @@
+<title>Murena</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Murena: la misma columna de lectura que las otras fichas, sobre tinta casi negra, con su color limon. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --limon:#f0ff3a; --oro:#ffc23a; --agua:#2affc8;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--limon); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--limon);}
+.var.b{--tono:var(--oro);}
+.var.c{--tono:var(--agua);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--limon);} .medidas .b b{color:var(--oro);} .medidas .c b{color:var(--agua);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--oro); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="murena_cartel.jpg" alt="Murena en su cartel: desde abajo, alzada en una ese muy alta sobre su guarida, con la aleta limón encendida">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 14-10-2026</div>
+      <h1>Murena</h1>
+      <p class="sub"><b>Murena, la Morena del Arrecife</b>: una morena cinta colosal, larga y fina, que sale de su guarida de
+      roca y se alza en <b>una ese muy alta</b> hacia quien se acerca, con <b>las fauces abiertas que arden por dentro</b>.
+      Azul noche y limón.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Salió de tu idea: «sus morenas, puedes hacer un boss tipo morena». Es la Cinta, la opción que elegiste.</p>
+  <ul class="lede">
+    <li><b>La cabeza manda</b>: alta y larga, con la nuca en joroba, las fauces abiertas, el paladar encendido en escalones, los
+    dientes dibujados en hoja, dos colmillos en el centro del paladar y el núcleo al fondo de la garganta.</li>
+    <li><b>Las narices se abren como hojas</b> en la punta del hocico, como las de la morena cinta de verdad.</li>
+    <li><b>La aleta del lomo</b> le corre de la nuca a la cueva, alta, en bandas, con el canto encendido.</li>
+    <li><b>La guarida es parte del jefe</b>: una roca con la boca de la cueva, percebes y coral rojo.</li>
+  </ul>
+
+  <h2>Cómo es Murena</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>La morena</h3>
+      <ul>
+        <li><b>El cuerpo</b> es largo, fino y aplastado de lado, sin escamas, azul noche, con una veta limón que brilla a lo
+        largo.</li>
+        <li><b>Los ojos</b> son pequeños y encendidos, arriba y cerca del hocico. Detrás de la boca tiene el agujero de la
+        agalla.</li>
+        <li><b>Las fauces</b> llevan los dientes en hoja por los bordes y el suelo de la boca encendido.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Las texturas</h3>
+      <ul>
+        <li><b>La piel</b> es lisa, con la veta.</li>
+        <li><b>La aleta</b> va en bandas, con los radios claros.</li>
+        <li><b>La roca</b> va en manchas grandes y limpias.</li>
+        <li><b>Solo arden</b> las fauces, los ojos, la veta y el canto de la aleta.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="var a">
+    <span class="tipo">la Cinta · azul noche y limón</span>
+    <h2>De cuerpo entero y de cerca</h2>
+    <div class="dos">
+      <img src="murena_heroe.jpg" alt="Murena de cuerpo entero, alzada sobre su guarida en el arrecife">
+      <img src="murena_cabeza.jpg" alt="Las fauces de Murena de cerca, con las narices en hoja y el núcleo al fondo">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cuerpo</dt><dd>una ese muy alta</dd>
+          <dt>Narices</dt><dd>dos hojas en el hocico</dd>
+          <dt>Aleta</dt><dd>alta, con el canto encendido</dd>
+          <dt>Luz</dt><dd>limón</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La que muerde desde arriba.</li>
+          <li>Mide 35 bloques de alto y 31 de largo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#0e1428"></i>piel</span>
+          <span><i style="background:#b8b828"></i>veta</span>
+          <span><i style="background:#42420e"></i>aleta</span>
+          <span><i style="background:#f0ff3a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>A escala</h2>
+  <p class="lede">Murena con un jugador delante (1,8 bloques).</p>
+  <img src="murena_escala.jpg" alt="Murena a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas a píxel grande, sin letras. De izquierda a derecha van: la piel con su veta, la aleta, el hueso,
+  la nariz en hoja, la roca de la guarida, el coral, el paladar, los dientes y el núcleo.</p>
+  <img src="murena_materiales.jpg" alt="Lámina de materiales de Murena">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>14-10-2026. De la primera ficha (la Dragona, la Cinta y la Gigante): «me gusta la opción B, de esa hagamos 3 tipos de
+    diseños». De la segunda (la Cinta, la Trenza y la del Velo): «en Murena solo deja la opción 1 y quita la mini serpiente
+    de su boca, haz eso y solo guarda esa opción». La segunda mandíbula que le salía de la garganta se quitó.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/murena_modelo.py y murena_escenas.py (y jefa_modelo.py, del que toma los tubos de
+  bloques).</p>
+</div>

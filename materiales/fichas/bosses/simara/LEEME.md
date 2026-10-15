@@ -42,3 +42,11 @@ La lámina de materiales está en `simara_materiales.jpg`.
 
 Salen de `materiales/generadores/sierpe_modelo.py` (`simara('A' | 'B' | 'C')`) y de
 `sierpe_escenas.py`, con las escenas `heroe_X`, `cabeza_X`, `tres` y `materiales`.
+
+## Las fotos
+
+Desde el 13-10-2026 van sin letras y con el borde blanco de Lumara, también la lámina de materiales (Juan: «a todos los bosses que hemos creado en fichas bosses pongámosle borde blanco y sin letras si es que tienen»).
+
+## La ficha
+
+La ficha completa, con las fotos y el veredicto de Juan, es `simara_ficha.html`: se abre con el navegador. Desde el 14-10-2026 las fichas no se publican (Juan borró los artifacts: «no quiero que salgan»); van en HTML dentro de su carpeta.

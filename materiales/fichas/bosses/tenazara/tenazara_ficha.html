@@ -1,0 +1,235 @@
+<title>Tenazara, la Alacrana Hambrienta</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Una sola entidad en tres tipos, como las fichas de Simara y Riscara: la misma columna de lectura sobre tinta casi negra; cada tipo con su neon (ambar, violeta, rosa coral), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0b0a0d; --hoja:#151318; --hoja2:#1d1a21; --filo:#332e38;
+  --texto:#ece6da; --texto2:#b6aeb8; --tenue:#898190;
+  --ambar:#ffae2a; --violeta:#b46aff; --coral:#ff6a8a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,10,13,0) 34%, rgba(11,10,13,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--ambar);}
+.var.b{--tono:var(--violeta);}
+.var.c{--tono:var(--coral);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+.juego{font-family:var(--cursiva); font-style:italic; color:var(--texto2); margin:14px 0 0;}
+.juego b{font-style:normal; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tono); font-weight:500; margin-right:6px;}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="tenazara_tres_tipos.jpg" alt="Tenazara en sus tres tipos, del Desierto, de la Geoda y del Arrecife, juntas con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe nuevo · ficha de diseño · 12-10-2026</div>
+      <h1>Tenazara, la Alacrana Hambrienta</h1>
+      <p class="sub">El tercer monstruo con sus tres tipos, como Simara y Riscara: <b>la misma alacrana colosal</b>, con la cola
+      arqueada sobre el lomo y <b>las tenazas que son fauces</b>, en versión <b>del Desierto</b>, <b>de la Geoda</b> y
+      <b>del Arrecife</b>.</p>
+    </div>
+  </header>
+
+  <h2>Cómo está hecha</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Lo que comparten los tres tipos</h3>
+      <ul>
+        <li><b>El mismo modelo</b>: baja y ancha, sobre ocho patas, con las tenazas por delante y la cola arqueada por encima del lomo hasta la cabeza.</li>
+        <li><b>Las tenazas mandan</b>: cada una es una boca. Se abre arriba y abajo, con dientes en peine, encendida por dentro y con el núcleo al fondo.</li>
+        <li><b>Lo nuevo</b>: tres focos de luz en vez de uno. Las dos tenazas y el bulbo del aguijón, que brilla por gajos.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Igual que en Simara y Riscara</h3>
+      <ul>
+        <li><b>Texturas limpias</b>, a 8 píxeles por bloque: quitina en bandas, en manchas o con lunares, y juntas en escudos. Sin ruido ni motas sueltas.</li>
+        <li><b>Un neón por tipo</b>: en las tenazas, en los ojos, en la boca y en el bulbo del aguijón.</li>
+        <li>Cambian la quitina, el neón y lo que le crece encima.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="var a">
+    <span class="tipo">A · tipo desierto · neón ámbar</span>
+    <h2>Tenazara del Desierto</h2>
+    <p class="lede">La de las dunas al ponerse el sol. Quitina negra en bandas, como una armadura, con anillos de oro y
+    remaches en la cola, las rodillas y las tenazas. Lleva un filo de oro en el escudo de la cabeza y una fila de púas por el
+    lomo.</p>
+    <div class="dos">
+      <img src="tenazara_desierto_heroe.jpg" alt="Tenazara del Desierto en las dunas al atardecer, con las tenazas encendidas en ámbar">
+      <img src="tenazara_desierto_cabeza.jpg" alt="Las tenazas de Tenazara del Desierto de cerca: fauces encendidas con dientes en peine">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su quitina y sus adornos</h3>
+        <dl>
+          <dt>Quitina</dt><dd>negra en bandas, con la raya del lomo</dd>
+          <dt>Juntas</dt><dd>escudos negros por debajo y entre los anillos</dd>
+          <dt>Oro</dt><dd>anillos con remaches en la cola, las rodillas, las muñecas y las tenazas</dd>
+          <dt>Lomo</dt><dd>una púa en cada anillo y un filo de oro en el escudo</dd>
+          <dt>Aguijón</dt><dd>bulbo negro con gajos de ámbar</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más sobria de las tres: negro y oro.</li>
+          <li>Se lee por el oro de los anillos.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#261c14"></i>quitina</span>
+          <span><i style="background:#a87818"></i>oro</span>
+          <span><i style="background:#d6c6aa"></i>dientes</span>
+          <span><i style="background:#ffae2a"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>se entierra en la arena y asoma solo las tenazas; el oro de los anillos avisa por dónde va a salir.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · tipo geoda · neón violeta</span>
+    <h2>Tenazara de la Geoda</h2>
+    <p class="lede">La de la cueva de amatista. Quitina violeta en manchas grandes, como el mármol de Ofidia, y drusas de
+    amatista que le crecen en el escudo, el lomo, la cola y las palmas de las tenazas.</p>
+    <div class="dos">
+      <img src="tenazara_geoda_heroe.jpg" alt="Tenazara de la Geoda en la cueva de amatista, con cristales gigantes detrás">
+      <img src="tenazara_geoda_cabeza.jpg" alt="Las tenazas de Tenazara de la Geoda de cerca, con drusas de amatista en las palmas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su quitina y sus adornos</h3>
+        <dl>
+          <dt>Quitina</dt><dd>violeta oscura en manchas grandes de borde limpio</dd>
+          <dt>Juntas</dt><dd>escudos violeta casi negro</dd>
+          <dt>Drusas</dt><dd>racimos de amatista en el escudo, el lomo, la cola y las palmas</dd>
+          <dt>Cristal</dt><dd>dos tonos partidos en diagonal y un filo de luz</dd>
+          <dt>Aguijón</dt><dd>bulbo con gajos violeta</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más puntiaguda de las tres: los cristales le cambian la silueta.</li>
+          <li>Brilla en la oscuridad de la cueva.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#241434"></i>quitina</span>
+          <span><i style="background:#9a52e0"></i>amatista</span>
+          <span><i style="background:#d2c6e6"></i>dientes</span>
+          <span><i style="background:#b46aff"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>al chocar las tenazas se le rompen las drusas, y los cristales salen disparados.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · tipo arrecife · neón rosa coral</span>
+    <h2>Tenazara del Arrecife</h2>
+    <p class="lede">La del arrecife bajo el agua. Quitina verdeazul con lunares claros, corales de cuerno y percebes que le
+    crecen por el escudo, el lomo, la cola y las tenazas.</p>
+    <div class="dos">
+      <img src="tenazara_arrecife_heroe.jpg" alt="Tenazara del Arrecife bajo el agua, entre corales y rayos de luz">
+      <img src="tenazara_arrecife_cabeza.jpg" alt="Las tenazas de Tenazara del Arrecife de cerca, con corales en las palmas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su quitina y sus adornos</h3>
+        <dl>
+          <dt>Quitina</dt><dd>verdeazul oscura con lunares claros de borde oscuro</dd>
+          <dt>Juntas</dt><dd>escudos verdeazul casi negro</dd>
+          <dt>Corales</dt><dd>corales de cuerno, en anillos rosas y con la punta clara</dd>
+          <dt>Percebes</dt><dd>en grupos, cada uno con la boca oscura arriba</dd>
+          <dt>Aguijón</dt><dd>bulbo con gajos rosa coral</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más viva de las tres: el rosa contra el verdeazul.</li>
+          <li>Se lee por los corales, que le salen por todas partes.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#0e3e38"></i>quitina</span>
+          <span><i style="background:#7ab8a2"></i>lunares</span>
+          <span><i style="background:#e0566a"></i>coral</span>
+          <span><i style="background:#ff6a8a"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>los corales sueltan burbujas que frenan al jugador; las tenazas se cierran como una almeja.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los tres tipos, a escala</h2>
+  <p class="lede">La misma alacrana en los tres tipos, con la misma luz y un jugador delante (1,8 bloques). Se ven de frente,
+  de tres cuartos y de lado. Mide unos 19 bloques de alto con la cola arqueada, 31 de largo y 17 de ancho con las patas.</p>
+  <img src="tenazara_tres_tipos.jpg" alt="Tenazara en sus tres tipos juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada tipo a píxel grande: la quitina, las juntas, las patas, los dientes, el interior de las
+  tenazas, el núcleo del fondo, el bulbo del aguijón y lo propio de cada tipo (el oro, la amatista y el coral).</p>
+  <img src="tenazara_materiales.jpg" alt="Lámina de materiales de los tres tipos de Tenazara">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>La guardó (12-10-2026), con un aviso: «esta vez es un escorpión literalmente, no es un monstruo como los anteriores; te lo dejo pasar y lo guardo porque lo puedo usar como otra cosa, pero te estás alejando un poco de lo inicial».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/tenazara_modelo.py y tenazara_escenas.py.</p>
+</div>

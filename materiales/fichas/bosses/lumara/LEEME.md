@@ -193,3 +193,7 @@ de `lumara_escenas.py`, con las escenas:
 Todas salen sin letras y con el borde blanco, alas incluidas. Los archivos se llaman
 `lumara_<variante>_<vista>.jpg`, con la variante en `original`, `capucha`, `faroles` o
 `encadenada`.
+
+## La ficha
+
+La ficha completa, con las fotos y el veredicto de Juan, es `lumara_ficha.html`: se abre con el navegador. Desde el 14-10-2026 las fichas no se publican (Juan borró los artifacts: «no quiero que salgan»); van en HTML dentro de su carpeta.

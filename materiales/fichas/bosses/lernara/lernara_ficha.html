@@ -1,0 +1,251 @@
+<title>Lernara, la Hidra de la Ciénaga</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Una sola entidad en tres variantes que cambian de forma: la misma columna de lectura que las fichas de Simara, Riscara y Tenazara, sobre tinta casi negra; cada variante con su neon (verde, magenta, cian), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0a0b0b; --hoja:#141616; --hoja2:#1b1e1d; --filo:#2f3433;
+  --texto:#ece6da; --texto2:#b2b3ad; --tenue:#868a85;
+  --verde:#96ff2a; --magenta:#ff4ad8; --cian:#52e2ff;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,11,11,0) 34%, rgba(10,11,11,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--verde);}
+.var.b{--tono:var(--magenta);}
+.var.c{--tono:var(--cian);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+.juego{font-family:var(--cursiva); font-style:italic; color:var(--texto2); margin:14px 0 0;}
+.juego b{font-style:normal; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tono); font-weight:500; margin-right:6px;}
+
+.tabla{overflow-x:auto; margin-top:14px;}
+.tabla table{border-collapse:collapse; width:100%; min-width:560px; font-size:15px;}
+.tabla th, .tabla td{border-bottom:1px solid var(--filo); padding:9px 10px; text-align:left; vertical-align:top;}
+.tabla th{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tenue); font-weight:500;}
+.tabla td:first-child{font-family:var(--mono); font-size:13px; color:var(--tenue); white-space:nowrap;}
+.tabla td{color:var(--texto2);}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="lernara_tres_variantes.jpg" alt="Lernara en sus tres variantes, de tres, cinco y dos cabezas, juntas con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe nuevo · ficha de diseño · 12-10-2026</div>
+      <h1>Lernara, la Hidra de la Ciénaga</h1>
+      <p class="sub">Esta vez, <b>un monstruo y no un animal</b>: una hidra con varias cabezas, todas con las fauces
+      encendidas. Sus tres variantes <b>cambian de forma</b>, no solo de color: <b>tres cabezas en abanico</b>,
+      <b>cinco cabezas unidas por una membrana</b> y <b>dos cuellos trenzados</b>.</p>
+    </div>
+  </header>
+
+  <h2>Cómo está hecha</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Lo que comparten las tres</h3>
+      <ul>
+        <li><b>El mismo cuerpo</b>: un dragón sin alas, pesado y bajo, sobre cuatro patas de tres garras, con púas por el lomo y una cola que acaba en tres púas.</li>
+        <li><b>Las cabezas mandan</b>: cada una con las fauces abiertas, dientes en peine, cuatro ojos y el núcleo encendido al fondo de la garganta.</li>
+        <li>Un <b>collar de bronce con remaches</b> bajo cada cabeza.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Lo que cambia entre las variantes</h3>
+      <ul>
+        <li><b>Cuántos cuellos y cómo salen</b>: en abanico, unidos por una membrana o trenzados.</li>
+        <li><b>La corona de cada cabeza</b>: cuernos, cresta o capucha.</li>
+        <li><b>La piel</b>: escamas, piel lisa con manchas o placas en bandas. Y un neón para cada una.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tabla">
+    <table>
+      <thead><tr><th>Variante</th><th>Cuellos</th><th>Corona</th><th>Piel</th><th>Neón</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>tres en abanico, el del centro más alto</td><td>dos cuernos hacia atrás y púas</td><td>escamas verde negro</td><td>verde</td></tr>
+        <tr><td>B</td><td>cinco en abanico, unidos por una membrana</td><td>una cresta de aleta</td><td>lisa, con manchas</td><td>magenta</td></tr>
+        <tr><td>C</td><td>dos trenzados como una soga</td><td>una capucha de varillas</td><td>placas en bandas y anillos de bronce</td><td>cian</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="var a">
+    <span class="tipo">A · tres cabezas · neón verde</span>
+    <h2>Lernara de Tres Cabezas</h2>
+    <p class="lede">La hidra de siempre. Tres cuellos en abanico: el del centro, más alto y más gordo, con la cabeza más grande;
+    los de los lados se abren hacia fuera. Cada cabeza lleva dos cuernos que se van hacia atrás y púas por la frente.</p>
+    <div class="dos">
+      <img src="lernara_tres_cabezas_heroe.jpg" alt="Lernara de Tres Cabezas en la ciénaga, con las tres fauces encendidas en verde">
+      <img src="lernara_tres_cabezas_cabeza.jpg" alt="Las cabezas de Lernara de Tres Cabezas de cerca, con los cuernos y los dientes en peine">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cuellos</dt><dd>tres, en abanico; el del centro llega a unos 20 bloques</dd>
+          <dt>Cabezas</dt><dd>la del centro más grande; las de los lados miran un poco hacia fuera</dd>
+          <dt>Corona</dt><dd>dos cuernos de hueso hacia atrás y tres púas en la frente</dd>
+          <dt>Piel</dt><dd>escamas verde negro y vientre de escudos verde oliva</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más clásica: se lee como hidra al primer vistazo.</li>
+          <li>La silueta es un tridente de cabezas.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#18281a"></i>escamas</span>
+          <span><i style="background:#4a5430"></i>vientre</span>
+          <span><i style="background:#6e6040"></i>hueso</span>
+          <span><i style="background:#96ff2a"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>cada cabeza ataca por su lado; si le cortas una, las otras dos se enfurecen.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · cinco cabezas · neón magenta</span>
+    <h2>Lernara de Cinco Cabezas</h2>
+    <p class="lede">Cinco cuellos abiertos en abanico y unidos por una membrana, que se abre detrás de las cabezas como una
+    capucha. La membrana es oscura y su borde se enciende entre cabeza y cabeza. La piel es lisa, como de anguila, con
+    manchas grandes.</p>
+    <div class="dos">
+      <img src="lernara_cinco_cabezas_heroe.jpg" alt="Lernara de Cinco Cabezas con la membrana abierta como una capucha y las cinco fauces en magenta">
+      <img src="lernara_cinco_cabezas_cabeza.jpg" alt="Las cabezas de Lernara de Cinco Cabezas de cerca, con la membrana entre los cuellos">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cuellos</dt><dd>cinco, en abanico, unidos por una membrana hasta muy arriba</dd>
+          <dt>Cabezas</dt><dd>la del centro más grande; las de fuera, más pequeñas</dd>
+          <dt>Corona</dt><dd>una cresta de aleta de tres varillas</dd>
+          <dt>Piel</dt><dd>lisa, con manchas grandes de borde limpio</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más ancha: su silueta es una corona de cabezas.</li>
+          <li>La que más se parece a Ofidia por la capucha y el magenta.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#2a1434"></i>piel</span>
+          <span><i style="background:#3e2254"></i>membrana</span>
+          <span><i style="background:#583452"></i>vientre</span>
+          <span><i style="background:#ff4ad8"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>abre la capucha antes del golpe grande; mientras la tiene abierta, el borde encendido avisa.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · dos cabezas · neón cian</span>
+    <h2>Lernara de Dos Cabezas</h2>
+    <p class="lede">Dos cuellos trenzados como una soga, ceñidos por anillos de bronce, que arriba se abren en dos cabezas
+    grandes. Cada cabeza lleva detrás una capucha de varillas con el borde encendido. La piel es de placas en bandas.</p>
+    <div class="dos">
+      <img src="lernara_dos_cabezas_heroe.jpg" alt="Lernara de Dos Cabezas con los cuellos trenzados y las dos fauces encendidas en cian">
+      <img src="lernara_dos_cabezas_cabeza.jpg" alt="Las dos cabezas de Lernara de Dos Cabezas de cerca, con sus capuchas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cuellos</dt><dd>dos, trenzados como una soga; se separan arriba</dd>
+          <dt>Cabezas</dt><dd>dos iguales y grandes, que miran un poco hacia fuera</dd>
+          <dt>Corona</dt><dd>una capucha de siete varillas con membrana</dd>
+          <dt>Piel</dt><dd>placas en bandas y anillos de bronce con remaches en los cuellos</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más alta y estrecha: una columna que se parte en dos.</li>
+          <li>Se lee por la soga de los cuellos y el bronce.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#182434"></i>placas</span>
+          <span><i style="background:#6e5018"></i>bronce</span>
+          <span><i style="background:#445666"></i>vientre</span>
+          <span><i style="background:#52e2ff"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>las dos cabezas se turnan: mientras una muerde, la otra carga su aliento.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Las tres variantes, a escala</h2>
+  <p class="lede">Las tres juntas, con la misma luz y un jugador delante (1,8 bloques). Miden unos 20 bloques de alto con las
+  cabezas, 30 de largo con la cola y 18 a 21 de ancho. Se distinguen de lejos por la silueta: un tridente, una corona y una
+  columna que se parte en dos.</p>
+  <img src="lernara_tres_variantes.jpg" alt="Lernara en sus tres variantes juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada variante a píxel grande: la piel, el vientre, el hueso, los dientes, el interior de las
+  fauces, el núcleo de la garganta, el bronce de los collares y la membrana con su borde encendido.</p>
+  <img src="lernara_materiales.jpg" alt="Lámina de materiales de las tres variantes de Lernara">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>La guardó (12-10-2026): «deja también en fichas este monstruo con sus variables». Es el primero cuyas variantes cambian de forma y no solo de color.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/lernara_modelo.py y lernara_escenas.py.</p>
+</div>

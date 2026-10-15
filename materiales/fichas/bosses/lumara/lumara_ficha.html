@@ -1,0 +1,270 @@
+<title>Lumara y sus variantes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Lumara (antes, el estudio de Ofidia): la misma columna de lectura que las otras fichas, sobre tinta casi negra; la original en rosa y cada variante con su neon (azul hielo, verde de almas, carmesi), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0b0a0e; --hoja:#15131a; --hoja2:#1c1a22; --filo:#322e3a;
+  --texto:#ece6da; --texto2:#b4aebd; --tenue:#878193;
+  --rosa:#ff5ab4; --hielo:#6ad8ff; --almas:#6affa0; --carmesi:#ff3a4a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,10,14,0) 34%, rgba(11,10,14,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--rosa); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.o{--tono:var(--rosa);}
+.var.a{--tono:var(--hielo);}
+.var.b{--tono:var(--almas);}
+.var.c{--tono:var(--carmesi);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ancha{margin:0 0 12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="lumara_cuatro.jpg" alt="Lumara y sus tres variantes juntas, con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 13-10-2026</div>
+      <h1>Lumara y sus variantes</h1>
+      <p class="sub"><b>Lumara, la Sirena de los Cebos</b>: la original y <b>tres variantes</b> que cambian lo que
+      enmarca la cabeza, el material y el neón.</p>
+    </div>
+  </header>
+
+  <p class="aviso"><b>Lumara</b> es nuestra sirena de los cebos. Empezó como un estudio de <b>Ofidia</b>, la sirena-sierpe
+  de la tercera dungeon de Dedsafio 4, con diseño de Eufonia Studio
+  (<a href="https://x.com/dedsafio/status/2109039127597560179">el cartel oficial, en X</a>), y ahora tiene
+  <b>nombre propio</b>. Se hizo comparando cada render con la portada y con el directo del 10 de octubre, lado a lado y
+  desde el mismo ángulo, y con tus correcciones una a una. Lo nuevo de esta versión:
+  <b>cada variante tiene su cartel</b>, de cerca y desde abajo, con el cielo y la luz de su neón; y
+  <b>el borde blanco rodea también las alas</b>, en todas las fotos. En el juego, cuando entre al mod, llevará ese
+  borde siempre. La original sigue muy cerca de la Ofidia de Dedsafio; para el mod, mejor una de las variantes.</p>
+
+  <h2>Cómo es Lumara</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Su cuerpo</h3>
+      <ul>
+        <li><b>La pose, la del directo</b> (el fotograma que marcaste): el torso se echa un poco hacia delante; encima, un cuello de dos tambores de mármol sube y se adelanta, y sobre él va la cabeza, mirando al frente; debajo de ella se ve el costillar. Debajo de la cintura, el cuerpo baja, se abomba hacia delante por debajo de la cabeza y se curva hacia atrás hasta la aleta. Flota: no toca el suelo.</li>
+        <li><b>Por tramos</b>, de arriba abajo: el pecho; la cintura, pequeña; y tambores de mármol de una pieza, con un cinturón grueso en cada junta, que van de menor a mayor y de mayor a menor hasta la aleta roja. Siguen la ese sin girarse. Lo más gordo, a la mitad, es el doble que la cintura; en general, es estrecho.</li>
+        <li><b>El pecho, solo costillas</b>: seis pares de costillas rosas que brillan, huesos curvos que salen de la columna, rodean el pecho bajando un poco y vuelven por delante hasta el esternón. Las del medio son las más anchas y las dos de abajo quedan sueltas. Entre ellas, huecos oscuros.</li>
+        <li><b>Dos alas de murciélago, abiertas del todo a los lados</b>: casi horizontales, con las puntas un poco hacia arriba. El brazo tiene el codo hacia atrás y la muñeca hacia delante. De la muñeca salen cuatro dedos largos en abanico, con la membrana azul noche tendida entre ellos y el borde en arcos. En las axilas no hay membrana. No llevan cubos de luz; los huesos, de mármol oscuro, tienen <b>una veta del neón que brilla un poco</b>.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Su cabeza</h3>
+      <ul>
+        <li><b>Grande y maciza</b>, como en la portada: una capucha alta de azul noche, en capas, con el pico en escalones hacia atrás, unas melenas oscuras que se rizan detrás como algas y una fila de pinchos.</li>
+        <li><b>La boca</b>: las dos mandíbulas son medio rectángulo y medio triángulo, es decir, rectas atrás y en punta delante, con la bisagra atrás. La de arriba es larga y recta, lila por encima y en la punta, con la gema blanca en la arista, y lleva por todo el borde una fila de colmillos rosas y blancos dibujados en hojas, no hechos de cubos. La de abajo es una bandeja rosa por dentro, con el borde de mármol y los dientes rojos en escalón, también dibujados en hojas, y cuelga muy abierta, en diagonal.</li>
+        <li><b>Abierta</b>, de frente se ve el escudo rosa que acaba en punta debajo de la visera, delante del pecho, como en la portada. Lleva además dos cuernos lila.</li>
+        <li><b>Tres cebos</b>, de varillas gruesas: el de arriba sale de un tallo negro con muescas, sube y se dobla hacia atrás; los de los lados salen de la capucha y se doblan hacia atrás y abajo, hasta la altura de la visera. Acaban en cubos rosas. El <b>gancho negro</b> sale de un lado de la punta de la mandíbula de arriba y sube, como en el cartel. También lleva una media luna lila.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Las variantes</h2>
+  <p class="lede">Las tres usan <b>el mismo cuerpo que la original</b>: flotan con la cola colgando hasta la aleta, y tienen las mismas proporciones, el pecho de costillas, las alas de murciélago y la misma boca.
+  Lo que cambia es la forma de lo que la enmarca, el material y el neón, para que no sea una copia.</p>
+
+  <section class="var o">
+    <span class="tipo">O · la original · neón rosa</span>
+    <h2>Lumara, la original</h2>
+    <p class="lede">La base, hecha a partir de la portada de Ofidia, del directo y de tus marcas. Flota con la pose del
+    directo: la cabeza grande sobre su cuello y las alas de murciélago abiertas a los lados. Bajo el pecho de costillas
+    rosas, la cintura pequeña y el cuerpo, que crece y mengua hasta la aleta roja. La primera imagen es su cartel.</p>
+    <img class="ancha" src="lumara_original_cartel.jpg" alt="Lumara como en el cartel: de cerca y desde abajo, con la cabeza grande, la boca rosa que alumbra y el contorno blanco">
+    <div class="dos">
+      <img src="lumara_original_heroe.jpg" alt="Lumara de tres cuartos, con la pose del directo: la cabeza delante del pecho, las alas sin luz y el cuerpo que crece y mengua hasta la aleta roja">
+      <img src="lumara_original_cabeza.jpg" alt="La cabeza de Lumara de tres cuartos y desde abajo: la mandíbula de arriba con la visera y la gema, los colmillos y la de abajo, rosa por dentro">
+      <img src="lumara_original_lado.jpg" alt="Lumara de lado, como el fotograma del directo: la cabeza delante del pecho y el cuerpo que se abomba hacia delante y se curva hacia atrás hasta la aleta">
+      <img src="lumara_original_frente.jpg" alt="Lumara de frente: la visera con la gema y, debajo, el escudo rosa de la boca que acaba en punta">
+    </div>
+  </section>
+
+  <section class="var a">
+    <span class="tipo">A · de la capucha · neón azul hielo</span>
+    <h2>Lumara de la Capucha</h2>
+    <p class="lede">El mismo cuerpo de Lumara, sin cebos. Su capucha se abre detrás de la cabeza en una capucha de cobra
+    enorme, con el canto encendido y dos ojos falsos que miran. El mármol es claro, de luna, y los cinturones son de
+    hierro.</p>
+    <img class="ancha" src="lumara_capucha_cartel.jpg" alt="Lumara de la Capucha como en el cartel: de cerca y desde abajo, con la capucha de cobra abierta detrás de la cabeza, en su azul hielo, con el contorno blanco">
+    <div class="dos">
+      <img src="lumara_capucha_heroe.jpg" alt="Lumara de la Capucha, con la capucha de cobra abierta detrás de la cabeza como un halo">
+      <img src="lumara_capucha_cabeza.jpg" alt="La cabeza de Lumara de la Capucha de cerca, con los dos ojos falsos de la capucha">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Enmarca</dt><dd>una capucha ovalada de membrana con siete varillas detrás</dd>
+          <dt>Lo nuevo</dt><dd>dos ojos falsos en la capucha, con la pupila encendida</dd>
+          <dt>Cuernos</dt><dd>dos cortos en gancho</dd>
+          <dt>Mármol</dt><dd>de luna, con manchas claras; cinturones de hierro</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>Su silueta es un halo redondo detrás de la cabeza.</li>
+          <li>La más limpia de las tres.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#909cb8"></i>mármol</span>
+          <span><i style="background:#282e3a"></i>hierro</span>
+          <span><i style="background:#1a2642"></i>capucha</span>
+          <span><i style="background:#6ad8ff"></i>neón</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · de los faroles · neón verde de almas</span>
+    <h2>Lumara de los Faroles</h2>
+    <p class="lede">El mismo cuerpo de Lumara. Sus cebos se hacen faroles de hierro con un alma dentro: seis en corona sobre
+    la capucha, con cadenas entre ellos, y uno a cada lado de la cabeza. Las alas no llevan luz, como en la original. El
+    mármol es pizarra y los cinturones, de latón.</p>
+    <img class="ancha" src="lumara_faroles_cartel.jpg" alt="Lumara de los Faroles como en el cartel: de cerca y desde abajo, con la corona de faroles de almas, en su verde, con el contorno blanco">
+    <div class="dos">
+      <img src="lumara_faroles_heroe.jpg" alt="Lumara de los Faroles, con la corona de faroles verdes alrededor de la cabeza">
+      <img src="lumara_faroles_cabeza.jpg" alt="La cabeza de Lumara de los Faroles de cerca, con los faroles colgando de las varillas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Enmarca</dt><dd>seis varillas en abanico, cada una con su farol colgando</dd>
+          <dt>Lo nuevo</dt><dd>los faroles llevan las almas de sus prisioneros</dd>
+          <dt>Alas</dt><dd>las de murciélago, sin luz, como la original</dd>
+          <dt>Mármol</dt><dd>pizarra verdosa; cinturones de latón</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>Su silueta es una corona de luces.</li>
+          <li>La que más cuenta la historia de los prisioneros.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#2a3a38"></i>mármol</span>
+          <span><i style="background:#78581e"></i>latón</span>
+          <span><i style="background:#1e2424"></i>hierro</span>
+          <span><i style="background:#6affa0"></i>neón</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · encadenada · neón carmesí</span>
+    <h2>Lumara Encadenada</h2>
+    <p class="lede">El mismo cuerpo de Lumara, encadenado. Lleva grilletes oxidados en las alas con la cadena rota, y su pecho
+    es una celda con barrotes delante del costillar. Cadenas le cruzan el cuerpo de tambor en tambor, y en vez de cebos le
+    cuelgan dos cadenas rotas con su grillete. En la cabeza lleva un bozal de hierro que se le ha roto por delante, cuernos de
+    carnero en espiral y jirones. El mármol es negro, con vetas rojas que brillan.</p>
+    <img class="ancha" src="lumara_encadenada_cartel.jpg" alt="Lumara Encadenada como en el cartel: de cerca y desde abajo, con los cuernos de carnero, los grilletes y el bozal roto, en su carmesí, con el contorno blanco">
+    <div class="dos">
+      <img src="lumara_encadenada_heroe.jpg" alt="Lumara Encadenada, con grilletes, barrotes en el pecho, cadenas por la cola y las vetas rojas encendidas">
+      <img src="lumara_encadenada_cabeza.jpg" alt="La cabeza de Lumara Encadenada de cerca, con los cuernos de carnero y el bozal roto">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Enmarca</dt><dd>dos cuernos de carnero en espiral y dos jirones</dd>
+          <dt>Lo nuevo</dt><dd>el bozal de hierro roto: la mandíbula ha quedado libre</dd>
+          <dt>Cuerpo</dt><dd>grilletes en las alas, barrotes en el pecho y cadenas por el cuerpo</dd>
+          <dt>Mármol</dt><dd>negro con vetas rojas; cinturones de hierro oxidado</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>Su silueta son los cuernos y las cadenas.</li>
+          <li>La más pesada y la más rabiosa.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#201418"></i>mármol</span>
+          <span><i style="background:#582c16"></i>óxido</span>
+          <span><i style="background:#6c5842"></i>cuerno</span>
+          <span><i style="background:#ff3a4a"></i>neón</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Las cuatro, a escala</h2>
+  <p class="lede">La original y sus tres variantes, con la misma luz y un jugador delante (1,8 bloques). Miden unos 47 bloques
+  de alto con los cebos y la aleta, y unos 41 de punta a punta de las alas.</p>
+  <img src="lumara_cuatro.jpg" alt="La original y las tres variantes juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada una a píxel grande, sin letras. De izquierda a derecha: el mármol (dibujado a mano),
+  el cinturón con sus remaches, la capucha, los colmillos, la costilla, el hueso del ala con su veta, la membrana y lo
+  propio de cada una (la varilla de los cebos, la capucha de cobra, el hierro de los faroles y el óxido). De arriba abajo:
+  la original, la de la Capucha, la de los Faroles y la Encadenada.</p>
+  <img src="lumara_materiales.jpg" alt="Lámina de materiales de la original y las tres variantes">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p><b>El mejor diseño hasta ahora</b> (13-10-2026). Le gustó la Encadenada. La original sigue muy cerca de la Ofidia de Dedsafio 4; para el mod, mejor una de las variantes.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/lumara_modelo.py y lumara_escenas.py.</p>
+</div>

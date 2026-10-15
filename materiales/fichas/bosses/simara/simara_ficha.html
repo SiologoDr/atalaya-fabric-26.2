@@ -1,0 +1,238 @@
+<title>Simara, la Sierpe de las Simas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Una sola entidad en tres tipos: la columna de lectura de siempre, sobre tinta casi negra; cada tipo con su neon (cian, naranja, magenta), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0a0a0e; --hoja:#141319; --hoja2:#1c1a22; --filo:#322f3b;
+  --texto:#ece6da; --texto2:#b4aebd; --tenue:#878193;
+  --cian:#52e2ff; --naranja:#ff9a1a; --magenta:#ff4ad2;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,10,14,0) 34%, rgba(10,10,14,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--cian);}
+.var.b{--tono:var(--naranja);}
+.var.c{--tono:var(--magenta);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+.juego{font-family:var(--cursiva); font-style:italic; color:var(--texto2); margin:14px 0 0;}
+.juego b{font-style:normal; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tono); font-weight:500; margin-right:6px;}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="simara_tres_tipos.jpg" alt="Simara en sus tres tipos, Abisal, Volcánica y Espectral, juntas con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe nuevo · ficha de diseño · 12-10-2026</div>
+      <h1>Simara, la Sierpe de las Simas</h1>
+      <p class="sub">Una sola entidad en <b>tres tipos</b>, para que compares: la misma sierpe colosal que sale de una sima, con
+      fauces enormes y un remolino que gira en la garganta, en versión <b>Abisal</b>, <b>Volcánica</b> y <b>Espectral</b>.</p>
+    </div>
+  </header>
+
+  <h2>Qué he cambiado</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Texturas limpias, como Ofidia</h3>
+      <ul>
+        <li><b>Nada de ruido ni motas sueltas</b>: era lo que ensuciaba las anteriores.</li>
+        <li><b>Formas dibujadas</b>: escamas, escudos, cinturones con remaches, vetas que serpentean y manchas grandes con su borde.</li>
+        <li><b>Píxel grande y paleta corta</b>, a 8 píxeles por bloque, como un modelo de Minecraft.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Lo que comparten los tres tipos</h3>
+      <ul>
+        <li><b>El mismo modelo</b>: cuerpo de tambores ceñidos por cinturones, alzado desde la sima.</li>
+        <li><b>La misma cabeza</b>: fauces enormes con dientes en peine y colmillos delante.</li>
+        <li><b>Lo nuevo</b>: al fondo de la garganta gira un remolino, de agua, de magma o de almas.</li>
+        <li>Cambian la piel, el neón y los adornos de la cabeza.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="var a">
+    <span class="tipo">A · tipo abisal · neón cian</span>
+    <h2>Simara Abisal</h2>
+    <p class="lede">La de las profundidades. Escamas azul marino con una fila de fotóforos que brillan, aletas por todo el lomo y un
+    abanico de espinas con membrana en la nuca, como una corona. De la barbilla le cuelgan dos barbillones con un bulbo de luz.</p>
+    <div class="dos">
+      <img src="simara_abisal_heroe.jpg" alt="Simara Abisal alzada, con las fauces abiertas y el remolino cian">
+      <img src="simara_abisal_cabeza.jpg" alt="La cabeza de Simara Abisal: el peine de dientes, el remolino de agua y el abanico de la nuca">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su piel y sus adornos</h3>
+        <dl>
+          <dt>Piel</dt><dd>escamas en U con su brillo y una fila de fotóforos por cada costado</dd>
+          <dt>Vientre</dt><dd>una franja de escudos verdeazulados</dd>
+          <dt>Cinturones</dt><dd>de nácar oscuro, con remaches</dd>
+          <dt>Lomo</dt><dd>una aleta por tambor, con radios y el borde en festones que brilla</dd>
+          <dt>Cabeza</dt><dd>abanico de siete espinas en la nuca y dos más pequeños a los lados, como agallas</dd>
+          <dt>Barbillones</dt><dd>dos, con un bulbo de luz al final</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>El remolino de la garganta es de agua.</li>
+          <li>La más «de mar»; la que más se aleja de Ofidia.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#123352"></i>escamas</span>
+          <span><i style="background:#346e78"></i>vientre</span>
+          <span><i style="background:#5e4650"></i>cinturón</span>
+          <span><i style="background:#52e2ff"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>los bulbos de los barbillones te atraen; si los miras, te acercas solo hacia la boca.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · tipo volcánico · neón naranja</span>
+    <h2>Simara Volcánica</h2>
+    <p class="lede">La de la sima de lava. Placas de obsidiana con vetas de magma que serpentean y brillan, púas de obsidiana en el
+    lomo y una corona de cuernos que se echan atrás. De la quijada le cuelgan dos látigos de lava que gotean.</p>
+    <div class="dos">
+      <img src="simara_volcanica_heroe.jpg" alt="Simara Volcánica alzada, con las vetas de magma y el remolino naranja">
+      <img src="simara_volcanica_cabeza.jpg" alt="La cabeza de Simara Volcánica: los cuernos, el peine de dientes y el remolino de magma">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su piel y sus adornos</h3>
+        <dl>
+          <dt>Piel</dt><dd>obsidiana en dos tonos con vetas de magma limpias que la recorren</dd>
+          <dt>Vientre</dt><dd>una franja de escudos de basalto</dd>
+          <dt>Cinturones</dt><dd>de hierro negro, con remaches</dd>
+          <dt>Lomo</dt><dd>dos púas de obsidiana por tambor</dd>
+          <dt>Cabeza</dt><dd>dos cuernos grandes que se echan atrás, dos pequeños y púas por la frente</dd>
+          <dt>Látigos</dt><dd>dos, de costra y magma, con una gota encendida al final</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>El remolino de la garganta es de magma.</li>
+          <li>La más imponente de silueta, por los cuernos.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#1c121a"></i>obsidiana</span>
+          <span><i style="background:#ff7a14"></i>magma</span>
+          <span><i style="background:#302c30"></i>hierro</span>
+          <span><i style="background:#ff9a1a"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>las vetas se encienden antes de escupir lava; los látigos barren el suelo alrededor de la sima.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · tipo espectral · neón magenta</span>
+    <h2>Simara Espectral</h2>
+    <p class="lede">La de la cripta, y la que más se acerca a Ofidia. Vértebras de hueso con manchas de alma que brillan en violeta,
+    cinturones de bronce, astas de hueso y una mortaja de jirones que le cae por el cuello. De la quijada le cuelgan dos cadenas
+    con farolillos de almas.</p>
+    <div class="dos">
+      <img src="simara_espectral_heroe.jpg" alt="Simara Espectral alzada, con las astas, los farolillos y el remolino magenta">
+      <img src="simara_espectral_cabeza.jpg" alt="La cabeza de Simara Espectral: las astas de hueso, el peine de dientes y el remolino de almas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su piel y sus adornos</h3>
+        <dl>
+          <dt>Piel</dt><dd>hueso lila con manchas de alma de borde limpio, como el mármol de Ofidia pero en violeta</dd>
+          <dt>Vientre</dt><dd>una franja de escudos de hueso oscuro</dd>
+          <dt>Cinturones</dt><dd>de bronce, con remaches</dd>
+          <dt>Lomo</dt><dd>la apófisis de cada vértebra y jirones que cuelgan a los lados</dd>
+          <dt>Cabeza</dt><dd>dos astas de hueso con sus puntas y una mortaja de tres jirones</dd>
+          <dt>Farolillos</dt><dd>dos, colgando de cadenas, con un alma encendida dentro</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>El remolino de la garganta es de almas.</li>
+          <li>La más cercana a Ofidia: cuerpo de tambores con cinturones y el violeta.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#8e86a8"></i>hueso</span>
+          <span><i style="background:#c88aff"></i>alma</span>
+          <span><i style="background:#5e4222"></i>bronce</span>
+          <span><i style="background:#ff4ad2"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>los farolillos liberan almas que te persiguen; si rompes uno, el remolino se debilita.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los tres tipos, a escala</h2>
+  <p class="lede">La misma sierpe en los tres tipos, con la misma luz y un jugador delante (1,8 bloques). Alzada mide unos 20
+  bloques, como Espinara.</p>
+  <img src="simara_tres_tipos.jpg" alt="Simara en sus tres tipos juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada tipo a píxel grande: la piel, el vientre, el cinturón, los dientes, el interior de las
+  fauces, el remolino y lo propio de cada uno. Todas dibujadas a 8 píxeles por bloque, sin ruido ni motas sueltas.</p>
+  <img src="simara_materiales.jpg" alt="Lámina de materiales de los tres tipos de Simara">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>Le gustaron el monstruo y sus tres tipos (12-10-2026): «me gustaron este monstruo y sus variables». Es la primera ficha de una sola entidad en tres tipos, y la primera con texturas limpias como las de Ofidia: el formato a seguir.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/sierpe_modelo.py y sierpe_escenas.py.</p>
+</div>

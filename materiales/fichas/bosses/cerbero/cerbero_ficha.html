@@ -1,0 +1,303 @@
+<title>Cerbero y sus formas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Cerbero: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada forma con su color (azufre, fucsia, azul de alma), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --azufre:#ffd21a; --fucsia:#ff2a9a; --alma:#3ab8ff;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--azufre); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--azufre);}
+.var.b{--tono:var(--fucsia);}
+.var.c{--tono:var(--alma);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--azufre);} .medidas .b b{color:var(--fucsia);} .medidas .c b{color:var(--alma);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--fucsia); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="cerbero_tres_variantes.jpg" alt="Las tres formas de Cerbero juntas, con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 14-10-2026</div>
+      <h1>Cerbero y sus formas</h1>
+      <p class="sub"><b>Cerbero</b>, el perro de varias cabezas que guarda la puerta del Hades, del mismo mito griego que la Gorgona
+      y el Minotauro. No es un perro agrandado: tiene <b>varias cabezas con las fauces encendidas</b>, la crin de serpientes y
+      <b>la cola que es una serpiente con su propia boca</b>. Tres formas que cambian la silueta: <b>el Guardián</b>,
+      <b>Ortro</b> y <b>el Encadenado</b>.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Está hecho con la guía de las fichas de jefes:</p>
+  <ul class="lede">
+    <li><b>Las cabezas mandan</b>: son grandes, miran a cámara y tienen las fauces abiertas.</li>
+    <li><b>Las bocas arden por dentro con un solo neón</b>, en escalones.</li>
+    <li><b>Las enmarcan</b> las orejas en punta, la gola de pelo y el collar de pinchos.</li>
+    <li><b>El cuerpo es oscuro y enjuto</b>, todo de cajas y con texturas limpias: manchas grandes, escamas en U y remaches
+    de 2×2.</li>
+    <li><b>Tiene tres formas</b> que se distinguen solo por la silueta.</li>
+  </ul>
+  <p class="lede">Es un cuerpo que aún no había en las fichas: <b>un perro de presa de cuatro patas largas</b>. Después de la
+  Tarasca, que era muy robusta, este va enjuto: el pecho hondo y la cintura recogida. Vive en la orilla del Estigio, entre
+  rocas y columnas de basalto. Las fotos van <b>sin letras y con el borde blanco</b>, y cada forma tiene su cartel.</p>
+
+  <h2>Cómo es Cerbero</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Cada cabeza</h3>
+      <ul>
+        <li><b>El cráneo</b> lleva la coronilla en escalón. Bajo el ceño, en ángulo, van los ojos encendidos.</li>
+        <li><b>Las orejas</b> son en punta, en tres escalones, echadas hacia atrás.</li>
+        <li><b>El hocico</b> es largo, con el caballete y la trufa negra.</li>
+        <li><b>Las fauces, abiertas</b>:
+          <ul>
+            <li>el paladar arde en escalones de luz;</li>
+            <li>los dientes van dibujados en hojas, no hechos de cubos;</li>
+            <li>lleva dos colmillos arriba y dos abajo;</li>
+            <li>el suelo de la boca también arde y, al fondo de la garganta, está el núcleo.</li>
+          </ul>
+        </li>
+        <li><b>La gola de pelo</b> en las mejillas y la barba bajo la mandíbula.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>El cuerpo</h3>
+      <ul>
+        <li><b>Los cuellos</b> llevan una crin de mechones por arriba y, cerca de la cabeza, <b>el collar</b>: un aro de metal
+        con remaches y ocho pinchos.</li>
+        <li><b>El tronco</b> es de perro de presa: el pecho hondo, con la quilla y la pechera de pelo, y la cintura recogida.</li>
+        <li><b>Los hombros y la grupa</b> son de músculo, con una cresta de pelo por el lomo.</li>
+        <li><b>Las cuatro patas</b> son largas y pisan de puntillas, con cuatro dedos y sus uñas.</li>
+        <li><b>La cola es una serpiente</b> de escamas en U. Su cabeza tiene la boca encendida, como las otras.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Las tres formas</h2>
+  <p class="lede">Las tres comparten las cabezas y el cuerpo. Cambian <b>la silueta</b>, que se distingue de lejos: ancho con tres
+  cabezas en abanico, largo y bajo con dos, o sentado y alto con las cadenas.</p>
+
+  <section class="var a">
+    <span class="tipo">A · Cerbero, el Guardián · azufre</span>
+    <h2>Cerbero, el Guardián</h2>
+    <p class="lede">El de la puerta. Está <b>plantado sobre las cuatro patas</b>, con <b>las tres cabezas abiertas en abanico</b>:
+    la del medio mira de frente y las de los lados, hacia fuera. Por el lomo le sale <b>la crin de serpientes</b>, cinco que se
+    abren a los lados, y <b>la cola-serpiente</b> se arquea en alto. Los collares son de bronce. Las bocas arden en amarillo de
+    azufre, como el aire del Hades.</p>
+    <img class="ancha" src="cerbero_guardian_cartel.jpg" alt="Cerbero, el Guardián, en su cartel: de frente y desde abajo, con las tres fauces abiertas que arden en amarillo, con el borde blanco">
+    <div class="dos">
+      <img src="cerbero_guardian_heroe.jpg" alt="Cerbero, el Guardián, de cuerpo entero en la orilla del Estigio, con las tres cabezas en abanico y la cola-serpiente en alto">
+      <img src="cerbero_guardian_cabeza.jpg" alt="Las tres cabezas del Guardián de cerca y desde abajo: tres fauces que arden en amarillo, con los colmillos y los collares">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>ancha, plantado sobre cuatro patas</dd>
+          <dt>Cabezas</dt><dd>tres, abiertas en abanico</dd>
+          <dt>Lomo</dt><dd>la crin de cinco serpientes</dd>
+          <dt>Luz</dt><dd>azufre</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La del mito: se lee como Cerbero de un vistazo.</li>
+          <li>La más ancha: 37 bloques de cabeza a cabeza.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#2a221e"></i>pelo</span>
+          <span><i style="background:#464428"></i>serpiente</span>
+          <span><i style="background:#c8964c"></i>bronce</span>
+          <span><i style="background:#ffd21a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · Ortro, el Perro de Gerión · fucsia</span>
+    <h2>Ortro, el Perro de Gerión</h2>
+    <p class="lede">El hermano de Cerbero, el que guardaba el ganado rojo de Gerión. Tiene <b>dos cabezas</b> y es <b>más largo y
+    flaco</b>. Está <b>agazapado para saltar</b>: el pecho bajo, las patas de delante abiertas y la grupa alta. Tiene las orejas
+    más largas, la cresta de pelo alta por el lomo y la cola-serpiente que se alza a un lado. Las bocas arden en fucsia.</p>
+    <img class="ancha" src="cerbero_ortro_cartel.jpg" alt="Ortro en su cartel: de frente y desde abajo, con las dos fauces abiertas que arden en fucsia, con el borde blanco">
+    <div class="dos">
+      <img src="cerbero_ortro_heroe.jpg" alt="Ortro de cuerpo entero, agazapado para saltar, con las dos cabezas y la cola-serpiente alzada">
+      <img src="cerbero_ortro_cabeza.jpg" alt="Las cabezas de Ortro de cerca y desde abajo: las fauces que arden en fucsia">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>larga y baja, agazapado para saltar</dd>
+          <dt>Cabezas</dt><dd>dos, juntas y hacia delante</dd>
+          <dt>Lomo</dt><dd>la cresta de pelo alta</dd>
+          <dt>Luz</dt><dd>fucsia</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más rápida: va siempre a punto de saltar.</li>
+          <li>La más larga y la más baja: 49 bloques de largo y 23 de alto.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#3a1c1c"></i>pelo</span>
+          <span><i style="background:#4c263e"></i>serpiente</span>
+          <span><i style="background:#56566a"></i>hierro</span>
+          <span><i style="background:#ff2a9a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · Cerbero Encadenado · azul de alma</span>
+    <h2>Cerbero Encadenado</h2>
+    <p class="lede">El que sacó Heracles del Hades en su último trabajo. Está <b>sentado sobre los cuartos traseros</b>, muy alto,
+    con las tres cabezas mirando hacia abajo. De los collares le cuelgan <b>las cadenas rotas</b> hasta el suelo, y otras dos
+    unen los collares. La cola-serpiente se enrosca en el suelo y alza la cabeza delante. Las bocas arden en el azul frío de las
+    almas.</p>
+    <img class="ancha" src="cerbero_encadenado_cartel.jpg" alt="Cerbero Encadenado en su cartel: sentado, desde abajo, con las tres fauces que arden en azul y las cadenas colgando, con el borde blanco">
+    <div class="dos">
+      <img src="cerbero_encadenado_heroe.jpg" alt="Cerbero Encadenado de cuerpo entero, sentado, con las cadenas rotas colgando de los collares">
+      <img src="cerbero_encadenado_cabeza.jpg" alt="Las cabezas del Encadenado de cerca y desde abajo: las fauces que arden en azul">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>sentado, alto y compacto</dd>
+          <dt>Cabezas</dt><dd>tres, mirando hacia abajo</dd>
+          <dt>Cadenas</dt><dd>rotas, de los collares al suelo</dd>
+          <dt>Luz</dt><dd>azul de alma</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más alta: 34 bloques sentado.</li>
+          <li>La más corta: 34 de largo, con las bocas a 22 bloques del suelo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#282e38"></i>pelo</span>
+          <span><i style="background:#384448"></i>serpiente</span>
+          <span><i style="background:#646c76"></i>hierro</span>
+          <span><i style="background:#3ab8ff"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Las tres, a escala</h2>
+  <p class="lede">Las tres juntas, con la misma luz y un jugador delante (1,8 bloques).</p>
+  <div class="medidas">
+    <div class="a"><b>el Guardián</b><span>31 de alto · 37 de ancho · 45 de largo</span></div>
+    <div class="b"><b>Ortro</b><span>23 de alto · 24 de ancho · 49 de largo</span></div>
+    <div class="c"><b>el Encadenado</b><span>34 de alto · 35 de ancho · 34 de largo</span></div>
+  </div>
+  <img src="cerbero_tres_variantes.jpg" alt="Las tres formas de Cerbero juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada forma a píxel grande, sin letras. Hay una fila por forma y, de izquierda a derecha, van:</p>
+  <ul class="lede">
+    <li>el pelo corto, con manchas grandes;</li>
+    <li>la crin;</li>
+    <li>las escamas de las serpientes;</li>
+    <li>el collar, con remaches;</li>
+    <li>el pincho del collar;</li>
+    <li>el paladar;</li>
+    <li>el suelo de la boca;</li>
+    <li>los dientes, dibujados en hoja;</li>
+    <li>el núcleo de la garganta.</li>
+  </ul>
+  <img src="cerbero_materiales.jpg" alt="Lámina de materiales de las tres formas de Cerbero">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>Lo dio por bueno el 14-10-2026, aunque avisó de que se parece algo a otros jefes: «este sí déjalo en fichas en bosses porque me gustó su diseño y sus tipos».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/cerbero_modelo.py y cerbero_escenas.py (y jefa_modelo.py, del que toma los tubos
+  de bloques).</p>
+</div>

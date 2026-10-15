@@ -1,0 +1,200 @@
+<title>Kelpia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Kelpia: la misma columna de lectura que las otras fichas, sobre tinta casi negra, con su color miel. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --miel:#ffb02a; --agua:#3affb0; --sangre:#ff2a46;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--miel); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--miel);}
+.var.b{--tono:var(--agua);}
+.var.c{--tono:var(--sangre);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--miel);} .medidas .b b{color:var(--agua);} .medidas .c b{color:var(--sangre);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--agua); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="kelpia_cartel.jpg" alt="Kelpia en su cartel: el monstruo cargado de hombros, con la cortina de algas y la cabeza baja con las fauces ámbar">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 14-10-2026</div>
+      <h1>Kelpia</h1>
+      <p class="sub"><b>Kelpia, la Acechadora del Lago</b>: un monstruo del lago inventado. Va cargado de hombros, con una joroba
+      de hueso de la que le caen las algas como una cortina, y espera en la orilla <b>con la cabeza baja y las fauces abiertas
+      que arden en ámbar</b>.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Salió del kelpie de las leyendas escocesas, el caballo de agua que arrastra a la gente al fondo del lago.
+  Del caballo solo le quedan rastros.</p>
+  <ul class="lede">
+    <li><b>La cabeza manda.</b> Es ancha, alta y corta, con cuatro ojos encendidos y las fauces abiertas desde muy atrás.</li>
+    <li><b>Las algas le crecen de la joroba.</b> Le caen como una cortina por los dos lados, le tapan el cuello y le enmarcan la
+    cabeza. Tienen el nervio encendido y vejigas que brillan.</li>
+    <li><b>Los rastros del kelpie</b> son la crin de algas y las pezuñas, partidas en tres garras de cuerno.</li>
+  </ul>
+
+  <h2>Cómo es Kelpia</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>La cabeza</h3>
+      <ul>
+        <li><b>Es ancha, alta y corta.</b> Tiene dos cejas de hueso en pico, de mal genio, y unos nudos de hueso por el hocico y
+        la coronilla.</li>
+        <li><b>Tiene cuatro ojos encendidos</b>, dos por lado: uno grande arriba y uno pequeño en el hocico.</li>
+        <li><b>Las fauces</b> llevan el paladar encendido en escalones, los dientes en hoja, dos pares de colmillos arriba y uno
+        abajo, el suelo de la boca encendido y el núcleo al fondo.</li>
+        <li><b>La quijada es honda</b>, con dos alas de hueso a los lados. De las comisuras le cuelgan <b>dos barbos de
+        alga</b>, ondulados.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>El cuerpo</h3>
+      <ul>
+        <li><b>La joroba</b> de los hombros lleva una cresta de hueso, y de ella salen las algas.</li>
+        <li><b>Los brazos son largos</b>, con un codo hacia fuera. Uno está apoyado y el otro alzado, con las garras colgando.</li>
+        <li><b>Las patas de atrás son cortas</b> y el lomo cae hacia la cola. Brazos y patas acaban en pezuñas partidas en tres
+        garras de cuerno.</li>
+        <li><b>La cola</b> es un muñón del que salen las algas, que se arrastran por el suelo.</li>
+        <li><b>La piel</b> es parda y mojada, con hilos de agua que le chorrean. <b>Solo arden</b> las fauces, los ojos, el
+        nervio de las algas y las vejigas.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="var a">
+    <span class="tipo">la Acechadora · ámbar y alga verdeazul</span>
+    <h2>De cuerpo entero y de cerca</h2>
+    <div class="dos">
+      <img src="kelpia_heroe.jpg" alt="Kelpia de cuerpo entero en la orilla del lago, con un brazo alzado">
+      <img src="kelpia_cabeza.jpg" alt="La cabeza de Kelpia de cerca, con las cejas en pico, los cuatro ojos y los barbos de alga">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cuerpo</dt><dd>cargado de hombros</dd>
+          <dt>Joroba</dt><dd>de hueso, con las algas</dd>
+          <dt>Ojos</dt><dd>cuatro</dd>
+          <dt>Luz</dt><dd>ámbar</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La que espera quieta en la orilla con la boca abierta.</li>
+          <li>Mide 22 bloques de alto y 38 de largo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#322418"></i>piel</span>
+          <span><i style="background:#6a5a40"></i>hueso</span>
+          <span><i style="background:#184a3c"></i>alga</span>
+          <span><i style="background:#ffb02a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>A escala</h2>
+  <p class="lede">Kelpia con un jugador delante (1,8 bloques).</p>
+  <img src="kelpia_escala.jpg" alt="Kelpia a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas a píxel grande, sin letras. De izquierda a derecha van: la piel con el agua que le chorrea, el
+  hueso en capas, la cinta de alga con su nervio, la vejiga, la garra de cuerno, el ojo, el paladar, el suelo de la boca, los
+  dientes y el núcleo.</p>
+  <img src="kelpia_materiales.jpg" alt="Lámina de materiales de Kelpia">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>14-10-2026. La primera ficha tenía tres caballos de agua: la Kelpia (encabritada), el Hipocampo (con cola de pez) y la
+    Acechadora (de pie, con la cabeza baja). Juan dijo: «el tipo C me gusta su diseño pero no en su anatomía, hubiera sido
+    mejor que no hubiera sido un caballo sino algo creado nuevo… está bien usar referencias pero no hacerlas iguales». La
+    Acechadora se rehízo con este cuerpo inventado y se quedó con su diseño. Juan la aprobó: «ahora sí me gustó, excelente
+    trabajo, este sí se acercó a lo que busco». Los dos caballos no se guardan.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/kelpia_modelo.py (acechadora) y kelpia_escenas.py (y jefa_modelo.py, del que
+  toma los tubos de bloques).</p>
+</div>

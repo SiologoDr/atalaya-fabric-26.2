@@ -1,0 +1,329 @@
+<title>Bestiario de las Cuatro Guaridas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Tercer tomo del bestiario: la misma columna de lectura, sobre tinta neutra; cada jefe con el tono de su luz (frio, veneno, brasa, amatista), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0e0d10; --hoja:#17151b; --hoja2:#1f1c24; --filo:#35303d;
+  --texto:#ece6da; --texto2:#b6aebb; --tenue:#8a8291;
+  --frio:#8ff0ff; --veneno:#b2f04e; --brasa:#ffa04e; --amatista:#c9a2ff;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+a{color:var(--tono);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(14,13,16,0) 28%, rgba(14,13,16,.95) 88%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.guarida{font-family:var(--cursiva); font-style:italic; color:var(--tono); font-size:19px; margin:0 0 10px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+/* lo aprendido */
+.tres{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin:16px 0 10px;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza p{margin:0; color:var(--texto2); font-size:16px;}
+.pieza b{color:var(--texto); font-weight:500;}
+.pieza .fecha{font-family:var(--mono); font-size:12px; color:var(--tenue); display:block; margin-top:8px;}
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.reglas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.reglas li{margin:5px 0;}
+.reglas li b{color:var(--texto); font-weight:500;}
+
+/* cada jefe */
+.jefe.a{--tono:var(--frio);}
+.jefe.b{--tono:var(--veneno);}
+.jefe.c{--tono:var(--brasa);}
+.jefe.d{--tono:var(--amatista);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.nuevo{margin:14px 0 0; padding:12px 14px; border-radius:6px; background:var(--hoja2); border:1px solid var(--tono);}
+.nuevo b{color:var(--tono); font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; display:block; margin-bottom:4px;}
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0; font-variant-numeric:tabular-nums;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+.juego{font-family:var(--cursiva); font-style:italic; color:var(--texto2); margin:14px 0 0;}
+.juego b{font-style:normal; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tono); font-weight:500; margin-right:6px;}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+.pie a{color:var(--texto2);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="las_cuatro_a_escala.jpg" alt="Yelmora, Cienara, Osaria y Geodra juntas, con un jugador delante para la escala">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefes nuevos · ficha de diseño · 12-10-2026</div>
+      <h1>Bestiario de las Cuatro Guaridas</h1>
+      <p class="sub">Cuatro jefes con los pies en el suelo: <b>hielo</b>, <b>pantano</b>, <b>carroña</b> y <b>cristal</b>. Como los de
+      Dedsafio 4, cada uno es un monstruo que se entiende al momento, con una boca enorme por foco, pocas piezas gordas y la textura
+      pintada a píxel grande. Nada de auroras, lunas ni soles.</p>
+    </div>
+  </header>
+
+  <h2>Lo que he aprendido de Dedsafio 4</h2>
+  <p class="lede">Busqué los carteles oficiales de los tres jefes que lleva la edición (los enlaces, abajo del todo; aquí no uso
+  ninguna imagen suya) y volví a mirar Ofidia y nuestra Espinara.</p>
+  <div class="tres">
+    <div class="pieza">
+      <h3>Qumara · El Brote Primitivo</h3>
+      <p>Un árbol retorcido con brazos de rama y, por cabeza, un capullo rojo que se abre en vertical: <b>dientes blancos, luz magenta
+      dentro y una lengua</b>, con pétalos rosas detrás.</p>
+      <span class="fecha">primer jefe · 26-09</span>
+    </div>
+    <div class="pieza">
+      <h3>El Gran Observalador</h3>
+      <p>Una bestia de carne roja, medio dinosaurio, con <b>una boca enorme llena de dientes</b>, ojos amarillos, púas de hueso en la
+      cabeza y el lomo, y garras y cola de hueso.</p>
+      <span class="fecha">segundo jefe · 03-10</span>
+    </div>
+    <div class="pieza">
+      <h3>Ofidia</h3>
+      <p>Una sierpe de tambores de piedra con señuelos de pez abisal, capucha y <b>las fauces encendidas por dentro</b>; a su alrededor,
+      los presos fantasma.</p>
+      <span class="fecha">tercer jefe · 10-10</span>
+    </div>
+  </div>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Lo que tienen en común</h3>
+      <ul>
+        <li><b>Un monstruo de los de siempre con un giro</b>: una planta, una bestia, una sierpe. Dos o tres bichos mezclados, nada más.</li>
+        <li><b>La cabeza manda</b>: grande y con una boca enorme. La luz va ahí, y en poco más.</li>
+        <li><b>Pocas piezas y gordas</b>, como un modelo de Minecraft, con la textura pintada a píxel grande y una paleta corta.</li>
+        <li><b>Tamaño de jefe, no de montaña.</b> Y esbirros a juego.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Por qué no gustaron los tres de antes</h3>
+      <ul>
+        <li>Boreala, Nocturna y Duneara apilaban <b>ideas cósmicas</b> (aurora, luna, estrella negra, un segundo sol) y medían hasta 29 bloques.</li>
+        <li><b>Espinara sí funciona</b> porque va por el camino de Qumara: un tallo, una flor que es boca y algo que te mira desde dentro.</li>
+        <li>Estos cuatro siguen esa receta, cada uno en su guarida.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="jefe a">
+    <span class="tipo">A · hielo</span>
+    <h2>Yelmora, la Bestia del Glaciar</h2>
+    <p class="guarida">Guarida: el Glaciar de los Huesos</p>
+    <p class="lede">Un bruto de pelo blanco que anda erguido, con cabeza de morsa y dos colmillos de marfil. En el lomo le crece un
+    glaciar entero, y dentro del cristal más grande se ven, congelados, los huesos de lo último que cazó. Cuando ruge, la boca
+    le brilla azul: echa frío.</p>
+    <div class="dos">
+      <img src="yelmora_heroe.jpg" alt="Yelmora rugiendo con los brazos abiertos y el glaciar en el lomo">
+      <img src="yelmora_cabeza.jpg" alt="La cabeza de Yelmora: el morro oscuro, los colmillos, los ojos de hielo y la boca azul">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>La receta</h3>
+        <dl>
+          <dt>Cuerpo</dt><dd>bruto encorvado de pelo blanco y mechones, con el pecho más claro</dd>
+          <dt>Cabeza</dt><dd>de morsa: morro oscuro, ceja de escarcha, ojos de hielo y colmillos de marfil con sus anillos</dd>
+          <dt>Boca</dt><dd>abierta, con el paladar azul que brilla y una barba de carámbanos</dd>
+          <dt>Lomo</dt><dd>un glaciar de ocho cristales sobre una costra de hielo</dd>
+          <dt>Brazos</dt><dd>gordos, con cristales que le crecen en el antebrazo y garras de hielo oscuro</dd>
+        </dl>
+        <div class="nuevo"><b>Lo que no tiene nadie</b>Lleva su despensa a cuestas: en el cristal grande del lomo están congelados los huesos de lo que cazó.</div>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>15 bloques de alto con el glaciar (12 sin él).</li>
+          <li>18 de ancho con los brazos abiertos.</li>
+          <li>Unas 146 cajas de modelo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#dce8f2"></i>pelo</span>
+          <span><i style="background:#323c4e"></i>piel</span>
+          <span><i style="background:#6ac8e6"></i>hielo</span>
+          <span><i style="background:#d2c4a2"></i>marfil</span>
+          <span><i style="background:#7ae8ff"></i>aliento</span>
+        </div>
+        <p class="juego"><b>En pelea</b>echa frío por la boca; si le rompes los cristales del lomo se debilita, y los huesos que tenía congelados caen al suelo.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="jefe b">
+    <span class="tipo">B · pantano</span>
+    <h2>Cienara, la Reina del Fango</h2>
+    <p class="guarida">Guarida: la Ciénaga que Respira</p>
+    <p class="lede">Ancha y baja como un sapo, con cabeza de caimán y una boca que se abre de lado a lado. Tiene la piel llena de
+    verrugas, y alguna pústula brilla verde. Bajo la garganta le cuelga un saco que se ilumina cuando va a escupir. En el lomo le
+    crece la ciénaga, con musgo y juncos.</p>
+    <div class="dos">
+      <img src="cienara_heroe.jpg" alt="Cienara en la ciénaga con la boca abierta y el saco verde encendido">
+      <img src="cienara_cabeza.jpg" alt="La boca de Cienara: dientes de caimán, la lengua y los ojos de sapo">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>La receta</h3>
+        <dl>
+          <dt>Cuerpo</dt><dd>de sapo, ancho y redondeado, con la tripa clara a franjas</dd>
+          <dt>Cabeza</dt><dd>de caimán, plana y ancha, con dientes desiguales en las dos mandíbulas</dd>
+          <dt>Ojos</dt><dd>de sapo, en torreta, amarillos y con la pupila en raya</dd>
+          <dt>Lomo</dt><dd>escudos de caimán, musgo y juncos con su espadaña</dd>
+          <dt>Patas</dt><dd>las de delante abiertas como las de un sapo, y una cola corta con cresta</dd>
+        </dl>
+        <div class="nuevo"><b>Lo que no tiene nadie</b>El saco de la garganta: brilla verde a través de la piel y avisa de cuándo va a escupir.</div>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>7 bloques de alto con los juncos; la más baja de las cuatro.</li>
+          <li>19 de largo con la cola y 13 de ancho; la boca abre casi 7.</li>
+          <li>Unas 209 cajas de modelo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#46561e"></i>piel</span>
+          <span><i style="background:#94d63a"></i>pústula</span>
+          <span><i style="background:#6e2232"></i>boca</span>
+          <span><i style="background:#aeac6a"></i>tripa</span>
+          <span><i style="background:#e8b020"></i>ojo</span>
+        </div>
+        <p class="juego"><b>En pelea</b>se hunde en el fango y solo asoman los ojos; cuando el saco se enciende, escupe veneno, y con la boca abierta se le puede pegar en la lengua.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="jefe c">
+    <span class="tipo">C · carroña</span>
+    <h2>Osaria, la Carroñera</h2>
+    <p class="guarida">Guarida: el Campo de los Huesos Limpios</p>
+    <p class="lede">Medio buitre, medio chacal: anda encorvada sobre patas de ave y abre unas alas de plumas rotas. Tiene la cabeza
+    pelada, como un cráneo, y un pico ganchudo con dientes de sierra. Lleva el pecho abierto, y entre las costillas le arden
+    brasas: ahí se cocina lo que se come.</p>
+    <div class="dos">
+      <img src="osaria_heroe.jpg" alt="Osaria con las alas abiertas y las brasas encendidas en el pecho">
+      <img src="osaria_cabeza.jpg" alt="La cabeza de Osaria: el pico ganchudo con dientes y el ojo de brasa">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>La receta</h3>
+        <dl>
+          <dt>Cuerpo</dt><dd>encorvado, de cuero gris, con el espinazo marcado</dd>
+          <dt>Pecho</dt><dd>abierto: costillas de hueso y, detrás, brasas que laten</dd>
+          <dt>Cabeza</dt><dd>cráneo pelado de buitre, pico ganchudo con dientes de sierra y ojos de brasa en cuencas oscuras</dd>
+          <dt>Alas</dt><dd>brazos de hueso con plumas rotas colgando y dedos ganchudos</dd>
+          <dt>Patas</dt><dd>de ave, con muslo de pluma, canilla de escamas y garras</dd>
+        </dl>
+        <div class="nuevo"><b>Lo que no tiene nadie</b>Las brasas de entre las costillas: es su estómago, y es su punto débil.</div>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>10,5 bloques de alto.</li>
+          <li>15,5 de ancho con las alas abiertas.</li>
+          <li>Unas 175 cajas de modelo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#3a2c24"></i>pluma</span>
+          <span><i style="background:#4c3c44"></i>cuero</span>
+          <span><i style="background:#cec2a2"></i>hueso</span>
+          <span><i style="background:#ff8a1e"></i>brasa</span>
+        </div>
+        <p class="juego"><b>En pelea</b>da vueltas y baja en picado; lo que se come no la cura, pero le aviva las brasas y pega más fuerte, y las brasas del pecho son su punto débil.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="jefe d">
+    <span class="tipo">D · cristal</span>
+    <h2>Geodra, la Topa de Amatista</h2>
+    <p class="guarida">Guarida: la Cueva que Canta</p>
+    <p class="lede">Una topa del tamaño de una casa, acorazada en bandas como un armadillo, con drusas de amatista que le asoman entre
+    banda y banda. Cava con dos palas de cuatro uñas. No ve casi nada, pero tiene una nariz de estrella que te encuentra igual.
+    Cuando abre la boca, los dientes son de cristal.</p>
+    <div class="dos">
+      <img src="geodra_heroe.jpg" alt="Geodra en la cueva con las drusas encendidas en el lomo">
+      <img src="geodra_cabeza.jpg" alt="La cabeza de Geodra: la nariz de estrella y la boca con dientes de cristal">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>La receta</h3>
+        <dl>
+          <dt>Coraza</dt><dd>siete bandas de armadillo, de queratina con líneas de crecimiento</dd>
+          <dt>Lomo</dt><dd>drusas de amatista entre banda y banda, que brillan</dd>
+          <dt>Cabeza</dt><dd>casco de coraza, hocico largo, ojillos y una nariz de estrella de once dedos</dd>
+          <dt>Boca</dt><dd>con dientes de cristal y la luz morada dentro</dd>
+          <dt>Patas</dt><dd>palas de cavar con cuatro uñas enormes, y una cola corta con maza de drusa</dd>
+        </dl>
+        <div class="nuevo"><b>Lo que no tiene nadie</b>La nariz de estrella: no te ve, te huele. Y las drusas se encienden antes de cada ataque.</div>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>9 bloques de alto con las drusas.</li>
+          <li>20 de largo con las uñas y la cola, y 12 de ancho.</li>
+          <li>Unas 168 cajas de modelo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#62574a"></i>coraza</span>
+          <span><i style="background:#8a52c8"></i>amatista</span>
+          <span><i style="background:#dc8696"></i>nariz</span>
+          <span><i style="background:#2c2620"></i>uñas</span>
+        </div>
+        <p class="juego"><b>En pelea</b>cava y sale debajo de ti; agacharse no sirve, porque la nariz te encuentra; si le rompes las drusas, se queda sin aviso y sin coraza.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los cuatro, a escala</h2>
+  <p class="lede">Juntos y con un jugador delante (1,8 bloques). De alto: Yelmora 15 con el glaciar, Cienara 7, Osaria 10,5 y
+  Geodra 9. Novilis, para comparar, mide 11,5 hasta el yelmo: estos van en la misma liga, no en la de Boreala.</p>
+  <img src="las_cuatro_a_escala.jpg" alt="Yelmora, Cienara, Osaria y Geodra juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Cada caja lleva sus seis caras pintadas a medida, a 8 píxeles por bloque, con la luz arriba y la sombra abajo como
+  en una textura de entidad: pelo en mechones, hielo con facetas, verrugas con pústulas, plumas en filas, coraza en bandas,
+  amatista… Todo dibujado aquí; nada de vanilla ni de bloques.</p>
+  <img src="materiales_guaridas.jpg" alt="Lámina de materiales pintados por cara para los cuatro jefes">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>Le parecieron bien (12-10-2026): «no excelentes como Ofidia ni como Espinara, pero me gustaron sus diseños, no están nada mal». Se guardaron como bichos normales, no como jefes.</p>
+  </div>
+
+  <p class="pie">Referencias (solo estudio, sin usar sus imágenes):
+  <a href="https://x.com/dedsafio/status/2103982368419693005">Qumara</a> ·
+  <a href="https://x.com/dedsafio/status/2106530478526173228">el Gran Observalador</a> ·
+  <a href="https://x.com/dedsafio/status/2109039127597560179">Ofidia</a>.
+  Bocetos: materiales/generadores/bestias_modelo.py y bestias_escenas.py.</p>
+</div>

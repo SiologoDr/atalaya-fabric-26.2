@@ -21,3 +21,7 @@ Espinara su diseño de ficha quítale las letras para que se vea más claro y po
 borde blanco también»). La lámina `espinara_materiales.jpg` es solo suya y sin rótulos: de
 izquierda a derecha y de arriba abajo, la corteza de zarza, la espina, el pétalo, la hoja,
 el farolillo, el hueso del cráneo, los dientes, las fauces, la savia y el polen.
+
+## La ficha
+
+La ficha completa, con las fotos y el veredicto de Juan, es `espinara_ficha.html`: se abre con el navegador. Desde el 14-10-2026 las fichas no se publican (Juan borró los artifacts: «no quiero que salgan»); van en HTML dentro de su carpeta.

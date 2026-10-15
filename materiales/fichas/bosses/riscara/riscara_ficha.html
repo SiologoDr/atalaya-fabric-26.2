@@ -1,0 +1,233 @@
+<title>Riscara, la Dragona de los Riscos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Una sola entidad en tres tipos, como la ficha de Simara: la misma columna de lectura sobre tinta casi negra; cada tipo con su neon (amarillo, azul hielo, verde), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0a0a0e; --hoja:#141319; --hoja2:#1c1a22; --filo:#322f3b;
+  --texto:#ece6da; --texto2:#b4aebd; --tenue:#878193;
+  --amarillo:#ffe03a; --hielo:#b4ecff; --verde:#96ff2a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,10,14,0) 34%, rgba(10,10,14,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--amarillo);}
+.var.b{--tono:var(--hielo);}
+.var.c{--tono:var(--verde);}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+.juego{font-family:var(--cursiva); font-style:italic; color:var(--texto2); margin:14px 0 0;}
+.juego b{font-style:normal; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--tono); font-weight:500; margin-right:6px;}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="riscara_tres_tipos.jpg" alt="Riscara en sus tres tipos, de Tormenta, de Escarcha y de Ponzoña, juntas con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe nuevo · ficha de diseño · 12-10-2026</div>
+      <h1>Riscara, la Dragona de los Riscos</h1>
+      <p class="sub">El segundo monstruo con sus tres tipos, como Simara: <b>la misma dragona</b> plantada en un risco con las alas
+      abiertas y las fauces encendidas, en versión <b>de Tormenta</b>, <b>de Escarcha</b> y <b>de Ponzoña</b>.</p>
+    </div>
+  </header>
+
+  <h2>Cómo está hecha</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>Lo que comparten los tres tipos</h3>
+      <ul>
+        <li><b>El mismo modelo</b>: se planta sobre dos patas en un risco, con las alas abiertas y el cuello en ese.</li>
+        <li><b>La cabeza manda</b>: fauces abiertas con dientes en peine, colmillos y la garganta encendida con su núcleo.</li>
+        <li><b>Lo nuevo</b>: las alas tienen los nervios de una libélula y el borde encendido. Por ellas le corre su elemento.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>Igual que en Simara</h3>
+      <ul>
+        <li><b>Texturas limpias</b>, a 8 píxeles por bloque: escamas, escudos, membrana en bandas. Sin ruido ni motas sueltas.</li>
+        <li><b>Un neón por tipo</b>, en la boca, en los ojos y en el borde de las alas.</li>
+        <li>Cambian la piel, el neón y los adornos de la cabeza y de la cola.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="var a">
+    <span class="tipo">A · tipo tormenta · neón amarillo</span>
+    <h2>Riscara de Tormenta</h2>
+    <p class="lede">La del risco bajo la tormenta. Escamas de pizarra, dos cuernos que acaban en una punta encendida, como
+    pararrayos, y las alas oscuras con rayos en zigzag que le cruzan la membrana. La cola acaba en un tridente de púas.</p>
+    <div class="dos">
+      <img src="riscara_tormenta_heroe.jpg" alt="Riscara de Tormenta en el risco, con las alas abiertas y los rayos en la membrana">
+      <img src="riscara_tormenta_cabeza.jpg" alt="La cabeza de Riscara de Tormenta: los cuernos-pararrayos y las fauces encendidas en amarillo">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su piel y sus adornos</h3>
+        <dl>
+          <dt>Piel</dt><dd>escamas de pizarra azulada</dd>
+          <dt>Vientre</dt><dd>una franja de escudos grises</dd>
+          <dt>Alas</dt><dd>membrana oscura con el borde encendido y rayos en zigzag</dd>
+          <dt>Cabeza</dt><dd>dos cuernos como pararrayos, con la punta encendida, y púas por la frente</dd>
+          <dt>Cola</dt><dd>acaba en un tridente de púas con una chispa</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>Su núcleo de la garganta es de rayo.</li>
+          <li>La más oscura de las tres: se lee por el amarillo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#2a3646"></i>pizarra</span>
+          <span><i style="background:#5e6670"></i>vientre</span>
+          <span><i style="background:#141a26"></i>ala</span>
+          <span><i style="background:#ffe03a"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>los cuernos atraen los rayos: cuando se cargan, avisan del golpe que viene.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · tipo escarcha · neón azul hielo</span>
+    <h2>Riscara de Escarcha</h2>
+    <p class="lede">La de la cumbre nevada. Escamas blancas de escarcha, una corona de carámbanos, cristales por el lomo y la
+    cola, y las alas azules con estrellas de escarcha junto al borde. Le cuelgan carámbanos de la quijada.</p>
+    <div class="dos">
+      <img src="riscara_escarcha_heroe.jpg" alt="Riscara de Escarcha en la cumbre nevada, con las alas azules abiertas">
+      <img src="riscara_escarcha_cabeza.jpg" alt="La cabeza de Riscara de Escarcha: la corona de carámbanos y las fauces encendidas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su piel y sus adornos</h3>
+        <dl>
+          <dt>Piel</dt><dd>escamas blancas de escarcha con sombra azul</dd>
+          <dt>Vientre</dt><dd>una franja de escudos azul pálido</dd>
+          <dt>Alas</dt><dd>membrana azul con el borde encendido y estrellas de escarcha</dd>
+          <dt>Cabeza</dt><dd>una corona de cuatro carámbanos y carámbanos colgando de la quijada</dd>
+          <dt>Cola</dt><dd>acaba en un ramo de cristales de hielo</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>Su núcleo de la garganta es de hielo.</li>
+          <li>La más clara de las tres: brilla contra la noche.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#a2c0d8"></i>escarcha</span>
+          <span><i style="background:#7a9cb8"></i>vientre</span>
+          <span><i style="background:#386690"></i>ala</span>
+          <span><i style="background:#b4ecff"></i>neón</span>
+        </div>
+        <p class="juego"><b>En pelea</b>su aliento congela el suelo; los cristales de la cola se rompen y caen como carámbanos.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · tipo ponzoña · neón verde</span>
+    <h2>Riscara de Ponzoña</h2>
+    <p class="lede">La del risco del pantano. Escamas oscuras con manchas de veneno que brillan, una gorguera de membrana
+    abierta detrás de la cabeza, bulbos de esporas por la quijada y el lomo, y las alas con pústulas encendidas.</p>
+    <div class="dos">
+      <img src="riscara_ponzona_heroe.jpg" alt="Riscara de Ponzoña en el risco del pantano, con las alas y las manchas verdes encendidas">
+      <img src="riscara_ponzona_cabeza.jpg" alt="La cabeza de Riscara de Ponzoña: la gorguera de membrana, los bulbos y las fauces verdes">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su piel y sus adornos</h3>
+        <dl>
+          <dt>Piel</dt><dd>escamas oscuras con manchas de veneno de borde limpio</dd>
+          <dt>Vientre</dt><dd>una franja de escudos verde oliva</dd>
+          <dt>Alas</dt><dd>membrana oscura con el borde encendido y pústulas que brillan</dd>
+          <dt>Cabeza</dt><dd>una gorguera de membrana abierta en abanico y bulbos de esporas por la quijada</dd>
+          <dt>Cola</dt><dd>acaba en un bulbo de esporas con un aguijón</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>Su núcleo de la garganta es de ponzoña.</li>
+          <li>La más inquietante: brilla por manchas.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#222c18"></i>escamas</span>
+          <span><i style="background:#96ff2a"></i>veneno</span>
+          <span><i style="background:#666c26"></i>vientre</span>
+          <span><i style="background:#1a2012"></i>ala</span>
+        </div>
+        <p class="juego"><b>En pelea</b>deja nubes de esporas al batir las alas; los bulbos revientan y envenenan alrededor.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los tres tipos, a escala</h2>
+  <p class="lede">La misma dragona en los tres tipos, con la misma luz y un jugador delante (1,8 bloques). Mide unos 22 bloques
+  de alto con las alas abiertas y 35 de envergadura.</p>
+  <img src="riscara_tres_tipos.jpg" alt="Riscara en sus tres tipos juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada tipo a píxel grande: la piel, el vientre, el hueso de los dedos, los dientes, el interior de
+  las fauces, el núcleo de la garganta y la membrana del ala con su borde encendido.</p>
+  <img src="riscara_materiales.jpg" alt="Lámina de materiales de los tres tipos de Riscara">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>Le gustaron el monstruo y sus tres tipos (12-10-2026): «me gustó también ese monstruo y sus variables».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/riscara_modelo.py y riscara_escenas.py.</p>
+</div>

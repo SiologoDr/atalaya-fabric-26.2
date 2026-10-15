@@ -1,9 +1,10 @@
 # La Gorgona y sus hermanas
 
 **La Gorgona.** Es una jefa con cuerpo de mujer y una cabellera de serpientes vivas. Sus
-tres tipos son las tres hermanas del mito: Medusa, Esteno y Euríale. Con Vulpina, es una
-de las dos primeras jefas con cuerpo de mujer, y las dos comparten el cuerpo y la cara
-(`jefa_modelo.py`).
+tres tipos son las tres hermanas del mito: Medusa, Esteno y Euríale. Es la primera jefa con
+cuerpo de mujer (`jefa_modelo.py`). Se hizo a la vez que Vulpina, una kitsune, que se quitó de
+las fichas por ser «muy fanservice»; de la Gorgona, Juan dijo: «sí tiene ese estilo que
+buscamos».
 
 Juan la pidió el 13-10-2026, mientras se hacía Vulpina: «por ejemplo podrías hacer una
 medusa o algo así… y haz otro de paso». La dio por buena el mismo día. Primero dijo: «los
@@ -89,3 +90,7 @@ Salen de:
 
 Todas las fotos van sin letras y con el borde blanco. Los archivos se llaman
 `gorgona_<hermana>_<vista>.jpg`, con la hermana en `medusa`, `esteno` o `euriale`.
+
+## La ficha
+
+La ficha completa, con las fotos y el veredicto de Juan, es `gorgona_ficha.html`: se abre con el navegador. Desde el 14-10-2026 las fichas no se publican (Juan borró los artifacts: «no quiero que salgan»); van en HTML dentro de su carpeta.

@@ -12,8 +12,9 @@ nuevo. No un animal de verdad agrandado.
 
 ## La receta
 
-1. **La cabeza manda.** Es grande, mira a cámara y tiene las fauces abiertas: dos
-   mandíbulas, arriba y abajo. Lleva dientes blancos en peine y colmillos delante.
+1. **La cabeza manda.** Es grande, mira a cámara y tiene las fauces abiertas: dos mandíbulas, arriba y abajo. Lleva
+   dientes blancos en peine y colmillos delante. (El 14-10-2026 se probó sin boca y con la cabeza pequeña, y Juan pidió
+   volver a esto: ver «Lo que no».)
 2. **La boca brilla por dentro con un solo neón.** El paladar va en escalones de luz
    (blanco al fondo, neón, sombra) y al fondo de la garganta hay un núcleo o un remolino.
 3. **Algo enmarca la cabeza.** Cuernos, una capucha, una corona, una membrana, aletas,
@@ -58,6 +59,18 @@ nuevo. No un animal de verdad agrandado.
 | Codos y rodillas con una bola en la junta | «la rodilla está rara»: doblan por el canto de fuera | la Gorgona |
 | Proporciones de niña (cuatro cabezas) | «debe verse como una mujer adulta» | muestrario de jefas |
 | La cara kawaii | «no parece intimidante o imponente» | Vulpina y la Gorgona |
+| Una jefa de fanservice | «es como muy fanservice, no va con el estilo que estamos manejando»; se quitó de las fichas (la Gorgona sí tiene el estilo) | Vulpina |
+| Un coloso medio delgado | «los otros no parecen minotauros, por ahí son medio delgados»: un minotauro se lee por la masa encorvada y la giba | el Minotauro |
+| Un cuerpo de cuadrúpedo muy robusto | «siento que es muy robusto»: un acorazado de seis patas se lee como un tanque | la Tarasca |
+| Un jefe que se parece a los que ya hay | «no me convence, es que tenemos bosses que se parecen»: la Tarasca, aun esbelta, era otro reptil con púas y la cabeza encendida | la Tarasca |
+| Un animal, aunque sea de mito (toro, perro, ave) | «nos estamos alejando de lo principal como Espinara, Lumara, que no son animales como tal sino creaciones de monstruos; veo que estás usando más animales en vez de crear a tus monstruos» | la Estinfálida |
+| Una cúpula con algo colgando en el centro | se lee como una lámpara (pantalla y bombilla); la cúpula va echada atrás, como una capucha, y la cabeza delante | Tañara (pruebas) |
+| Tentáculos rectos hasta el suelo | se leen como patas de araña; ondulados, enroscados en la punta y sin tocar el suelo | Tañara (pruebas) |
+| Cambiar la receta por restricciones (sin boca, cabeza pequeña, «como una momia») | el 14-10-2026 Juan pidió no poner bocas a todo y no hacer cabezas grandes; los diseños salieron peor y al final del día dijo: «ya no sigas con esa idea que te di porque no me gustan los diseños que me estás mandando; sigue como lo estabas haciendo antes de hoy». Vale la receta de arriba | Tañara v2, Zancara, Mantara, Sudaria |
+| Repetir la fórmula de un jefe que gustó | «ya estamos repitiendo cosas, ya no lo hagas»: tras Escila (jefa sobre tentáculos con perros en la cintura) vino Equidna (jefa serpiente con hijos en los anillos), y Juan quitó las dos, Escila también de las fichas. Animales, leyendas y mitos valen, pero no iguales: con nuestro toque | Escila, Equidna |
+| Copiar la anatomía del animal de la leyenda | el kelpie salió como un caballo de verdad con fauces. De su tipo C, Juan dijo: «me gusta su diseño pero no su anatomía; hubiera sido mejor que no fuera un caballo sino algo creado nuevo… está bien usar referencias pero no hacerlas iguales». Del original se quedan solo rastros (la crin de algas, las pezuñas), y el cuerpo es inventado | Kelpia (los caballos A y B; la C se rehízo y Juan la aprobó) |
+| Tipos con poses distintas | «recuerda que esto de los tipos es de un solo boss: una misma pose, pero diferentes». Los tres tipos comparten la pose y cambian lo que enmarca la cabeza, el borde de las alas, los adornos y el color | Zotzara (la primera ficha) |
+| Que mande lo que lleva encima y no el monstruo | un monstruo que carga una caracola gigante: «no me gustó pero se ve bien». La concha mandaba más que el bicho, y con los ojos en tallos se quedaba en caracol | Volutara |
 
 ## Lo que hay hasta ahora
 
@@ -71,18 +84,25 @@ Los jefes van en `bosses/` y los bichos normales en `mobs/`.
 | `bosses/tenazara/` | alacrana de tenazas-fauces, en 3 tipos | guardada, pero es un animal literal |
 | `bosses/lernara/` | hidra de 3, 5 y 2 cabezas | guardada; primera con variantes de forma |
 | `bosses/lumara/` | Lumara, la Sirena de los Cebos: empezó como estudio de la Ofidia de Dedsafio 4 y ahora tiene nombre propio; la original y 3 variantes | **el mejor diseño hasta ahora** (13-10); le gustó la Encadenada |
-| `bosses/vulpina/` | Vulpina, la Dama de las Nueve Colas: kitsune, en 3 tipos (del Abanico, de la Llama y del Manto) | le gustó (13-10), tras cambiar la cara a la C3 con mirada de jefa |
-| `bosses/gorgona/` | la Gorgona y sus hermanas: Medusa, Esteno (la arquera) y Euríale (la alada) | le gustó (13-10), tras cambiar la cara |
+| `bosses/gorgona/` | la Gorgona y sus hermanas: Medusa, Esteno (la arquera) y Euríale (la alada) | le gustó (13-10), tras cambiar la cara; «sí tiene ese estilo que buscamos» |
+| `bosses/cerbero/` | Cerbero: el Guardián (tres cabezas), Ortro (dos, agazapado) y el Encadenado (sentado, con cadenas) | le gustó (14-10) «su diseño y sus tipos», aunque se parece algo a otros |
+| `bosses/minotauro/` | el Minotauro: Asterión (la lábrys), el Calcotauro (de bronce) y el Bucentauro (de cuatro patas) | le gustó (14-10), cuando las tres formas tuvieron el cuerpo macizo y encorvado del Calcotauro |
+| `bosses/murena/` | Murena: una morena cinta colosal que sale de su guarida, alzada en ese, con narices en hoja y la aleta de canto encendido; una sola forma | le gustó (14-10) la Cinta de entre tres morenas; pidió quitarle la segunda mandíbula de la garganta («la mini serpiente de su boca») y guardar solo esa |
+| `bosses/kelpia/` | Kelpia, la Acechadora del Lago: monstruo inventado cargado de hombros, joroba de hueso con una cortina de algas, cuatro ojos y la cabeza baja con las fauces ámbar; una sola forma | le gustó (14-10): «ahora sí me gustó, excelente trabajo, este sí se acercó a lo que busco»; antes la descartó como caballo («me gusta su diseño pero no su anatomía») |
+| `bosses/zotzara/` | Zotzara, la Murciélaga de Xibalbá (de Camazotz): flaca y encorvada, con las alas abiertas, orejas enormes y la nariz de pedernal; la Pedernal, la Desgarrada (alas rotas) y la Coronada (cuatro orejas, garfios) | le gustó (14-10), con una condición: «que todos tengan la misma pose; esto de los tipos es de un solo boss, una misma pose pero diferentes» |
 | `mobs/guaridas/` | yeti, sapo-caimán, buitre y topo | bien, no excelentes |
 
 Formas de cuerpo que ya están, contando los jefes del mod:
 
 - **Jefes del mod:** mar (Nerea), mariposa (Aeralis), jaguar (Rajang) y caballero (Novilis).
 - **Fichas guardadas:** zarza (Espinara), sierpe (Simara), dragona (Riscara), alacrana
-  (Tenazara), hidra (Lernara), sirena-sierpe (Lumara), mujer (Vulpina y la Gorgona), y
-  yeti, sapo, buitre y topo (Guaridas).
+  (Tenazara), hidra (Lernara), sirena-sierpe (Lumara), mujer de serpientes (la Gorgona),
+  coloso con cabeza de toro (el Minotauro), perro de presa de varias cabezas (Cerbero), morena que sale de su guarida (Murena), bestia
+  jorobada del lago con cortina de algas (Kelpia), murciélaga alada (Zotzara), y yeti, sapo, buitre y topo (Guaridas).
 
-El siguiente debería tener una forma de cuerpo que no esté.
+El siguiente debería tener una forma de cuerpo que no esté y **no parecerse a ninguno**: ni otro
+reptil con púas, ni otra cabeza de fiera encendida sobre cuatro patas (Juan, 14-10-2026: «tenemos
+bosses que se parecen»).
 
 ## Cómo se hace uno nuevo, paso a paso
 
@@ -113,8 +133,8 @@ El siguiente debería tener una forma de cuerpo que no esté.
 6. **Probar a media resolución.** Se lanzan los renders de prueba, se miran y se
    corrige lo que no se lea. Se repite hasta que quede bien.
 7. **Hacer los renders finales.** Son los mismos comandos sin `RAPIDO=1`.
-8. **Publicar la ficha** (un link de Claude con la cuenta de Juan) y esperar a que Juan
-   elija.
+8. **Hacer la ficha en HTML** y enseñársela a Juan en local (se abre en el navegador). **No se
+   publica** como artifact: «no quiero que salgan» (14-10-2026). Esperar a que Juan elija.
 9. **Guardarla** en `materiales/fichas/bosses/<nombre>/` (o en `mobs/` si no es un jefe), con su `LEEME.md`,
    cuando Juan lo diga.
 10. **No implementarla en el juego** hasta que Juan lo pida.
@@ -122,7 +142,8 @@ El siguiente debería tener una forma de cuerpo que no esté.
 ## Las jefas (cuerpo de mujer)
 
 Las jefas no siguen la receta de las fauces: lo que manda es una mujer adulta bien hecha,
-con lo que la hace jefa bien a la vista. Juan eligió las piezas en el muestrario
+con lo que la hace jefa bien a la vista, y temible, no de fanservice (Vulpina se quitó por
+eso). Juan eligió las piezas en el muestrario
 (`catalogo_dama.py`, 13-10-2026), y todas salen de `jefa_modelo.py`:
 
 - **El cuerpo de mujer adulta**, de cajas como un modelo de Blockbench:
@@ -138,9 +159,8 @@ con lo que la hace jefa bien a la vista. Juan eligió las piezas en el muestrari
   (estilizada); y el pecho P1.
 - **Codos y rodillas doblan por el canto de fuera** (la espalda del codo, el frente de la
   rodilla), como un cartón doblado: sin hueco y sin bola.
-- **Lo de cada jefa, también de bloques**:
-  - Vulpina: orejas, colas de tubos de ocho lados con fuego y el kimono;
-  - la Gorgona: serpientes con cabeza y boca, el quitón, el arco y las alas.
+- **Lo de cada jefa, también de bloques**: en la Gorgona, las serpientes con cabeza y boca,
+  el quitón, el arco y las alas.
 - **Los tres tipos** cambian la forma (colas, alas, arma), la pose y los brazos y las
   piernas del muestrario.
 
@@ -191,6 +211,8 @@ grande.
 
 - La carpeta es `materiales/fichas/bosses/<nombre>/` si es un jefe, o
   `materiales/fichas/mobs/<nombre>/` si es un bicho normal (como las Guaridas).
+- **La ficha en HTML va dentro de la carpeta**, como `<nombre>_ficha.html`, y usa las fotos de
+  la misma carpeta (sin copiarlas a otra). En lugar del «Qué decides tú» lleva el veredicto de Juan.
 - Los renders se llaman `<nombre>_<variante>_heroe.jpg` y `<nombre>_<variante>_cabeza.jpg`
   (y, si los hay, `_cartel` y `_cara`), más `<nombre>_tres_variantes.jpg` (o `_cuatro_`) y
   `<nombre>_materiales.jpg`.

@@ -72,3 +72,12 @@ Guarida: la Cueva que Canta.
 Los bocetos salen de `materiales/generadores/bestias_modelo.py` (`yelmora()`,
 `cienara()`, `osaria()`, `geodra()`) y de `bestias_escenas.py`, con las escenas
 `heroe_X`, `cabeza_X`, `cuatro` y `materiales`.
+
+
+## Las fotos
+
+Desde el 14-10-2026 van sin letras y con el borde blanco, como las de los jefes (repasando las fichas, las Guaridas aún llevaban el título y la escala escritos encima). Salen de `bestias_escenas.py`, que ya no rotula.
+
+## La ficha
+
+La ficha completa, con las fotos y el veredicto de Juan, es `guaridas_ficha.html`: se abre con el navegador. Desde el 14-10-2026 las fichas no se publican (Juan borró los artifacts: «no quiero que salgan»); van en HTML dentro de su carpeta.

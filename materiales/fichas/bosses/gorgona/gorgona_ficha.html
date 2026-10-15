@@ -1,0 +1,314 @@
+<title>La Gorgona y sus hermanas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* La Gorgona: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada hermana con su color (esmeralda, ambar, carmin), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --esmeralda:#9cff4a; --ambar:#ffaa2e; --carmin2:#ff3a4a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--ambar); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--esmeralda);}
+.var.b{--tono:var(--ambar);}
+.var.c{--tono:var(--carmin2);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--esmeralda);} .medidas .b b{color:var(--ambar);} .medidas .c b{color:var(--carmin2);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+.caras{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:6px 0 0;}
+.caras figure{margin:0; min-width:0;}
+.caras figcaption{font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--tenue); margin-top:6px;}
+.caras figure.antes img{filter:saturate(.9); opacity:.92;}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="gorgona_tres_variantes.jpg" alt="Las tres gorgonas juntas, con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefa · ficha de diseño · tercera versión, con el muestrario y la mirada de jefa · 13-10-2026</div>
+      <h1>La Gorgona y sus hermanas</h1>
+      <p class="sub"><b>La Gorgona</b>: una jefa con <b>cuerpo de mujer adulta</b> y cabellera de serpientes vivas, hecha con <b>las
+      piezas que elegiste del muestrario</b>, en tres tipos que cambian de forma: las tres hermanas del mito, Medusa, Esteno y
+      Euríale.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Tercera versión. Está hecha <b>con lo que se quedó del muestrario</b>: la cara <b>C3</b>, los brazos <b>B2, B5 y
+  B6</b>, las piernas <b>L5, L3 y L2</b> y el pecho <b>P1</b>. Todo va <b>de bloques</b>, como un modelo de Blockbench. Las fotos van
+  <b>sin letras y con el borde blanco</b>, y cada hermana tiene su cartel.</p>
+
+  <div class="cambios">
+    <h3>Lo que cambié con lo que me dijiste</h3>
+    <ul>
+      <li><b>Cuerpo de mujer adulta, no de niña.</b> La cabeza sigue midiendo 8 píxeles, pero el cuerpo mide 51,5: seis cabezas y
+      media, cuando el muestrario tenía cuatro (por eso parecía una niña). Lleva el cuello largo, los hombros, la cintura estrecha,
+      las caderas con la grupa, los muslos que se afinan hacia la rodilla, el gemelo, el tobillo fino y las piernas de la mitad de
+      la altura.</li>
+      <li><b>La cara C3</b> que elegiste, ya <b>con mirada de jefa</b> (abajo, el antes y el ahora), con los ojos de serpiente
+      de cada hermana: verde, ámbar y rojo.</li>
+      <li><b>Un brazo y una pierna del muestrario por hermana</b>:
+        <ul>
+          <li>Medusa: brazos de bloque con brazaletes de oro y piernas estilizadas con sandalias;</li>
+          <li>Esteno: armadura de bronce y grebas de bronce;</li>
+          <li>Euríale: garras y piernas de rodilla limpia con sandalias.</li>
+        </ul>
+        Codos y rodillas doblan por el canto, como un cartón doblado.</li>
+      <li><b>El pecho P1</b>, con su ribete de oro, bajo el quitón de un hombro.</li>
+      <li><b>Esteno ya no lleva la cola de serpiente</b>, porque pediste piernas y cuerpo de mujer: ahora es <b>la arquera</b>, con
+      armadura y arco. Si quieres la cola de vuelta para alguna, dímelo.</li>
+    </ul>
+  </div>
+
+
+  <h2>La cara, más de jefa</h2>
+  <p class="lede">Me dijiste que la cara era muy kawaii, que no imponía. Es <b>la misma C3</b> (mismo tamaño y mismo píxel), pero
+  con mirada de jefa:</p>
+  <ul class="lede">
+    <li>el párpado de arriba cae en ángulo hacia la nariz y tapa la parte de arriba del iris, así que la mirada queda entrecerrada;</li>
+    <li>la pupila es rasgada y el iris brilla;</li>
+    <li>las cejas, ahora a la vista, bajan en ceño;</li>
+    <li>la sombra del flequillo cae sobre los ojos;</li>
+    <li>lleva un trazo de pintura de guerra bajo el rabillo;</li>
+    <li>no lleva colorete ni el brillo blanco grande;</li>
+    <li>la boca es una línea fina con media sonrisa de villana;</li>
+    <li>la cabeza va un poco inclinada, así que mira desde arriba.</li>
+  </ul>
+  <div class="caras">
+    <figure class="antes"><img src="gorgona_cara_antes.jpg" alt="La cara C3 tal como salió en el muestrario: ojos grandes y redondos, colorete y boca pequeña"><figcaption>Antes · la C3 del muestrario</figcaption></figure>
+    <figure><img src="gorgona_medusa_cara.jpg" alt="La cara con mirada de jefa de Medusa"><figcaption>Ahora · Medusa</figcaption></figure>
+    <figure><img src="gorgona_esteno_cara.jpg" alt="La cara con mirada de jefa de Esteno"><figcaption>Ahora · Esteno</figcaption></figure>
+    <figure><img src="gorgona_euriale_cara.jpg" alt="La cara con mirada de jefa de Euríale"><figcaption>Ahora · Euríale</figcaption></figure>
+  </div>
+
+  <h2>Cómo es la Gorgona</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>La mujer</h3>
+      <ul>
+        <li><b>El cuerpo adulto</b>: las caderas, la cintura estrecha, el pecho P1, los hombros y el cuello largo.</li>
+        <li><b>El quitón</b> de un solo hombro, con la tira de grecas por el hombro, el cinturón de grecas bajo el pecho y el de oro en
+        la cintura. La falda es larga y abierta por delante (Medusa) o corta con su cenefa de grecas.</li>
+        <li><b>Los brazos y las piernas</b> del muestrario, distintos en cada hermana.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>La gorgona</h3>
+      <ul>
+        <li><b>La cara C3 con mirada de jefa</b>, con los ojos de serpiente del color de cada hermana.</li>
+        <li><b>La cabellera</b>: trece serpientes de bloques. Cinco suben y miran hacia delante, cuatro salen por los lados y cuatro
+        caen por la espalda. Cada una tiene el cráneo, el hocico, los ojos encendidos, la boca abierta y dos colmillos.</li>
+        <li><b>Las joyas</b>: la diadema de oro con su gema y los pendientes de tres cuentas con la gota encendida.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Las tres hermanas</h2>
+  <p class="lede">Las tres comparten cara, cuerpo y cabellera. Cambian <b>la forma</b>, que se distingue de lejos solo por la silueta, y
+  <b>los brazos y las piernas del muestrario</b>.</p>
+
+  <section class="var a">
+    <span class="tipo">A · Medusa · esmeralda y oro</span>
+    <h2>Medusa</h2>
+    <p class="lede">La de la mirada que petrifica. Está de pie, con <b>el quitón largo esmeralda abierto por delante</b>, por donde asoma
+    la pierna con las sandalias de tiras de oro, y <b>la mano en alto, abierta</b>. Tiene <b>brazos de bloque con brazaletes de oro</b>,
+    <b>piernas estilizadas</b> y la cabellera más grande, de serpientes esmeralda. La piel es de porcelana y la luz, esmeralda.</p>
+    <img class="ancha" src="gorgona_medusa_cartel.jpg" alt="Medusa en su cartel: desde abajo, de pie con el quitón esmeralda, la mano en alto y la cabellera de serpientes, con el borde blanco">
+    <div class="dos">
+      <img src="gorgona_medusa_heroe.jpg" alt="Medusa de cuerpo entero, con el quitón largo abierto y la pierna con sandalias">
+      <img src="gorgona_medusa_cabeza.jpg" alt="El retrato de Medusa: la cara C3 con los ojos verdes, la diadema y las serpientes con la boca abierta">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>de pie, alta, con la cabellera de serpientes</dd>
+          <dt>Brazos</dt><dd>B2, de bloque con brazaletes de oro</dd>
+          <dt>Piernas</dt><dd>L5, estilizadas con sandalias</dd>
+          <dt>Luz</dt><dd>esmeralda</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La clásica: se lee como Medusa de un vistazo.</li>
+          <li>La más estrecha: 20 bloques de ancho; 35 de alto con las serpientes.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#d4cacb"></i>piel</span>
+          <span><i style="background:#14563c"></i>quitón</span>
+          <span><i style="background:#22662c"></i>serpiente</span>
+          <span><i style="background:#8aee3a"></i>ojos</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · Esteno · cobre, carmín y bronce</span>
+    <h2>Esteno</h2>
+    <p class="lede">La arquera. Lleva <b>la armadura de bronce en los brazos</b> (hombrera de tres láminas, codera, brazal y guantelete),
+    <b>las grebas de bronce</b>, la falda corta con el faldón de tiras de cuero y <b>el arco recurvado</b> en la mano, con la otra en
+    alto. Las serpientes son cobrizas, el quitón carmín y la luz, ámbar.</p>
+    <img class="ancha" src="gorgona_esteno_cartel.jpg" alt="Esteno en su cartel: desde abajo, con el arco de bronce, la armadura y el brazo en alto, con el borde blanco">
+    <div class="dos">
+      <img src="gorgona_esteno_heroe.jpg" alt="Esteno de cuerpo entero, con el arco, la armadura y las grebas de bronce">
+      <img src="gorgona_esteno_cabeza.jpg" alt="El retrato de Esteno: la cara C3 con los ojos ámbar, las serpientes cobrizas y el arco">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>la arquera, con el arco a un lado y el brazo en alto</dd>
+          <dt>Brazos</dt><dd>B5, armadura de bronce con filos de oro</dd>
+          <dt>Piernas</dt><dd>L3, grebas de bronce</dd>
+          <dt>Luz</dt><dd>ámbar</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La guerrera: el arco da para ataques a distancia.</li>
+          <li>35 bloques de alto y 23 de ancho con el arco.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#c49c76"></i>piel</span>
+          <span><i style="background:#8e1c18"></i>quitón</span>
+          <span><i style="background:#c8964c"></i>bronce</span>
+          <span><i style="background:#ffaa2e"></i>ojos</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · Euríale · negra, oro y carmín</span>
+    <h2>Euríale</h2>
+    <p class="lede">La gorgona alada: <b>alas de plumas negras con el borde carmín y el raquis de oro</b>, abiertas detrás de los
+    hombros. Tiene los brazos abiertos con <b>las garras de escamas</b> y <b>las piernas de rodilla limpia</b> con sandalias, y lleva
+    un quitón corto negro con oro. La piel es morena, las serpientes negras con los ojos rojos y la luz, carmín.</p>
+    <img class="ancha" src="gorgona_euriale_cartel.jpg" alt="Euríale en su cartel: desde abajo, con las alas negras abiertas, las garras y los ojos rojos, con el borde blanco">
+    <div class="dos">
+      <img src="gorgona_euriale_heroe.jpg" alt="Euríale de cuerpo entero, con las alas abiertas">
+      <img src="gorgona_euriale_cabeza.jpg" alt="El retrato de Euríale: la cara C3 con los ojos rojos, las serpientes negras y las alas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>alas abiertas de punta a punta</dd>
+          <dt>Brazos</dt><dd>B6, garras de escamas con gorguera de plumas</dd>
+          <dt>Piernas</dt><dd>L2, rodilla limpia con sandalias</dd>
+          <dt>Luz</dt><dd>carmín</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más monstruosa de las tres.</li>
+          <li>La más ancha: 52 bloques de ala a ala.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#8c644c"></i>piel</span>
+          <span><i style="background:#222228"></i>serpiente</span>
+          <span><i style="background:#4a1a22"></i>pluma</span>
+          <span><i style="background:#ff3a3a"></i>ojos</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Las tres, a escala</h2>
+  <p class="lede">Las tres juntas, con la misma luz y un jugador delante (1,8 bloques). Miden unos 30 bloques hasta la coronilla y unos
+  35 con las serpientes.</p>
+  <div class="medidas">
+    <div class="a"><b>Medusa</b><span>35 de alto · 20 de ancho</span></div>
+    <div class="b"><b>Esteno</b><span>35 de alto · 23 de ancho</span></div>
+    <div class="c"><b>Euríale</b><span>35 de alto · 52 de ala a ala</span></div>
+  </div>
+  <img src="gorgona_tres_variantes.jpg" alt="Las tres gorgonas juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada hermana a píxel grande, sin letras. Una fila por hermana y, de izquierda a derecha: la cara C3
+  con los ojos de su color, la piel, las escamas de serpiente, el quitón, la greca, el oro, el cuero de las tiras y la pluma.</p>
+  <img src="gorgona_materiales.jpg" alt="Lámina de materiales de las tres gorgonas">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>La dio por buena el 13-10-2026. Primero: «los diseños están bien, solo que la cara es muy kawaii, no parece intimidante o imponente». Con la cara cambiada: «ok, guarda estas 2 y sus tipos en fichas bosses». Y al quitar a Vulpina: «la Gorgona sí tiene ese estilo que buscamos».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/gorgona_modelo.py, gorgona_escenas.py y jefa_modelo.py (el cuerpo de mujer adulta con
+  las piezas del muestrario, que comparte con Vulpina).</p>
+</div>

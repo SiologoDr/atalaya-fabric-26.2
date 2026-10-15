@@ -1,0 +1,314 @@
+<title>El Minotauro y sus formas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* El Minotauro: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada forma con su color (ambar, turquesa, carmesi), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --ambar:#ffa02a; --turquesa:#2affd2; --carmesi:#ff2a46;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--ambar); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--ambar);}
+.var.b{--tono:var(--turquesa);}
+.var.c{--tono:var(--carmesi);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--ambar);} .medidas .b b{color:var(--turquesa);} .medidas .c b{color:var(--carmesi);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--turquesa); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+
+<div class="libro">
+  <header class="portada">
+    <img src="minotauro_tres_variantes.jpg" alt="Las tres formas del Minotauro juntas, con un jugador delante">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 14-10-2026 · versión 2</div>
+      <h1>El Minotauro y sus formas</h1>
+      <p class="sub"><b>El Minotauro</b>, del mismo mito que la Gorgona: un coloso con cabeza de toro que no es un toro, con
+      <b>las fauces encendidas</b> y <b>los cuernos enmarcando la cabeza</b>. Tres formas que cambian la silueta:
+      <b>Asterión</b>, <b>el Calcotauro</b> y <b>el Bucentauro</b>.</p>
+    </div>
+  </header>
+
+  <div class="cambio">
+    <h2>Qué cambia en esta versión</h2>
+    <p>Dijiste que solo el Calcotauro parecía un minotauro: Asterión y el Bucentauro eran medio delgados. Ahora <b>las tres formas
+    tienen el cuerpo del Calcotauro</b>:</p>
+    <ul>
+      <li><b>Van encorvadas</b>: la cabeza sale por delante de los hombros, no por encima.</li>
+      <li><b>La giba de pelo</b> es alta y sube detrás de la nuca, como la de un toro.</li>
+      <li><b>El pecho y los hombros</b> son el doble de anchos, con los pectorales y el vientre marcados.</li>
+      <li><b>Los brazos</b> son más gruesos, con el deltoide de bloque y el antebrazo peludo.</li>
+      <li><b>Las piernas</b> son cortas y gruesas.</li>
+    </ul>
+    <p>Las tres siguen cambiando de silueta por el arma, los cuernos y la postura, y el Bucentauro sigue sobre cuatro patas.</p>
+  </div>
+
+  <p class="aviso">Está hecho con la guía de las fichas de jefes:</p>
+  <ul class="lede">
+    <li><b>La cabeza manda</b>: es grande, mira a cámara y tiene las fauces abiertas.</li>
+    <li><b>La boca arde por dentro con un solo neón</b>.</li>
+    <li><b>Los cuernos enmarcan la cabeza</b>.</li>
+    <li><b>El cuerpo es oscuro y macizo</b>, todo de cajas y con texturas limpias.</li>
+    <li><b>Tiene tres formas</b> que se distinguen solo por la silueta.</li>
+  </ul>
+  <p class="lede">Del estilo de la Gorgona toma el mito y el monstruo bien a la vista: es una bestia que impone, sin fanservice.
+  Las fotos van <b>sin letras y con el borde blanco</b>, y cada forma tiene su cartel.</p>
+
+  <h2>Cómo es el Minotauro</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>La cabeza</h3>
+      <ul>
+        <li><b>El cráneo</b> es ancho. Bajo el ceño de hueso, en ángulo, lleva los ojos encendidos.</li>
+        <li><b>El morro</b> es largo y lleva el aro de bronce colgando del tabique.</li>
+        <li><b>Las fauces, abiertas</b>:
+          <ul>
+            <li>el paladar arde en escalones de luz;</li>
+            <li>los dientes van dibujados en hojas, no hechos de cubos;</li>
+            <li>arriba lleva dos colmillos, y abajo, dos defensas que suben;</li>
+            <li>tiene la barba y, al fondo de la garganta, el núcleo.</li>
+          </ul>
+        </li>
+        <li><b>Los cuernos</b> tienen anillos y cambian de forma en cada una.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>El cuerpo</h3>
+      <ul>
+        <li><b>El torso</b> va encorvado. El pecho es ancho, con los pectorales y el vientre marcados. Detrás de la nuca sube la giba de pelo, alta como la de un toro.</li>
+        <li><b>Los brazos</b> son enormes, con el deltoide de bloque, el pelo en el antebrazo y los puños de bloque.</li>
+        <li><b>Las piernas</b> son cortas y gruesas. El pelo largo les cae sobre las pezuñas hendidas.</li>
+        <li><b>La cola</b> acaba en un penacho.</li>
+        <li>Codos y rodillas doblan por el canto, como el cuerpo de la Gorgona.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Las tres formas</h2>
+  <p class="lede">Las tres comparten la cabeza y el cuerpo. Cambian <b>la silueta</b>, que se distingue de lejos: con el hacha en alto,
+  acorazado para embestir o sobre cuatro patas.</p>
+
+  <section class="var a">
+    <span class="tipo">A · Asterión · ámbar</span>
+    <h2>Asterión, el del Laberinto</h2>
+    <p class="lede">El minotauro del mito, el que esperaba en el centro del laberinto de Creta. Está encorvado, con la giba alta y <b>el hacha de doble
+    filo</b> en alto y, en la otra muñeca, <b>el grillete con la cadena rota</b>. Lleva los cuernos de marfil hacia delante, el faldón
+    de tiras de cuero con las puntas de bronce y el cinturón con su hebilla. La boca arde en ámbar, como las antorchas del
+    laberinto.</p>
+    <img class="ancha" src="minotauro_asterion_cartel.jpg" alt="Asterión en su cartel: desde abajo, con el hacha de doble filo en alto y las fauces encendidas en ámbar, con el borde blanco">
+    <div class="dos">
+      <img src="minotauro_asterion_heroe.jpg" alt="Asterión de cuerpo entero en el laberinto, con el hacha en alto y la cadena rota">
+      <img src="minotauro_asterion_cabeza.jpg" alt="La cabeza de Asterión desde abajo: las fauces abiertas que arden en ámbar, los colmillos, el aro y los cuernos">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>encorvado, con el hacha en alto</dd>
+          <dt>Arma</dt><dd>el hacha de doble filo (la lábrys)</dd>
+          <dt>Cuernos</dt><dd>hacia delante, de marfil</dd>
+          <dt>Luz</dt><dd>ámbar</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La del mito: se lee como el Minotauro de un vistazo.</li>
+          <li>La más alta: 46 bloques hasta el filo del hacha.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#2c201b"></i>piel</span>
+          <span><i style="background:#dccaa2"></i>cuerno</span>
+          <span><i style="background:#c8964c"></i>bronce</span>
+          <span><i style="background:#ffa02a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · el Calcotauro · turquesa</span>
+    <h2>El Calcotauro</h2>
+    <p class="lede">El toro de bronce que echa fuego, como los que domó Jasón. Está <b>encorvado para embestir</b>, con la cabeza
+    baja y <b>los cuernos muy abiertos</b>, con la punta de bronce. Lleva placas de bronce en la giba, el pecho, el vientre, los
+    hombros, los antebrazos y las rodillas, y <b>las juntas de las placas brillan en turquesa</b>, como la pátina del bronce
+    viejo.</p>
+    <img class="ancha" src="minotauro_calcotauro_cartel.jpg" alt="El Calcotauro en su cartel: desde abajo, encorvado, con los cuernos abiertos, las placas de bronce y las juntas encendidas en turquesa, con el borde blanco">
+    <div class="dos">
+      <img src="minotauro_calcotauro_heroe.jpg" alt="El Calcotauro de cuerpo entero, encorvado para embestir">
+      <img src="minotauro_calcotauro_cabeza.jpg" alt="La cabeza del Calcotauro desde abajo: las fauces que arden en turquesa y los cuernos muy abiertos">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>encorvado, a punto de embestir</dd>
+          <dt>Armadura</dt><dd>placas de bronce con las juntas encendidas</dd>
+          <dt>Cuernos</dt><dd>muy abiertos, con casquillo de bronce</dd>
+          <dt>Luz</dt><dd>turquesa</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más pesada: carga de frente.</li>
+          <li>La más ancha: 35 bloques de cuerno a cuerno.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#202626"></i>piel</span>
+          <span><i style="background:#9a6a34"></i>bronce</span>
+          <span><i style="background:#403c38"></i>cuerno</span>
+          <span><i style="background:#2affd2"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · el Bucentauro · carmesí</span>
+    <h2>El Bucentauro</h2>
+    <p class="lede">Medio toro: <b>el torso del minotauro, encorvado y con su giba, sobre un cuerpo de toro de cuatro patas</b>, como en los vasos griegos.
+    Lleva <b>el tridente</b> del toro de Creta, el que salió del mar de Poseidón, y <b>los cuernos en lira</b>, negros con la punta
+    carmesí.</p>
+    <img class="ancha" src="minotauro_bucentauro_cartel.jpg" alt="El Bucentauro en su cartel: desde abajo, con el tridente, los cuernos en lira y las fauces encendidas en carmesí, con el borde blanco">
+    <div class="dos">
+      <img src="minotauro_bucentauro_heroe.jpg" alt="El Bucentauro de cuerpo entero, sobre sus cuatro patas, con el tridente">
+      <img src="minotauro_bucentauro_cabeza.jpg" alt="La cabeza del Bucentauro desde abajo: las fauces que arden en carmesí y los cuernos en lira">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Silueta</dt><dd>cuatro patas y el torso encorvado</dd>
+          <dt>Arma</dt><dd>el tridente de bronce</dd>
+          <dt>Cuernos</dt><dd>en lira, negros con la punta carmesí</dd>
+          <dt>Luz</dt><dd>carmesí</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La más rápida: va sobre cuatro patas.</li>
+          <li>La más larga: 34 bloques de largo y 40 de alto con el tridente.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#261a20"></i>piel</span>
+          <span><i style="background:#22181c"></i>cuerno</span>
+          <span><i style="background:#9a1a28"></i>punta</span>
+          <span><i style="background:#ff2a46"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Las tres, a escala</h2>
+  <p class="lede">Las tres juntas, con la misma luz y un jugador delante (1,8 bloques). Encorvado, el Calcotauro llega a 29 bloques
+  en las puntas de los cuernos: el jugador le llega por la pezuña.</p>
+  <div class="medidas">
+    <div class="a"><b>Asterión</b><span>46 de alto con el hacha · 25 de ancho</span></div>
+    <div class="b"><b>el Calcotauro</b><span>29 de alto · 35 de cuerno a cuerno</span></div>
+    <div class="c"><b>el Bucentauro</b><span>40 de alto con el tridente · 34 de largo</span></div>
+  </div>
+  <img src="minotauro_tres_variantes.jpg" alt="Las tres formas del Minotauro juntas a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada forma a píxel grande, sin letras. Hay una fila por forma y, de izquierda a derecha, van:</p>
+  <ul class="lede">
+    <li>la piel, con manchas grandes;</li>
+    <li>el pelo;</li>
+    <li>el cuerno, con anillos;</li>
+    <li>el metal (en el Calcotauro, las placas encendidas);</li>
+    <li>el cuero;</li>
+    <li>el paladar;</li>
+    <li>el suelo de la boca;</li>
+    <li>los dientes, dibujados en hoja;</li>
+    <li>el núcleo de la garganta.</li>
+  </ul>
+  <img src="minotauro_materiales.jpg" alt="Lámina de materiales de las tres formas del Minotauro">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>Lo dio por bueno el 14-10-2026, cuando las tres formas tuvieron el cuerpo macizo y encorvado del Calcotauro: «ahora sí guarda al minotauro y sus 3 versiones en bosses».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/minotauro_modelo.py y minotauro_escenas.py (y jefa_modelo.py, del que toma los tubos
+  de bloques y las manos).</p>
+</div>
