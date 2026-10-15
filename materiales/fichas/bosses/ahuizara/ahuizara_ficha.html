@@ -1,0 +1,281 @@
+<title>Ahuizara</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Ahuizara: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada tipo con su color (verde agua, rosa, cempasuchil), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --verdeagua:#2ae6d0; --rosa:#ff2a8a; --cempa:#ff8a1a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--verdeagua); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--verdeagua);}
+.var.b{--tono:var(--rosa);}
+.var.c{--tono:var(--cempa);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--verdeagua);} .medidas .b b{color:var(--rosa);} .medidas .c b{color:var(--cempa);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--rosa); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="ahuizara_gemela_cartel.jpg" alt="Ahuizara en su cartel: la Gemela, agazapada en las chinampas, con dos colas que acaban en manos abiertas sobre la cabeza y las fauces naranjas">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 15-10-2026</div>
+      <h1>Ahuizara</h1>
+      <p class="sub"><b>Ahuizara, la Mano del Agua</b>: sale del ahuizotl de los aztecas, la bestia de los canales que ahogaba a la
+      gente. Es una bestia larga y flaca, agazapada para saltar, que anda sobre cuatro manos y lleva <b>la cola arqueada sobre el
+      lomo, con una mano enorme abierta encima de la cabeza</b>. Tiene tres tipos: <b>la Mano</b>, <b>la Garra</b> y <b>la
+      Gemela</b>.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Los tres tipos son el mismo jefe y tienen la misma pose: agazapada, con la cola-mano en alto. Cambian la mano de
+  la cola, las orejas y el color.</p>
+  <ul class="lede">
+    <li><b>Del ahuizotl le quedan rastros:</b> el pelo negro y mojado, las patas que son manos y, sobre todo, la mano al final de
+    la cola.</li>
+    <li><b>Lo nuestro:</b> la mano de la cola se adelanta por encima de la cabeza con los dedos abiertos y las garras curvadas
+    hacia abajo, como una corona de dedos a punto de agarrarte. No hay otro jefe así.</li>
+    <li><b>La cabeza manda:</b> es ancha y chata, con los ojos grandes y encendidos y las fauces abiertas que arden.</li>
+  </ul>
+  <p class="lede">Vive en las chinampas de noche, con los canales de agua negra entre las parcelas, matas de cempasúchil, juncos,
+  ahuejotes y los volcanes al fondo. Las fotos van <b>sin letras y con el borde blanco</b>, y cada tipo tiene su cartel.</p>
+
+  <h2>Cómo es Ahuizara</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>La cabeza</h3>
+      <ul>
+        <li><b>Es ancha y chata</b>, con el cráneo plano, una nariz de cuero y una ceja sobre cada ojo.</li>
+        <li><b>Los ojos son grandes</b> y están encendidos, delante.</li>
+        <li><b>Las fauces</b> se abren desde muy atrás: el paladar encendido en escalones, los dientes en hoja, dos colmillos
+        arriba y dos abajo, el suelo de la boca encendido y el núcleo al fondo.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>El cuerpo y las manos</h3>
+      <ul>
+        <li><b>El cuerpo</b> es largo y flaco, con el lomo arqueado y el pelo mojado en mechones a lo largo.</li>
+        <li><b>Las cuatro patas son manos</b> de dedos largos y nudosos, con una garra de cuerno en cada punta. Las de delante van
+        apoyadas y las de atrás encogidas para saltar.</li>
+        <li><b>La cola</b> sube arqueada sobre el lomo y acaba en una mano enorme, abierta sobre la cabeza.</li>
+        <li><b>Solo arden</b> las fauces y los ojos.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Los tres tipos</h2>
+  <p class="lede">Los tres comparten la cabeza, el cuerpo, las cuatro manos y la pose. Cambia <b>la mano de la cola</b>, y con ella
+  la silueta, además de las orejas y el color.</p>
+
+  <section class="var a">
+    <span class="tipo">A · la Mano · verde agua</span>
+    <h2>La Mano</h2>
+    <p class="lede">Una mano de <b>cinco dedos</b> abierta sobre la cabeza, con el pulgar a un lado. Las orejas son <b>pequeñas y
+    redondas</b>. El pelo es negro azulado y la luz, verde agua.</p>
+    <img class="ancha" src="ahuizara_mano_cartel.jpg" alt="La Mano en su cartel: desde abajo, con la mano de cinco dedos sobre la cabeza y las fauces verde agua">
+    <div class="dos">
+      <img src="ahuizara_mano_heroe.jpg" alt="La Mano de cuerpo entero en las chinampas">
+      <img src="ahuizara_mano_cabeza.jpg" alt="La cabeza de la Mano de cerca, con las fauces abiertas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cola</dt><dd>una, con mano de cinco dedos</dd>
+          <dt>Orejas</dt><dd>pequeñas y redondas</dd>
+          <dt>Manos</dt><dd>lisas</dd>
+          <dt>Luz</dt><dd>verde agua</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La que te agarra desde arriba.</li>
+          <li>Mide 25 bloques de alto y 29 de largo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#1e2630"></i>pelo</span>
+          <span><i style="background:#343c46"></i>palma</span>
+          <span><i style="background:#4e4634"></i>garra</span>
+          <span><i style="background:#2ae6d0"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · la Garra · rosa mexicano</span>
+    <h2>La Garra</h2>
+    <p class="lede">Una mano de <b>tres dedos largos de garra</b>, sin pulgar, con las garras más largas. Todas sus manos llevan
+    <b>placas de hueso en los nudillos</b>. Las orejas son <b>largas y echadas atrás</b>. El pelo es ciruela oscuro y la luz, rosa
+    mexicano.</p>
+    <div class="dos">
+      <img src="ahuizara_garra_heroe.jpg" alt="La Garra de cuerpo entero, con la mano de tres dedos sobre la cabeza">
+      <img src="ahuizara_garra_cabeza.jpg" alt="La cabeza de la Garra de cerca, con los nudillos de hueso">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cola</dt><dd>una, con tres dedos de garra</dd>
+          <dt>Orejas</dt><dd>largas, echadas atrás</dd>
+          <dt>Manos</dt><dd>con nudillos de hueso</dd>
+          <dt>Luz</dt><dd>rosa mexicano</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La que desgarra.</li>
+          <li>Mide 25 bloques de alto y 30 de largo.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#301a24"></i>pelo</span>
+          <span><i style="background:#422c36"></i>palma</span>
+          <span><i style="background:#a2928c"></i>hueso</span>
+          <span><i style="background:#ff2a8a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · la Gemela · cempasúchil</span>
+    <h2>La Gemela</h2>
+    <p class="lede"><b>Dos colas</b>, que se abren a los lados, con <b>una mano a cada lado de la cabeza</b>: la enmarcan como
+    dos coronas de dedos. Las orejas llevan <b>penachos</b> de pelos de punta. El pelo es verde oliva oscuro y la luz, naranja de
+    cempasúchil.</p>
+    <img class="ancha" src="ahuizara_gemela_cartel.jpg" alt="La Gemela en su cartel: desde abajo, con las dos manos a los lados de la cabeza">
+    <div class="dos">
+      <img src="ahuizara_gemela_heroe.jpg" alt="La Gemela de cuerpo entero, con las dos colas">
+      <img src="ahuizara_gemela_cabeza.jpg" alt="La cabeza de la Gemela de cerca, con los penachos de las orejas">
+    </div>
+    <div class="ficha">
+      <div class="receta">
+        <h3>Su forma</h3>
+        <dl>
+          <dt>Cola</dt><dd>dos, con una mano cada una</dd>
+          <dt>Orejas</dt><dd>con penachos</dd>
+          <dt>Manos</dt><dd>lisas</dd>
+          <dt>Luz</dt><dd>cempasúchil</dd>
+        </dl>
+      </div>
+      <div class="senas">
+        <h3>Señas</h3>
+        <ul>
+          <li>La que no te deja escapar por ningún lado.</li>
+          <li>La más ancha: 20 bloques, y 25 de alto.</li>
+        </ul>
+        <div class="paleta">
+          <span><i style="background:#2a2a1a"></i>pelo</span>
+          <span><i style="background:#40402a"></i>palma</span>
+          <span><i style="background:#50402a"></i>garra</span>
+          <span><i style="background:#ff8a1a"></i>luz</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los tres, a escala</h2>
+  <p class="lede">Los tres juntos, con la misma luz y un jugador delante (1,8 bloques).</p>
+  <div class="medidas">
+    <div class="a"><b>la Mano</b><span>25 de alto · 29 de largo</span></div>
+    <div class="b"><b>la Garra</b><span>25 de alto · 30 de largo</span></div>
+    <div class="c"><b>la Gemela</b><span>25 de alto · 29 de largo</span></div>
+  </div>
+  <img src="ahuizara_tres_variantes.jpg" alt="Los tres tipos de Ahuizara juntos a escala, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada tipo a píxel grande, sin letras. Hay una fila por tipo y, de izquierda a derecha, van: el
+  pelo mojado, la palma, la garra, el hueso de los nudillos (solo lo lleva la Garra), el ojo, el paladar, el suelo de la boca,
+  los dientes y el núcleo.</p>
+  <img src="ahuizara_materiales.jpg" alt="Lámina de materiales de los tres tipos de Ahuizara">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>15-10-2026. Juan la aprobó a la primera, con los tres tipos en la misma pose: «guárdalo y sigamos con otro boss y sus
+    3 tipos».</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/ahuizara_modelo.py y ahuizara_escenas.py (y kelpia_modelo.py y jefa_modelo.py,
+  de los que toma los pintores comunes y los tubos de bloques).</p>
+</div>

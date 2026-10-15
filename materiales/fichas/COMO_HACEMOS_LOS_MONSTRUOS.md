@@ -71,6 +71,13 @@ nuevo. No un animal de verdad agrandado.
 | Copiar la anatomía del animal de la leyenda | el kelpie salió como un caballo de verdad con fauces. De su tipo C, Juan dijo: «me gusta su diseño pero no su anatomía; hubiera sido mejor que no fuera un caballo sino algo creado nuevo… está bien usar referencias pero no hacerlas iguales». Del original se quedan solo rastros (la crin de algas, las pezuñas), y el cuerpo es inventado | Kelpia (los caballos A y B; la C se rehízo y Juan la aprobó) |
 | Tipos con poses distintas | «recuerda que esto de los tipos es de un solo boss: una misma pose, pero diferentes». Los tres tipos comparten la pose y cambian lo que enmarca la cabeza, el borde de las alas, los adornos y el color | Zotzara (la primera ficha) |
 | Que mande lo que lleva encima y no el monstruo | un monstruo que carga una caracola gigante: «no me gustó pero se ve bien». La concha mandaba más que el bicho, y con los ojos en tallos se quedaba en caracol | Volutara |
+| Repetir el formato de los anteriores | «estamos haciendo el mismo formato de bosses en vez de hacer variedad y calidad; estamos haciendo cantidad copiando de diseños anteriores». Desde Kelpia, todos llevaban la misma cabeza (caja oscura con la quijada caída), el cuerpo negro de un neón y la noche. Cada jefe, con su cabeza, su paleta y su escena propias | Sedara |
+| Un animal vestido de monstruo | un pez luchador colosal, de colores y al atardecer: «me gustó el diseño, los colores, pero no es lo que busco yo personalmente» | Bravara |
+| Una forma rara que no intimida | una cara colosal sin cuerpo que se arrastra con dos manos: «se ve raro, no es intimidante». El jefe tiene que imponer: masa, pose de ataque, mirada y fauces | Kalara |
+| Hacerlo a partir de una ilustración | tres capitanes piratas a partir de una imagen que pasó Juan (el último, fiel a ella): ninguno le gustó; «mejor sigamos haciéndolo como estábamos antes de pedirte la ilustración». Y de la versión en mosaico: «no quiero que se vea que tenga cuadrados» | Sargazo y Salitre |
+| Rediseñar un mob de vanilla hasta que deje de parecerse | tres diseños nuevos del Blaze: «no parecen blazes, parece que lo quieren replicar»; y el de vanilla agrandado con piezas encima tampoco. Se quedan la silueta y las señas del mob (en el Blaze: la cabeza de bloque, el fuego y lo que gira), y lo que gira se convierte en algo grande | Blaze (las dos primeras vueltas) |
+| Un cristal hecho de cajas cruzadas, o con vetas y motas | sale una estrella llena de rayas: «la textura de los cristales está media rara». Una sola caja en rombo, caras lisas de un color y los filos algo más claros | Blaze (el de los Cristales) |
+| Un núcleo pequeño entre los ojos, o un charco con el borde encendido en cada losa | el núcleo se lee como una nariz (va grande y detrás de la cara, como en vanilla); el charco, como una placa de circuitos | Slime (pruebas) |
 
 ## Lo que hay hasta ahora
 
@@ -90,7 +97,12 @@ Los jefes van en `bosses/` y los bichos normales en `mobs/`.
 | `bosses/murena/` | Murena: una morena cinta colosal que sale de su guarida, alzada en ese, con narices en hoja y la aleta de canto encendido; una sola forma | le gustó (14-10) la Cinta de entre tres morenas; pidió quitarle la segunda mandíbula de la garganta («la mini serpiente de su boca») y guardar solo esa |
 | `bosses/kelpia/` | Kelpia, la Acechadora del Lago: monstruo inventado cargado de hombros, joroba de hueso con una cortina de algas, cuatro ojos y la cabeza baja con las fauces ámbar; una sola forma | le gustó (14-10): «ahora sí me gustó, excelente trabajo, este sí se acercó a lo que busco»; antes la descartó como caballo («me gusta su diseño pero no su anatomía») |
 | `bosses/zotzara/` | Zotzara, la Murciélaga de Xibalbá (de Camazotz): flaca y encorvada, con las alas abiertas, orejas enormes y la nariz de pedernal; la Pedernal, la Desgarrada (alas rotas) y la Coronada (cuatro orejas, garfios) | le gustó (14-10), con una condición: «que todos tengan la misma pose; esto de los tipos es de un solo boss, una misma pose pero diferentes» |
+| `bosses/ahuizara/` | Ahuizara, la Mano del Agua (del ahuizotl azteca): bestia flaca y agazapada que anda sobre cuatro manos, con la cola arqueada que acaba en una mano abierta sobre la cabeza; la Mano, la Garra y la Gemela (dos colas) | le gustó a la primera (15-10): «guárdalo y sigamos con otro boss» |
+| `bosses/ayunara/` | Ayunara, la Hambre del Bosque Helado (del wendigo): alta, flaca y encorvada, con patas de pezuña, garras de hielo y astas enormes con carámbanos; la Ramosa, la Palmeada y la Retorcida | le gustó a la primera (15-10): «guárdalo, me gustó» |
+| `bosses/oni/` | el Oni (el demonio de Japón): gigante con cara de demonio, boca de oreja a oreja encendida, melena salvaje y el kanabo alzado, en pose de ataque; el Rojo, el Azul (un cuerno y tercer ojo) y el Negro (cuatro cuernos) | le gustó (15-10): «me gustó sí, guárdalo»; se hizo para que imponga, tras Kalara |
 | `mobs/guaridas/` | yeti, sapo-caimán, buitre y topo | bien, no excelentes |
+| `mobs/blaze/` | el Blaze rediseñado, a partir de dos referencias de Juan: sigue siendo un Blaze (cabeza de bloque que flota, fuego debajo, lo que gira alrededor), pero las varas se vuelven espadas, cristales o lanzas grandes, y lleva cuernos y el cuerpo en columna; el de las Espadas, el de los Cristales (amatista) y el de las Lanzas | le gustó (15-10): «ahora sí me gustó, guárdalo en mobs», tras dos vueltas rechazadas («no parecen blazes») y unos cambios (caras de monstruo, cristales con punta en los dos lados y textura natural) |
+| `mobs/slime/` | el Slime rediseñado: sigue siendo un Slime (el cubo de gelatina translúcida, el cubo de dentro con la cara delante y el charco), con una cara de monstruo y una cosa grande por tipo; el Tragón (se abre en fauces), el Erizo (armas clavadas) y el Fundido (se derrite en ácido) | le gustó a la primera (15-10): «guarda el mob» |
 
 Formas de cuerpo que ya están, contando los jefes del mod:
 
@@ -98,7 +110,8 @@ Formas de cuerpo que ya están, contando los jefes del mod:
 - **Fichas guardadas:** zarza (Espinara), sierpe (Simara), dragona (Riscara), alacrana
   (Tenazara), hidra (Lernara), sirena-sierpe (Lumara), mujer de serpientes (la Gorgona),
   coloso con cabeza de toro (el Minotauro), perro de presa de varias cabezas (Cerbero), morena que sale de su guarida (Murena), bestia
-  jorobada del lago con cortina de algas (Kelpia), murciélaga alada (Zotzara), y yeti, sapo, buitre y topo (Guaridas).
+  jorobada del lago con cortina de algas (Kelpia), murciélaga alada (Zotzara), bestia de cuatro manos con la mano en la cola (Ahuizara), monstruo flaco con astas
+  (Ayunara), gigante demonio con garrote (el Oni), y yeti, sapo, buitre y topo (Guaridas).
 
 El siguiente debería tener una forma de cuerpo que no esté y **no parecerse a ninguno**: ni otro
 reptil con púas, ni otra cabeza de fiera encendida sobre cuatro patas (Juan, 14-10-2026: «tenemos

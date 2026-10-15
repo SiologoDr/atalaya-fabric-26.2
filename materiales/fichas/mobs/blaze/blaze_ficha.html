@@ -1,0 +1,236 @@
+<title>El Blaze, rediseñado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* El Blaze: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada tipo con su color (oro, brasa, alma), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --oro:#ffb21a; --brasa:#ff3ad8; --alma:#3ad8ff;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--oro); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--oro);}
+.var.b{--tono:var(--brasa);}
+.var.c{--tono:var(--alma);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--oro);} .medidas .b b{color:var(--brasa);} .medidas .c b{color:var(--alma);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--brasa); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="blaze_tres_variantes.jpg" alt="Los tres blazes nuevos en la fortaleza del Nether, con el Blaze de vanilla y un jugador a la izquierda">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · mob · rediseño del Blaze · 15-10-2026</div>
+      <h1>El Blaze, rediseñado</h1>
+      <p class="sub">Como en tus dos imágenes, el Blaze sigue siendo un Blaze: la cabeza de bloque que flota, el fuego y lo
+      que gira alrededor. Pero <b>las varas se convierten en algo grande que flota</b>, la cabeza lleva cuernos y el
+      cuerpo es una columna sólida que brilla. Son tres: <b>el de las Espadas</b>, <b>el de los Cristales</b> y <b>el de
+      las Lanzas</b>.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Salen de las dos referencias de Juan, con los cambios que pidió después: en el de las Espadas, sin
+  las varas de delante y con cara de monstruo; en el segundo, cristales con punta arriba y abajo, casi de pie y con
+  textura natural; en el de las Lanzas, cara de monstruo. En la foto de arriba, el pequeño de la izquierda es el Blaze
+  de vanilla, para comparar. Los nuevos miden más de 5 bloques con lo que flota.</p>
+  <ul class="lede">
+    <li><b>Como en las referencias:</b> bloques con el píxel detallado, a un téxel por píxel del modelo.</li>
+    <li><b>Lo común a los tres:</b>
+      <ul>
+        <li>la cabeza de bloque con cuernos y la cara que arde;</li>
+        <li>el cuello, el pecho con los hombros, el vientre y la cola que se afina;</li>
+        <li>el fuego de debajo.</li>
+      </ul>
+    </li>
+  </ul>
+  <p class="lede">Las fotos van <b>sin letras y con el borde blanco</b>, en la fortaleza del Nether.</p>
+
+  <section class="var a">
+    <span class="tipo">A · el de las Espadas · fuego</span>
+    <h2>El de las Espadas</h2>
+    <ul class="lede">
+      <li><b>Sin las varas de delante:</b> solo quedan las <b>seis espadas de fuego</b> que giran a su alrededor, en
+      corona (tres grandes y tres pequeñas, alternas). Dejan hueco delante de la cara.</li>
+      <li><b>La cara, de monstruo:</b>
+        <ul>
+          <li>el ceño en uve;</li>
+          <li>los ojos rasgados que arden con la sombra de la cuenca;</li>
+          <li>la fila de dientes con dos colmillos;</li>
+          <li><b>una quijada que se abre</b> debajo, con el fuego dentro y dos colmillos que suben.</li>
+        </ul>
+      </li>
+      <li><b>Lo que queda igual:</b> el cuerpo rojo en bandas y los dos cuernos de punta amarilla.</li>
+    </ul>
+    <img class="ancha" src="blaze_espadas_cartel.jpg" alt="El de las Espadas en su cartel, desde abajo">
+    <div class="dos">
+      <img src="blaze_espadas_heroe.jpg" alt="El de las Espadas de cuerpo entero, con las espadas alrededor">
+      <img src="blaze_espadas_cabeza.jpg" alt="La cara nueva del de las Espadas, con la quijada abierta y los colmillos">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Gira</dt><dd>seis espadas de fuego</dd><dt>Cara</dt><dd>ceño, colmillos y quijada abierta</dd><dt>Fuego</dt><dd>amarillo y rojo</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>4,9 bloques de alto con las espadas.</li><li>Cómo pelearía: lanza las espadas contra el jugador.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · el de los Cristales · brasa y morado</span>
+    <h2>El de los Cristales</h2>
+    <ul class="lede">
+      <li><b>El cuerpo y la cara, igual que te gustaron:</b>
+        <ul>
+          <li>de carbón con brasas;</li>
+          <li>la cabeza alta con los cuernos largos;</li>
+          <li>la gema y los ojos morados;</li>
+          <li>la cara encendida por abajo;</li>
+          <li>el núcleo morado en el pecho.</li>
+        </ul>
+      </li>
+      <li><b>En vez de las tablillas, cristales de amatista</b> que flotan y giran alrededor, <b>con punta arriba y
+      abajo</b> y casi de pie, solo un poco abiertos: cinco grandes alrededor del cuerpo y cinco pequeños a la altura
+      de los hombros. Combinan con sus ojos y su gema.</li>
+      <li><b>La textura del cristal, más natural:</b>
+        <ul>
+          <li>cada tramo es una sola pieza puesta en rombo, con un filo hacia fuera; antes eran dos cruzadas, en
+          estrella, y lo llenaban de rayas;</li>
+          <li>cada cara es lisa, de un solo morado frío que no se vuelve rosa con la luz roja de la fortaleza;</li>
+          <li>los filos son algo más claros, que es donde pega la luz en una gema, y las caras se distinguen por la
+          luz que les da;</li>
+          <li>las puntas son un tono más claras y brillan un poco.</li>
+        </ul>
+      </li>
+    </ul>
+    <img class="ancha" src="blaze_cristales_cartel.jpg" alt="El de los Cristales en su cartel">
+    <div class="dos">
+      <img src="blaze_cristales_heroe.jpg" alt="El de los Cristales de cuerpo entero">
+      <img src="blaze_cristales_cabeza.jpg" alt="La cabeza del de los Cristales de cerca">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Gira</dt><dd>cristales de amatista</dd><dt>Cabeza</dt><dd>la de antes</dd><dt>Fuego</dt><dd>naranja y morado</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>5,7 bloques de alto con los cuernos.</li><li>Cómo pelearía: dispara los cristales como esquirlas.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · el de las Lanzas · fuego de alma</span>
+    <h2>El de las Lanzas</h2>
+    <ul class="lede">
+      <li><b>La cara, más de monstruo:</b>
+        <ul>
+          <li><b>cuatro ojos</b> rasgados que arden en azul;</li>
+          <li>una cresta de hueso en medio de la frente;</li>
+          <li>los dientes desiguales;</li>
+          <li><b>la quijada abierta</b> con el fuego de alma dentro y dos colmillos.</li>
+        </ul>
+      </li>
+      <li><b>Lo que queda igual:</b> el cuerpo de ceniza con motas de fuego de alma y los cuernos echados atrás.</li>
+      <li><b>Seis lanzas de hierro</b> flotan de pie en corona, como las varas del Blaze pero hechas armas. Tienen
+      anillos azules y la <b>punta en hoja de fuego de alma</b>.</li>
+    </ul>
+    <img class="ancha" src="blaze_lanzas_cartel.jpg" alt="El de las Lanzas en su cartel">
+    <div class="dos">
+      <img src="blaze_lanzas_heroe.jpg" alt="El de las Lanzas de cuerpo entero">
+      <img src="blaze_lanzas_cabeza.jpg" alt="La cara nueva del de las Lanzas, con los cuatro ojos y la quijada abierta">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Flota</dt><dd>seis lanzas en corona</dd><dt>Cabeza</dt><dd>cuernos echados atrás</dd><dt>Fuego</dt><dd>alma, azul</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>5,2 bloques de alto con las lanzas.</li><li>Cómo pelearía: lanza las lanzas desde arriba, en lluvia.</li></ul></div>
+    </div>
+  </section>
+
+  <h2>Con el Blaze de vanilla y un jugador</h2>
+  <p class="lede">De izquierda a derecha: el Blaze de vanilla (1,8 bloques), el jugador, el de las Espadas, el de los
+  Cristales y el de las Lanzas.</p>
+  <img src="blaze_tres_variantes.jpg" alt="El Blaze de vanilla, el jugador y los tres blazes nuevos">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Una fila por blaze. Espadas: la piel, la cara, la vara, la hoja, la guarda y el puño. Cristales: la
+  piel, la cara, el núcleo, el cuerno y el cristal en la base y en la punta. Lanzas: la piel, la cara, el asta, la punta y el cuerno.</p>
+  <img src="blaze_materiales.jpg" alt="Lámina de materiales de los tres blazes">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>15-10-2026. Juan aprobó los tres después de la textura nueva de los cristales: «ahora sí me gustó, guárdalo en
+    mobs». Después pidió seguir con el Slime.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/blaze_modelo.py y blaze_escenas.py (y blaze_modelo_vanilla.py, el de
+  vanilla para comparar).</p>
+</div>

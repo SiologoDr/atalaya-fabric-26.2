@@ -1,0 +1,232 @@
+<title>El Oni</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* El Oni: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada tipo con su color (oro, cian, carmin), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --oro:#ffcc1a; --cian:#3ae8ff; --carmin:#ff2a46;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--oro); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--oro);}
+.var.b{--tono:var(--cian);}
+.var.c{--tono:var(--carmin);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--oro);} .medidas .b b{color:var(--cian);} .medidas .c b{color:var(--carmin);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--cian); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="oni_tres_variantes.jpg" alt="Los tres Oni de frente en el santuario de noche, con el kanabo en alto, los ojos encendidos y la boca de oreja a oreja">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · jefe · ficha de diseño · 15-10-2026</div>
+      <h1>El Oni y sus tipos</h1>
+      <p class="sub"><b>El Oni</b>, el demonio de Japón: un gigante con cuernos, una boca de oreja a oreja que arde por
+      dentro, los colmillos de abajo hacia arriba, la melena salvaje, el taparrabos de piel de tigre y el
+      <b>kanabo</b>, el garrote de hierro con pinchos, alzado para aplastarte. Tiene tres tipos: <b>el Rojo</b>,
+      <b>el Azul</b> y <b>el Negro</b>.</p>
+    </div>
+  </header>
+
+  <p class="aviso">Los tres tipos son el mismo jefe y tienen la misma pose de ataque. Está plantado con las piernas
+  abiertas, echado hacia delante, con el kanabo alzado en una mano y la otra mano tendida hacia ti con las garras
+  abiertas, rugiendo. Cambian los cuernos, los ojos, la melena y el color.</p>
+  <ul class="lede">
+    <li><b>Que intimide:</b>
+      <ul>
+        <li>mide 54 bloques con el kanabo en alto;</li>
+        <li>los ojos rasgados arden bajo un ceño de hueso;</li>
+        <li>la boca enseña las dos filas de dientes con la luz entre ellas.</li>
+      </ul>
+    </li>
+    <li><b>No es el Minotauro:</b> tiene cara de demonio, no cabeza de toro. Tampoco tiene giba, y su postura es de
+    ataque.</li>
+    <li><b>Lo de la leyenda:</b> los colores clásicos de los oni (rojo, azul y negro), el kanabo, la piel de tigre, la
+    cuerda sagrada con sus papeles en zigzag y el collar de cuentas.</li>
+  </ul>
+  <p class="lede">Vive en un santuario de noche, con el torii bermellón detrás, faroles de piedra encendidos, arces
+  rojos, la luna y hojas rojas que caen. Las fotos van <b>sin letras y con el borde blanco</b>, y cada tipo tiene su
+  cartel.</p>
+
+  <h2>Cómo es el Oni</h2>
+  <div class="reglas">
+    <div class="pieza">
+      <h3>La cabeza</h3>
+      <ul>
+        <li><b>La cara de demonio</b>: ancha, con el ceño de hueso, los ojos rasgados que arden, los pómulos y la nariz
+        chata.</li>
+        <li><b>La boca de oreja a oreja</b>, abierta, con las dos filas de dientes en hoja. Dentro arden el paladar y el
+        suelo de la boca, y al fondo la garganta.</li>
+        <li><b>Dos colmillos</b> que suben por fuera de la boca, y las orejas en punta con su aro de oro.</li>
+        <li><b>La melena salvaje</b>, en mechones gruesos que se echan hacia atrás.</li>
+      </ul>
+    </div>
+    <div class="pieza">
+      <h3>El cuerpo</h3>
+      <ul>
+        <li><b>Macizo</b>: el pecho y los hombros anchos y el cuello de toro, con las piernas cortas y abiertas.</li>
+        <li><b>El taparrabos de piel de tigre</b>, la <b>cuerda sagrada</b> con los papeles en zigzag y el collar de cuentas.</li>
+        <li><b>Brazales de hierro</b>, garras en las manos y en los pies, y el grillete de los tobillos.</li>
+        <li><b>El kanabo</b>: hierro que engorda hacia la punta, con bandas y seis filas de pinchos.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Los tres tipos</h2>
+
+  <section class="var a">
+    <span class="tipo">A · el Rojo · oro</span>
+    <h2>El Rojo (Aka-oni)</h2>
+    <p class="lede"><b>Dos cuernos</b> que se curvan hacia atrás y la <b>melena blanca</b>. La piel es roja y la luz,
+    de oro.</p>
+    <img class="ancha" src="oni_rojo_cartel.jpg" alt="El Rojo en su cartel, desde abajo">
+    <div class="dos">
+      <img src="oni_rojo_heroe.jpg" alt="El Rojo de cuerpo entero en el santuario">
+      <img src="oni_rojo_cabeza.jpg" alt="La cara del Rojo de cerca, con la boca encendida">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Cuernos</dt><dd>dos, curvos</dd><dt>Melena</dt><dd>blanca</dd><dt>Luz</dt><dd>oro</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>54 bloques de alto con el kanabo y 35 de ancho.</li></ul>
+        <div class="paleta"><span><i style="background:#962c1e"></i>piel</span><span><i style="background:#eeeae4"></i>melena</span><span><i style="background:#c8b892"></i>cuernos</span><span><i style="background:#ffcc1a"></i>luz</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · el Azul · cian</span>
+    <h2>El Azul (Ao-oni)</h2>
+    <p class="lede"><b>Un solo cuerno enorme</b> en medio de la frente, un <b>tercer ojo</b> que arde debajo y la
+    melena negra. La piel es azul y la luz, cian.</p>
+    <img class="ancha" src="oni_azul_cartel.jpg" alt="El Azul en su cartel">
+    <div class="dos">
+      <img src="oni_azul_heroe.jpg" alt="El Azul de cuerpo entero">
+      <img src="oni_azul_cabeza.jpg" alt="La cara del Azul de cerca">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Cuernos</dt><dd>uno, enorme</dd><dt>Ojos</dt><dd>tres</dd><dt>Luz</dt><dd>cian</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>54 bloques de alto con el kanabo.</li></ul>
+        <div class="paleta"><span><i style="background:#22407e"></i>piel</span><span><i style="background:#22222c"></i>melena</span><span><i style="background:#c8b892"></i>cuerno</span><span><i style="background:#3ae8ff"></i>luz</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · el Negro · carmesí</span>
+    <h2>El Negro (Kuro-oni)</h2>
+    <p class="lede">Una <b>corona de cuatro cuernos</b> oscuros y la <b>melena roja</b>. La piel es negra y la luz,
+    carmesí.</p>
+    <img class="ancha" src="oni_negro_cartel.jpg" alt="El Negro en su cartel">
+    <div class="dos">
+      <img src="oni_negro_heroe.jpg" alt="El Negro de cuerpo entero">
+      <img src="oni_negro_cabeza.jpg" alt="La cara del Negro de cerca">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Cuernos</dt><dd>cuatro, en corona</dd><dt>Melena</dt><dd>roja</dd><dt>Luz</dt><dd>carmesí</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>54 bloques de alto con el kanabo.</li></ul>
+        <div class="paleta"><span><i style="background:#282830"></i>piel</span><span><i style="background:#c02222"></i>melena</span><span><i style="background:#625444"></i>cuernos</span><span><i style="background:#ff2a46"></i>luz</span></div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Los tres, a escala</h2>
+  <p class="lede">Los tres juntos, de frente, con la misma luz y un jugador delante (1,8 bloques).</p>
+  <div class="medidas">
+    <div class="a"><b>el Rojo</b><span>54 de alto · 35 de ancho</span></div>
+    <div class="b"><b>el Azul</b><span>54 de alto · 35 de ancho</span></div>
+    <div class="c"><b>el Negro</b><span>54 de alto · 35 de ancho</span></div>
+  </div>
+  <img src="oni_tres_variantes.jpg" alt="Los tres Oni juntos de frente, con un jugador delante">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Las texturas de cada tipo a píxel grande, sin letras. Hay una fila por tipo y, de izquierda a derecha,
+  van: la piel, el pecho, la nariz, el ojo, el paladar, la garganta, los dientes, el mechón, el cuerno, el colmillo, la
+  piel de tigre, la cuerda sagrada, el papel en zigzag y el hierro.</p>
+  <img src="oni_materiales.jpg" alt="Lámina de materiales de los tres Oni">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>15-10-2026. Juan lo aprobó con sus tres tipos en la misma pose: «me gustó sí, guárdalo». Después pidió dejar
+    los jefes y pasar a los mobs normales.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/oni_modelo.py y oni_escenas.py, hechos desde cero.</p>
+</div>

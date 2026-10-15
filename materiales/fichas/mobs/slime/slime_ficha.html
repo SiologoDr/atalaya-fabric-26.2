@@ -1,0 +1,219 @@
+<title>El Slime, rediseñado</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* El Slime: la misma columna de lectura que las otras fichas, sobre tinta casi negra; cada tipo con su color (verde, cienaga, limon), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0d0b09; --hoja:#17140f; --hoja2:#1f1b15; --filo:#352f26;
+  --texto:#efe8da; --texto2:#bdb3a2; --tenue:#8c8373;
+  --verde:#7cff5a; --cienaga:#5ec4b4; --limon:#c8ff3a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cursiva:'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+a{color:var(--texto);}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,11,9,0) 34%, rgba(13,11,9,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--verde); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.cambios{background:var(--hoja2); border:1px solid var(--filo); border-radius:8px; padding:14px 18px; margin:14px 0 0; color:var(--texto2);}
+.cambios h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.cambios ul{margin:0; padding-left:18px;}
+.cambios li{margin:5px 0;}
+.cambios b{color:var(--texto); font-weight:500;}
+
+.reglas{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin:14px 0 0;}
+.pieza{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:14px 16px; min-width:0;}
+.pieza h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue); margin:0 0 6px; font-weight:500;}
+.pieza ul{margin:0; padding-left:18px; color:var(--texto2);}
+.pieza li{margin:5px 0;}
+.pieza li b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--verde);}
+.var.b{--tono:var(--cienaga);}
+.var.c{--tono:var(--limon);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.paleta{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:12px;}
+.paleta span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--texto2);}
+.paleta i{display:inline-block; width:18px; height:18px; border-radius:4px; border:1px solid var(--filo);}
+
+.medidas{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px;}
+@media (max-width:640px){ .medidas{grid-template-columns:1fr;} }
+.medidas div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; min-width:0;}
+.medidas b{display:block; font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; margin-bottom:4px;}
+.medidas .a b{color:var(--verde);} .medidas .b b{color:var(--cienaga);} .medidas .c b{color:var(--limon);}
+.medidas span{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+
+.cambio{border:1px solid var(--filo); border-left:3px solid var(--cienaga); border-radius:10px; padding:20px 24px; margin:28px 0 0; background:var(--hoja);}
+.cambio h2{margin-top:0;}
+.cambio p, .cambio ul{color:var(--texto2);}
+.cambio ul{margin:8px 0; padding-left:22px;}
+.cambio li{margin:6px 0;}
+.cambio b{color:var(--texto); font-weight:500;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.decidir p{color:var(--texto2); margin:14px 0 0;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="slime_tres_variantes.jpg" alt="Los tres slimes nuevos en la ciénaga de noche, con el Slime de vanilla y un jugador a la izquierda">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · mob · rediseño del Slime · 15-10-2026</div>
+      <h1>El Slime, rediseñado</h1>
+      <p class="sub">Como con el Blaze, el Slime sigue siendo un Slime: <b>el cubo de gelatina que se transparenta</b>, el
+      cubo de dentro con la cara delante y el charco que deja. Lo nuevo es una <b>cara de monstruo</b> que brilla a
+      través de la gelatina y, en cada tipo, <b>una cosa grande que lo cambia</b>. Son tres: <b>el Tragón</b>, <b>el
+      Erizo</b> y <b>el Fundido</b>.</p>
+    </div>
+  </header>
+
+  <p class="aviso">En la foto de arriba, el pequeño de la izquierda es el Slime grande de vanilla (2 bloques), dibujado
+  por nosotros para comparar. Los nuevos miden 3 bloques de ancho, y el Erizo llega a 3,7 de alto con lo que lleva
+  clavado.</p>
+  <ul class="lede">
+    <li><b>Lo común a los tres:</b>
+      <ul>
+        <li><b>la gelatina de verdad, translúcida:</b> se ve lo que hay dentro y lo de detrás;</li>
+        <li>el canto un tono más claro, el brillo en ele arriba a la izquierda y un par de burbujas;</li>
+        <li><b>el cubo de dentro</b> y, delante, <b>la cara</b>, como en el de vanilla, pero de monstruo: el ceño en
+        uve y los ojos rasgados que brillan;</li>
+        <li>la misma pose, plantado sobre su charco.</li>
+      </ul>
+    </li>
+    <li><b>Hechos como un mob:</b> en cajas, a un téxel por píxel, y los dientes en hoja.</li>
+  </ul>
+  <p class="lede">Las fotos van <b>sin letras y con el borde blanco</b>, en la ciénaga de noche, donde salen los slimes:
+  agua oscura con nenúfares, robles de pantano con lianas, setas, la luna cuadrada y luciérnagas.</p>
+
+  <section class="var a">
+    <span class="tipo">A · el Tragón · verde de siempre</span>
+    <h2>El Tragón</h2>
+    <ul class="lede">
+      <li><b>El cubo se abre en dos, como unas fauces:</b> la parte de arriba se levanta por delante y la bisagra queda
+      detrás.</li>
+      <li><b>Los dientes son de gelatina dura</b>, en hoja: largos en las esquinas y más cortos en medio, arriba y
+      abajo.</li>
+      <li>Entre la quijada y la boca cuelgan <b>babas</b> de gelatina, y al fondo <b>la garganta brilla</b> en
+      verde.</li>
+      <li><b>Dentro se ve lo que se ha tragado:</b> huesos y un yelmo de hierro.</li>
+    </ul>
+    <img class="ancha" src="slime_tragon_cartel.jpg" alt="El Tragón en su cartel, desde abajo, con las fauces abiertas y la luna detrás">
+    <div class="dos">
+      <img src="slime_tragon_heroe.jpg" alt="El Tragón de cuerpo entero sobre su charco">
+      <img src="slime_tragon_cabeza.jpg" alt="La cara del Tragón de cerca, con los ojos que brillan y los dientes de gelatina">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Lo grande</dt><dd>se abre en fauces</dd><dt>Dentro</dt><dd>huesos y un yelmo</dd><dt>Brillo</dt><dd>verde</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>3 bloques de ancho y casi 3 de alto con la boca abierta.</li><li>Cómo pelearía: salta encima y te traga un momento.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · el Erizo · verde de ciénaga</span>
+    <h2>El Erizo</h2>
+    <ul class="lede">
+      <li><b>Lleva clavadas las armas de los que no pudieron con él:</b>
+        <ul>
+          <li>tres espadas y un hacha arriba;</li>
+          <li>cinco flechas, con sus plumas, por los lados;</li>
+          <li>una lanza detrás;</li>
+          <li>un escudo hundido de canto.</li>
+        </ul>
+        Se ve la punta de cada arma dentro de la gelatina.</li>
+      <li><b>La cara:</b> los ojos ámbar y <b>una mueca de dientes</b>.</li>
+      <li>La gelatina es verde azulada, de agua de ciénaga.</li>
+    </ul>
+    <img class="ancha" src="slime_erizo_cartel.jpg" alt="El Erizo en su cartel, con las armas clavadas">
+    <div class="dos">
+      <img src="slime_erizo_heroe.jpg" alt="El Erizo de cuerpo entero">
+      <img src="slime_erizo_cabeza.jpg" alt="La cara del Erizo de cerca, con los ojos ámbar y la mueca de dientes">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Lo grande</dt><dd>las armas clavadas</dd><dt>Cara</dt><dd>mueca de dientes</dd><dt>Brillo</dt><dd>ámbar</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>3,7 bloques de alto con las espadas.</li><li>Cómo pelearía: se sacude y dispara lo que lleva clavado.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · el Fundido · negro y ácido</span>
+    <h2>El Fundido</h2>
+    <ul class="lede">
+      <li><b>La gelatina es negra y se derrite:</b> el borde de arriba se escurre con goterones cortos.</li>
+      <li>Debajo deja <b>un charco de ácido que brilla</b>, con huesos comidos.</li>
+      <li><b>La cara:</b> los ojos <b>lloran ácido</b> y la boca es una raja que brilla entre los dientes.</li>
+      <li>Por los lados y por detrás <b>suben burbujas</b> de ácido.</li>
+    </ul>
+    <img class="ancha" src="slime_fundido_cartel.jpg" alt="El Fundido en su cartel, sobre el charco de ácido">
+    <div class="dos">
+      <img src="slime_fundido_heroe.jpg" alt="El Fundido de cuerpo entero">
+      <img src="slime_fundido_cabeza.jpg" alt="La cara del Fundido de cerca, con los ojos que lloran ácido">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Lo grande</dt><dd>se derrite en ácido</dd><dt>Cara</dt><dd>llora ácido</dd><dt>Brillo</dt><dd>limón</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>3 bloques de ancho; el charco, casi 4.</li><li>Cómo pelearía: deja charcos de ácido donde cae.</li></ul></div>
+    </div>
+  </section>
+
+  <h2>Con el Slime de vanilla y un jugador</h2>
+  <p class="lede">De izquierda a derecha: el Slime grande de vanilla (2 bloques), el jugador, el Tragón, el Erizo y el
+  Fundido.</p>
+  <img src="slime_tres_variantes.jpg" alt="El Slime de vanilla, el jugador y los tres slimes nuevos">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Una fila por slime:</p>
+  <ul class="lede">
+    <li><b>Tragón:</b> la gelatina, el cubo de dentro, el ojo, el diente, la garganta y el hueso.</li>
+    <li><b>Erizo:</b> la gelatina, el cubo de dentro, el ojo, la boca, el hierro y el escudo.</li>
+    <li><b>Fundido:</b> la gelatina, el cubo de dentro, el ojo, la boca, el ácido y el charco.</li>
+  </ul>
+  <img src="slime_materiales.jpg" alt="Lámina de materiales de los tres slimes">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <p>15-10-2026. Juan lo aprobó a la primera, con sus tres tipos: «guarda el mob». Después pidió pasar a mobs que
+    hagan algo (que te agarren, te traguen o se te aferren), mirando antes los de Dedsafío 3 y 4.</p>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/slime_modelo.py y slime_escenas.py, hechos desde cero (el Slime de
+  vanilla también, dibujado aquí con su paleta).</p>
+</div>
