@@ -240,6 +240,22 @@ def componer(lz, cam, W, H, sitio, n_motas=140, semilla=3, fuerza_vineta=0.45):
     return motas(img, int(n_motas * W / 1600), semilla, SITIO[sitio]['motas'], viento, largo)
 
 
+def perfilar(lz, mascara, grosor, color=(1.0, 0.97, 1.0)):
+    """El contorno blanco: los pixeles de fuera que tocan al bicho y quedan detras de el."""
+    zc = np.where(mascara, lz.z, np.inf)
+    for _ in range(grosor):
+        e = zc.copy()
+        e[1:] = np.minimum(e[1:], zc[:-1])
+        e[:-1] = np.minimum(e[:-1], zc[1:])
+        e[:, 1:] = np.minimum(e[:, 1:], zc[:, :-1])
+        e[:, :-1] = np.minimum(e[:, :-1], zc[:, 1:])
+        zc = np.where(mascara, zc, e)
+    borde = ~mascara & np.isfinite(zc) & (lz.z > zc)
+    lz.color[borde] = color
+    lz.alfa[borde] = 1.0
+    lz.emis[borde] = np.array(color) * 0.15
+
+
 def guardar(img, nombre):
     img.convert('RGB').save(os.path.join(OUT, nombre + '.jpg'), quality=90)
     print('ok', nombre, flush=True)
@@ -290,9 +306,10 @@ def escena(cual, camara, kw, nombre, sub, n_motas):
     suelo(lz, cam, niebla, cual)
     decorado(lz, cam, niebla, cual)
     qs, info = jefe(cual, **kw)
+    z0 = lz.z.copy()
     bm.dibujar(lz, cam, qs, SITIO[cual]['luces'], SITIO[cual]['amb'], niebla)
-    img = componer(lz, cam, W, H, cual, n_motas=n_motas)
-    return qe.rotular(img, nombre, sub)
+    perfilar(lz, lz.z < z0, max(1, int(round(3 * SS * K))))
+    return componer(lz, cam, W, H, cual, n_motas=n_motas)                    # sin letras (13-10-2026)
 
 
 def heroe(cual):
@@ -314,13 +331,15 @@ def cuatro():
                       motas=((255, 230, 210), (210, 215, 255)))
     qm._reg('suelo_bst_T', qm._suelo_grande(99, _r('2a2832', '302d38', '35323e', '3a3744', '403c4a'), None, grietas=False))
     suelo(lz, cam, niebla, 'T', ext=200, paso=32, cerca=40)
+    figura = np.zeros(lz.z.shape, bool)
     for cual, x, giro in (('A', -24.0, 25), ('B', -7.0, 15), ('C', 9.0, -10), ('D', 25.0, -25)):
         qs, info = jefe(cual)
+        z0 = lz.z.copy()
         bm.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(giro * D)), SITIO[cual]['luces'], SITIO[cual]['amb'], niebla)
+        figura |= lz.z < z0
+    perfilar(lz, figura, max(1, int(round(2 * SS * K))))
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(1.0, 14.0, 0)), SITIO['T']['luces'], SITIO['T']['amb'], niebla)
-    img = componer_t(lz, cam, W, H)
-    guardar(qe.rotular(img, 'Los cuatro, a escala', 'un jugador (1,8) delante · de alto: Yelmora %s · Cienara %s · Osaria %s · Geodra %s'
-                       % ALTOS), 'cuatro')
+    guardar(componer_t(lz, cam, W, H), 'cuatro')                             # sin letras
 
 
 def componer_t(lz, cam, W, H):
@@ -361,26 +380,18 @@ def materiales():
         (bm.p_placa, 'placa', 'coraza de bandas'), (bm.p_amatista, 'amatista', 'LUZ: drusa de amatista'), (bm.p_topo, 'topo', 'pelo de topo'),
         (bm.p_nariz, 'nariz', 'la estrella de la nariz'), (bm.p_garra_topo, 'garra', 'unas de cavar'),
     ]
-    cols, celda = 5, 248
+    cols, celda = 5, 248                                                     # sin letras: solo las texturas
     filas = (len(hojas) + cols - 1) // cols
-    H = 120 + filas * (celda + 70)
+    H = 60 + filas * (celda + 20)
     img = Image.new('RGB', (W, H), (18, 16, 20))
     d = ImageDraw.Draw(img)
-    try:
-        f1 = ImageFont.truetype(FUENTE + 'georgiab.ttf', 40)
-        f2 = ImageFont.truetype(FUENTE + 'consola.ttf', 18)
-    except OSError:
-        f1 = f2 = ImageFont.load_default()
-    d.text((48, 34), 'Materiales: pintados por cara, a 8 pixeles por bloque', font=f1, fill=(244, 234, 210))
     for k, (pintor, nombre, nota) in enumerate(hojas):
         t, e = pintor(32, 32, 'frente', 7 + k)
         im = Image.fromarray(t).resize((200, 200), Image.NEAREST)
         cx = 60 + (k % cols) * 306
-        cy = 120 + (k // cols) * (celda + 70)
+        cy = 40 + (k // cols) * (celda + 20)
         img.paste(im.convert('RGB'), (cx, cy))
         d.rectangle((cx - 1, cy - 1, cx + 200, cy + 200), outline=(80, 74, 90))
-        d.text((cx, cy + 210), nombre, font=f2, fill=(244, 234, 210))
-        d.text((cx, cy + 234), nota[:27], font=f2, fill=(170, 162, 180))
     guardar(img, 'materiales')
 
 

@@ -232,6 +232,22 @@ CAMARA_CABEZA = {'A': ((4.0, 9.6, 27.0), (0.0, 13.6, 7.0), 50), 'B': ((4.0, 9.2,
                  'C': ((3.5, 10.0, 27.0), (0.0, 14.4, 7.0), 52)}
 
 
+def perfilar(lz, mascara, grosor, color=(1.0, 0.97, 1.0)):
+    """El contorno blanco: los pixeles de fuera que tocan al monstruo y quedan detras de el."""
+    zc = np.where(mascara, lz.z, np.inf)
+    for _ in range(grosor):
+        e = zc.copy()
+        e[1:] = np.minimum(e[1:], zc[:-1])
+        e[:-1] = np.minimum(e[:-1], zc[1:])
+        e[:, 1:] = np.minimum(e[:, 1:], zc[:, :-1])
+        e[:, :-1] = np.minimum(e[:, :-1], zc[:, 1:])
+        zc = np.where(mascara, zc, e)
+    borde = ~mascara & np.isfinite(zc) & (lz.z > zc)
+    lz.color[borde] = color
+    lz.alfa[borde] = 1.0
+    lz.emis[borde] = np.array(color) * 0.15
+
+
 def escena(cual, camara, nombre, sub, n_motas):
     W, H = int(1600 * K), int(1000 * K)
     lz = qe.Lienzo(W * SS, H * SS)
@@ -242,9 +258,11 @@ def escena(cual, camara, nombre, sub, n_motas):
     suelo(lz, cam, niebla, S)
     cienaga(lz, cam, niebla, S)
     qs, info = lm.lernara(cual)
+    z0 = lz.z.copy()
     lm.dibujar(lz, cam, qs, S['luces'], S['amb'], niebla)
+    perfilar(lz, lz.z < z0, max(1, int(round(3 * SS * K))))
     img = revelar(lz, cam, W, H, S, n_motas=n_motas)
-    return qe.rotular(img, nombre, sub)
+    return img
 
 
 def heroe(cual):
@@ -265,16 +283,16 @@ def tres():
     niebla = qe.Niebla(S['niebla'], *S['niebla_d'])
     cam = vr.Camara((0.0, 11.0, 118.0), (0.0, 8.5, 0.0), 24, W * SS, H * SS)
     suelo(lz, cam, niebla, S, ext=260, paso=32, cerca=40)
-    altos = []
+    figura = np.zeros(lz.z.shape, bool)
     for cual, x in (('A', -33.0), ('B', 0.0), ('C', 33.0)):
         qs, info = lm.lernara(cual)
-        P = np.array([p for q in qs for p in q[0]])
-        altos.append(P[:, 1].max())
+        z0 = lz.z.copy()
         lm.dibujar(lz, cam, qm.transformar(qs, vr.T(x, 0, 0) @ vr.Ry(-12 * D)), S['luces'], S['amb'], niebla)
+        figura |= lz.z < z0
+    perfilar(lz, figura, max(1, int(round(2 * SS * K))))
     nm.dibujar(lz, cam, nm.quads(ne.jugador(), {}, ne.jugador_a_mundo(10.0, 18.0, 0)), S['luces'], S['amb'], niebla)
     img = revelar(lz, cam, W, H, S, n_motas=0, con_luna=False)
-    guardar(qe.rotular(img, 'Las tres variantes, a escala', 'de Tres Cabezas · de Cinco Cabezas · de Dos Cabezas · '
-                       'un jugador (1,8) delante · de alto: %.0f · %.0f · %.0f bloques' % tuple(altos)), 'tres')
+    guardar(img, 'tres')
 
 
 def materiales():
@@ -287,29 +305,20 @@ def materiales():
                 (P['bronce'], 'bronce', 'frente', 24, 8), (P['membrana'], 'membrana', 'frente', 24, 24)]
         filas.append((c, fila))
     celda = 168
-    H = 130 + len(filas) * (celda + 76)
+    H = 40 + len(filas) * (celda + 30) + 10
     img = Image.new('RGB', (W, H), (16, 15, 20))
     d = ImageDraw.Draw(img)
-    try:
-        f1 = ImageFont.truetype(FUENTE + 'georgiab.ttf', 40)
-        f2 = ImageFont.truetype(FUENTE + 'consola.ttf', 17)
-        f3 = ImageFont.truetype(FUENTE + 'georgiab.ttf', 24)
-    except OSError:
-        f1 = f2 = f3 = ImageFont.load_default()
-    d.text((48, 34), 'Materiales: dibujados a 8 pixeles por bloque, sin ruido', font=f1, fill=(244, 234, 210))
     for fi, (c, fila) in enumerate(filas):
-        y0 = 120 + fi * (celda + 76)
-        d.text((48, y0 + celda // 2 - 14), c, font=f3, fill=(244, 234, 210))
+        y0 = 40 + fi * (celda + 30)
         for k, (pintor, nombre, cara, tw, th) in enumerate(fila):
             t, e = pintor(tw, th, cara, 7)
             fondo = Image.new('RGBA', (tw, th), (40, 36, 46, 255))
             fondo.alpha_composite(Image.fromarray(t))
             esc = min(celda / tw, celda / th)
             im = fondo.resize((max(1, int(tw * esc)), max(1, int(th * esc))), Image.NEAREST)
-            cx = 96 + k * 186
+            cx = 65 + k * 186
             img.paste(im.convert('RGB'), (cx + (celda - im.width) // 2, y0 + (celda - im.height) // 2))
             d.rectangle((cx - 1, y0 - 1, cx + celda, y0 + celda), outline=(70, 64, 80))
-            d.text((cx, y0 + celda + 8), nombre, font=f2, fill=(220, 212, 196))
     guardar(img, 'materiales')
 
 
