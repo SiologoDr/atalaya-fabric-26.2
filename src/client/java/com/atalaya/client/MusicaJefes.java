@@ -106,6 +106,10 @@ public final class MusicaJefes {
         reloj++;
         Entity cercano = mc.level == null || mc.player == null ? null : jefeCercano(mc);
         Jefe quiere = cercano == null ? null : jefe(cercano);
+        // Mientras manda la nana del Momento Maldicion, la del jefe se funde y calla.
+        if (MomentoMaldicionCliente.musicaManda()) {
+            quiere = null;
+        }
         // Las que se han parado (o que el motor ha cortado, al salir del mundo) se olvidan.
         PISTAS.removeIf(p -> p.isStopped() || (p.edad > 20 && !mc.getSoundManager().isActive(p)));
         boolean ya = false;
@@ -124,6 +128,10 @@ public final class MusicaJefes {
         }
         // El cambio de fase y la entrada en Furia del jefe que se sigue.
         if (cercano == null) {
+            ultimoJefe = -1;
+            return;
+        }
+        if (quiere == null) {
             ultimoJefe = -1;
             return;
         }

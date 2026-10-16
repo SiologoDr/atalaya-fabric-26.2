@@ -123,7 +123,11 @@ public class ConfigMenu extends ChestMenu {
                     mecanica(pila(() -> Items.WATER_BUCKET), "Empapado por la lluvia",
                             "A la intemperie te deja a la mitad de velocidad.",
                             () -> AtalayaConfig.get().isEmpapadoActivo(),
-                            v -> AtalayaConfig.get().setEmpapadoActivo(v))
+                            v -> AtalayaConfig.get().setEmpapadoActivo(v)),
+                    mecanica(pila(() -> Items.WITHER_ROSE), "Momento Maldicion",
+                            "Con el ultimo titulo y texto. Para otros: /atalaya momento_maldicion.",
+                            com.atalaya.momento.MomentoMaldicion::activo,
+                            com.atalaya.momento.MomentoMaldicion::interruptor)
             ),
             // --- Lo que sueltan los mobs ---
             List.of(

@@ -44,6 +44,9 @@ import java.util.List;
  *   /atalaya menu                 -> panel de interruptores
  *   /atalaya hidratacion &lt;0-100&gt;  -> fija tu hidratacion, para probar
  *   /atalaya frio &lt;0-50&gt;          -> fija tu frio, para probar
+ *   /atalaya momento_maldicion "titulo" "texto" [segundos]
+ *                                 -> el Momento Maldicion para todos (con segundos, se para solo)
+ *   /atalaya momento_maldicion stop -> lo para
  *   /atalaya nerea &lt;orden&gt;         -> fuerza a la Nerea mas cercana un ataque o
  *                                    momento del combate (despertar, rompeolas,
  *                                    remolino, burbujas, molino, arpon, lejano,
@@ -138,6 +141,21 @@ public final class AtalayaCommand {
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NOVILIS, sb))
                                         .executes(ctx -> probarNovilis(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
+                        .then(Commands.literal("momento_maldicion")
+                                .requires(AtalayaCommand::esOperador)
+                                .executes(ctx -> estadoMomento(ctx.getSource()))
+                                .then(Commands.literal("stop")
+                                        .executes(ctx -> pararMomento(ctx.getSource())))
+                                .then(Commands.argument("titulo", StringArgumentType.string())
+                                        .then(Commands.argument("texto", StringArgumentType.string())
+                                                .executes(ctx -> empezarMomento(ctx.getSource(),
+                                                        StringArgumentType.getString(ctx, "titulo"),
+                                                        StringArgumentType.getString(ctx, "texto"), 0))
+                                                .then(Commands.argument("segundos", IntegerArgumentType.integer(1, 86400))
+                                                        .executes(ctx -> empezarMomento(ctx.getSource(),
+                                                                StringArgumentType.getString(ctx, "titulo"),
+                                                                StringArgumentType.getString(ctx, "texto"),
+                                                                IntegerArgumentType.getInteger(ctx, "segundos")))))))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -152,6 +170,38 @@ public final class AtalayaCommand {
                         .then(Commands.argument("jugadores", EntityArgument.players())
                                 .executes(ctx -> reparar(ctx.getSource(), EntityArgument.getPlayers(ctx, "jugadores"))))
         );
+    }
+
+    private static int empezarMomento(CommandSourceStack fuente, String titulo, String texto, int segundos) {
+        if (titulo.isBlank()) {
+            fuente.sendFailure(Component.literal("El titulo no puede ir vacio."));
+            return 0;
+        }
+        com.atalaya.momento.MomentoMaldicion.empezar(fuente.getServer(), titulo, texto, segundos);
+        fuente.sendSuccess(() -> Component.literal("Momento maldicion: «" + titulo + "»"
+                + (segundos > 0 ? " durante " + segundos + " s." : ", hasta /atalaya momento_maldicion stop.")), true);
+        return 1;
+    }
+
+    private static int pararMomento(CommandSourceStack fuente) {
+        if (!com.atalaya.momento.MomentoMaldicion.parar()) {
+            fuente.sendFailure(Component.literal("No hay ningun momento maldicion en marcha."));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Momento maldicion parado."), true);
+        return 1;
+    }
+
+    private static int estadoMomento(CommandSourceStack fuente) {
+        if (!com.atalaya.momento.MomentoMaldicion.activo()) {
+            fuente.sendSuccess(() -> Component.literal(
+                    "Uso: /atalaya momento_maldicion \"titulo\" \"texto\" [segundos]  ·  /atalaya momento_maldicion stop"), false);
+            return 0;
+        }
+        int queda = com.atalaya.momento.MomentoMaldicion.queda();
+        fuente.sendSuccess(() -> Component.literal("En marcha: «" + com.atalaya.momento.MomentoMaldicion.titulo() + "»"
+                + (queda >= 0 ? ", quedan " + queda / 20 + " s." : ", sin limite.")), false);
+        return 1;
     }
 
     private static final EquipmentSlot[] ARMADURA = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};

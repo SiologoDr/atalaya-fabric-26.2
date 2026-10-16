@@ -12,7 +12,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * El temblor de camara de los golpes de Nerea.
+ * El temblor de camara de los golpes de Nerea (y de la cinematica del
+ * Momento Maldicion).
  *
  * Se engancha al final de bobHurt, el sitio donde vanilla ya inclina la vista
  * al recibir dano: se aplica siempre (no depende de la opcion de balanceo al
@@ -25,6 +26,10 @@ public abstract class TemblorCamaraMixin {
     private void atalaya$temblor(CameraRenderState camara, PoseStack pose, CallbackInfo ci) {
         float parcial = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
         float[] a = NereaPresencia.angulos(parcial);
+        float[] m = com.atalaya.client.MomentoMaldicionCliente.angulos(parcial);
+        if (m != null) {
+            a = a == null ? m : new float[]{a[0] + m[0], a[1] + m[1], a[2] + m[2]};
+        }
         if (a == null) {
             return;
         }

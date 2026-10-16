@@ -165,6 +165,9 @@ public final class AtalayaParticulas {
     public static SimpleParticleType NOVILIS_CHISPA;
     /** Copo de ceniza gris que cae despacio, meciendose. */
     public static SimpleParticleType NOVILIS_CENIZA;
+    /** El mundo maldito (Momento Maldicion): la brasa roja que sube parpadeando y la ceniza negra que cae. */
+    public static SimpleParticleType MALDICION_MOTA;
+    public static SimpleParticleType MALDICION_CENIZA;
     /** Bocanada de fuego (cuatro fotogramas) que sube y se encoge. */
     public static SimpleParticleType NOVILIS_LLAMA;
     /** Humo oscuro que se abre y se deshace. */
@@ -315,6 +318,8 @@ public final class AtalayaParticulas {
         NOVILIS_BRASA = registrar("novilis_brasa", false);
         NOVILIS_CHISPA = registrar("novilis_chispa", false);
         NOVILIS_CENIZA = registrar("novilis_ceniza", false);
+        MALDICION_MOTA = registrar("maldicion_mota", false);
+        MALDICION_CENIZA = registrar("maldicion_ceniza", false);
         NOVILIS_LLAMA = registrar("novilis_llama", true);
         NOVILIS_HUMO = registrar("novilis_humo", false);
         NOVILIS_ONDA = registrar("novilis_onda", true);

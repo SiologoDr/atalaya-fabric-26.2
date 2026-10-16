@@ -2560,5 +2560,55 @@
     "sounds": [
       "atalaya:objeto/elixir"
     ]
+  },
+  "momento.animacion": {
+    "subtitle": "subtitles.atalaya.momento.animacion",
+    "sounds": [
+      "atalaya:momento/animacion"
+    ]
+  },
+  "momento.titulo": {
+    "subtitle": "subtitles.atalaya.momento.titulo",
+    "sounds": [
+      "atalaya:momento/titulo"
+    ]
+  },
+  "momento.fractura": {
+    "subtitle": "subtitles.atalaya.momento.fractura",
+    "sounds": [
+      "atalaya:momento/fractura"
+    ]
+  },
+  "momento.aviso": {
+    "subtitle": "subtitles.atalaya.momento.aviso",
+    "sounds": [
+      "atalaya:momento/aviso"
+    ]
+  },
+  "momento.fin": {
+    "subtitle": "subtitles.atalaya.momento.fin",
+    "sounds": [
+      "atalaya:momento/fin"
+    ]
+  },
+  "momento.cielo": {
+    "subtitle": "subtitles.atalaya.momento.cielo",
+    "sounds": [
+      "atalaya:momento/cielo"
+    ]
+  },
+  "momento.desprende": {
+    "subtitle": "subtitles.atalaya.momento.desprende",
+    "sounds": [
+      "atalaya:momento/desprende"
+    ]
+  },
+  "momento.musica": {
+    "sounds": [
+      {
+        "name": "atalaya:momento/musica",
+        "stream": true
+      }
+    ]
   }
 }

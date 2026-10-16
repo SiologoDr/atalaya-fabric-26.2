@@ -819,5 +819,12 @@
   "subtitles.atalaya.moctezuma.fragmento_golpe": "Revienta un fragmento",
   "subtitles.atalaya.moctezuma.erupcion": "La tierra revienta en jade",
   "subtitles.atalaya.objeto.reparar": "Martillazos sobre una armadura",
-  "subtitles.atalaya.objeto.elixir": "Vuelve la vida"
+  "subtitles.atalaya.objeto.elixir": "Vuelve la vida",
+  "subtitles.atalaya.momento.animacion": "Se dibuja un sello maldito",
+  "subtitles.atalaya.momento.titulo": "El sello se carga",
+  "subtitles.atalaya.momento.fractura": "Algo se rompe",
+  "subtitles.atalaya.momento.aviso": "Dobla la campana maldita",
+  "subtitles.atalaya.momento.fin": "La maldición se rompe",
+  "subtitles.atalaya.momento.cielo": "El cielo se raja",
+  "subtitles.atalaya.momento.desprende": "Cae un trozo del cielo"
 }

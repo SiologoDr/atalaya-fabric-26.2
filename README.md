@@ -2280,6 +2280,83 @@ más cercano. Las órdenes son `despertar`, `normal`, `area`, `especial`, `dormi
 
 ---
 
+## El Momento Maldición
+
+Nuestro «momento Reviil» de DEDsafío (15-10-2026). Juan: «quiero que lo hagas mil veces mejor, que me sorprendas».
+Unos compañeros dejaron una idea (un vídeo, un sonido y una música). Aquí todo se crea: la cinemática, los sonidos y la
+música son nuestros, con un concepto propio, **el Sello**.
+
+```
+/atalaya momento_maldicion "título" "texto" [segundos]
+/atalaya momento_maldicion stop
+```
+
+Lo lanza un operador y les sale a todos a la vez. También está en el panel (`/atalaya menu`), que repite el último texto.
+Con `segundos`, el momento se para solo al pasar ese tiempo (sin reloj en pantalla). El título solo queda en el registro
+del servidor: en pantalla no sale texto, y en el chat la cabecera es siempre «MOMENTO FRACTURA:».
+
+**La cinemática (11 s), sin texto de ninguna clase** (Juan: «no quiero texto en la animación de ninguna forma»).
+
+| Tick | Qué pasa |
+|---|---|
+| 0 | El mundo se apaga y el corazón late, cada vez más seguido; los bordes de la pantalla laten en rojo. |
+| 18 | En el centro se dibuja un sello de luz con una punta encendida: el doble anillo de fuera con sus marcas, el anillo de dentro (al revés). |
+| 56 | La estrella de siete puntas, punta a punta, y el heptágono de dentro; salen los rayos de luz del sello. |
+| 80 | Siete círculos en las puntas y dieciséis **sigilos** (figuras, no letras) alrededor, uno a uno. Cada capa gira a su paso y el sello se echa hacia atrás como si estuviera en el aire. Se traga motas de luz que caen en espiral. |
+| 126 | En el centro nace un **núcleo** de luz que crece y late; el sello se levanta y gira cada vez más deprisa, y del núcleo saltan rayos a las puntas de la estrella. |
+| 150 | El sello se raja desde el núcleo, que se calienta hasta el blanco. |
+| 168 | **Silencio**: todo se congela, en blanco. |
+| 174 | **La fractura**: el núcleo revienta, la pantalla salta en esquirlas que salen girando con el filo encendido, el sello se rompe en trozos, una onda barre la pantalla con chispas y **el cielo se raja entero**. |
+| 224 | El aviso en el chat y una campana. |
+
+Mientras dura la cinemática se esconde el HUD y la cámara tiembla con los latidos y con la fractura.
+
+**El aviso del chat**, como el del momento de DEDsafío: el sello rojo, «**MOMENTO FRACTURA:**» en letras de metal rojo
+con un brillo que lo cruza, y debajo el texto en rojo. El rótulo son doce cuadros animados de 32 × 32 que el chat pinta
+seguidos, como si fueran letras (`momento_cartel_NN`).
+
+**Mientras dura**, en el HUD no hay nada: manda el cielo.
+
+- **El cielo roto** (`CieloRoto`): todo el cielo es un cristal roto. Es un mosaico de trozos irregulares (las celdas de
+  Voronoi de 80 puntos de la cúpula) cuyas juntas son grietas quebradas, al rojo blanco con un halo rojo. Las ondas de
+  luz bajan desde lo alto por las grietas y todo late con el corazón de la música. Algunos trozos faltan y dejan ver la
+  luz de detrás. Cada 5,5 s se desprende otro: se enciende, cae dando vueltas hacia el horizonte y deja su hueco (con
+  su sonido). En lo alto hay una rasgadura de borde quebrado que respira.
+- El cielo, la niebla, las nubes y la luz del mundo son de sangre (encima del cielo de un jefe, si lo hay).
+- En el mundo suben motas rojas y cae ceniza negra.
+- Suena la nana maldita en bucle (en ambiente, como la de los jefes). La de los jefes y la de vanilla callan.
+
+**Al pararlo**, entra luz, las grietas se cierran hacia arriba, suena la maldición que se rompe, la música se funde y el
+cielo vuelve en 6 s.
+
+Quien entra a mitad lo recibe ya empezado. No se guarda en el mundo: si se reinicia el servidor, se acaba.
+
+**Cómo está hecho:**
+
+- `MomentoMaldicion` (servidor) lleva la cuenta, manda el único paquete del servidor al cliente (`AtalayaRed.Momento`)
+  y escribe el aviso del chat.
+- En el cliente:
+  - `MomentoMaldicionCliente` lleva el calendario, la música, el cielo (lo mezcla `CieloJefesMixin`), el temblor
+    (`TemblorCamaraMixin`), las partículas y los sonidos.
+  - `MomentoMaldicionHud` pinta la cinemática a la resolución de la pantalla, sin texturas: trazos finos girados con
+    su brillo en capas.
+  - `CieloRoto` pinta las grietas y los trozos del cielo con cintas emisivas en una cúpula alrededor de la cámara
+    (`LevelRenderEvents.COLLECT_SUBMITS`).
+- Generadores:
+  - `momento_maldicion.py` hace el rótulo del chat, el icono, la textura de las grietas y las partículas.
+  - `momento_maldicion_sonidos.py` hace los sonidos y la música:
+    - el corazón;
+    - el zumbido de cristal del sello, los golpes de la estrella y las campanitas de los sigilos;
+    - la carga del núcleo, con chispazos, coro y crujido, y el silencio con su pitido;
+    - la fractura;
+    - el cielo que se raja;
+    - cada trozo que cae;
+    - la campana del chat;
+    - el fin;
+    - la **nana maldita**: una cajita de música rota en re menor armónica y en tres por cuatro, con dron, coro y el
+      corazón en cada compás. Son dieciséis compases (59,2 s), con la cola de la sala plegada al principio para que el
+      bucle no tenga costura.
+
 ## Cómo se hace un jefe
 
 Un jefe nuevo sale en tres tiempos:
@@ -2528,6 +2605,8 @@ El esquema es siempre el mismo:
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `ladrona` (la Ráfaga Ladrona), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar`, `ocelos`, `veletas`, `pararrayos`, `chispa` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `pisar` (sube al jugador más cercano a un escalón alto del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano junto al pilar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `espada` (la Espada del Fuego), `infernal` (la Furia Infernal), `ofrenda`, `mar` (el Mar de Llamas), `dios`, `aturdido`, `furia` (se la pone o se la quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar`, `manda`, `forja`, `piedra`, `caliente` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
+| `/atalaya momento_maldicion "título" "texto" [segundos]` | Operador | El Momento Maldición para todos (ver [El Momento Maldición](#el-momento-maldición)): la cinemática y, al acabar, el texto en el chat; con segundos se para solo. Sin nada, dice si hay uno en marcha |
+| `/atalaya momento_maldicion stop` | Operador | Lo para |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/atalaya habilidad lista` | Operador | Te deja la activa lista al momento, sin recarga (para probar) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |

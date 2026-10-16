@@ -440,6 +440,16 @@ public final class AtalayaSonidos {
     public static SoundEvent OBJETO_REPARAR;
     public static SoundEvent OBJETO_ELIXIR;
 
+    // El Momento Maldicion: la animacion y la musica de los compañeros y lo nuestro (momento_maldicion_sonidos.py).
+    public static SoundEvent MOMENTO_ANIMACION;
+    public static SoundEvent MOMENTO_MUSICA;
+    public static SoundEvent MOMENTO_TITULO;
+    public static SoundEvent MOMENTO_FRACTURA;
+    public static SoundEvent MOMENTO_AVISO;
+    public static SoundEvent MOMENTO_FIN;
+    public static SoundEvent MOMENTO_CIELO;
+    public static SoundEvent MOMENTO_DESPRENDE;
+
     public static void registrar() {
         VIGIA_AMBIENTE = registrar("vigia.ambiente");
         VIGIA_ACECHO = registrar("vigia.acecho");
@@ -834,6 +844,14 @@ public final class AtalayaSonidos {
         XIUHQUETZAL_NOVA = registrar("xiuhquetzal.nova");
         OBJETO_REPARAR = registrar("objeto.reparar");
         OBJETO_ELIXIR = registrar("objeto.elixir");
+        MOMENTO_ANIMACION = registrar("momento.animacion");
+        MOMENTO_MUSICA = registrar("momento.musica");
+        MOMENTO_TITULO = registrar("momento.titulo");
+        MOMENTO_FRACTURA = registrar("momento.fractura");
+        MOMENTO_AVISO = registrar("momento.aviso");
+        MOMENTO_FIN = registrar("momento.fin");
+        MOMENTO_CIELO = registrar("momento.cielo");
+        MOMENTO_DESPRENDE = registrar("momento.desprende");
     }
 
     private static SoundEvent registrar(String nombre) {

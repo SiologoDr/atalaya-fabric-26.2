@@ -819,5 +819,12 @@
   "subtitles.atalaya.moctezuma.fragmento_golpe": "A shard shatters",
   "subtitles.atalaya.moctezuma.erupcion": "The earth bursts into jade",
   "subtitles.atalaya.objeto.reparar": "Hammer strikes on armor",
-  "subtitles.atalaya.objeto.elixir": "Life returns"
+  "subtitles.atalaya.objeto.elixir": "Life returns",
+  "subtitles.atalaya.momento.animacion": "A cursed seal is drawn",
+  "subtitles.atalaya.momento.titulo": "The seal charges",
+  "subtitles.atalaya.momento.fractura": "Something shatters",
+  "subtitles.atalaya.momento.aviso": "The cursed bell tolls",
+  "subtitles.atalaya.momento.fin": "The curse breaks",
+  "subtitles.atalaya.momento.cielo": "The sky cracks open",
+  "subtitles.atalaya.momento.desprende": "A piece of the sky falls"
 }

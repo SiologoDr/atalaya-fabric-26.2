@@ -8,7 +8,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Mientras suena la musica de un jefe (MusicaJefes), la de vanilla no se
+ * Mientras suena la musica de un jefe (MusicaJefes) o la del Momento
+ * Maldicion (MomentoMaldicionCliente), la de vanilla no se
  * mueve: ni empieza una pista nueva ni cambia la que hubiera. Al acabar la
  * pelea, MusicManager sigue como siempre y la musica del juego vuelve sola.
  */
@@ -17,7 +18,7 @@ public abstract class MusicaJefesMixin {
 
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void atalaya$callarConJefe(CallbackInfo ci) {
-        if (MusicaJefes.sonando()) {
+        if (MusicaJefes.sonando() || com.atalaya.client.MomentoMaldicionCliente.musicaSuena()) {
             ci.cancel();
         }
     }

@@ -108,6 +108,40 @@ public final class AtalayaRed {
         }
     }
 
+    /**
+     * El Momento Maldicion (MomentoMaldicion), del servidor a cada cliente: el
+     * unico paquete que va en ese sentido, porque no hay entidad que lo lleve.
+     *
+     * @param accion   EMPIEZA (con la cinematica), SIGUE (quien entra a mitad: sin
+     *                 ella) o PARA
+     * @param duracion ticks que dura despues de la cinematica (0, hasta que se pare)
+     * @param pasado   ticks desde que empezo (para el reloj de quien entra a mitad)
+     */
+    public record Momento(int accion, String titulo, String texto, int duracion, int pasado) implements CustomPacketPayload {
+
+        public static final int EMPIEZA = 0;
+        public static final int SIGUE = 1;
+        public static final int PARA = 2;
+
+        public static final Type<Momento> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "momento"));
+
+        public static final StreamCodec<FriendlyByteBuf, Momento> CODEC = StreamCodec.of(
+                (buf, m) -> {
+                    buf.writeVarInt(m.accion());
+                    buf.writeUtf(m.titulo(), 256);
+                    buf.writeUtf(m.texto(), 1024);
+                    buf.writeVarInt(m.duracion());
+                    buf.writeVarInt(m.pasado());
+                },
+                buf -> new Momento(buf.readVarInt(), buf.readUtf(256), buf.readUtf(1024), buf.readVarInt(), buf.readVarInt()));
+
+        @Override
+        public Type<Momento> type() {
+            return TIPO;
+        }
+    }
+
     private AtalayaRed() {
     }
 
@@ -117,6 +151,7 @@ public final class AtalayaRed {
         PayloadTypeRegistry.serverboundPlay().register(OfrendaTecla.TIPO, OfrendaTecla.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(Habilidad.TIPO, Habilidad.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(DueloNota.TIPO, DueloNota.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(Momento.TIPO, Momento.CODEC);
     }
 
     /** Y esto solo en el servidor: quien atiende el aviso. */

@@ -307,6 +307,9 @@ public class AtalayaClient implements ClientModInitializer {
         novilis(AtalayaParticulas.NOVILIS_BRASA, NovilisParticula.Tipo.BRASA);
         novilis(AtalayaParticulas.NOVILIS_CHISPA, NovilisParticula.Tipo.CHISPA);
         novilis(AtalayaParticulas.NOVILIS_CENIZA, NovilisParticula.Tipo.CENIZA);
+        // Las del mundo maldito (Momento Maldicion): con el andar de la luz de Nerea y de la ceniza de Novilis.
+        nerea(AtalayaParticulas.MALDICION_MOTA, NereaParticula.Tipo.LUZ);
+        novilis(AtalayaParticulas.MALDICION_CENIZA, NovilisParticula.Tipo.CENIZA);
         novilis(AtalayaParticulas.NOVILIS_LLAMA, NovilisParticula.Tipo.LLAMA);
         novilis(AtalayaParticulas.NOVILIS_HUMO, NovilisParticula.Tipo.HUMO);
         novilis(AtalayaParticulas.NOVILIS_ONDA, NovilisParticula.Tipo.ONDA);
@@ -470,6 +473,18 @@ public class AtalayaClient implements ClientModInitializer {
                 com.atalaya.client.CorazonesJefe::tick);
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "presentacion"),
                 new com.atalaya.client.PresentacionHud());
+        // El Momento Maldicion (/atalaya momento_maldicion): encima de todo. Lo manda el servidor (el unico paquete
+        // que va hacia el cliente); al salir del mundo se olvida.
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "momento_maldicion"),
+                new com.atalaya.client.MomentoMaldicionHud());
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MomentoMaldicionCliente::tick);
+        // Y el cielo que se rompe (las grietas de luz en el cielo de verdad).
+        com.atalaya.client.CieloRoto.registrar();
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
+                com.atalaya.net.AtalayaRed.Momento.TIPO,
+                (carga, contexto) -> com.atalaya.client.MomentoMaldicionCliente.recibir(carga));
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+                (manejador, cliente) -> com.atalaya.client.MomentoMaldicionCliente.olvidar());
         java.util.List<Identifier> escondidos = new java.util.ArrayList<>(java.util.List.of(
                 VanillaHudElements.CROSSHAIR, VanillaHudElements.HOTBAR, VanillaHudElements.ARMOR_BAR,
                 VanillaHudElements.HEALTH_BAR, VanillaHudElements.FOOD_BAR, VanillaHudElements.AIR_BAR,
@@ -478,7 +493,7 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.SCOREBOARD, VanillaHudElements.OVERLAY_MESSAGE, VanillaHudElements.CHAT));
         for (Identifier id : escondidos) {
             HudElementRegistry.replaceElement(id, original -> (g, delta) -> {
-                if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
+                if (!com.atalaya.client.PresentacionJefe.ocultaHud() && !com.atalaya.client.MomentoMaldicionCliente.ocultaHud()) {
                     original.extractRenderState(g, delta);
                 }
             });
@@ -489,7 +504,7 @@ public class AtalayaClient implements ClientModInitializer {
     private static net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement oculto(
             net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement e) {
         return (g, delta) -> {
-            if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
+            if (!com.atalaya.client.PresentacionJefe.ocultaHud() && !com.atalaya.client.MomentoMaldicionCliente.ocultaHud()) {
                 e.extractRenderState(g, delta);
             }
         };
