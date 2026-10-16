@@ -43,6 +43,12 @@ public final class AtalayaItems {
     /** Huevo generador del fulminante, el creeper del desierto. */
     public static Item HUEVO_FULMINANTE;
 
+    /** Huevo generador del Fogonazo, el bicho-luciernaga que estalla en luz. */
+    public static Item HUEVO_FOGONAZO;
+
+    /** Huevo generador del Coco, el que te mete en la barriga. */
+    public static Item HUEVO_COCO;
+
     /** Huevo generador del Vigia. */
     public static Item HUEVO_VIGIA;
 
@@ -318,6 +324,12 @@ public final class AtalayaItems {
                 props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.FULMINANTE)));
 
         FULGURITA = registrar("fulgurita", Item::new);
+
+        HUEVO_FOGONAZO = registrar("huevo_fogonazo",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.FOGONAZO)));
+
+        HUEVO_COCO = registrar("huevo_coco",
+                props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.COCO)));
 
         HUEVO_VIGIA = registrar("huevo_vigia",
                 props -> new SpawnEggItem(props.spawnEgg(AtalayaEntities.VIGIA)));

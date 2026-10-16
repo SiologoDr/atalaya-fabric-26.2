@@ -448,7 +448,34 @@ public final class AtalayaSonidos {
     public static SoundEvent MOMENTO_AVISO;
     public static SoundEvent MOMENTO_FIN;
     public static SoundEvent MOMENTO_CIELO;
-    public static SoundEvent MOMENTO_DESPRENDE;
+
+    // El Fogonazo (fogonazo_sonidos.py): el bicho-luciernaga que estalla en luz. No suena al andar ni quieto: solo al
+    // pegarle, al morir, la mecha y el estallido.
+    public static SoundEvent FOGONAZO_HERIDO;
+    public static SoundEvent FOGONAZO_MUERTE;
+    /** El farol que se hincha y zumba: lo que dura la mecha. */
+    public static SoundEvent FOGONAZO_MECHA;
+    /** El estallido: el de un creeper, con el chasquido de la luz. */
+    public static SoundEvent FOGONAZO_ESTALLIDO;
+    /** El pitido en el oido mientras la pantalla esta en blanco (solo lo oye quien se ha quedado ciego). */
+    public static SoundEvent FOGONAZO_PITIDO;
+
+    // El Coco (coco_sonidos.py): el que te mete en la barriga.
+    public static SoundEvent COCO_AMBIENTE;
+    public static SoundEvent COCO_PASO;
+    public static SoundEvent COCO_HERIDO;
+    public static SoundEvent COCO_MUERTE;
+    /** El segundo de aviso: la cascara que cruje al abrirse. */
+    public static SoundEvent COCO_AVISO;
+    /** Te traga. */
+    public static SoundEvent COCO_TRAGA;
+    /** Las tripas, cada vez que le quita vida al de dentro. */
+    public static SoundEvent COCO_DIGIERE;
+    /** El latido que oye el de dentro (solo el). */
+    public static SoundEvent COCO_LATIDO;
+    /** La barriga que revienta al matarlo con alguien dentro. */
+    public static SoundEvent COCO_REVIENTA;
+    public static SoundEvent COCO_MANOTAZO;
 
     public static void registrar() {
         VIGIA_AMBIENTE = registrar("vigia.ambiente");
@@ -851,7 +878,21 @@ public final class AtalayaSonidos {
         MOMENTO_AVISO = registrar("momento.aviso");
         MOMENTO_FIN = registrar("momento.fin");
         MOMENTO_CIELO = registrar("momento.cielo");
-        MOMENTO_DESPRENDE = registrar("momento.desprende");
+        FOGONAZO_HERIDO = registrar("fogonazo.herido");
+        FOGONAZO_MUERTE = registrar("fogonazo.muerte");
+        FOGONAZO_MECHA = registrar("fogonazo.mecha");
+        FOGONAZO_ESTALLIDO = registrar("fogonazo.estallido");
+        FOGONAZO_PITIDO = registrar("fogonazo.pitido");
+        COCO_AMBIENTE = registrar("coco.ambiente");
+        COCO_PASO = registrar("coco.paso");
+        COCO_HERIDO = registrar("coco.herido");
+        COCO_MUERTE = registrar("coco.muerte");
+        COCO_AVISO = registrar("coco.aviso");
+        COCO_TRAGA = registrar("coco.traga");
+        COCO_DIGIERE = registrar("coco.digiere");
+        COCO_LATIDO = registrar("coco.latido");
+        COCO_REVIENTA = registrar("coco.revienta");
+        COCO_MANOTAZO = registrar("coco.manotazo");
     }
 
     private static SoundEvent registrar(String nombre) {

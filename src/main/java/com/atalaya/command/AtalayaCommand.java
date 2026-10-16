@@ -25,6 +25,7 @@ import com.atalaya.frio.Frio;
 import com.atalaya.hidratacion.Hidratacion;
 import com.atalaya.menu.ConfigMenu;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -44,9 +45,13 @@ import java.util.List;
  *   /atalaya menu                 -> panel de interruptores
  *   /atalaya hidratacion &lt;0-100&gt;  -> fija tu hidratacion, para probar
  *   /atalaya frio &lt;0-50&gt;          -> fija tu frio, para probar
- *   /atalaya momento_maldicion "titulo" "texto" [segundos]
- *                                 -> el Momento Maldicion para todos (con segundos, se para solo)
- *   /atalaya momento_maldicion stop -> lo para
+ *   /atalaya momento_fractura "titulo" "texto" [segundos]
+ *                                 -> el Momento Fractura para todos (con segundos, se para solo);
+ *                                    tambien vale momento_maldicion, su nombre de antes
+ *   /atalaya momento_fractura prueba tierra <segundos> [cantidad]
+ *                                 -> la prueba: romper tierra o cesped (10 si no se dice) antes de que el
+ *                                    contador llegue a cero; a quien no, lo mata (aunque tenga totems)
+ *   /atalaya momento_fractura stop -> lo para
  *   /atalaya nerea &lt;orden&gt;         -> fuerza a la Nerea mas cercana un ataque o
  *                                    momento del combate (despertar, rompeolas,
  *                                    remolino, burbujas, molino, arpon, lejano,
@@ -141,21 +146,8 @@ public final class AtalayaCommand {
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NOVILIS, sb))
                                         .executes(ctx -> probarNovilis(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
-                        .then(Commands.literal("momento_maldicion")
-                                .requires(AtalayaCommand::esOperador)
-                                .executes(ctx -> estadoMomento(ctx.getSource()))
-                                .then(Commands.literal("stop")
-                                        .executes(ctx -> pararMomento(ctx.getSource())))
-                                .then(Commands.argument("titulo", StringArgumentType.string())
-                                        .then(Commands.argument("texto", StringArgumentType.string())
-                                                .executes(ctx -> empezarMomento(ctx.getSource(),
-                                                        StringArgumentType.getString(ctx, "titulo"),
-                                                        StringArgumentType.getString(ctx, "texto"), 0))
-                                                .then(Commands.argument("segundos", IntegerArgumentType.integer(1, 86400))
-                                                        .executes(ctx -> empezarMomento(ctx.getSource(),
-                                                                StringArgumentType.getString(ctx, "titulo"),
-                                                                StringArgumentType.getString(ctx, "texto"),
-                                                                IntegerArgumentType.getInteger(ctx, "segundos")))))))
+                        .then(ordenMomento("momento_fractura"))
+                        .then(ordenMomento("momento_maldicion"))
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -172,30 +164,68 @@ public final class AtalayaCommand {
         );
     }
 
+    /**
+     * La orden del momento: momento_fractura (el nombre que se ve: el chat dice MOMENTO FRACTURA) y momento_maldicion
+     * (el de antes), las dos iguales.
+     */
+    private static LiteralArgumentBuilder<CommandSourceStack> ordenMomento(String nombre) {
+        return Commands.literal(nombre)
+                .requires(AtalayaCommand::esOperador)
+                .executes(ctx -> estadoMomento(ctx.getSource()))
+                .then(Commands.literal("stop")
+                        .executes(ctx -> pararMomento(ctx.getSource())))
+                .then(Commands.literal("prueba")
+                        .then(Commands.literal("tierra")
+                                .then(Commands.argument("segundos", IntegerArgumentType.integer(5, 3600))
+                                        .executes(ctx -> pruebaTierra(ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "segundos"), 10))
+                                        .then(Commands.argument("cantidad", IntegerArgumentType.integer(1, 640))
+                                                .executes(ctx -> pruebaTierra(ctx.getSource(),
+                                                        IntegerArgumentType.getInteger(ctx, "segundos"),
+                                                        IntegerArgumentType.getInteger(ctx, "cantidad")))))))
+                .then(Commands.argument("titulo", StringArgumentType.string())
+                        .then(Commands.argument("texto", StringArgumentType.string())
+                                .executes(ctx -> empezarMomento(ctx.getSource(),
+                                        StringArgumentType.getString(ctx, "titulo"),
+                                        StringArgumentType.getString(ctx, "texto"), 0))
+                                .then(Commands.argument("segundos", IntegerArgumentType.integer(1, 86400))
+                                        .executes(ctx -> empezarMomento(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "titulo"),
+                                                StringArgumentType.getString(ctx, "texto"),
+                                                IntegerArgumentType.getInteger(ctx, "segundos"))))));
+    }
+
     private static int empezarMomento(CommandSourceStack fuente, String titulo, String texto, int segundos) {
         if (titulo.isBlank()) {
             fuente.sendFailure(Component.literal("El titulo no puede ir vacio."));
             return 0;
         }
         com.atalaya.momento.MomentoMaldicion.empezar(fuente.getServer(), titulo, texto, segundos);
-        fuente.sendSuccess(() -> Component.literal("Momento maldicion: «" + titulo + "»"
-                + (segundos > 0 ? " durante " + segundos + " s." : ", hasta /atalaya momento_maldicion stop.")), true);
+        fuente.sendSuccess(() -> Component.literal("Momento fractura: «" + titulo + "»"
+                + (segundos > 0 ? " durante " + segundos + " s." : ", hasta /atalaya momento_fractura stop.")), true);
+        return 1;
+    }
+
+    private static int pruebaTierra(CommandSourceStack fuente, int segundos, int cantidad) {
+        com.atalaya.momento.MomentoMaldicion.empezarPruebaTierra(fuente.getServer(), segundos, cantidad);
+        fuente.sendSuccess(() -> Component.literal("Momento fractura, prueba de la tierra: " + cantidad
+                + " bloques en " + segundos + " s (el contador empieza al acabar la cinematica)."), true);
         return 1;
     }
 
     private static int pararMomento(CommandSourceStack fuente) {
         if (!com.atalaya.momento.MomentoMaldicion.parar()) {
-            fuente.sendFailure(Component.literal("No hay ningun momento maldicion en marcha."));
+            fuente.sendFailure(Component.literal("No hay ningun momento fractura en marcha."));
             return 0;
         }
-        fuente.sendSuccess(() -> Component.literal("Momento maldicion parado."), true);
+        fuente.sendSuccess(() -> Component.literal("Momento fractura parado."), true);
         return 1;
     }
 
     private static int estadoMomento(CommandSourceStack fuente) {
         if (!com.atalaya.momento.MomentoMaldicion.activo()) {
             fuente.sendSuccess(() -> Component.literal(
-                    "Uso: /atalaya momento_maldicion \"titulo\" \"texto\" [segundos]  ·  /atalaya momento_maldicion stop"), false);
+                    "Uso: /atalaya momento_fractura \"titulo\" \"texto\" [segundos]  ·  /atalaya momento_fractura stop"), false);
             return 0;
         }
         int queda = com.atalaya.momento.MomentoMaldicion.queda();

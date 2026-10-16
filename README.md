@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.2.0**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.2.1**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -24,7 +24,9 @@ jefes elementales.
 >   herrería), insolación e hidratación en el desierto, corrosión y empapado bajo
 >   la lluvia, hipotermia en la nieve.
 > - **Monstruos:** el Fulminante (el creeper del desierto, con su aturdimiento y
->   la fulgurita) y el Vigía.
+>   la fulgurita), el Vigía, el Fogonazo (el bicho-luciérnaga que estalla en luz
+>   y te deja la pantalla en blanco) y el Coco (el que te mete en la barriga y te
+>   va digiriendo hasta que alguien lo mata).
 > - **Jefes elementales:** **Nerea** (agua), **Aeralis** (aire), **Rajang**
 >   (tierra) y **Novilis** (fuego).
 > - **Mini jefes:** **Moctezuma** (tierra), **Yiatzo** (viento), **Atlahua**
@@ -889,6 +891,166 @@ animación, los pósters y los teasers de los jefes. Para el Vigía lleva la mal
 script. Los jefes ya no tienen ese problema, porque su malla sale de Python.
 
 ---
+
+## El Fogonazo
+
+Un bicho-luciérnaga de la noche que lleva la luz dentro (16-10-2026). Juan: «un mob que, si se te acerca, explote y te
+aparezca la pantalla en blanco». De su ficha eligió el Destello («este diseño va a ser»), con la cara de luciérnaga, y
+pidió «que al estallar sea como la explosión de un creeper: te va a empujar, cegar y hacer daño».
+
+- **Cómo es:**
+  - anda agazapado a cuatro patas, con el pecho acorazado de placas;
+  - detrás, levantado sobre el lomo, lleva el farol en bandas, que brilla (de noche se ve de lejos);
+  - la cabeza es de luciérnaga: el escudo rojo teja con la mancha, los ojos compuestos, las mandíbulas en hoz, la boca
+    encendida y las antenas en sierra.
+
+  Mide unos 2 bloques de largo y 1,4 de alto hasta el farol. Su caja es de 0,9 × 1,3, para que pase por donde pasa un
+  creeper.
+- **Cómo se mueve:**
+  - **anda y corre** al trote, en diagonal: cada pata se adelanta doblando la rodilla, el cuerpo sube, baja y se echa
+    adelante, el farol se balancea con retraso y las antenas se pliegan hacia atrás;
+  - **quieto** está vivo: tantea con las antenas (y a veces levanta una de golpe), mira a los lados y ladea la cabeza,
+    mueve las mandíbulas a ratos, respira (el farol late y las placas se abren un poco) y alguna vez da un golpecito con
+    una pata;
+  - cada Fogonazo lleva su fase, así que dos juntos no se mueven a la vez.
+- **Qué hace:** hereda del creeper entero, como el Fulminante.
+  - Se acerca **corriendo como un jugador que esprinta** (Juan: «la misma velocidad de un jugador al correr»).
+    - La velocidad es 0,36. En un mob cuenta dos veces (la del paso y la del empuje), así que da unos 5,6 bloques por
+      segundo, como la de 0,13 del jugador que esprinta.
+    - Medido en el juego: 5,7 bloques por segundo.
+  - Como el creeper, persigue a quien esté a menos de 16 bloques. A 3 bloques se ceba.
+  - Tras **un segundo de aviso** (el creeper da segundo y medio) estalla **como un creeper**: el mismo radio, el mismo
+    daño, el empujón y los bloques rotos, si `mob_griefing` lo deja.
+  - Al cebarse se abre: levanta las placas del farol y el escudo, abre la quijada y las mandíbulas, levanta las antenas
+    y el farol crece. Además parpadea en blanco y se hincha, como un creeper.
+  - Los gatos lo espantan, como a los creepers.
+- **La pantalla en blanco:** le toca a quien esté a menos de 6 bloques y vea el estallido; una pared tapa la luz.
+  - La pantalla se queda **blanca del todo 4 s** y el blanco se va en 2 s.
+  - Mientras, le pitan los oídos.
+  - Va por encima de todo el HUD: ciega de verdad.
+- **En silencio** (Juan: «no va a tener ruido, va a ser silencio; un segundo antes de que explote recién va a sonar»):
+  no suena al andar ni estando quieto. Lo único que le delata es su luz. Los sonidos, todos propios:
+  - **al pegarle**, un chirrido, y **al morir**, la luz que se apaga (Juan: «sonido cuando le atacas sí debe tener, lo
+    mismo al morir»);
+  - **la mecha**, lo primero que se le oye: zumba y sube durante el segundo de aviso;
+  - **el estallido**, con el chasquido de la luz y el trueno;
+  - **el pitido** en los oídos de quien se queda en blanco.
+- Por ahora **solo sale con su huevo** (o con `/summon atalaya:fogonazo`): ningún mob ni jefe aparece todavía solo.
+
+**Cómo está hecho:**
+
+- **En el servidor,** `FogonazoEntity` hereda de `Creeper`:
+  - la mecha se pone con `CreeperAccessor`;
+  - no tiene sonido de ambiente ni de pasos (`playStepSound` vacío);
+  - el sonido de cebarse cambia `CREEPER_PRIMED` por el suyo;
+  - `FogonazoMixin` cambia la explosión del creeper (la llamada a `explode` de `explodeCreeper`) por la suya: la misma,
+    con su sonido;
+  - la llamada larga de `Level.explode` pide las partículas de bloque, que son privadas y las abre
+    `NivelExplosionAccessor`;
+  - después vienen el destello (`MJ_DESTELLO`, con el blanco cálido, el elemento 4) y el paquete `AtalayaRed.Deslumbre`
+    a quien lo ve.
+- **En el cliente:**
+  - `FogonazoModel`: las animaciones;
+  - `FogonazoMalla`: la malla, GENERADA;
+  - `FogonazoRenderer`: lo hinchado y el parpadeo del creeper;
+  - `FogonazoBrilloLayer`: lo que brilla (el render «eyes»);
+  - `DeslumbreHud`: la pantalla en blanco y el pitido.
+- **Los generadores:**
+  - `fogonazo_modelo.py` y `fogonazo_escenas.py` hacen la ficha.
+  - `fogonazo_juego.py` hace la malla de Minecraft con las mismas cajas del boceto: cada caja en su pieza, con su giro,
+    agrupadas en las partes que se mueven. También pinta la textura con los mismos pintores, a 4 píxeles por unidad para
+    que las medidas con decimales caigan en píxeles enteros, y hace la textura de lo que brilla, el huevo y los nombres.
+  - `fogonazo_sonidos.py` hace los sonidos.
+- **La ficha** está en `materiales/fichas/mobs/fogonazo`.
+
+## El Coco
+
+El mob que te mete en la barriga (16-10-2026). Juan: «un mob que meta al jugador dentro de su panza, como atrapado, y
+le quite vida lentamente; no tanto daño, pero si no hay una persona cerca esa cosa puede ser mortal; la única forma de
+salvar a un jugador es matando al mob». Es el Coco de la nana («duérmete niño, duérmete ya, que viene el Coco y te
+comerá»), pero nuestro. De su ficha eligió el Glotón («haz el diseño 1 con todas sus animaciones, huevo, etc.»), y pidió
+que la barriga no fuera translúcida: que el que está dentro se sepa por un aviso encima del Coco.
+
+- **Cómo es:**
+  - la cabeza es una cáscara de coco con los tres agujeros (los dos ojos, hondos, con una brasa al fondo, y el de la
+    nariz), las aristas que bajan al ceño y una cresta de estopa (la fibra del coco);
+  - al abrir la boca se parte como un coco roto, y lo blanco del canto (la carne del coco) son los dientes;
+  - el cuerpo es pesado y encorvado, con la giba, las piernas cortas y arqueadas, los brazos larguísimos y unas manos
+    de cuatro dedos con garras;
+  - delante lleva la barriga, grande y colgante.
+
+  Mide unos 2,9 bloques de alto con la cresta. Su caja es de 1,5 × 2,7.
+- **Qué hace:**
+  - Te ve (hasta 24 bloques) y viene a por ti, encorvado. Solo va a por jugadores, y no traga a los que están en
+    creativo ni en espectador.
+  - A 2,5 bloques se para y da **un segundo de aviso**: alza los brazos, abre las manos y la cáscara de par en par, y
+    la cáscara cruje. Si cuando acaba sigues a menos de 3,4 bloques y te ve, **te traga**.
+  - **Dentro de la barriga:**
+    - no se te ve, y no puedes salir con mayúsculas;
+    - no puedes pegar, romper, poner ni usar nada: ni comer, ni una perla de ender;
+    - **cada 2 segundos te quita medio corazón**, sin que cuente la armadura;
+    - y no te curas solo (la comida ni regenera ni se gasta). Con la vida llena son 40 segundos.
+  - Mientras, **encima del Coco** sale el aviso: el icono de alerta, el nombre del jugador y «¡ha sido atrapado!» en
+    rojo. Es como los nombres de vanilla, de cara a la cámara y con el fondo oscuro, y se ve **a través de las paredes
+    hasta 48 bloques**, para que los demás te encuentren.
+  - El de dentro ve **la pantalla roja y oscura**, que late con un corazón grande y sordo (el latido suena solo para
+    él). Va por debajo de la barra y los corazones, para que vea cómo se le va la vida. Arriba le sale «¡El Coco te ha
+    tragado! Solo sales si alguien lo mata».
+  - Con alguien dentro **no se mueve**: hace la digestión y le da un manotazo a quien se le acerque.
+  - **Solo sales si alguien lo mata:** la barriga revienta, sale una nube de polvo y caes fuera, delante de él.
+  - Si mueres dentro, el chat dice «… fue digerido por Coco».
+  - Tiene 20 corazones, 2 de armadura y aguanta bastante los empujones.
+- **Cómo se mueve:**
+  - **anda** pesado, bamboleándose: las piernas cortas de lado a lado, los brazos que se apoyan en el suelo con la
+    pierna contraria, la barriga que bota con retraso y la cresta que se mece;
+  - **quieto**, respira, mira a los lados y ladea la cabeza, abre la boca a ratos, le suenan las tripas (la barriga
+    tiembla) y tamborilea con los dedos en el suelo;
+  - **el aviso:** alza los brazos y abre las manos y la cáscara;
+  - **traga:** los brazos se cierran hacia la boca, la boca se abre más, se cierra de golpe y la cabeza traga; la
+    barriga se hincha;
+  - **lleno:** la barriga hinchada, con las patadas del de dentro, la cabeza gacha y, de vez en cuando, palmadas en la
+    barriga;
+  - **el manotazo:** el brazo derecho barre de lado a lado.
+- **Los sonidos** son todos propios:
+  - las tripas, un resuello y, a veces, la nana tarareada con la boca cerrada;
+  - los pasos pesados;
+  - el golpe hueco de la cáscara cuando le pegas;
+  - el quejido al morir;
+  - la cáscara que cruje en el aviso;
+  - el trago;
+  - las tripas cada vez que te quita vida;
+  - el latido de dentro;
+  - la barriga que revienta;
+  - el manotazo.
+- Por ahora **solo sale con su huevo** (o con `/summon atalaya:coco`).
+
+**Cómo está hecho:**
+
+- **En el servidor,** `CocoEntity` es un `Monster` con su propia IA:
+  - `CazarGoal` lo lleva hacia la presa, y el aviso, el trago y la digestión van en `customServerAiStep`, con el estado
+    sincronizado (`LIBRE`, `AVISANDO`, `TRAGANDO`, `LLENO`) y el nombre del atrapado;
+  - el de dentro va montado en él (`startRiding` forzado), en la barriga (`getPassengerAttachmentPoint`);
+  - `CocoDentroMixin` hace que `Player.wantsToStopRiding` diga que no dentro de un Coco;
+  - `CocoSinCurarMixin` para `FoodData.tick` mientras estás dentro;
+  - los golpes y los usos se cortan con los eventos de Fabric (`registrarEventos`);
+  - el daño es su propio tipo, `atalaya:coco`, que no mira la armadura ni empuja;
+  - al morir con alguien dentro (`die`), lo suelta delante con un empujón hacia arriba.
+- **En el cliente:**
+  - `CocoModel`: las animaciones;
+  - `CocoMalla`: la malla, GENERADA;
+  - `CocoRenderer`: el aviso de encima (`submitNameTag` para las dos líneas, como los nombres de vanilla, y el icono
+    con `submitCustomGeometry`, normal y a través de las paredes);
+  - `CocoBrilloLayer`: lo que brilla (el render «eyes»);
+  - `CocoDentroHud`: la pantalla roja y el latido;
+  - `CocoOcultarMixin`: no pinta al jugador que va dentro.
+- **Los generadores:**
+  - `coco_modelo.py` y `coco_escenas.py` hacen la ficha (los tres tipos, en una aldea al anochecer).
+  - `coco_juego.py` hace la malla de Minecraft con las mismas cajas del boceto, en la postura de reposo.
+    - Las partes que se mueven las marca el propio boceto: `coco_modelo.PARTE` y `EN`, que en los bocetos no hacen nada.
+    - Son 34 partes, con cada dedo y sus dos falanges.
+    - También hace la textura, lo que brilla, el huevo, el icono del aviso y los nombres.
+  - `coco_sonidos.py` hace los sonidos.
+- **La ficha** está en `materiales/fichas/mobs/coco`.
 
 ## Los jefes elementales
 
@@ -2280,16 +2442,37 @@ más cercano. Las órdenes son `despertar`, `normal`, `area`, `especial`, `dormi
 
 ---
 
-## El Momento Maldición
+## El Momento Fractura
 
 Nuestro «momento Reviil» de DEDsafío (15-10-2026). Juan: «quiero que lo hagas mil veces mejor, que me sorprendas».
 Unos compañeros dejaron una idea (un vídeo, un sonido y una música). Aquí todo se crea: la cinemática, los sonidos y la
-música son nuestros, con un concepto propio, **el Sello**.
+música son nuestros, con un concepto propio, **el Sello**. Nació como «Momento Maldición» (así se llaman aún sus clases
+y sus recursos), pero el nombre que se ve es **Momento Fractura**, el del aviso del chat.
 
 ```
-/atalaya momento_maldicion "título" "texto" [segundos]
-/atalaya momento_maldicion stop
+/atalaya momento_fractura "título" "texto" [segundos]
+/atalaya momento_fractura prueba tierra <segundos> [cantidad]
+/atalaya momento_fractura stop
 ```
+
+La orden de antes, `momento_maldicion`, sigue valiendo igual.
+
+**La prueba de la tierra** (16-10-2026). Juan: «un momento fractura de prueba de romper 10 de tierra o césped; arriba
+en el centro un contador; si llega a cero, aunque tenga tótems, te mata; si cumples no te va a avisar; cuando se
+termine el contador, que pasen 10 s y luego se vaya». Es el mismo momento (la cinemática, el aviso y el cielo roto), y:
+
+- El chat dice qué hay que hacer: «Rompe 10 bloques de tierra o césped antes de que el contador llegue a cero.»
+  `cantidad` es 10 si no se dice. Cuentan la tierra, la tierra gruesa, la tierra con raíces y el bloque de césped.
+- Al acabar la cinemática, arriba en el centro baja **el contador**: M:SS pequeño, en blanco y a píxeles (Juan: «el
+  número debe ser más pequeño y de color blanco»). Los dos puntos laten cada segundo; en los diez últimos, cada segundo
+  se enciende en rojo y vuelve al blanco, y el 0:00 es rojo. No dice lo que lleva roto nadie.
+- Cada jugador lleva su cuenta de lo que rompe mientras corre el contador (lo de antes no vale).
+- **A cero**, a quien no haya llegado lo mata la fractura, **aunque tenga tótems**. Es un daño propio
+  (`atalaya:momento_fractura`, «fue consumido por la fractura») que se salta los tótems, la armadura, los efectos y la
+  invulnerabilidad (`bypasses_invulnerability` y las demás etiquetas). A quien cumple no se le dice nada. Los de
+  creativo y los espectadores no cuentan.
+- El 0:00 parpadea, se queda, y **10 s después** el momento se va solo.
+- Parado a mano (`stop`), no mata a nadie.
 
 Lo lanza un operador y les sale a todos a la vez. También está en el panel (`/atalaya menu`), que repite el último texto.
 Con `segundos`, el momento se para solo al pasar ese tiempo (sin reloj en pantalla). El título solo queda en el registro
@@ -2306,28 +2489,47 @@ del servidor: en pantalla no sale texto, y en el chat la cabecera es siempre «M
 | 126 | En el centro nace un **núcleo** de luz que crece y late; el sello se levanta y gira cada vez más deprisa, y del núcleo saltan rayos a las puntas de la estrella. |
 | 150 | El sello se raja desde el núcleo, que se calienta hasta el blanco. |
 | 168 | **Silencio**: todo se congela, en blanco. |
-| 174 | **La fractura**: el núcleo revienta, la pantalla salta en esquirlas que salen girando con el filo encendido, el sello se rompe en trozos, una onda barre la pantalla con chispas y **el cielo se raja entero**. |
+| 174 | **La fractura**: el núcleo revienta en un destello blanco y la pantalla se rompe **como un cristal** (Juan: «que no se rompa como una pared sino como un vidrio»). Del golpe salen grietas finas que corren hacia fuera, los trozos se sueltan del centro a los bordes y caen girando, con el filo encendido, saltan chispas y **el cielo se raja entero**. |
 | 224 | El aviso en el chat y una campana. |
 
-Mientras dura la cinemática se esconde el HUD y la cámara tiembla con los latidos y con la fractura.
+Mientras dura la cinemática la cámara tiembla con los latidos y con la fractura, pero se sigue jugando (Juan: «que la
+animación salga pero que no les impida hacer lo que tienen que hacer»): el HUD y la mano se ven como siempre, la
+cinemática va por debajo del HUD y el fondo solo se oscurece a medias (antes, casi negro).
 
 **El aviso del chat**, como el del momento de DEDsafío: el sello rojo, «**MOMENTO FRACTURA:**» en letras de metal rojo
 con un brillo que lo cruza, y debajo el texto en rojo. El rótulo son doce cuadros animados de 32 × 32 que el chat pinta
 seguidos, como si fueran letras (`momento_cartel_NN`).
 
-**Mientras dura**, en el HUD no hay nada: manda el cielo.
+**Mientras dura**, en pantalla no hay nada más (salvo el contador, en la prueba): manda el cielo.
 
-- **El cielo roto** (`CieloRoto`): todo el cielo es un cristal roto. Es un mosaico de trozos irregulares (las celdas de
-  Voronoi de 80 puntos de la cúpula) cuyas juntas son grietas quebradas, al rojo blanco con un halo rojo. Las ondas de
-  luz bajan desde lo alto por las grietas y todo late con el corazón de la música. Algunos trozos faltan y dejan ver la
-  luz de detrás. Cada 5,5 s se desprende otro: se enciende, cae dando vueltas hacia el horizonte y deja su hueco (con
-  su sonido). En lo alto hay una rasgadura de borde quebrado que respira.
-- El cielo, la niebla, las nubes y la luz del mundo son de sangre (encima del cielo de un jefe, si lo hay).
+- **El cielo roto** (`CieloRoto`): un cristal golpeado justo encima de cada jugador (Juan, con fotos de cristales con
+  un impacto: «en el centro arriba sea el único hueco y nada más»; «que de cada punto del hueco salga una grieta, debes
+  ser fiel a una ruptura»).
+  - En el cénit, **un solo hueco**, pequeño, casi redondo y apenas dentado (Juan: «has hecho muchas puntas, sigue la
+    referencia»).
+  - De **cada punta** del borde sale una grieta fina (unas doce), cada una a su aire: curva, de su largo (alguna casi
+    hasta el horizonte) y alguna partida en dos.
+  - Unos pocos **arcos sueltos** unen dos grietas vecinas, a distintas distancias. Nada de telaraña regular.
+  - Se rajan del centro hacia fuera con la fractura; por ellas corren ondas de luz y todo late con el corazón de la
+    música.
+- **Lo que se ve por el hueco**: negro, con una niebla gris que se mueve despacio en dos capas (Juan: «negros y gris,
+  no morado»), sin hondura (Juan: «quitemos la profundidad del hueco»).
+- **Los ojos** (Juan, con una imagen de dos cuadrados rojos en lo negro: «no quiero algo detallado sino cuadrados
+  rojos»; «un poco más pequeños»): tres pares de cuadrados rojos lisos que salen poco a poco en el hueco. Parpadean y
+  miran a un lado y a otro; si miras arriba, se quedan quietos mirándote. Giran contigo: siempre los ves derechos.
+- **Su cuerpo** (Juan: «que no se vea, solo que se note un poco, dando ese misterio»): detrás de cada par, una silueta
+  casi negra, a píxeles del tamaño de un ojo: una cabeza con dos cuernos cortos, el cuello y unos hombros que se pierden
+  hacia abajo y hacia el borde del hueco. Sobre la niebla gris se adivina; sobre lo negro, apenas. Respira y gira un poco
+  la cabeza con la mirada.
+- **No cae nada** del cielo (Juan: «no quiero que se rompan 5 huecos, la idea está descartada»).
+- **La semilla** del cielo la elige el servidor: todos ven las mismas grietas.
+- El cielo, la niebla y la luz del mundo son de sangre (encima del cielo de un jefe, si lo hay). Las nubes, el sol y
+  la luna no se ven: manda el cielo roto (`SolMomentoMixin`).
 - En el mundo suben motas rojas y cae ceniza negra.
 - Suena la nana maldita en bucle (en ambiente, como la de los jefes). La de los jefes y la de vanilla callan.
 
-**Al pararlo**, entra luz, las grietas se cierran hacia arriba, suena la maldición que se rompe, la música se funde y el
-cielo vuelve en 6 s.
+**Al pararlo**, entra luz, las grietas se cierran hacia el centro, suena el cristal que se recompone, la música se
+funde y el cielo vuelve en 6 s.
 
 Quien entra a mitad lo recibe ya empezado. No se guarda en el mundo: si se reinicia el servidor, se acaba.
 
@@ -2338,24 +2540,65 @@ Quien entra a mitad lo recibe ya empezado. No se guarda en el mundo: si se reini
 - En el cliente:
   - `MomentoMaldicionCliente` lleva el calendario, la música, el cielo (lo mezcla `CieloJefesMixin`), el temblor
     (`TemblorCamaraMixin`), las partículas y los sonidos.
-  - `MomentoMaldicionHud` pinta la cinemática a la resolución de la pantalla, sin texturas: trazos finos girados con
-    su brillo en capas.
-  - `CieloRoto` pinta las grietas y los trozos del cielo con cintas emisivas en una cúpula alrededor de la cámara
-    (`LevelRenderEvents.COLLECT_SUBMITS`).
+  - `MomentoMaldicionHud` pinta la cinemática a la resolución de la pantalla: trazos finos girados y, para lo blando,
+    piezas suaves (el brillo de los trazos y de las motas, los haces, los discos y la viñeta del latido), en dos
+    pasadas (primero los brillos, luego lo demás) para que el juego lo junte en pocas tandas. Los trozos del cristal
+    son polígonos de verdad: cada triángulo es un triángulo blanco (`triangulo.png`) estirado a su sitio con una
+    matriz.
+  - `CieloRoto` pinta las grietas, el hueco y sus ojos con cintas y cuadros emisivos en una cúpula alrededor de la
+    cámara (`LevelRenderEvents.COLLECT_SUBMITS`), todo con una sola hoja (`cielo.png`): así se pinta de una tanda y en
+    orden. Lo de dentro del hueco va más cerca de la cámara, para que la niebla roja no lo tiña. Cada cuadro va por una
+    sola cara, la que mira a la cámara: en 26.2 la cara vista por detrás se alumbra al 40 % y, con las dos caras una
+    encima de otra, los ojos se apagaban a ratos.
+  - El contador de la prueba lo pinta también `MomentoMaldicionHud`.
 - Generadores:
-  - `momento_maldicion.py` hace el rótulo del chat, el icono, la textura de las grietas y las partículas.
-  - `momento_maldicion_sonidos.py` hace los sonidos y la música:
-    - el corazón;
-    - el zumbido de cristal del sello, los golpes de la estrella y las campanitas de los sigilos;
-    - la carga del núcleo, con chispazos, coro y crujido, y el silencio con su pitido;
-    - la fractura;
-    - el cielo que se raja;
-    - cada trozo que cae;
-    - la campana del chat;
-    - el fin;
+  - `momento_maldicion.py` hace el rótulo del chat, el icono, la hoja del cielo (`cielo.png`: la cinta de las
+    grietas, un blanco liso y la niebla del hueco), las partículas, las piezas suaves de la cinemática y el triángulo
+    de los trozos del cristal (`textures/gui/momento`, con `blur`) y los números del contador (`reloj`, sin `blur`).
+  - `momento_maldicion_sonidos.py` hace los sonidos y la música. Los de la animación se rehicieron dos veces el
+    16-10-2026. Primero, para que no se parecieran a los de los jefes (Juan: «haz algo más variado, más realistas»).
+    Después, para que **den miedo** (Juan: «debe sonar intimidante: si aparece la animación, los jugadores van a saber
+    que es algo malo y que hay que estar atento»; «al romperse, un sonido de vidrio que se rompe; cuando el cielo se
+    rompe, un estruendo»):
+    - al empezar, **la bocina** de las películas de miedo (un acorde grave de sierras con su sub, que se abre) con
+      el golpe grave de los tráileres: se sabe al momento que viene algo malo;
+    - debajo, un dron de dos notas graves a un semitono que ruge, y un corazón de verdad (el «lub» y el «dub»), oído
+      desde dentro del pecho, cada vez más seguido;
+    - el Sello: unas cuerdas de terror (un racimo de notas pegadas, con el arco que tiembla) que crecen, algo muy
+      pesado que se arrastra sobre piedra mientras se dibujan los círculos y un golpe sordo por cada punta de la
+      estrella;
+    - los sigilos: por cada uno, **un sello de hierro que se clava en la piedra** (un golpe grave y corto con su
+      gruñido), alternando dos notas como dos manos en un tambor y cada vez más fuerte, sobre un retumbar que sube hasta
+      la segunda bocina. Antes eran tintineos de cristal (Juan: «que no suene como brillos o cristal, le quita el toque
+      de seriedad e intimidación»): en la animación ya no queda nada de cristal hasta que se raja el sello;
+    - la carga: **la segunda bocina**, más alta, las cuerdas que suben, un tono que se dispara, el corazón desbocado
+      y, al rajarse el sello, chasquidos cada vez más seguidos; luego el silencio de golpe, con el pitido del oído;
+    - la fractura: **un cristal enorme que estalla**, con el crac, el ruido de verdad del vidrio que se parte y más de
+      mil esquirlas que saltan, caen y rebotan;
+    - el cielo que se rompe: **un estruendo**, el latigazo del rayo, el trueno que rueda en golpes cada vez más lejos,
+      un retumbar grave, el cielo que se desgarra y, lejos, una lluvia de esquirlas;
+    - la campana del chat: una campana de bronce grande, vieja y algo rajada (sus parciales de verdad), con la bocina
+      grave debajo;
+    - el fin: el estallido al revés (el cristal que se recompone) y una campana pequeña, la calma;
     - la **nana maldita**: una cajita de música rota en re menor armónica y en tres por cuatro, con dron, coro y el
       corazón en cada compás. Son dieciséis compases (59,2 s), con la cola de la sala plegada al principio para que el
       bucle no tenga costura.
+
+**La revisión del 16-10-2026.** Juan pidió abrirlo en el juego y arreglar lo que estuviera raro. Se probó con fotos
+tick a tick (`FotosPrueba`, en el mundo Escenas) y se cambió:
+
+- **La fractura parece cristal:** un destello blanco que se enfría a naranja y a rojo (antes, la pantalla quedaba rosa y
+  lavada); la pantalla salta en esquirlas irregulares de seis formas, con el filo blanco y luego rojo (antes eran
+  rectángulos); y la onda y los discos tienen el borde suave (antes, en escalera).
+- **Sin cajas:** las motas son puntos de luz con su estela (antes, una raya dentro de un rectángulo de brillo); el brillo
+  de los trazos es una campana suave con las puntas redondas; los rayos se apagan hacia fuera; la viñeta del latido es
+  suave.
+- **El cielo roto, limpio:** sin las nubes (se veían como barras oscuras), sin el sol (asomaba a mediodía), los huecos
+  sin triángulos marcados y la gran grieta de lo alto en vez de la rasgadura en huso (se veía como un platillo).
+- **Las motas del mundo** nacen a partir de 6 bloques (una pegada a la cámara se veía como una mancha enorme).
+- **El nombre:** `/atalaya momento_fractura` y «Momento Fractura» en el panel.
+- **El rendimiento**, con la gráfica del procesador de esta máquina: la fractura pasa de 28 a 34 FPS y la cinemática se
+  queda en 44.
 
 ## Cómo se hace un jefe
 
@@ -2605,8 +2848,9 @@ El esquema es siempre el mismo:
 | `/atalaya aeralis <orden>` | Operador | Igual con la Aeralis más cercana (80 bloques): `despertar`, `aleteo`, `tornados`, `caceria`, `rafaga`, `doble`, `juicio`, `picado`, `posada`, `escamas`, `rasante` (la pasada rasante ya), `ladrona` (la Ráfaga Ladrona), `romper` (rompe sus tornados), `viento` (le devuelve el viento que le falta), `mancha` (una mancha de escamas bajo cada presa), `nucleo` (rompe un núcleo del Juicio), `furia` (pone o quita la Furia), `aturdida`, `agotada`, `fase`, `liberar`, `ocelos`, `veletas`, `pararrayos`, `chispa` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
 | `/atalaya rajang <orden>` | Operador | Igual con el Rajang más cercano (80 bloques): `despertar`, `perseguir` (corre 8 s sin atacar, para ver el paso y el galope), `garra`, `terremoto`, `embestida`, `tumba` (en círculo), `anillo` (la Tumba en anillo), `sello`, `romper` (rompe los tótems), `escalon` (hace temblar ya un escalón del Sello), `pisar` (sube al jugador más cercano a un escalón alto del Sello), `cataclismo`, `salto`, `idolo`, `altar` (lleva al jugador más cercano junto al pilar del ídolo), `aturdido`, `paralizado`, `estampado`, `furia` (se la pone o se la quita), `fase`, `liberar` |
 | `/atalaya novilis <orden>` | Operador | Igual con el Novilis más cercano (80 bloques): `despertar`, `barrido`, `castigo`, `onda`, `sol`, `trompetas`, `sombra` (la Sombra del Escudo), `estatua` (un golpe a un ángel), `espada` (la Espada del Fuego), `infernal` (la Furia Infernal), `ofrenda`, `mar` (el Mar de Llamas), `dios`, `aturdido`, `furia` (se la pone o se la quita), `perseguir` (va 8 s tras el blanco sin atacar, andando o corriendo segun lo lejos que este, para ver el paso), `fase`, `liberar`, `manda`, `forja`, `piedra`, `caliente` (un minijuego ya), `mini_bien` (que salga bien), `mini_fin` (que se acabe el tiempo) |
-| `/atalaya momento_maldicion "título" "texto" [segundos]` | Operador | El Momento Maldición para todos (ver [El Momento Maldición](#el-momento-maldición)): la cinemática y, al acabar, el texto en el chat; con segundos se para solo. Sin nada, dice si hay uno en marcha |
-| `/atalaya momento_maldicion stop` | Operador | Lo para |
+| `/atalaya momento_fractura "título" "texto" [segundos]` | Operador | El Momento Fractura para todos (ver [El Momento Fractura](#el-momento-fractura)): la cinemática y, al acabar, el texto en el chat; con segundos se para solo. Sin nada, dice si hay uno en marcha. También vale `momento_maldicion` |
+| `/atalaya momento_fractura prueba tierra <segundos> [cantidad]` | Operador | El Momento Fractura con la prueba de la tierra: romper `cantidad` (10) bloques de tierra o césped antes de que el contador (`segundos`, desde que acaba la cinemática) llegue a cero; a quien no, lo mata aunque tenga tótems. 10 s después se va solo |
+| `/atalaya momento_fractura stop` | Operador | Lo para (sin matar a nadie) |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/atalaya habilidad lista` | Operador | Te deja la activa lista al momento, sin recarga (para probar) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
@@ -2750,7 +2994,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.2.0.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.2.1.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -2781,7 +3025,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.2.0
+	- atalaya 1.2.1
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -3007,6 +3251,9 @@ src/main/               código común (servidor + cliente)
 │   ├── entity/AtalayaEntities      los 18 tipos: atributos, aparición y bioma
 │   ├── entity/FulminanteEntity     el creeper del desierto y su vitrificado
 │   ├── entity/VigiaEntity          el Vigía, y RayoVigiaEntity su rayo
+│   ├── entity/FogonazoEntity       el bicho-luciérnaga que estalla en luz (FogonazoMixin cambia su explosión)
+│   ├── entity/CocoEntity           el que te mete en la barriga (CocoDentroMixin no te deja salir y
+│   │                               CocoSinCurarMixin no te deja curarte dentro)
 │   ├── entity/<Jefe>Entity         Nerea, Aeralis y Rajang: IA, ataques, fases, liberación
 │   ├── entity/<Jefe>Geometria      GENERADO: ticks de golpe y puntos del cuerpo
 │   ├── entity/<Jefe>Danos          las claves de sus tipos de daño
@@ -3154,7 +3401,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.2.0.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.2.1.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y

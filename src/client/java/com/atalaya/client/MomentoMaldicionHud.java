@@ -1,10 +1,14 @@
 package com.atalaya.client;
 
+import com.atalaya.Atalaya;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import org.joml.Matrix3x2f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +18,20 @@ import java.util.Random;
  * Lo que se ve en pantalla del Momento Maldicion (el calendario y el estado,
  * en MomentoMaldicionCliente; las grietas del cielo, en CieloRoto). Se pinta a
  * la resolucion de la pantalla, no a la del HUD: trazos finos que giran de
- * verdad, con su brillo en capas, en vez de bloques.
+ * verdad, con su brillo, en vez de bloques.
+ *
+ * Desde el 16-10-2026 (revision en el juego: "las motas se ven en cajas, la
+ * fractura en cuadrados rosas"), lo blando se pinta con piezas suaves
+ * (momento_maldicion.py, en textures/gui/momento, con filtro lineal): el brillo
+ * de los trazos y de las motas, los haces de luz, los discos, la vineta del
+ * latido y un triangulo suave que, estirado, pinta los trozos de cristal de la
+ * fractura. Asi nada sale en cajas ni con el borde en escalera.
+ *
+ * Cada fotograma se pinta en dos pasadas: primero todos los brillos (las piezas
+ * blandas) y despues los trazos, los discos y las esquirlas, para que el juego
+ * los junte en pocas tandas. Y se pinta lo justo (menos haces, tramos, motas,
+ * chispas y esquirlas, y una sola capa de brillo por trazo): con la grafica del
+ * procesador, la fractura bajaba a 24 FPS.
  *
  * <pre>
  *   EL SELLO   el latido en los bordes; el sello que se dibuja con una punta
@@ -23,10 +40,11 @@ import java.util.Random;
  *              runas que giran con el anillo); los rayos de luz y las motas que
  *              se traga en espiral; el titulo de fuego que entra letra a letra;
  *              las grietas; el silencio en blanco; y la fractura: la pantalla
- *              en esquirlas que giran, el sello roto en trozos, la onda y las
- *              chispas
- *   MALDITO    nada en el HUD (Juan: "solo la animacion"): manda el cielo
- *   FIN        la luz que entra
+ *              se raja como un cristal golpeado y se cae a trozos; el sello
+ *              roto, la onda y las chispas
+ *   MALDITO    nada mas (Juan: "solo la animacion"): manda el cielo;
+ *              en la prueba, solo el contador, arriba en el centro
+ *   FIN        la luz que entra (y el contador que se apaga)
  * </pre>
  */
 public class MomentoMaldicionHud implements HudElement {
@@ -37,12 +55,47 @@ public class MomentoMaldicionHud implements HudElement {
     private static final int CALIENTE = 0xFFFF8A5A;
     private static final int BLANCO = 0xFFFFF0E6;
 
+    // Las piezas suaves (blancas: se tinen al pintarlas).
+    private static final Identifier BRILLO = pieza("brillo");
+    private static final Identifier DISCO = pieza("disco");
+    private static final Identifier HAZ = pieza("haz");
+    private static final Identifier TRAZO = pieza("trazo");
+    private static final Identifier VINETA = pieza("vineta");
+    /**
+     * Un triangulo blanco (el de abajo a la izquierda de su cuadrado), de bordes suaves: estirado, pinta cualquier
+     * triangulo, y con ellos los trozos de cristal de la fractura.
+     */
+    private static final Identifier TRIANGULO = pieza("triangulo");
+    /**
+     * Los numeros del contador (momento_maldicion.py, reloj): 0 a 9 en celdas de 28 y los dos puntos en una de 16,
+     * blancos con su contorno oscuro (se tiñen de rojo al final). Sin blur: se pintan a pixeles enteros.
+     */
+    private static final Identifier RELOJ = pieza("reloj");
+    private static final int RELOJ_W = 296;
+    private static final int RELOJ_H = 32;
+    private static final int CELDA = 28;
+    private static final int CELDA_PUNTOS = 16;
+    private static final int CELDA_ALTO = 32;
+    /** La pasada: 0 todo, 1 solo los brillos, 2 solo lo demas. */
+    private static int pasada;
+
+    private static Identifier pieza(String nombre) {
+        return Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "textures/gui/momento/" + nombre + ".png");
+    }
+
     private static long semilla;
     private static int escW = -1;
     private static int escH = -1;
     private static float[][] motas = new float[0][];
     private static float[][] grietas = new float[0][];
-    private static float[][] esquirlas = new float[0][];
+    /**
+     * El cristal de la pantalla en la fractura: los trozos (sus puntos, desde el centro) y sus datos (centro x, y,
+     * cuando se sueltan, hacia donde salen x, y, como giran, lo oscuro de su cristal y si llevan reflejo). Sus filos
+     * son las grietas.
+     */
+    private static float[][][] trozos = new float[0][][];
+    private static float[][] trozoDatos = new float[0][];
+    private static float lejosCristal = 1;
 
     public static void preparar(long nuevaSemilla, String nuevoTitulo) {
         semilla = nuevaSemilla;
@@ -69,13 +122,76 @@ public class MomentoMaldicionHud implements HudElement {
         g.pose().scale(1.0F / gs, 1.0F / gs);
         switch (fase) {
             case INTRO -> intro(g, SW, SH, u, t);
+            case MALDITO -> contador(g, SW, SH, parcial, 1.0F);
             case FIN -> {
+                contador(g, SW, SH, parcial, 1.0F - Mth.clamp(t / 20.0F, 0.0F, 1.0F));
                 if (t < 12) {
                     g.fill(0, 0, SW, SH, conAlfa(0xFFFFE8DC, 0.35F * (1.0F - t / 12.0F)));
                 }
             }
             default -> {
             }
+        }
+        g.pose().popMatrix();
+    }
+
+    // ------------------------------------------------------------------
+    //  El contador de la prueba
+    // ------------------------------------------------------------------
+
+    /**
+     * El contador de la prueba, arriba en el centro (16-10-2026, Juan: "arriba en el centro vamos a poner un
+     * contador"; y luego: "el numero debe ser mas pequeño y de color blanco"): M:SS en blanco, pequeño y a pixeles
+     * enteros. Baja al acabar la cinematica y los dos puntos laten cada segundo; en los diez ultimos, cada segundo se
+     * enciende en rojo y vuelve al blanco. A cero, el 0:00 rojo parpadea y se queda hasta que el momento se va. No
+     * dice lo que lleva roto nadie (Juan: "si cumples no te va a avisar").
+     */
+    private static void contador(GuiGraphicsExtractor g, int SW, int SH, float parcial, float alfa) {
+        int total = MomentoMaldicionCliente.contador();
+        if (total <= 0 || alfa <= 0.0F) {
+            return;
+        }
+        pasada = 0;
+        float pasa = MomentoMaldicionCliente.malditoCielo(parcial);
+        float resta = total - pasa;
+        int s = resta > 0 ? Mth.ceil(resta / 20.0F) : 0;
+        String txt = (s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
+        // Entra bajando, en medio segundo.
+        float entra = Mth.clamp(pasa / 10.0F, 0.0F, 1.0F);
+        alfa *= entra;
+        // A cero, parpadea cuatro veces y se queda.
+        float tras = -resta;
+        if (tras >= 0 && tras < 64 && ((int) tras / 8) % 2 == 1) {
+            alfa *= 0.15F;
+        }
+        // El rojo de cada segundo, en los diez ultimos (y rojo del todo a cero).
+        float rojo = resta > 0 && resta <= 200 ? 0.35F + 0.65F * (float) Math.pow((resta % 20.0F) / 20.0F, 2) : resta <= 0 ? 1.0F : 0.0F;
+        int tinte = mezcla(0xFFFFFFFF, 0xFFFF3A2A, rojo);
+        boolean puntos = resta <= 0 || (resta % 20.0F) > 10.0F;
+        int f = Math.max(1, SH / 720);
+        int ancho = 0;
+        for (int i = 0; i < txt.length(); i++) {
+            ancho += txt.charAt(i) == ':' ? CELDA_PUNTOS : CELDA;
+        }
+        int x0 = Math.round(SW / 2.0F - ancho * f / 2.0F);
+        int y0 = Math.max(2, Math.round(SH * 0.01F)) - Math.round((1.0F - suave(entra)) * CELDA_ALTO * f);
+        float mx = SW / 2.0F;
+        float my = y0 + CELDA_ALTO * f / 2.0F;
+        // Una sombra blanda para que se lea encima de cualquier cosa.
+        pintar(g, BRILLO, 128, 128, mx, my, ancho * f * 1.4F, CELDA_ALTO * f * 2.0F, 0.0F, conAlfa(0xFF000000, 0.4F * alfa));
+        g.pose().pushMatrix();
+        g.pose().translate(x0, y0);
+        g.pose().scale(f, f);
+        int x = 0;
+        for (int i = 0; i < txt.length(); i++) {
+            char c = txt.charAt(i);
+            boolean dos = c == ':';
+            int w = dos ? CELDA_PUNTOS : CELDA;
+            int uu = dos ? 10 * CELDA : (c - '0') * CELDA;
+            float a = dos && !puntos ? alfa * 0.35F : alfa;
+            g.blit(RenderPipelines.GUI_TEXTURED, RELOJ, x, 0, uu, 0, w, CELDA_ALTO, w, CELDA_ALTO, RELOJ_W, RELOJ_H,
+                    conAlfa(tinte, a));
+            x += w;
         }
         g.pose().popMatrix();
     }
@@ -91,26 +207,32 @@ public class MomentoMaldicionHud implements HudElement {
         boolean silencio = t >= MomentoMaldicionCliente.T_SILENCIO && t < MomentoMaldicionCliente.T_FRACTURA;
         float late = MomentoMaldicionCliente.latidoIntro(t);
         if (t < MomentoMaldicionCliente.T_FRACTURA) {
-            float osc = t < 20 ? 0.82F * t / 20.0F : t < MomentoMaldicionCliente.T_TITULO ? 0.82F : silencio ? 0.95F : 0.9F;
+            // El fondo se oscurece a medias: se sigue viendo el mundo y se puede jugar (16-10-2026, Juan: "que la
+            // animacion salga pero que no les impida hacer lo que tienen que hacer"; antes llegaba al 90 %).
+            float osc = t < 20 ? 0.5F * t / 20.0F : t < MomentoMaldicionCliente.T_TITULO ? 0.5F : silencio ? 0.72F : 0.58F;
             g.fill(0, 0, SW, SH, conAlfa(silencio ? 0xFF0E0406 : NEGRO, osc));
-            if (!silencio) {
-                latidoBordes(g, SW, SH, u, late);
-                rayos(g, cx, cy, SW, SH, u, t, late);
-                motas(g, cx, cy, u, t);
-            }
             // El sello late con el corazon, se inclina como si estuviera en el aire y, en el silencio, se acerca un poco.
             float escala = 1.0F + 0.03F * late + (silencio ? 0.05F * (t - MomentoMaldicionCliente.T_SILENCIO) / 6.0F : 0.0F);
             float inclina = inclinacion(t);
-            g.pose().pushMatrix();
-            g.pose().translate(cx, cy);
-            g.pose().rotate(inclina * 0.35F);
-            g.pose().scale(escala, escala * Mth.cos(inclina));
-            sello(g, R, u, t, giro(t), silencio);
-            g.pose().popMatrix();
-            nucleo(g, cx, cy, R, u, t, late, escala, silencio);
-            if (t >= MomentoMaldicionCliente.T_GRIETAS) {
-                grietas(g, cx, cy, u, t, silencio);
+            for (int p = 1; p <= 2; p++) {
+                pasada = p;
+                if (!silencio) {
+                    latidoBordes(g, SW, SH, u, late);
+                    rayos(g, cx, cy, SW, SH, u, t, late);
+                    motas(g, cx, cy, u, t);
+                }
+                g.pose().pushMatrix();
+                g.pose().translate(cx, cy);
+                g.pose().rotate(inclina * 0.35F);
+                g.pose().scale(escala, escala * Mth.cos(inclina));
+                sello(g, R, u, t, giro(t), silencio);
+                g.pose().popMatrix();
+                nucleo(g, cx, cy, R, u, t, late, escala, silencio);
+                if (t >= MomentoMaldicionCliente.T_GRIETAS) {
+                    grietas(g, cx, cy, u, t, silencio);
+                }
             }
+            pasada = 0;
         } else {
             fractura(g, SW, SH, cx, cy, R, u, t);
         }
@@ -136,16 +258,8 @@ public class MomentoMaldicionHud implements HudElement {
         if (k <= 0.01F) {
             return;
         }
-        int capas = 10;
-        int e = Math.round(6 * u);
-        for (int i = 0; i < capas; i++) {
-            int c = conAlfa(0xFF8A0A10, 0.28F * k * (1.0F - i / (float) capas));
-            int d = i * e;
-            g.fill(d, d, SW - d, d + e, c);
-            g.fill(d, SH - d - e, SW - d, SH - d, c);
-            g.fill(d, d + e, d + e, SH - d - e, c);
-            g.fill(SW - d - e, d + e, SW - d, SH - d - e, c);
-        }
+        // Una vineta suave (antes, diez marcos que se veian en escalones).
+        pintar(g, VINETA, 256, 144, SW / 2.0F, SH / 2.0F, SW, SH, 0.0F, conAlfa(0xFF8A0A10, 0.6F * k));
     }
 
     /** Los rayos de luz que salen del sello, cada vez mas fuertes, y que laten. */
@@ -155,15 +269,15 @@ public class MomentoMaldicionHud implements HudElement {
             return;
         }
         float largo = (float) Math.hypot(SW, SH);
-        for (int i = 0; i < 14; i++) {
-            float a = i * Mth.TWO_PI / 14 + t * 0.004F + hash(i, 9) * 0.3F;
+        for (int i = 0; i < 10; i++) {
+            float a = i * Mth.TWO_PI / 10 + t * 0.004F + hash(i, 9) * 0.3F;
             float ancho = (18 + 40 * hash(i, 4)) * u;
             float alfa = k * (0.05F + 0.06F * late) * (0.6F + 0.4F * Mth.sin(t * 0.07F + i));
+            // Un haz que nace suave en el sello y se apaga hacia fuera (antes, dos bandas planas).
             g.pose().pushMatrix();
             g.pose().translate(cx, cy);
             g.pose().rotate(a);
-            g.fill(0, Math.round(-ancho / 2), Math.round(largo), Math.round(ancho / 2), conAlfa(0xFFFF3A20, alfa));
-            g.fill(0, Math.round(-ancho / 6), Math.round(largo), Math.round(ancho / 6), conAlfa(0xFFFF8A60, alfa));
+            pintar(g, HAZ, 128, 32, largo * 0.4F, 0.0F, largo * 0.8F, ancho * 1.3F, 0.0F, conAlfa(0xFFFF4A2A, alfa * 3.2F));
             g.pose().popMatrix();
         }
     }
@@ -178,7 +292,12 @@ public class MomentoMaldicionHud implements HudElement {
             float[] p = posMota(m, a);
             float[] q = posMota(m, Math.max(0, a - 0.06F));
             int c = a > 0.75F ? CALIENTE : ROJO;
-            trazo(g, cx + q[0], cy + q[1], cx + p[0], cy + p[1], (1.5F + m[4] * 2) * u, c, 0.8F);
+            // Un punto de luz con su estela fina (antes, una raya dentro de una caja de brillo).
+            float r = (3.0F + 4.0F * m[4]) * u;
+            float aparece = Mth.clamp(a * 6.0F, 0.0F, 1.0F);
+            trazo(g, cx + q[0], cy + q[1], cx + p[0], cy + p[1], (0.8F + m[4]) * u, conAlfa(c, 0.7F * aparece), 0.0F);
+            pintar(g, BRILLO, 128, 128, cx + p[0], cy + p[1], r * 3.0F, r * 3.0F, 0.0F, conAlfa(c, 0.6F * aparece));
+            disco(g, cx + p[0], cy + p[1], r * 0.32F, conAlfa(a > 0.75F ? BLANCO : CALIENTE, aparece));
         }
     }
 
@@ -281,7 +400,7 @@ public class MomentoMaldicionHud implements HudElement {
         if (frac <= 0 || r <= 0.5F) {
             return;
         }
-        int n = Mth.clamp((int) (Mth.TWO_PI * r / 7), 24, 220);
+        int n = Mth.clamp((int) (Mth.TWO_PI * r / 18), 24, 120);
         int hasta = Math.round(n * frac);
         float s = alReves ? -1 : 1;
         float px = 0;
@@ -329,7 +448,9 @@ public class MomentoMaldicionHud implements HudElement {
         trazo(g, x - r, y, x + r, y, grosor * 0.7F, BLANCO, 1.0F);
         trazo(g, x, y - r, x, y + r, grosor * 0.7F, BLANCO, 1.0F);
         int m = Math.round(grosor * 2.2F);
-        g.fill(Math.round(x) - m, Math.round(y) - m, Math.round(x) + m, Math.round(y) + m, 0xFFFFFFFF);
+        if (pasada != 1) {
+            g.fill(Math.round(x) - m, Math.round(y) - m, Math.round(x) + m, Math.round(y) + m, 0xFFFFFFFF);
+        }
     }
 
     /**
@@ -426,16 +547,41 @@ public class MomentoMaldicionHud implements HudElement {
         }
     }
 
-    /** Un disco relleno, por franjas. */
+    /** Un disco relleno, con el borde suave (antes, por franjas, y el borde salia en escalera). */
     private static void disco(GuiGraphicsExtractor g, float cx, float cy, float r, int color) {
         if (r < 0.5F || ((color >>> 24) & 255) == 0) {
             return;
         }
-        int paso = Math.max(1, Math.round(r / 48));
-        for (float y = -r; y < r; y += paso) {
-            float m = (float) Math.sqrt(Math.max(0, r * r - (y + paso / 2.0F) * (y + paso / 2.0F)));
-            g.fill(Math.round(cx - m), Math.round(cy + y), Math.round(cx + m), Math.round(cy + y + paso), color);
+        pintar(g, DISCO, 256, 256, cx, cy, 2 * r, 2 * r, 0.0F, color);
+    }
+
+    /**
+     * Una pieza suave de tw x th estirada a w x h, con el centro en (cx, cy),
+     * girada ang y tenida de color (las piezas son blancas).
+     */
+    private static void pintar(GuiGraphicsExtractor g, Identifier id, int tw, int th, float cx, float cy, float w, float h,
+                               float ang, int color) {
+        pintar(g, id, tw, th, 0, 0, tw, th, cx, cy, w, h, ang, color);
+    }
+
+    /** Lo mismo con un trozo (u, v, tw x th) de una hoja de hw x hh. */
+    private static void pintar(GuiGraphicsExtractor g, Identifier id, int hw, int hh, int u, int v, int tw, int th, float cx,
+                               float cy, float w, float h, float ang, int color) {
+        if (((color >>> 24) & 255) == 0 || w < 0.5F || h < 0.5F) {
+            return;
         }
+        boolean blanda = id == BRILLO || id == HAZ || id == TRAZO || id == VINETA;
+        if (pasada == 1 && !blanda || pasada == 2 && blanda) {
+            return;
+        }
+        g.pose().pushMatrix();
+        g.pose().translate(cx, cy);
+        if (ang != 0.0F) {
+            g.pose().rotate(ang);
+        }
+        g.pose().scale(w / tw, h / th);
+        g.blit(RenderPipelines.GUI_TEXTURED, id, -tw / 2, -th / 2, u, v, tw, th, tw, th, hw, hh, color);
+        g.pose().popMatrix();
     }
 
     /**
@@ -497,82 +643,115 @@ public class MomentoMaldicionHud implements HudElement {
     }
 
     /**
-     * La fractura: destello, la oscuridad en esquirlas que salen girando con
-     * el filo encendido, el sello roto en trozos que giran, la onda y las
-     * chispas.
+     * La fractura, como un cristal de verdad (16-10-2026, Juan: "que no se rompa como una pared sino como un vidrio
+     * que se rompe"): el golpe en el centro (un destello corto), las grietas que corren por toda la pantalla desde el
+     * golpe (rayos curvos y arcos, como un cristal golpeado) y se abre el agujero; un momento despues los trozos se
+     * sueltan, de dentro afuera: llevan el oscuro de la pantalla y el filo encendido, caen girando y se apagan, y
+     * dejan ver el mundo maldito. Encima, las astillas finas que saltan.
      */
     private static void fractura(GuiGraphicsExtractor g, int SW, int SH, float cx, float cy, float R, float u, float t) {
         float d = t - MomentoMaldicionCliente.T_FRACTURA;
-        if (d < 32) {
-            float apaga = 1.0F - Mth.clamp((d - 14) / 18.0F, 0.0F, 1.0F);
-            for (float[] e : esquirlas) {
-                float x = cx + e[0] + e[4] * d * u;
-                float y = cy + e[1] + (e[5] * d + 0.35F * d * d) * u;
-                float giro = e[7] + e[6] * d;
-                g.pose().pushMatrix();
-                g.pose().translate(x, y);
-                g.pose().rotate(giro);
-                int w = Math.round(e[2] / 2);
-                int h = Math.round(e[3] / 2);
-                g.fill(-w, -h, w, h, conAlfa(NEGRO, 0.92F * apaga));
-                int filo = Math.max(1, Math.round(2 * u));
-                g.fill(-w, -h, w, -h + filo, conAlfa(d < 6 ? BLANCO : 0xFFFF4020, apaga));
-                g.fill(-w, -h, -w + filo, h, conAlfa(0xFFB01818, apaga * 0.8F));
-                g.pose().popMatrix();
+        pasada = 0;
+        // El cristal: cada trozo, quieto hasta que se suelta y luego cayendo.
+        float frente = 26 * u + d / 7.0F * lejosCristal * 1.1F;
+        int filoQuieto = d < 4 ? BLANCO : mezcla(BLANCO, CALIENTE, Mth.clamp((d - 4) / 6.0F, 0, 1));
+        for (int k = 0; k < trozos.length; k++) {
+            float[] dt = trozoDatos[k];
+            float tau = d - dt[2];
+            float alfa = tau < 0 ? 1.0F : 1.0F - Mth.clamp((tau - 8) / 16.0F, 0.0F, 1.0F);
+            if (alfa <= 0) {
+                continue;
             }
-        }
-        // El sello roto: sus trazos salen hacia fuera girando y se apagan.
-        if (d < 26) {
-            float giro0 = giro(MomentoMaldicionCliente.T_SILENCIO);
-            float a = 1.0F - d / 26.0F;
-            int n = 64;
-            for (float rr : new float[]{R, R * 0.62F, R * 1.07F, R * 1.34F}) {
-                for (int k = 0; k < n; k++) {
-                    float ang0 = giro0 + k * Mth.TWO_PI / n;
-                    float ang1 = giro0 + (k + 1) * Mth.TWO_PI / n;
-                    float h = hash(k, Math.round(rr));
-                    float v = d * (2.5F + 6 * h) * u;
-                    float mx = Mth.cos((ang0 + ang1) / 2);
-                    float my = Mth.sin((ang0 + ang1) / 2);
-                    float ox = mx * v;
-                    float oy = my * v + 0.3F * d * d * u;
-                    float gira = (h - 0.5F) * d * 0.25F;
-                    float x0 = Mth.cos(ang0) * rr;
-                    float y0 = Mth.sin(ang0) * rr;
-                    float x1 = Mth.cos(ang1) * rr;
-                    float y1 = Mth.sin(ang1) * rr;
-                    float px = (x0 + x1) / 2;
-                    float py = (y0 + y1) / 2;
-                    g.pose().pushMatrix();
-                    g.pose().translate(cx + px + ox, cy + py + oy);
-                    g.pose().rotate(gira);
-                    trazo(g, x0 - px, y0 - py, x1 - px, y1 - py, 2.2F * u, conAlfa(d < 5 ? BLANCO : CALIENTE, a), a);
-                    g.pose().popMatrix();
+            float[][] pts = trozos[k];
+            float[] xs = new float[pts.length];
+            float[] ys = new float[pts.length];
+            float ox = 0, oy = 0, gira = 0, esc = 1;
+            if (tau > 0) {
+                ox = dt[3] * tau * u;
+                oy = (dt[4] * tau + 0.42F * tau * tau) * u;
+                gira = dt[5] * tau;
+                esc = Math.max(0.55F, 1.0F - 0.014F * tau);
+            }
+            float cs = Mth.cos(gira), sn = Mth.sin(gira);
+            for (int i = 0; i < pts.length; i++) {
+                float px = (pts[i][0] - dt[0]) * esc;
+                float py = (pts[i][1] - dt[1]) * esc;
+                xs[i] = cx + dt[0] + ox + px * cs - py * sn;
+                ys[i] = cy + dt[1] + oy + px * sn + py * cs;
+            }
+            // El cristal oscuro (y alguno con un reflejo que lo cruza).
+            poligono(g, xs, ys, conAlfa(NEGRO, dt[6] * alfa));
+            if (dt[7] > 0 && tau > -3) {
+                int n = xs.length;
+                trazo(g, (xs[0] + xs[1]) / 2, (ys[0] + ys[1]) / 2, (xs[n / 2] + xs[n / 2 + 1]) / 2, (ys[n / 2] + ys[n / 2 + 1]) / 2,
+                        1.4F * u, conAlfa(0xFFFFE8DC, 0.22F * alfa), 0.0F);
+            }
+            // El filo: quieto, son las grietas que corren desde el golpe (cada una la pintan sus dos trozos: va a
+            // media luz); suelto, va con el trozo y se enfria.
+            for (int i = 0; i < xs.length; i++) {
+                int i1 = (i + 1) % xs.length;
+                float m = (float) Math.hypot((pts[i][0] + pts[i1][0]) / 2, (pts[i][1] + pts[i1][1]) / 2);
+                if (tau <= 0) {
+                    if (m > frente) {
+                        continue;
+                    }
+                    float grosor = Math.max(1.0F, 2.6F - m / lejosCristal * 2.2F) * u;
+                    trazo(g, xs[i], ys[i], xs[i1], ys[i1], grosor, conAlfa(filoQuieto, 0.62F), 0.7F);
+                } else {
+                    int filo = tau < 4 ? BLANCO : mezcla(CALIENTE, ROJO, Mth.clamp((tau - 4) / 10.0F, 0, 1));
+                    trazo(g, xs[i], ys[i], xs[i1], ys[i1], 1.6F * u, conAlfa(filo, alfa), 0.5F);
                 }
             }
         }
-        if (d < 10) {
-            disco(g, cx, cy, R * (0.2F + d * 0.3F), conAlfa(0xFFFFF0E0, 1.0F - d / 10.0F));
-        }
+        // El destello del golpe: corto, blanco y luego caliente.
         if (d < 8) {
-            // Blanco del todo un instante (las esquirlas solo se ven ya volando) y luego se va.
-            g.fill(0, 0, SW, SH, conAlfa(0xFFFFFFFF, d < 3 ? 1.0F : 1.0F - (d - 3) / 5.0F));
+            int c = d < 2 ? 0xFFFFFFFF : mezcla(0xFFFFF0E2, CALIENTE, (d - 2) / 6.0F);
+            float al = d < 2 ? 0.85F : 0.5F * (1.0F - (d - 2) / 6.0F);
+            g.fill(0, 0, SW, SH, conAlfa(c, al));
         }
-        if (d < 22) {
-            g.fill(0, 0, SW, SH, conAlfa(0xFFB0101A, 0.4F * (1.0F - d / 22.0F)));
+        for (int p = 1; p <= 2; p++) {
+            pasada = p;
+            fracturaTrazos(g, cx, cy, R, u, d);
         }
-        // La onda, con su brillo.
-        if (d < 24) {
-            float r = (4 + d * 34) * u;
-            float k = 1.0F - d / 24.0F;
-            g.pose().pushMatrix();
-            g.pose().translate(cx, cy);
-            circulo(g, r, 0, 1.0F, false, (3 + 5 * k) * u, conAlfa(d < 5 ? BLANCO : 0xFFFF5030, k), true);
-            g.pose().popMatrix();
+        pasada = 0;
+        // El primer instante, blanco del todo por encima de todo: ciega.
+        if (d < 1.5F) {
+            g.fill(0, 0, SW, SH, conAlfa(0xFFFFFFFF, 1.0F - d / 1.5F));
         }
+    }
+
+    /** Un poligono lleno (en abanico desde su centro), con triangulos estirados. */
+    private static void poligono(GuiGraphicsExtractor g, float[] xs, float[] ys, int color) {
+        if (((color >>> 24) & 255) == 0) {
+            return;
+        }
+        float mx = 0, my = 0;
+        for (int i = 0; i < xs.length; i++) {
+            mx += xs[i] / xs.length;
+            my += ys[i] / ys.length;
+        }
+        for (int i = 0; i < xs.length; i++) {
+            int i1 = (i + 1) % xs.length;
+            triangulo(g, mx, my, xs[i], ys[i], xs[i1], ys[i1], color);
+        }
+    }
+
+    /** Un triangulo lleno de a, b, c: el triangulo de la hoja, estirado (su esquina va a 'a'). */
+    private static void triangulo(GuiGraphicsExtractor g, float ax, float ay, float bx, float by, float cx, float cy, int color) {
+        g.pose().pushMatrix();
+        g.pose().mul(new Matrix3x2f(bx - ax, by - ay, cx - ax, cy - ay, ax, ay));
+        g.blit(RenderPipelines.GUI_TEXTURED, TRIANGULO, 0, 0, 0, 0, 1, 1, 64, 64, 64, 64, color);
+        g.pose().popMatrix();
+    }
+
+    /**
+     * Lo que vuela en la fractura (en dos pasadas): solo las astillas finas que saltan del golpe (antes, tambien el
+     * sello roto, un disco de luz y una onda, que tapaban el cristal).
+     */
+    private static void fracturaTrazos(GuiGraphicsExtractor g, float cx, float cy, float R, float u, float d) {
         // Las chispas.
         if (d < 30) {
-            for (int i = 0; i < 140; i++) {
+            for (int i = 0; i < 60; i++) {
                 float a = hash(i, 1) * Mth.TWO_PI;
                 float v = (8 + 26 * hash(i, 2)) * u;
                 float x = cx + Mth.cos(a) * v * d;
@@ -595,7 +774,7 @@ public class MomentoMaldicionHud implements HudElement {
         float mw = SW / 2.0F;
         float mh = SH / 2.0F;
         List<float[]> lm = new ArrayList<>();
-        for (int i = 0; i < 180; i++) {
+        for (int i = 0; i < 110; i++) {
             float a = r.nextFloat() * Mth.TWO_PI;
             float sx = Mth.cos(a);
             float sy = Mth.sin(a);
@@ -631,24 +810,108 @@ public class MomentoMaldicionHud implements HudElement {
             }
         }
         grietas = lg.toArray(new float[0][]);
-        // Las esquirlas: la pantalla en losas de tamaños distintos, algo movidas, que salen del centro girando.
-        List<float[]> le = new ArrayList<>();
-        float base = 46 * u;
-        for (float y = -mh - base * 0.5F; y < mh + base; ) {
-            float alto = base * (0.6F + r.nextFloat() * 0.9F);
-            for (float x = -mw - r.nextFloat() * base; x < mw + base; ) {
-                float ancho = base * (0.6F + r.nextFloat() * 1.0F);
-                float mx = x + ancho / 2;
-                float my = y + alto / 2;
-                float dist = Math.max(1, (float) Math.hypot(mx, my));
-                float v = 1.5F + r.nextFloat() * 3.5F;
-                le.add(new float[]{mx, my, ancho * 1.1F, alto * 1.1F, mx / dist * v * 4, my / dist * v * 4 - 3,
-                        (r.nextFloat() - 0.5F) * 0.12F, (r.nextFloat() - 0.5F) * 0.9F});
-                x += ancho;
+        cristal(r, mw, mh, u);
+    }
+
+    /**
+     * El cristal de la pantalla para la fractura, como un cristal golpeado de verdad: unos trece rayos de rumbo al
+     * azar (curvos) que salen del agujero del golpe, y en cada hueco entre dos rayos unos anillos quebrados (el
+     * primero siempre, los otros no siempre), que lo parten en trozos con forma de cuña; el ultimo, mas alla de las
+     * esquinas. Los de dentro se sueltan antes.
+     */
+    private static void cristal(Random r, float mw, float mh, float u) {
+        float lejos = (float) Math.hypot(mw, mh);
+        lejosCristal = lejos;
+        int n = 13;
+        float[] ang = new float[n];
+        int puestos = 0;
+        for (int intento = 0; intento < 500 && puestos < n; intento++) {
+            float a = r.nextFloat() * Mth.TWO_PI;
+            boolean bien = true;
+            for (int k = 0; k < puestos; k++) {
+                float dif = Math.abs(Mth.wrapDegrees((float) Math.toDegrees(a - ang[k])));
+                if (dif < 15) {
+                    bien = false;
+                }
             }
-            y += alto;
+            if (bien) {
+                ang[puestos++] = a;
+            }
         }
-        esquirlas = le.toArray(new float[0][]);
+        n = puestos;
+        java.util.Arrays.sort(ang, 0, n);
+        float[] curva = new float[n];
+        for (int k = 0; k < n; k++) {
+            curva[k] = (r.nextFloat() - 0.5F) * 0.5F;
+        }
+        // Los anillos de cada rayo: el agujero, tres anillos y el de mas alla de las esquinas.
+        float[][] anillos = new float[5][n];
+        for (int k = 0; k < n; k++) {
+            anillos[0][k] = (22 + 10 * r.nextFloat()) * u;
+            anillos[1][k] = (70 + 35 * r.nextFloat()) * u;
+            anillos[2][k] = (170 + 70 * r.nextFloat()) * u;
+            anillos[3][k] = (320 + 110 * r.nextFloat()) * u;
+            anillos[4][k] = lejos * 1.3F;
+        }
+        boolean[][] hay = new boolean[5][n];
+        for (int k = 0; k < n; k++) {
+            hay[0][k] = true;
+            hay[1][k] = true;
+            hay[2][k] = r.nextFloat() < 0.75F;
+            hay[3][k] = r.nextFloat() < 0.6F;
+            hay[4][k] = true;
+        }
+        List<float[][]> lt = new ArrayList<>();
+        List<float[]> ld = new ArrayList<>();
+        for (int k = 0; k < n; k++) {
+            int k1 = (k + 1) % n;
+            float a0 = ang[k];
+            float a1 = ang[k1] + (k1 == 0 ? Mth.TWO_PI : 0);
+            int nivel = 0;
+            for (int m = 1; m < 5; m++) {
+                if (!hay[m][k]) {
+                    continue;
+                }
+                // Un trozo: del anillo 'nivel' al 'm', entre el rayo k y el k1 (con un codo en cada lado).
+                float ra0 = anillos[nivel][k], ra1 = anillos[nivel][k1];
+                float rb0 = anillos[m][k], rb1 = anillos[m][k1];
+                List<float[]> pol = new ArrayList<>();
+                pol.add(punto(a0, curva[k], ra0, lejos));
+                pol.add(punto(a0, curva[k], (ra0 + rb0) / 2, lejos));
+                pol.add(punto(a0, curva[k], rb0, lejos));
+                if (m < 4) {
+                    float comba = 0.96F + 0.1F * r.nextFloat();
+                    pol.add(punto((a0 + a1) / 2, 0, (rb0 + rb1) / 2 * comba, lejos));
+                }
+                pol.add(punto(a1, curva[k1], rb1, lejos));
+                pol.add(punto(a1, curva[k1], (ra1 + rb1) / 2, lejos));
+                pol.add(punto(a1, curva[k1], ra1, lejos));
+                float bajo = nivel == 0 ? 0.88F + 0.08F * r.nextFloat() : 0.96F + 0.1F * r.nextFloat();
+                pol.add(punto((a0 + a1) / 2, 0, (ra0 + ra1) / 2 * bajo, lejos));
+                float[][] pts = pol.toArray(new float[0][]);
+                float px = 0, py = 0;
+                for (float[] q : pts) {
+                    px += q[0] / pts.length;
+                    py += q[1] / pts.length;
+                }
+                float dist = (float) Math.hypot(px, py);
+                float sale = 0.6F + 1.6F * r.nextFloat();
+                ld.add(new float[]{px, py, 4 + 10 * Math.min(1, dist / lejos) + 2 * r.nextFloat(),
+                        px / Math.max(1, dist) * sale, py / Math.max(1, dist) * sale - 1.2F, (r.nextFloat() - 0.5F) * 0.16F,
+                        0.52F + 0.1F * r.nextFloat(), r.nextFloat() < 0.35F ? 1 : 0});
+                lt.add(pts);
+                nivel = m;
+            }
+        }
+        trozos = lt.toArray(new float[0][][]);
+        trozoDatos = ld.toArray(new float[0][]);
+    }
+
+    /** Un punto del cristal: en el rumbo 'a' (torcido por 'curva' segun lo lejos que este) a 'radio' del golpe. */
+    private static float[] punto(float a, float curva, float radio, float lejos) {
+        float t = radio / lejos;
+        float ang = a + curva * t * t;
+        return new float[]{Mth.cos(ang) * radio, Mth.sin(ang) * radio};
     }
 
     // ------------------------------------------------------------------
@@ -668,18 +931,22 @@ public class MomentoMaldicionHud implements HudElement {
             return;
         }
         float alfa = ((color >>> 24) & 255) / 255.0F;
+        if (pasada == 1 && brillo <= 0) {
+            return;
+        }
         g.pose().pushMatrix();
         g.pose().translate(x0, y0);
         g.pose().rotate((float) Math.atan2(dy, dx));
         int L = Math.round(largo) + 1;
-        if (brillo > 0) {
-            int a = Math.round(grosor * 5.0F);
-            g.fill(-a / 2, -a, L + a / 2, a, conAlfa(color, 0.10F * brillo * alfa));
-            int b = Math.round(grosor * 2.0F);
-            g.fill(-b / 2, -b, L + b / 2, b, conAlfa(color, 0.28F * brillo * alfa));
+        if (brillo > 0 && pasada != 2) {
+            // El brillo, una campana suave con las puntas redondas (antes, dos rectangulos que se veian como cajas).
+            float a = grosor * 3.8F;
+            pintar(g, TRAZO, 64, 16, L / 2.0F, 0.0F, L + a * 1.4F, a * 2.0F, 0.0F, conAlfa(color, 0.36F * brillo * alfa));
         }
         int h = Math.max(1, Math.round(grosor));
-        g.fill(0, -h / 2, L, h - h / 2, color);
+        if (pasada != 1) {
+            g.fill(0, -h / 2, L, h - h / 2, color);
+        }
         g.pose().popMatrix();
     }
 

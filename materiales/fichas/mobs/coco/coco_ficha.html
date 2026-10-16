@@ -1,0 +1,213 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El Coco</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* El Coco: la misma columna de lectura que las otras fichas, sobre el azul del anochecer de la aldea; cada tipo con el color de sus ojos (brasa, azufre, lila), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#0a0a14; --hoja:#12121f; --hoja2:#181828; --filo:#2a2a40;
+  --texto:#eeedf5; --texto2:#b6b4c8; --tenue:#84829a;
+  --brasa:#ff8a52; --azufre:#ffd84a; --lila:#c4a2ff; --alerta:#ff5c5c;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,10,20,0) 38%, rgba(10,10,20,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){ .portada .velo{display:none;} .portada .rotulo{position:static; padding:16px 4px 0;} }
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+.libro ol.lede, .libro ul.lede{padding-left:1.4em;}
+.lede li{margin:5px 0;}
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--alerta); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+.var.a{--tono:var(--brasa);}
+.var.b{--tono:var(--azufre);}
+.var.c{--tono:var(--lila);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+.numeros{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:10px 0 0;}
+@media (max-width:700px){ .numeros{grid-template-columns:repeat(2,minmax(0,1fr));} }
+.numeros div{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:12px 14px; font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+.numeros b{display:block; color:var(--texto); font-weight:500; font-size:15px;}
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="coco_gloton_heroe.jpg" alt="El Coco al acecho en el camino de la aldea al anochecer, con la mano alzada y las fauces abiertas">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · mob que hace algo · 16-10-2026</div>
+      <h1>El Coco</h1>
+      <p class="sub">El mob que <b>te mete en la barriga</b> y te va quitando vida poco a poco. Si tienes a alguien
+      cerca que lo mate, sales; si estás solo, <b>te mata</b>. Es el Coco de la nana («duérmete niño, duérmete ya, que
+      viene el Coco y te comerá»), pero nuestro.</p>
+    </div>
+  </header>
+
+  <p class="aviso"><b>Como pediste:</b> la barriga no es translúcida. Cuando tiene a alguien dentro, encima del Coco
+  sale un aviso con <b>el icono de alerta</b>, debajo <b>el nombre del jugador</b> y debajo <b>«¡ha sido atrapado!»</b>.
+  Lo ves en las fotos del Glotón y de la Nana.</p>
+
+  <h2>De dónde sale</h2>
+  <ul class="lede">
+    <li><b>La leyenda no le da forma.</b> Lo que cuenta es que el coco, la fruta, se llama así por él: los marineros
+      vieron en sus tres agujeros la cara del monstruo.</li>
+    <li><b>Su cabeza es una cáscara de coco</b>, dura, con los tres agujeros: los dos ojos, hondos, con una brasa al
+      fondo, y el de la nariz. Las aristas del coco bajan hasta el ceño.</li>
+    <li><b>Al abrir la boca se parte de lado a lado, como un coco roto.</b> Lo blanco del canto es la carne del coco, y
+      esa carne son sus dientes, partidos y de largos distintos.</li>
+    <li><b>El cuerpo es pesado y encorvado</b>, con la giba, las piernas cortas y arqueadas, unos brazos larguísimos y
+      manos de cuatro dedos con garras de cuerno, para agarrarte. Delante lleva <b>la barriga</b>: grande y colgante.</li>
+  </ul>
+  <p class="lede">Mide unos 2,9 bloques de alto. No se parece a ninguno de los que ya tenemos: el Trasgo es flaco, el
+  sapo de las Guaridas tiene la boca de lado a lado y el Slime es gelatina.</p>
+
+  <h2>Qué hace el Coco</h2>
+  <ol class="lede">
+    <li><b>Te ve y viene a por ti</b>, andando encorvado, con una mano en el suelo.</li>
+    <li><b>Te agarra</b> si estás a 2 bloques. Antes tienes 1 segundo de aviso: alza las manos y abre la cáscara.</li>
+    <li><b>Te traga.</b> Desapareces dentro de su barriga, que se le hincha. Encima del Coco sale el aviso, para que los
+      demás sepan que estás dentro.</li>
+    <li><b>Dentro pierdes vida poco a poco</b>, y la armadura no te protege. Desde dentro no puedes pegarle.</li>
+    <li><b>La única forma de salir es que alguien lo mate.</b> Cuando muere, la barriga revienta y caes fuera.</li>
+  </ol>
+  <div class="numeros">
+    <div><b>½ corazón / 2 s</b>lo que quita dentro</div>
+    <div><b>40 s</b>hasta matarte con la vida llena</div>
+    <div><b>20 corazones</b>su vida</div>
+    <div><b>1 a la vez</b>no traga a dos</div>
+  </div>
+  <p class="lede" style="margin-top:14px"><b>Por ahora solo sale con su huevo.</b> Como los otros, todavía no aparece
+  solo en el mundo.</p>
+  <p class="lede">Los tres son el mismo mob, en la misma pose de acecho. Cambia lo que lleva en la cabeza, el color y lo
+  que hace antes o después de tragarte.</p>
+
+  <section class="var a">
+    <span class="tipo">A · el Glotón · el de siempre</span>
+    <h2>El Glotón: te traga y se queda a digerirte</h2>
+    <ul class="lede">
+      <li><b>Cáscara parda con una cresta de estopa</b> (la fibra del coco) de punta, y más estopa por la giba. Cuerpo
+        de carbón, barriga de carne y ojos de brasa.</li>
+      <li><b>Lo que hace:</b> te agarra, te traga y <b>se queda quieto haciendo la digestión</b>. Si alguien viene a
+        salvarte, se defiende a manotazos.</li>
+    </ul>
+    <img class="ancha" src="coco_gloton_accion.jpg" alt="El Glotón con un jugador dentro: encima, el icono de alerta, el nombre Steve y ¡ha sido atrapado!; un amigo llega con la espada alzada">
+    <div class="dos">
+      <img src="coco_gloton_heroe.jpg" alt="El Glotón al acecho en el camino de la aldea">
+      <img src="coco_gloton_cabeza.jpg" alt="La cabeza del Glotón de cerca: la cáscara, los ojos de brasa, la nariz y los dientes de carne de coco">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Cabeza</dt><dd>cáscara parda con cresta de estopa</dd><dt>Cuerpo</dt><dd>carbón, barriga de carne</dd><dt>Ojos</dt><dd>brasa</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>La cresta, de punta.</li><li>Se queda quieto con el jugador dentro.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · el del Saco · el que huye</span>
+    <h2>El del Saco: te traga y se te lleva</h2>
+    <ul class="lede">
+      <li><b>Cáscara de hueso pálido bajo una capucha de arpillera</b>, que le enmarca la cara y acaba atrás en un pico
+        atado con una cuerda. Una capa de arpillera le cae por la espalda. La barriga va <b>cosida como un saco</b>, con
+        un remiendo. Ojos de azufre. Es el hombre del saco y el Coco a la vez.</li>
+      <li><b>Lo que hace:</b> te traga y <b>huye de los demás jugadores</b>, corriendo más que andando, para comerte
+        lejos de todos. A tus amigos les toca perseguirlo.</li>
+    </ul>
+    <img class="ancha" src="coco_saco_accion.jpg" alt="El del Saco agarrando a un jugador y llevándoselo a la boca abierta">
+    <div class="dos">
+      <img src="coco_saco_heroe.jpg" alt="El del Saco al acecho, con la capucha de arpillera">
+      <img src="coco_saco_cabeza.jpg" alt="La cara del Saco de cerca: la cáscara pálida bajo la capucha y los ojos de azufre">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Cabeza</dt><dd>cáscara pálida bajo capucha</dd><dt>Cuerpo</dt><dd>pardo, capa y barriga cosida</dd><dt>Ojos</dt><dd>azufre</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>La capucha con el pico atado.</li><li>Huye con el jugador dentro.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · el de la Nana · el que canta</span>
+    <h2>El de la Nana: te duerme y luego te traga</h2>
+    <ul class="lede">
+      <li><b>Cáscara negra y alta</b>, como una calabaza de agua, con hileras de agujeros que brillan: por ahí silba la
+        nana. Barba de estopa. Cuerpo verde de musgo y ojos lilas.</li>
+      <li><b>Lo que hace:</b> antes de acercarse <b>silba la nana</b>. Quien la oye a menos de 8 bloques se adormece: va
+        más lento y se le cierra la vista por los bordes. Entonces te traga.</li>
+    </ul>
+    <img class="ancha" src="coco_nana_accion.jpg" alt="El de la Nana con un jugador dentro y el aviso encima; un amigo corre hacia él">
+    <div class="dos">
+      <img src="coco_nana_heroe.jpg" alt="El de la Nana al acecho, con la cáscara alta llena de agujeros encendidos">
+      <img src="coco_nana_cabeza.jpg" alt="La cara del de la Nana de cerca, con los ojos lilas">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Cabeza</dt><dd>cáscara negra y alta, con agujeros</dd><dt>Cuerpo</dt><dd>musgo, barba de estopa</dd><dt>Ojos</dt><dd>lila</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>Los agujeros encendidos de la cáscara.</li><li>Adormece antes de tragar.</li></ul></div>
+    </div>
+  </section>
+
+  <h2>Los tres, con un jugador</h2>
+  <p class="lede">En el camino de la aldea, junto a un jugador (1,8 bloques): el Glotón, el del Saco y el de la Nana.</p>
+  <img src="coco_tres_variantes.jpg" alt="Los tres Cocos al acecho en el camino de la aldea, con un jugador al lado">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Una fila por tipo: la cáscara (con sus vetas), el diente de carne de coco, el ojo (el agujero con la
+  brasa), la piel, la barriga (con la luz en el centro y el ombligo) y lo de cada uno: la estopa de la cresta, la
+  arpillera de la capucha y la barba.</p>
+  <img src="coco_materiales.jpg" alt="Lámina de materiales de los tres Cocos">
+
+  <h2>En el juego</h2>
+  <p class="lede">El Glotón ya está en el mod, con su huevo. A la izquierda, al acecho; en medio, con un jugador dentro
+  y el aviso encima (visto desde fuera); a la derecha, lo que ve el de dentro: la pantalla roja con el latido, y sus
+  corazones bajando.</p>
+  <div class="dos">
+    <img src="coco_en_el_juego.jpg" alt="El Coco en el juego, al acecho">
+    <img src="coco_en_el_juego_atrapado.jpg" alt="El Coco en el juego con un jugador dentro: encima, el icono de alerta, el nombre y ¡ha sido atrapado!">
+  </div>
+  <img class="ancha" style="margin-top:12px" src="coco_en_el_juego_dentro.jpg" alt="Lo que ve el jugador dentro del Coco: la pantalla roja y oscura, con la barra y los corazones">
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <ol>
+      <li>16-10-2026, durante el diseño: «no quiero panza translúcida, sino que, si ha tragado a un jugador, arriba del
+      mob salga el nombre de la persona y diga ¡ha sido atrapado!, y un icono de alerta».</li>
+      <li>Con la ficha: <b>«haz el diseño 1 con todas sus animaciones, huevo, etc.»</b>. El Glotón está en el juego; el
+      del Saco y el de la Nana se quedan en la ficha.</li>
+      <li>Lo que quedaba por decidir se hizo como se proponía: medio corazón cada 2 segundos sin armadura, el aviso a 48
+      bloques y a través de las paredes, la pantalla roja con el latido, y el nombre, el Coco.</li>
+    </ol>
+  </div>
+
+  <p class="pie">Bocetos de coco_modelo.py y coco_escenas.py (materiales/generadores). En el juego: coco_juego.py (la
+  malla, la textura, el huevo y el icono del aviso) y coco_sonidos.py. Las fotos van sin letras: lo único escrito es el
+  aviso, que es del juego.</p>
+</div>

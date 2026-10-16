@@ -2597,18 +2597,109 @@
       "atalaya:momento/cielo"
     ]
   },
-  "momento.desprende": {
-    "subtitle": "subtitles.atalaya.momento.desprende",
-    "sounds": [
-      "atalaya:momento/desprende"
-    ]
-  },
   "momento.musica": {
     "sounds": [
       {
         "name": "atalaya:momento/musica",
         "stream": true
       }
+    ]
+  },
+  "fogonazo.herido": {
+    "subtitle": "subtitles.atalaya.fogonazo.herido",
+    "sounds": [
+      "atalaya:fogonazo/herido1",
+      "atalaya:fogonazo/herido2"
+    ]
+  },
+  "fogonazo.muerte": {
+    "subtitle": "subtitles.atalaya.fogonazo.muerte",
+    "sounds": [
+      "atalaya:fogonazo/muerte"
+    ]
+  },
+  "fogonazo.mecha": {
+    "subtitle": "subtitles.atalaya.fogonazo.mecha",
+    "sounds": [
+      "atalaya:fogonazo/mecha"
+    ]
+  },
+  "fogonazo.estallido": {
+    "subtitle": "subtitles.atalaya.fogonazo.estallido",
+    "sounds": [
+      "atalaya:fogonazo/estallido"
+    ]
+  },
+  "fogonazo.pitido": {
+    "subtitle": "subtitles.atalaya.fogonazo.pitido",
+    "sounds": [
+      "atalaya:fogonazo/pitido"
+    ]
+  },
+  "coco.ambiente": {
+    "subtitle": "subtitles.atalaya.coco.ambiente",
+    "sounds": [
+      "atalaya:coco/ambiente1",
+      "atalaya:coco/ambiente2",
+      "atalaya:coco/ambiente3"
+    ]
+  },
+  "coco.paso": {
+    "subtitle": "subtitles.atalaya.coco.paso",
+    "sounds": [
+      "atalaya:coco/paso1",
+      "atalaya:coco/paso2"
+    ]
+  },
+  "coco.herido": {
+    "subtitle": "subtitles.atalaya.coco.herido",
+    "sounds": [
+      "atalaya:coco/herido1",
+      "atalaya:coco/herido2"
+    ]
+  },
+  "coco.digiere": {
+    "subtitle": "subtitles.atalaya.coco.digiere",
+    "sounds": [
+      "atalaya:coco/digiere1",
+      "atalaya:coco/digiere2"
+    ]
+  },
+  "coco.manotazo": {
+    "subtitle": "subtitles.atalaya.coco.manotazo",
+    "sounds": [
+      "atalaya:coco/manotazo1",
+      "atalaya:coco/manotazo2"
+    ]
+  },
+  "coco.muerte": {
+    "subtitle": "subtitles.atalaya.coco.muerte",
+    "sounds": [
+      "atalaya:coco/muerte"
+    ]
+  },
+  "coco.aviso": {
+    "subtitle": "subtitles.atalaya.coco.aviso",
+    "sounds": [
+      "atalaya:coco/aviso"
+    ]
+  },
+  "coco.traga": {
+    "subtitle": "subtitles.atalaya.coco.traga",
+    "sounds": [
+      "atalaya:coco/traga"
+    ]
+  },
+  "coco.latido": {
+    "subtitle": "subtitles.atalaya.coco.latido",
+    "sounds": [
+      "atalaya:coco/latido"
+    ]
+  },
+  "coco.revienta": {
+    "subtitle": "subtitles.atalaya.coco.revienta",
+    "sounds": [
+      "atalaya:coco/revienta"
     ]
   }
 }

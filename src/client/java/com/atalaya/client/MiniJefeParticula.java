@@ -27,8 +27,9 @@ public class MiniJefeParticula extends SingleQuadParticle {
 
     private static final int A_PLENA_LUZ = 0xF000F0;
     /** El color de cada elemento (onda y destello): tierra (jade), viento, agua y fuego. */
+    /** Los colores del destello: los de los elementos de los minijefes y, el 4, el blanco calido del Fogonazo. */
     private static final float[][] ELEMENTOS = {{0.45F, 1.0F, 0.66F}, {0.78F, 0.96F, 1.0F}, {0.5F, 0.92F, 1.0F},
-            {1.0F, 0.62F, 0.22F}};
+            {1.0F, 0.62F, 0.22F}, {1.0F, 0.97F, 0.88F}};
 
     public enum Tipo {
         JADE, OBSIDIANA, POLVO, PLUMA, FRAGMENTO, MARCA, ONDA, VIENTO, RUNA, GOTA, ESPUMA, BURBUJA, BRASA, LLAMA,

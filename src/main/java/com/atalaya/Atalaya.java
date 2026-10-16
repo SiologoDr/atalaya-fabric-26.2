@@ -112,6 +112,8 @@ public class Atalaya implements ModInitializer {
         com.atalaya.habilidad.Habilidades.registrar();
         com.atalaya.entity.TranceSirena.registrar();
         com.atalaya.entity.IdoloOro.registrar();
+        // El Coco: lo que no puede hacer el que tiene dentro (pegar, romper, usar nada).
+        com.atalaya.entity.CocoEntity.registrarEventos();
         AtalayaRed.registrarTipos();
         AtalayaRed.registrarServidor();
         // El Momento Maldicion (/atalaya momento_maldicion): la cuenta y los avisos; lo demas, en el cliente.
@@ -216,6 +218,10 @@ public class Atalaya implements ModInitializer {
         // No cabe en Ingredientes: alli no lo buscaria nadie.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(Items.CREEPER_SPAWN_EGG, AtalayaItems.HUEVO_FULMINANTE));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_FULMINANTE, AtalayaItems.HUEVO_FOGONAZO));
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
+                salida.insertAfter(AtalayaItems.HUEVO_FOGONAZO, AtalayaItems.HUEVO_COCO));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(Items.ENDERMAN_SPAWN_EGG, AtalayaItems.HUEVO_VIGIA));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->

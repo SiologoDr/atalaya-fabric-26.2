@@ -2,12 +2,20 @@
 El Momento Maldición (15-10-2026): nuestro «momento Reviil» de DEDsafío. Juan: «quiero que lo hagas mil veces
 mejor, que me sorprendas». Los compañeros dejaron una idea (vídeo, sonido y música), pero aquí todo se crea: la
 cinemática es nuestra (el Sello que se dibuja, el núcleo que se carga, la pantalla que revienta, sin texto) y se pinta
-en el juego sin texturas (MomentoMaldicionHud y CieloRoto). Este script hace solo:
+en el juego con trazos (MomentoMaldicionHud y CieloRoto). Este script hace:
 
   textures/item/momento_cartel_NN       el rótulo del aviso del chat, MOMENTO FRACTURA: en letras de metal rojo con
                                         un brillo que lo cruza (cuadros animados que el chat pinta seguidos)
   textures/item/momento_fractura        el icono del aviso (el sello rojo y rajado)
-  textures/entity/momento/grieta        la cinta de las grietas del cielo
+  textures/entity/momento/cielo         todo lo del cielo roto en una hoja (16-10-2026), para que el juego lo pinte de una
+                                        tanda y en orden: la cinta de las grietas (suave de lado a lado), un blanco
+                                        liso y la niebla de detrás del hueco
+  textures/gui/momento/                 las piezas suaves de la cinemática (16-10-2026, para que nada se vea en cajas
+                                        ni en escalones): el brillo, el disco, el haz de luz, el brillo de un trazo,
+                                        la viñeta del latido y un triángulo suave que el juego estira (los trozos de
+                                        cristal de la fractura), todas con su .mcmeta (blur)
+  textures/gui/momento/reloj            el contador de la prueba (16-10-2026): los números y los dos puntos, blancos con
+                                        su contorno oscuro (el juego los tiñe de rojo al final); sin blur, a píxeles
   textures/particle/maldicion_mota_N    las motas que suben en el mundo maldito (brasas rojas que parpadean)
   textures/particle/maldicion_ceniza_N  y la ceniza negra que cae, con sus JSON
 
@@ -16,6 +24,7 @@ Los sonidos y la música, momento_maldicion_sonidos.py.
 Uso: python momento_maldicion.py <raiz del proyecto>
 """
 import json
+import math
 import os
 import sys
 
@@ -277,23 +286,193 @@ def cartel():
     return cuadros
 
 
-def grieta():
-    """La cinta de las grietas del cielo (8 x 32): blanca, opaca en el centro y que se desvanece hacia los lados."""
-    perfil = [0.0, 0.16, 0.42, 1.0, 1.0, 0.42, 0.16, 0.0]
-    im = Image.new('RGBA', (8, 32), (0, 0, 0, 0))
-    for x, a in enumerate(perfil):
-        for y in range(32):
-            im.putpixel((x, y), (255, 255, 255, int(255 * a)))
+def cielo():
+    """La hoja del cielo roto (256 x 256, a píxeles, sin blur):
+
+        y 0-31      (libre: los ojos son cuadrados rojos lisos, sin textura)
+        x 0-127,    la niebla gris de detrás de los huecos (Juan: «otro espacio, negros y gris, no morado»): sin
+        y 32-159    costura; el juego la pasea despacio en dos capas
+        x 128-255,  la cinta de las grietas: blanca, opaca en el centro y que se desvanece hacia los lados (128 de
+        y 32-63     ancho: no se ven escalones)
+        x 128-255,  un blanco liso (los huecos, los trozos que caen, la pared de los huecos)
+        y 64-95
+    """
+    import numpy as np
+    hoja = np.zeros((256, 256, 4), np.uint8)
+    hoja[32:160, 0:128] = _vacio()
+    for x in range(128):
+        d = abs(x - 63.5) / 63.5
+        a = math.exp(-(d / 0.42) ** 2) if d < 0.98 else 0.0
+        hoja[32:64, 128 + x] = (255, 255, 255, int(255 * min(1.0, a * 1.08)))
+    hoja[64:96, 128:256] = (255, 255, 255, 255)
     carpeta = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/entity/momento')
     os.makedirs(carpeta, exist_ok=True)
-    im.save(os.path.join(carpeta, 'grieta.png'))
+    Image.fromarray(hoja, 'RGBA').save(os.path.join(carpeta, 'cielo.png'))
+    for viejo in ('grieta.png', 'grieta.png.mcmeta', 'ojos.png', 'vacio.png', 'vacio.png.mcmeta', 'cielo.png.mcmeta'):
+        if os.path.exists(os.path.join(carpeta, viejo)):
+            os.remove(os.path.join(carpeta, viejo))
+    print('cielo: la hoja de 256 x 256')
+
+
+def _mcmeta(ruta):
+    """Que se estire suave (filtro lineal) y sin repetirse por los bordes."""
+    with open(ruta + '.mcmeta', 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write(json.dumps({'texture': {'blur': True, 'clamp': True}}, indent=2) + '\n')
+
+
+def _suave(e0, e1, x):
+    t = max(0.0, min(1.0, (x - e0) / (e1 - e0)))
+    return t * t * (3 - 2 * t)
+
+
+def hud():
+    """Las piezas suaves de la cinemática (blancas: el juego les pone el color)."""
+    from PIL import ImageDraw, ImageFilter
+    carpeta = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/gui/momento')
+    os.makedirs(carpeta, exist_ok=True)
+
+    def guardar(im, nombre):
+        ruta = os.path.join(carpeta, nombre + '.png')
+        im.save(ruta)
+        _mcmeta(ruta)
+
+    def campo(w, h, f):
+        im = Image.new('RGBA', (w, h), (255, 255, 255, 0))
+        px = im.load()
+        for y in range(h):
+            for x in range(w):
+                px[x, y] = (255, 255, 255, int(round(255 * max(0.0, min(1.0, f(x, y))))))
+        return im
+
+    # el brillo: una campana redonda que se apaga en el borde
+    guardar(campo(128, 128, lambda x, y: math.exp(-((math.hypot(x - 63.5, y - 63.5) / 63.5) / 0.42) ** 2)
+                  * (1 - _suave(0.85, 1.0, math.hypot(x - 63.5, y - 63.5) / 63.5))), 'brillo')
+    # el disco: lleno, con el borde suave (sin escalones)
+    guardar(campo(256, 256, lambda x, y: 1 - _suave(0.965, 1.0, math.hypot(x - 127.5, y - 127.5) / 127.5)), 'disco')
+    # el haz de luz: campana de lado a lado, que nace suave y se apaga hacia la punta
+    guardar(campo(128, 32, lambda x, y: math.exp(-(abs(y - 15.5) / 15.5 / 0.45) ** 2) * _suave(0, 10, x)
+                  * (1 - x / 127.0) ** 1.4), 'haz')
+    # el brillo de un trazo: campana de lado a lado, con las puntas redondeadas
+    guardar(campo(64, 16, lambda x, y: math.exp(-(abs(y - 7.5) / 7.5 / 0.45) ** 2) * _suave(0, 14, x)
+                  * _suave(0, 14, 63 - x)), 'trazo')
+    # la viñeta del latido: nada en buena parte del centro y el color solo hacia los bordes
+    guardar(campo(256, 144, lambda x, y: _suave(0.72, 1.3, math.hypot((x - 127.5) / 127.5, (y - 71.5) / 71.5))),
+            'vineta')
+    # el triangulo: el de abajo a la izquierda de su cuadrado (de la esquina de arriba a la izquierda a las otras dos),
+    # dibujado a 4x y reducido (el lado largo, suave): el juego lo estira a cualquier triangulo (los trozos de cristal
+    # de la fractura)
+    big = Image.new('L', (256, 256), 0)
+    ImageDraw.Draw(big).polygon([(0, 0), (256, 0), (0, 256)], fill=255)
+    tri = Image.new('RGBA', (64, 64), (255, 255, 255, 0))
+    tri.putalpha(big.resize((64, 64), Image.LANCZOS))
+    guardar(tri, 'triangulo')
+    for viejo in os.listdir(carpeta):
+        if viejo.startswith('esquirla'):
+            os.remove(os.path.join(carpeta, viejo))
+    print('hud: brillo, disco, haz, trazo, vineta y triangulo')
+
+
+RELOJ = '0123456789:'
+RELOJ_CELDA = 28      # el ancho de cada número (todos iguales, para que el contador no baile); los dos puntos, 16
+RELOJ_PUNTOS = 16
+RELOJ_ALTO = 32
+
+
+def reloj():
+    """El contador de la prueba de la tierra, arriba en el centro de la pantalla (Juan, 16-10-2026: «el número debe
+    ser más pequeño y de color blanco»): las letras de las barras a escala 3, blancas con un poco de bisel (el juego
+    las tiñe de rojo en los diez últimos segundos), el contorno oscuro y una sombra suave para que se lean encima de
+    cualquier cosa."""
+    e, m = 3, 5
+    anchos = [RELOJ_PUNTOS if c == ':' else RELOJ_CELDA for c in RELOJ]
+    W = sum(anchos)
+    im = Image.new('RGBA', (W, RELOJ_ALTO), (0, 0, 0, 0))
+    x0 = 0
+    for c, aw in zip(RELOJ, anchos):
+        g = GRANDE[c]
+        ox = x0 + (aw - len(g[0]) * e) // 2
+        oy = m
+        dentro = set()
+        for fy, fila in enumerate(g):
+            for fx, ch in enumerate(fila):
+                if ch == '#':
+                    for dy in range(e):
+                        for dx in range(e):
+                            dentro.add((ox + fx * e + dx, oy + fy * e + dy))
+        alto = 7 * e
+        for py in range(RELOJ_ALTO):
+            for px in range(x0, x0 + aw):
+                if (px, py) in dentro:
+                    v = (py - oy) / (alto - 1)
+                    k = int(255 - 40 * v)
+                    if (px - 1, py) not in dentro or (px, py - 1) not in dentro:
+                        k = 255
+                    elif (px + 1, py) not in dentro or (px, py + 1) not in dentro:
+                        k = int(k * 0.78)
+                    im.putpixel((px, py), (k, k, k, 255))
+                else:
+                    cerca = min((abs(dx) + abs(dy) for dx in range(-3, 4) for dy in range(-3, 4)
+                                 if (px + dx, py + dy) in dentro), default=99)
+                    if cerca <= 1:
+                        im.putpixel((px, py), (18, 8, 10, 255))
+                    elif cerca <= 3:
+                        im.putpixel((px, py), (0, 0, 0, int(110 * (1 - (cerca - 1) / 3))))
+        x0 += aw
+    carpeta = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/gui/momento')
+    os.makedirs(carpeta, exist_ok=True)
+    ruta = os.path.join(carpeta, 'reloj.png')
+    im.save(ruta)
+    if os.path.exists(ruta + '.mcmeta'):
+        os.remove(ruta + '.mcmeta')
+    print('reloj:', W, 'x', RELOJ_ALTO)
+
+
+def _vacio():
+    """Lo que hay detrás de los huecos: una niebla gris sobre nada (transparente donde no hay niebla; el negro lo pone
+    el juego debajo), en 128 x 128 y sin costura."""
+    import numpy as np
+    n = 128
+
+    def capa(celdas, semilla):
+        rng = np.random.default_rng(semilla)
+        g = rng.random((celdas, celdas))
+        t = np.arange(n) / n * celdas
+        i0 = np.floor(t).astype(int) % celdas
+        i1 = (i0 + 1) % celdas
+        f = t - np.floor(t)
+        f = f * f * (3 - 2 * f)
+        fy = f[:, None]
+        fx = f[None, :]
+        a = g[i0][:, i0]
+        b = g[i0][:, i1]
+        c = g[i1][:, i0]
+        d = g[i1][:, i1]
+        return a * (1 - fx) * (1 - fy) + b * fx * (1 - fy) + c * (1 - fx) * fy + d * fx * fy
+
+    v = capa(4, 1) * 0.5 + capa(8, 2) * 0.3 + capa(16, 3) * 0.2
+    densidad = np.clip((v - 0.42) / 0.38, 0, 1) ** 1.5
+    tono = 0.75 + 0.25 * capa(16, 4)
+    im = np.zeros((n, n, 4), np.uint8)
+    for k, c in enumerate((150, 146, 150)):
+        im[..., k] = np.clip(c * tono, 0, 255).astype(np.uint8)
+    im[..., 3] = (densidad * 200).astype(np.uint8)
+    # Unas motas lejanas, grises.
+    rng = np.random.default_rng(5)
+    for _ in range(22):
+        x, y = rng.integers(0, n, 2)
+        b = int(rng.uniform(150, 230))
+        im[y, x] = (b, b, b, 255)
+    return im
+
 
 
 def main():
     comprobar()
     particulas()
     icono()
-    grieta()
+    cielo()
+    hud()
+    reloj()
     cartel()
     print('ok')
 

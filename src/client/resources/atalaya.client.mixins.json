@@ -22,6 +22,8 @@
     "CanonPunteriaMixin",
     "PararrayosBrazoMixin",
     "CieloJefesMixin",
+    "SolMomentoMixin",
+    "CocoOcultarMixin",
     "ModelPartAccesor"
   ],
   "injectors": {

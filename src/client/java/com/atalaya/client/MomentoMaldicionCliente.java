@@ -42,8 +42,9 @@ import org.jspecify.annotations.Nullable;
  *   224    el aviso del chat (MOMENTO FRACTURA: y el texto) y la campana
  * </pre>
  *
- * Despues, mientras dura, nada en el HUD: el cielo de sangre roto en
- * cristal (con trozos que se desprenden), la niebla y las grietas que laten con
+ * Despues, mientras dura, nada en el HUD (en la prueba, solo su contador): el
+ * cielo de sangre roto como un cristal golpeado (un solo hueco en lo alto, con
+ * sus ojos rojos), la niebla y las grietas que laten con
  * la musica (un corazon cada 3,7 s), motas rojas que suben y ceniza negra que
  * cae. Al pararlo: la luz que entra, las grietas que se cierran y el cielo que
  * vuelve.
@@ -81,6 +82,8 @@ public final class MomentoMaldicionCliente {
     /** Ticks que dura despues de la cinematica (0, sin reloj) y los que lleva maldito. */
     private static int duracion;
     private static int maldito;
+    /** Lo que dura el contador de la prueba desde que acaba la cinematica (ticks; 0, sin prueba). */
+    private static int contador;
     private static long semilla;
     /** El cielo maldito (0 a 1). */
     private static float cielo;
@@ -102,8 +105,9 @@ public final class MomentoMaldicionCliente {
                 titulo = m.titulo();
                 texto = m.texto();
                 duracion = m.duracion();
+                contador = m.contador();
                 maldito = 0;
-                semilla = mc.level == null ? 0L : mc.level.getGameTime() * 31L + titulo.hashCode();
+                semilla = m.semilla();
                 fase = Fase.INTRO;
                 t = 0;
                 MomentoMaldicionHud.preparar(semilla, titulo);
@@ -113,7 +117,8 @@ public final class MomentoMaldicionCliente {
                 titulo = m.titulo();
                 texto = m.texto();
                 duracion = m.duracion();
-                semilla = titulo.hashCode();
+                contador = m.contador();
+                semilla = m.semilla();
                 MomentoMaldicionHud.preparar(semilla, titulo);
                 if (m.pasado() < T_FIN_INTRO) {
                     // Entra a media cinematica: la ve desde donde va.
@@ -148,6 +153,7 @@ public final class MomentoMaldicionCliente {
     public static void olvidar() {
         fase = Fase.NADA;
         t = 0;
+        contador = 0;
         cielo = 0.0F;
         cieloAntes = 0.0F;
         if (musica != null) {
@@ -211,12 +217,6 @@ public final class MomentoMaldicionCliente {
             }
             case MALDITO -> {
                 maldito++;
-                // Cada trozo del cielo que se desprende, con su sonido (CieloRoto lo pinta a la vez).
-                for (int i = CieloRoto.FALTAN_AL_ROMPER; i < CieloRoto.trozos(); i++) {
-                    if ((int) CieloRoto.desprende(i) == maldito) {
-                        sonar(mc, AtalayaSonidos.MOMENTO_DESPRENDE, 0.8F);
-                    }
-                }
                 cielo += (1.0F - cielo) * 0.05F;
                 if (musica == null) {
                     empezarMusica(mc, 40);
@@ -262,6 +262,11 @@ public final class MomentoMaldicionCliente {
         return duracion <= 0 ? -1 : Math.max(0, duracion - maldito);
     }
 
+    /** Lo que dura el contador de la prueba desde que acaba la cinematica (ticks), o 0 si no hay prueba. */
+    public static int contador() {
+        return contador;
+    }
+
     /** Los ticks maldito (para el latido de las venas y del cielo). */
     public static int maldito() {
         return maldito;
@@ -269,11 +274,6 @@ public final class MomentoMaldicionCliente {
 
     public static long semilla() {
         return semilla;
-    }
-
-    /** Si el resto del HUD se esconde: durante la cinematica, hasta que se abren las bandas. */
-    public static boolean ocultaHud() {
-        return fase == Fase.INTRO && t < T_ABRE + 8;
     }
 
     /** Si su musica manda (la de los jefes y la de vanilla callan). */
@@ -319,7 +319,7 @@ public final class MomentoMaldicionCliente {
         return reloj + parcial;
     }
 
-    /** Los ticks maldito, con la parte del tick (para los trozos del cielo que se desprenden). */
+    /** Los ticks maldito, con la parte del tick (para los ojos del cielo roto). */
     public static float malditoCielo(float parcial) {
         return maldito + (fase == Fase.MALDITO && !Minecraft.getInstance().isPaused() ? parcial : 0.0F);
     }
@@ -376,6 +376,11 @@ public final class MomentoMaldicionCliente {
     //  El cielo maldito (lo pide CieloJefesMixin, despues del de los jefes)
     // ------------------------------------------------------------------
 
+    /** Lo maldito que esta el cielo (0 a 1), con la parte del tick: SolMomentoMixin esconde con esto el sol y la luna. */
+    public static float cielo(float parcial) {
+        return fase == Fase.NADA ? 0.0F : Mth.clamp(Mth.lerp(parcial, cieloAntes, cielo), 0.0F, 1.0F);
+    }
+
     public static boolean cieloActivo() {
         return fase != Fase.NADA && Math.max(cielo, cieloAntes) > 0.0F;
     }
@@ -394,8 +399,9 @@ public final class MomentoMaldicionCliente {
             return rgb(rgb((Integer) valor, 0x30060C, k), 0x5A0A12, late * 0.5F);
         }
         if (atributo == EnvironmentAttributes.CLOUD_COLOR) {
+            // Las nubes se van: oscuras, se veian por detras del cielo roto como barras de bloques (16-10-2026).
             int c = (Integer) valor;
-            int al = (int) Mth.lerp(k, (c >>> 24) & 255, 0xF0);
+            int al = (int) Mth.lerp(k, (c >>> 24) & 255, 0);
             return (al << 24) | (rgb(c, 0x3A0A0E, k) & 0xFFFFFF);
         }
         if (atributo == EnvironmentAttributes.SUNRISE_SUNSET_COLOR) {
@@ -439,11 +445,12 @@ public final class MomentoMaldicionCliente {
     private static void particulas(Minecraft mc, float k) {
         RandomSource r = mc.level.getRandom();
         Vec3 o = mc.gameRenderer.mainCamera().position();
+        // A partir de 6 bloques: mas cerca, una mota se veia como una mancha enorme pegada a la camara (16-10-2026).
         for (int i = 0; i < Math.round(3 * k); i++) {
-            poner(mc, r, AtalayaParticulas.MALDICION_MOTA, o, 2.0, 14.0, -2.0, 6.0, 0.0, 0.02, 0.0);
+            poner(mc, r, AtalayaParticulas.MALDICION_MOTA, o, 6.0, 16.0, -2.0, 6.0, 0.0, 0.02, 0.0);
         }
         if (r.nextFloat() < 1.6F * k) {
-            poner(mc, r, AtalayaParticulas.MALDICION_CENIZA, o, 2.0, 14.0, 4.0, 12.0, 0.0, -0.02, 0.0);
+            poner(mc, r, AtalayaParticulas.MALDICION_CENIZA, o, 5.0, 15.0, 4.0, 12.0, 0.0, -0.02, 0.0);
         }
     }
 

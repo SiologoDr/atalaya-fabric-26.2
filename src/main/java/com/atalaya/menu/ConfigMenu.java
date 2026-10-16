@@ -124,8 +124,8 @@ public class ConfigMenu extends ChestMenu {
                             "A la intemperie te deja a la mitad de velocidad.",
                             () -> AtalayaConfig.get().isEmpapadoActivo(),
                             v -> AtalayaConfig.get().setEmpapadoActivo(v)),
-                    mecanica(pila(() -> Items.WITHER_ROSE), "Momento Maldicion",
-                            "Con el ultimo titulo y texto. Para otros: /atalaya momento_maldicion.",
+                    mecanica(pila(() -> Items.WITHER_ROSE), "Momento Fractura",
+                            "Con el ultimo titulo y texto. Para otros: /atalaya momento_fractura.",
                             com.atalaya.momento.MomentoMaldicion::activo,
                             com.atalaya.momento.MomentoMaldicion::interruptor)
             ),

@@ -35,6 +35,14 @@ public final class AtalayaEntities {
 
     public static EntityType<FulminanteEntity> FULMINANTE;
 
+    /** El Fogonazo, el bicho-luciernaga que estalla en luz. Solo con su huevo: no aparece solo. */
+    public static final ResourceKey<EntityType<?>> CLAVE_FOGONAZO = clave("fogonazo");
+    public static EntityType<FogonazoEntity> FOGONAZO;
+
+    /** El Coco, el que te mete en la barriga. Solo con su huevo: no aparece solo. */
+    public static final ResourceKey<EntityType<?>> CLAVE_COCO = clave("coco");
+    public static EntityType<CocoEntity> COCO;
+
     public static final ResourceKey<EntityType<?>> CLAVE_VIGIA = ResourceKey.create(
             Registries.ENTITY_TYPE,
             Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "vigia"));
@@ -234,6 +242,29 @@ public final class AtalayaEntities {
         // hace de verdad peligroso —un creeper normal te da tiempo a retroceder.
         FabricDefaultAttributeRegistry.register(FULMINANTE,
                 Creeper.createAttributes().add(Attributes.MOVEMENT_SPEED, 0.375D));
+
+        // El Fogonazo: largo (dos bloques con la cabeza) y no muy alto, pero la caja es de un bloque escaso de ancho,
+        // para que pase por donde pasa un creeper; la cabeza y el farol asoman. Corre como un jugador esprintando (Juan,
+        // 16-10-2026): en un mob la velocidad cuenta dos veces (la del paso y la del empuje), asi que 0,36 da los 5,6
+        // bloques por segundo del jugador que esprinta (0,13). Sin apariciones: por ahora, solo con su huevo.
+        FOGONAZO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_FOGONAZO,
+                EntityType.Builder.of(FogonazoEntity::new, MobCategory.MONSTER)
+                        .sized(0.9F, 1.3F)
+                        .eyeHeight(0.75F)
+                        .clientTrackingRange(8)
+                        .build(CLAVE_FOGONAZO));
+        FabricDefaultAttributeRegistry.register(FOGONAZO,
+                Creeper.createAttributes().add(Attributes.MOVEMENT_SPEED, 0.36D));
+
+        // El Coco: casi tres bloques de alto, encorvado y ancho de barriga. La caja deja fuera la cabeza adelantada y las
+        // manos, para que quepa por una puerta de dos de ancho. Sin apariciones: por ahora, solo con su huevo.
+        COCO = Registry.register(BuiltInRegistries.ENTITY_TYPE, CLAVE_COCO,
+                EntityType.Builder.of(CocoEntity::new, MobCategory.MONSTER)
+                        .sized(1.5F, 2.7F)
+                        .eyeHeight(2.3F)
+                        .clientTrackingRange(10)
+                        .build(CLAVE_COCO));
+        FabricDefaultAttributeRegistry.register(COCO, CocoEntity.crearAtributos());
 
         // Donde puede aparecer: en el suelo, y con las mismas condiciones de luz
         // que cualquier monstruo. Lo unico propio es la comprobacion del

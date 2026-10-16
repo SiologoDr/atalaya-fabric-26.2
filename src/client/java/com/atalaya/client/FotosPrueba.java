@@ -33,6 +33,12 @@ public final class FotosPrueba {
     /** "AGACHAR 1|0" y "SALTAR 1|0": mantiene (o suelta) Shift o el salto (el Caballero Manda). */
     private static final String AGACHAR = "AGACHAR ";
     private static final String SALTAR = "SALTAR ";
+    /** "FOV n": el campo de vision (30 a 110; para acercar la vista en las fotos). */
+    private static final String FOV = "FOV ";
+    /** "HUECO n": mira al centro del hueco n del cielo roto del Momento Fractura (0 a 4). */
+    private static final String HUECO = "HUECO ";
+    /** "COCO_HUD 1|0": muestra (o quita) la pantalla roja de dentro del Coco, para fotografiar el aviso de encima. */
+    private static final String COCO_HUD = "COCO_HUD ";
     /** "GOLPEAR": un clic izquierdo a lo que tenga delante (un bloque o una entidad). */
     private static final String GOLPEAR = "GOLPEAR";
     /** "INTERACTUAR": un clic derecho a la entidad que tenga delante (las veletas de Aeralis). */
@@ -93,6 +99,23 @@ public final class FotosPrueba {
                         && cliente.hitResult instanceof net.minecraft.world.phys.EntityHitResult e) {
                     cliente.gameMode.interact(cliente.player, e.getEntity(), e, net.minecraft.world.InteractionHand.MAIN_HAND);
                     cliente.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+                }
+                return false;
+            }
+            if (texto.startsWith(FOV)) {
+                cliente.options.fov().set(Math.clamp(Integer.parseInt(texto.substring(FOV.length()).trim()), 30, 110));
+                return false;
+            }
+            if (texto.startsWith(COCO_HUD)) {
+                CocoDentroHud.pruebaSinPantalla = texto.substring(COCO_HUD.length()).trim().equals("0");
+                return false;
+            }
+            if (texto.startsWith(HUECO)) {
+                float[] c = CieloRoto.centroHueco(Integer.parseInt(texto.substring(HUECO.length()).trim()));
+                if (c != null && cliente.player != null) {
+                    net.minecraft.world.phys.Vec3 ojo = cliente.player.getEyePosition();
+                    cliente.player.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,
+                            ojo.add(c[0] * 100, c[1] * 100, c[2] * 100));
                 }
                 return false;
             }

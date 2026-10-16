@@ -112,6 +112,28 @@ public class AtalayaClient implements ClientModInitializer {
         ModelLayerRegistry.registerModelLayer(FulminanteModel.CAPA, FulminanteModel::crear);
         EntityRendererRegistry.register(AtalayaEntities.FULMINANTE, FulminanteRenderer::new);
 
+        // El Fogonazo: la malla generada por fogonazo_juego.py, que anima FogonazoModel; lo que brilla y, cuando te
+        // estalla cerca, la pantalla en blanco (DeslumbreHud, por encima de todo el HUD).
+        ModelLayerRegistry.registerModelLayer(com.atalaya.client.FogonazoModel.CAPA, com.atalaya.client.FogonazoMalla::crear);
+        EntityRendererRegistry.register(AtalayaEntities.FOGONAZO, com.atalaya.client.FogonazoRenderer::new);
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "deslumbre"),
+                new com.atalaya.client.DeslumbreHud());
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.DeslumbreHud::tick);
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
+                com.atalaya.net.AtalayaRed.Deslumbre.TIPO,
+                (carga, contexto) -> com.atalaya.client.DeslumbreHud.recibir(carga));
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+                (manejador, cliente) -> com.atalaya.client.DeslumbreHud.olvidar());
+
+        // El Coco: la malla generada por coco_juego.py, que anima CocoModel; lo que brilla, el aviso de encima cuando
+        // tiene a alguien dentro (CocoRenderer) y, para el de dentro, la pantalla roja con el latido (por debajo de la
+        // barra y los corazones, para que vea como se le va la vida).
+        ModelLayerRegistry.registerModelLayer(com.atalaya.client.CocoModel.CAPA, com.atalaya.client.CocoMalla::crear);
+        EntityRendererRegistry.register(AtalayaEntities.COCO, com.atalaya.client.CocoRenderer::new);
+        HudElementRegistry.attachElementBefore(VanillaHudElements.HOTBAR,
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "coco_dentro"), new com.atalaya.client.CocoDentroHud());
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.CocoDentroHud::tick);
+
         // El Vigia: malla y animaciones propias, nada heredado.
         ModelLayerRegistry.registerModelLayer(VigiaModel.CAPA, VigiaModel::crear);
         EntityRendererRegistry.register(AtalayaEntities.VIGIA, VigiaRenderer::new);
@@ -473,9 +495,10 @@ public class AtalayaClient implements ClientModInitializer {
                 com.atalaya.client.CorazonesJefe::tick);
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "presentacion"),
                 new com.atalaya.client.PresentacionHud());
-        // El Momento Maldicion (/atalaya momento_maldicion): encima de todo. Lo manda el servidor (el unico paquete
-        // que va hacia el cliente); al salir del mundo se olvida.
-        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "momento_maldicion"),
+        // El Momento Maldicion (/atalaya momento_maldicion): por debajo del HUD, que no se esconde, para que se pueda
+        // seguir jugando mientras sale (Juan, 16-10-2026). Lo manda el servidor (el unico paquete que va hacia el
+        // cliente); al salir del mundo se olvida.
+        HudElementRegistry.addFirst(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "momento_maldicion"),
                 new com.atalaya.client.MomentoMaldicionHud());
         ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.MomentoMaldicionCliente::tick);
         // Y el cielo que se rompe (las grietas de luz en el cielo de verdad).
@@ -493,7 +516,7 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.SCOREBOARD, VanillaHudElements.OVERLAY_MESSAGE, VanillaHudElements.CHAT));
         for (Identifier id : escondidos) {
             HudElementRegistry.replaceElement(id, original -> (g, delta) -> {
-                if (!com.atalaya.client.PresentacionJefe.ocultaHud() && !com.atalaya.client.MomentoMaldicionCliente.ocultaHud()) {
+                if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
                     original.extractRenderState(g, delta);
                 }
             });
@@ -504,7 +527,7 @@ public class AtalayaClient implements ClientModInitializer {
     private static net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement oculto(
             net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement e) {
         return (g, delta) -> {
-            if (!com.atalaya.client.PresentacionJefe.ocultaHud() && !com.atalaya.client.MomentoMaldicionCliente.ocultaHud()) {
+            if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
                 e.extractRenderState(g, delta);
             }
         };

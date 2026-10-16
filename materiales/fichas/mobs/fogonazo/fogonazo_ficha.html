@@ -1,0 +1,219 @@
+<title>El Fogonazo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* El Fogonazo: la misma columna de lectura que las otras fichas, sobre la noche azul del campo; cada tipo con el color de su luz (blanco calido, hielo, ambar), que manda solo en su seccion. Oscuro a proposito. */
+:root{
+  --tinta:#080a10; --hoja:#10141d; --hoja2:#161b26; --filo:#262d3c;
+  --texto:#ecf0f6; --texto2:#b2bacb; --tenue:#7f889c;
+  --blanca:#ffeccc; --hielo:#9fdcff; --ambar:#ffb84a;
+  --tono:var(--texto2);
+  --display:'IM Fell English SC', 'IM Fell English', Georgia, serif;
+  --cuerpo:'Alegreya Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+body{background:var(--tinta); color:var(--texto); font-family:var(--cuerpo); font-size:17px; line-height:1.6; margin:0;}
+.libro{max-width:1080px; margin:0 auto; padding-block:0 80px; padding-inline:20px;}
+img{max-width:100%; display:block; border-radius:6px; border:1px solid var(--filo);}
+p{max-width:68ch;}
+
+.portada{margin:18px 0 0; position:relative; border-radius:10px; overflow:hidden; border:1px solid var(--filo);}
+.portada img{border:0; border-radius:0; width:100%;}
+.portada .velo{position:absolute; inset:0; background:linear-gradient(180deg, rgba(8,10,16,0) 34%, rgba(8,10,16,.95) 90%);}
+.portada .rotulo{position:absolute; left:0; right:0; bottom:0; padding:20px 26px;}
+@media (max-width:700px){
+  .portada .velo{display:none;}
+  .portada .rotulo{position:static; padding:16px 4px 0;}
+}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tenue);}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(36px,6.4vw,64px); line-height:1.02; margin:6px 0 6px; text-wrap:balance;}
+.sub{color:var(--texto2); margin:0; max-width:66ch;}
+.sub b{color:var(--texto); font-weight:500;}
+
+h2{font-family:var(--display); font-weight:400; font-size:clamp(26px,3.6vw,38px); line-height:1.1; margin:64px 0 8px; text-wrap:balance;}
+.tipo{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); display:block; margin:64px 0 0;}
+.tipo + h2{margin-top:4px;}
+.lede{color:var(--texto2); max-width:70ch; margin:0 0 18px;}
+.lede b{color:var(--texto); font-weight:500;}
+.libro ol.lede, .libro ul.lede{padding-left:1.4em;}
+.lede li{margin:5px 0;}
+
+.aviso{background:var(--hoja); border:1px solid var(--filo); border-left:3px solid var(--blanca); border-radius:8px; padding:14px 18px; margin:18px 0 0; color:var(--texto2);}
+.aviso b{color:var(--texto); font-weight:500;}
+
+.var.a{--tono:var(--blanca);}
+.var.b{--tono:var(--hielo);}
+.var.c{--tono:var(--ambar);}
+.ancha{margin:0 0 12px;}
+.dos{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px;}
+.ficha{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; margin-top:14px;}
+@media (max-width:760px){ .ficha{grid-template-columns:1fr;} }
+.receta, .senas{background:var(--hoja); border:1px solid var(--filo); border-radius:8px; padding:16px 18px; min-width:0;}
+.receta h3, .senas h3{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--tono); margin:0 0 10px; font-weight:500;}
+.receta dl{margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 14px;}
+.receta dt{font-family:var(--mono); font-size:13px; color:var(--tenue); padding-top:2px;}
+.receta dd{margin:0; color:var(--texto);}
+@media (max-width:420px){ .receta dl{grid-template-columns:1fr;} .receta dt{padding-top:6px;} }
+.senas ul{margin:0; padding-left:18px; color:var(--texto2);}
+.senas li{margin:4px 0;}
+
+.tiempos{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:10px 0 0;}
+@media (max-width:640px){ .tiempos{grid-template-columns:1fr;} }
+.tiempos div{font-family:var(--mono); font-size:13px; color:var(--texto2); font-variant-numeric:tabular-nums;}
+.tiempos b{display:block; color:var(--texto); font-weight:500;}
+
+.decidir{border:1px solid var(--texto2); border-radius:10px; padding:22px 24px; margin:56px 0 10px; background:var(--hoja);}
+.decidir h2{margin-top:0;}
+.decidir ol{margin:8px 0 0; padding-left:22px; color:var(--texto2);}
+.decidir li{margin:8px 0;}
+.decidir b{color:var(--texto); font-weight:500;}
+.pie{color:var(--tenue); font-size:13px; margin-top:34px; border-top:1px solid var(--filo); padding-top:14px; font-family:var(--mono);}
+</style>
+<div class="libro">
+  <header class="portada">
+    <img src="fogonazo_destello_accion.jpg" alt="El Fogonazo estallando en luz delante de un jugador que se tapa la cara, en un campo de noche">
+    <div class="velo"></div>
+    <div class="rotulo">
+      <div class="eyebrow">Atalaya · mob que hace algo · 16-10-2026</div>
+      <h1>El Fogonazo</h1>
+      <p class="sub">El mob que, si se te acerca, <b>estalla como un creeper y te deja la pantalla en blanco</b>. Es un
+      bicho-luciérnaga de la noche que lleva la luz dentro. Anda agazapado, con <b>cara de luciérnaga</b>: la cabeza
+      metida bajo el escudo, los ojos compuestos y las mandíbulas en hoz. Detrás, levantado sobre el lomo, lleva <b>el
+      farol</b>. Cuando te tiene cerca se abre: levanta las placas, se le encienden los ojos y estalla.</p>
+    </div>
+  </header>
+
+  <p class="aviso"><b>Lo que cambió desde la primera ficha</b>, como pediste: la cara ahora es de luciérnaga (antes
+  era una cara de fauces, con los ojos cerrados). Estalla a 3 bloques, el blanco dura 4 segundos y el estallido es el de
+  un creeper: empuja, hace daño y ciega. Por ahora solo sale con su huevo. El cuerpo, el farol y los tres tipos siguen
+  igual.</p>
+
+  <h2>La cara de luciérnaga</h2>
+  <ul class="lede">
+    <li><b>El escudo:</b> una placa ancha y redondeada, algo abombada, que le tapa la cabeza desde arriba. Es el pronoto
+    de las luciérnagas, con su borde de color (rojo teja en el Destello) y la mancha oscura en el centro.</li>
+    <li><b>Los ojos compuestos:</b> dos ojos grandes a los lados, negros como un cristal. La luz del farol los enciende
+    por abajo, y la mitad de arriba queda a la sombra del escudo, como un ceño.</li>
+    <li><b>Las mandíbulas en hoz</b>, de cuerno, que se cruzan delante. Entre ellas está la boca pequeña, encendida por
+    dentro, con dientes en aguja, y a los lados, los palpos.</li>
+    <li><b>Las antenas en sierra:</b> salen de debajo del escudo y se echan hacia atrás sobre el lomo.</li>
+  </ul>
+
+  <h2>Qué hace el Fogonazo</h2>
+  <ol class="lede">
+    <li><b>Acecha</b> de noche en el campo y en las cuevas. Su farol se ve de lejos: así sabes que anda cerca.</li>
+    <li><b>Se te acerca</b> corriendo, guiándose con las antenas.</li>
+    <li><b>A 3 bloques se para y se abre</b>: levanta las placas, abre los ojos y el farol se hincha y zumba. Tienes
+    1 segundo de aviso.</li>
+    <li><b>Estalla como un creeper:</b> te empuja, te hace daño y <b>la pantalla se pone en blanco</b> 4 segundos;
+    luego el blanco se va en 2. Él desaparece en el estallido.</li>
+  </ol>
+  <p class="lede"><b>Lo malo es lo que viene después:</b> mientras no ves, los demás mobs te encuentran.
+  <b>Cómo librarte:</b> matarlo antes de que llegue (con arco, de lejos) o alejarte en el segundo de aviso.</p>
+  <p class="lede"><b>Por ahora solo sale con su huevo.</b> Ningún mob ni jefe sale todavía de forma natural.</p>
+  <p class="lede">Los tres son el mismo mob, en la misma pose de acecho. Cambia el farol y lo que hace al estallar.
+  Mide unos 2 bloques de largo y 1,4 de alto hasta el farol (1,7 con las antenas).</p>
+
+  <section class="var a">
+    <span class="tipo">A · el Destello · el de siempre</span>
+    <h2>El Destello: te ciega, lo mires o no</h2>
+    <ul class="lede">
+      <li><b>Pizarra oscura y luz blanca.</b> El farol va en bandas, con las placas detrás y la luz saliendo por las
+      juntas.</li>
+      <li><b>Lo que hace:</b> a 3 bloques, el segundo de aviso, y estalla como un creeper. Deja en blanco a todos los que
+      estén a menos de 6 bloques, lo estén mirando o no.</li>
+    </ul>
+    <img class="ancha" src="fogonazo_destello_accion.jpg" alt="El Destello estallando delante de un jugador">
+    <div class="dos">
+      <img src="fogonazo_destello_heroe.jpg" alt="El Destello agazapado en el campo, con el farol en bandas encendido">
+      <img src="fogonazo_destello_cabeza.jpg" alt="La cara de luciérnaga del Destello de cerca: el escudo rojo teja, los ojos compuestos y la boca encendida">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Piel</dt><dd>pizarra oscura, escudo rojo teja</dd><dt>Farol</dt><dd>en bandas, con placas</dd><dt>Luz</dt><dd>blanca</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>Estalla a 3 bloques.</li><li>Ciega a todos los que estén cerca.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var b">
+    <span class="tipo">B · el Argos · el de los ojos</span>
+    <h2>El Argos: solo te ciega si lo miras</h2>
+    <ul class="lede">
+      <li><b>Pálido como los bichos de las cuevas.</b> Su farol es <b>un racimo de ojos cerrados</b>: la luz solo sale
+      por las rajas de los párpados, y al estallar se abren todos a la vez. (Argos es el gigante de los cien ojos de la
+      leyenda griega.)</li>
+      <li><b>Lo que hace:</b> estalla igual que los otros (empuja y hace daño), pero <b>solo deja en blanco a quien lo
+      está mirando</b>. Si te das la vuelta en el segundo de aviso, te libras del blanco.</li>
+    </ul>
+    <img class="ancha" src="fogonazo_argos_accion.jpg" alt="El Argos estallando con todos los ojos abiertos delante de un jugador">
+    <div class="dos">
+      <img src="fogonazo_argos_heroe.jpg" alt="El Argos agazapado, con el farol lleno de ojos cerrados">
+      <img src="fogonazo_argos_cabeza.jpg" alt="La cara del Argos de cerca, pálida, con la luz fría">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Piel</dt><dd>pálida, de cueva</dd><dt>Farol</dt><dd>de ojos cerrados</dd><dt>Luz</dt><dd>blanca y fría</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>Estalla a 3 bloques.</li><li>Solo ciega si lo miras: date la vuelta.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="var c">
+    <span class="tipo">C · el Racimo · el de las vainas</span>
+    <h2>El Racimo: suelta vainas que revientan</h2>
+    <ul class="lede">
+      <li><b>Pardo rojizo y luz de ámbar.</b> En vez del farol lleva <b>un racimo de vainas de luz</b>, cada una con su
+      cáliz oscuro.</li>
+      <li><b>Lo que hace:</b> estalla como los otros y además suelta las vainas, que saltan alrededor y <b>revientan una
+      tras otra</b> durante 3 segundos. Cada una que revienta cerca te empuja un poco y te vuelve a dejar en blanco. Lo
+      mejor es no quedarse donde caen.</li>
+    </ul>
+    <img class="ancha" src="fogonazo_racimo_accion.jpg" alt="El Racimo estallando delante de un jugador">
+    <div class="dos">
+      <img src="fogonazo_racimo_heroe.jpg" alt="El Racimo agazapado, con el racimo de vainas de ámbar sobre el lomo">
+      <img src="fogonazo_racimo_cabeza.jpg" alt="La cara del Racimo de cerca, con la luz de ámbar">
+    </div>
+    <div class="ficha">
+      <div class="receta"><h3>Su forma</h3><dl><dt>Piel</dt><dd>pardo rojiza</dd><dt>Farol</dt><dd>un racimo de vainas</dd><dt>Luz</dt><dd>ámbar</dd></dl></div>
+      <div class="senas"><h3>Señas</h3><ul><li>Estalla y suelta vainas.</li><li>Ciega varias veces seguidas.</li></ul></div>
+    </div>
+  </section>
+
+  <h2>Lo que ve el jugador</h2>
+  <p class="lede">Desde los ojos del jugador, con el Destello a 3 bloques.</p>
+  <img src="fogonazo_pantalla.jpg" alt="Tres momentos vistos por el jugador: el Fogonazo que se abre delante, la pantalla en blanco y el blanco que se va">
+  <div class="tiempos">
+    <div><b>1 · se abre</b>el segundo de aviso</div>
+    <div><b>2 · en blanco</b>4 segundos</div>
+    <div><b>3 · se va</b>en 2 segundos</div>
+  </div>
+
+  <h2>Los tres, con un jugador</h2>
+  <p class="lede">En el campo, junto a un jugador (1,8 bloques): el Destello, el Argos y el Racimo.</p>
+  <img src="fogonazo_tres_variantes.jpg" alt="Los tres Fogonazos agazapados en el campo de noche junto a un jugador">
+
+  <h2>Los materiales</h2>
+  <p class="lede">Una fila por tipo: el escudo de la cabeza, el ojo compuesto, la placa del lomo (con la raja de luz),
+  el farol (la luz en el Destello, el ojo cerrado en el Argos y la vaina en el Racimo), el paladar, la antena y el
+  diente.</p>
+  <img src="fogonazo_materiales.jpg" alt="Lámina de materiales de los tres Fogonazos">
+
+  <h2>En el juego</h2>
+  <p class="lede">El Destello ya está en el mod, con su huevo: de día y de noche, con el farol encendido.</p>
+  <div class="dos">
+    <img src="fogonazo_en_el_juego.jpg" alt="El Fogonazo en el juego, de día, junto a una aldea">
+    <img src="fogonazo_en_el_juego_noche.jpg" alt="El Fogonazo en el juego, de noche, con el farol encendido">
+  </div>
+
+  <div class="decidir">
+    <h2>Veredicto de Juan</h2>
+    <ol>
+      <li>16-10-2026, primera ficha (la cara era de fauces, con los ojos cerrados): «cámbiale la cara por una más tipo
+      luciérnaga; que estalle a 3 bloques está bien; el blanco, 4 segundos, está bien; que al estallar sea como una
+      explosión de creeper: te va a empujar, cegar y hacer daño; que salga por ahora en huevo, ningún mob ni jefe va a
+      salir todavía de forma natural».</li>
+      <li>Con la cara de luciérnaga, eligió <b>el Destello</b>: «este diseño va a ser, metámoslo en el juego». El Argos y
+      el Racimo se quedan en la ficha.</li>
+    </ol>
+  </div>
+
+  <p class="pie">Bocetos: materiales/generadores/fogonazo_modelo.py y fogonazo_escenas.py, hechos desde cero. En el juego:
+  fogonazo_juego.py (la malla, la textura y el huevo) y fogonazo_sonidos.py.</p>
+</div>

@@ -116,8 +116,11 @@ public final class AtalayaRed {
      *                 ella) o PARA
      * @param duracion ticks que dura despues de la cinematica (0, hasta que se pare)
      * @param pasado   ticks desde que empezo (para el reloj de quien entra a mitad)
+     * @param contador lo que dura el contador de la prueba, desde que acaba la cinematica (ticks; 0, sin prueba)
+     * @param semilla  la del cielo roto, la misma para todos (que todos vean las mismas grietas)
      */
-    public record Momento(int accion, String titulo, String texto, int duracion, int pasado) implements CustomPacketPayload {
+    public record Momento(int accion, String titulo, String texto, int duracion, int pasado, int contador, int semilla)
+            implements CustomPacketPayload {
 
         public static final int EMPIEZA = 0;
         public static final int SIGUE = 1;
@@ -133,11 +136,36 @@ public final class AtalayaRed {
                     buf.writeUtf(m.texto(), 1024);
                     buf.writeVarInt(m.duracion());
                     buf.writeVarInt(m.pasado());
+                    buf.writeVarInt(m.contador());
+                    buf.writeInt(m.semilla());
                 },
-                buf -> new Momento(buf.readVarInt(), buf.readUtf(256), buf.readUtf(1024), buf.readVarInt(), buf.readVarInt()));
+                buf -> new Momento(buf.readVarInt(), buf.readUtf(256), buf.readUtf(1024), buf.readVarInt(), buf.readVarInt(),
+                        buf.readVarInt(), buf.readInt()));
 
         @Override
         public Type<Momento> type() {
+            return TIPO;
+        }
+    }
+
+    /**
+     * El Fogonazo te ha estallado cerca: la pantalla en blanco. "blanco" son los ticks en que se queda blanca del todo y
+     * "funde" los que tarda en irse; el cliente se queda con el mas largo si le llegan dos.
+     */
+    public record Deslumbre(int blanco, int funde) implements CustomPacketPayload {
+
+        public static final Type<Deslumbre> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "deslumbre"));
+
+        public static final StreamCodec<FriendlyByteBuf, Deslumbre> CODEC = StreamCodec.of(
+                (buf, d) -> {
+                    buf.writeVarInt(d.blanco());
+                    buf.writeVarInt(d.funde());
+                },
+                buf -> new Deslumbre(buf.readVarInt(), buf.readVarInt()));
+
+        @Override
+        public Type<Deslumbre> type() {
             return TIPO;
         }
     }
@@ -152,6 +180,7 @@ public final class AtalayaRed {
         PayloadTypeRegistry.serverboundPlay().register(Habilidad.TIPO, Habilidad.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(DueloNota.TIPO, DueloNota.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Momento.TIPO, Momento.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(Deslumbre.TIPO, Deslumbre.CODEC);
     }
 
     /** Y esto solo en el servidor: quien atiende el aviso. */
