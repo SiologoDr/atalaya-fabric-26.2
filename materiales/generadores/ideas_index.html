@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideas del DEDsafío</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Ideas del DEDsafío: una página oscura, de noche de servidor, con un color por edición (verde el 2, violeta el 3, ámbar
+   el 4) y uno por tipo de cambio. GENERADA por materiales/generadores/ideas_index.py: la plantilla es ideas_index.html. */
+:root {
+  --fondo: #0c0e13; --hoja: #141821; --hoja2: #1a1f2a; --filo: #262d3a; --filo2: #333c4d;
+  --texto: #e8ecf2; --texto2: #aeb6c4; --tenue: #7b8597;
+  --d2: #7bd389; --d3: #a98bff; --d4: #ffb347;
+  --nuevo: #ff5f6d; --cambiado: #ff7f50; --jugador: #4fb3ff; --mundo: #3fd0b0; --items: #e9c46a; --evento: #ff6bd6; --otro: #8b95a7;
+  --display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  --cuerpo: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--fondo); color: var(--texto); font-family: var(--cuerpo); font-size: 15px; line-height: 1.55; }
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+.pagina { max-width: 1280px; margin: 0 auto; padding-inline: 20px; padding-block: 0 80px; }
+
+/* ---- la cabecera ---- */
+.cabecera { padding-block: 40px 22px; display: grid; gap: 18px; }
+.cabecera h1 { font-family: var(--display); font-weight: 900; font-size: clamp(34px, 6vw, 64px); line-height: .95; margin: 0; letter-spacing: -.02em; }
+.cabecera h1 span { background: linear-gradient(90deg, var(--d2), var(--d3) 55%, var(--d4)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cabecera p { margin: 0; color: var(--texto2); max-width: 70ch; }
+.ediciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.ed { border: 1px solid var(--filo); border-radius: 14px; padding: 16px 18px; background: var(--hoja); cursor: pointer; position: relative; overflow: hidden; transition: border-color .15s, transform .15s; text-align: left; color: inherit; font: inherit; }
+.ed::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c); }
+.ed:hover { transform: translateY(-2px); border-color: var(--c); }
+.ed.activa { border-color: var(--c); background: color-mix(in srgb, var(--c) 9%, var(--hoja)); }
+.ed b { font-family: var(--display); font-size: 22px; font-weight: 800; color: var(--c); }
+.ed .fechas { font-family: var(--mono); font-size: 12px; color: var(--tenue); margin-left: 8px; }
+.ed p { margin: 6px 0 10px; font-size: 13.5px; color: var(--texto2); }
+.cifras { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; color: var(--texto2); }
+.cifras span b { font-family: var(--display); font-size: 17px; color: var(--texto); margin-right: 3px; }
+
+/* ---- la barra ---- */
+.barra { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--fondo) 92%, transparent); backdrop-filter: blur(8px); padding-block: 12px; border-bottom: 1px solid var(--filo); display: grid; gap: 10px; }
+.fila { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pestana, .chip { border: 1px solid var(--filo2); background: var(--hoja); color: var(--texto2); border-radius: 999px; padding: 6px 13px; font: 600 13px var(--cuerpo); cursor: pointer; }
+.pestana.activa { background: var(--texto); color: var(--fondo); border-color: var(--texto); }
+.chip { padding: 4px 10px; font-size: 12px; display: inline-flex; gap: 6px; align-items: center; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.chip.apagado { opacity: .38; }
+.buscar { flex: 1 1 220px; min-width: 0; background: var(--hoja); border: 1px solid var(--filo2); color: var(--texto); border-radius: 10px; padding: 8px 12px; font: 14px var(--cuerpo); }
+.cuenta { font-family: var(--mono); font-size: 12px; color: var(--tenue); }
+
+/* ---- los días ---- */
+.bloque-ed { margin-top: 34px; }
+.bloque-ed > h2 { font-family: var(--display); font-weight: 900; font-size: 30px; margin: 0 0 4px; color: var(--c); }
+.bloque-ed > .sub2 { color: var(--texto2); margin: 0 0 18px; max-width: 75ch; font-size: 14px; }
+.semana { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); margin: 26px 0 10px; }
+.dia { display: grid; grid-template-columns: 92px minmax(0, 1fr) 220px; gap: 18px; padding: 16px; border: 1px solid var(--filo); border-radius: 14px; background: var(--hoja); margin-bottom: 12px; }
+.dia.sin-cartel { grid-template-columns: 92px minmax(0, 1fr); }
+.dia .num { font-family: var(--display); font-weight: 900; font-size: 40px; line-height: 1; color: var(--c); }
+.dia .num small { display: block; font-family: var(--mono); font-weight: 500; font-size: 11px; color: var(--tenue); margin-top: 6px; line-height: 1.4; }
+.dia h3 { margin: 0 0 10px; font: 600 14px var(--cuerpo); color: var(--texto2); }
+.dia h3 b { color: var(--texto); }
+.entradas { display: grid; gap: 8px; }
+.e { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 9px 11px; border-radius: 10px; background: var(--hoja2); border-left: 3px solid var(--tc); }
+.e .nom { font-weight: 600; }
+.e .txt { color: var(--texto2); font-size: 14px; }
+.e .txt b { color: var(--texto); }
+.e .sub { display: inline-block; margin-top: 3px; color: var(--tenue); }
+.tipos { display: inline-flex; gap: 4px; margin-right: 6px; vertical-align: 1px; }
+.t { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .04em; padding: 2px 6px; border-radius: 5px; color: #0c0e13; background: var(--tc); }
+.f { font: 500 10.5px var(--mono); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--filo2); color: var(--tenue); margin-left: 4px; white-space: nowrap; }
+.mini { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; cursor: zoom-in; border: 1px solid var(--filo2); }
+.recorte { background-repeat: no-repeat; image-rendering: pixelated; border-radius: 8px; cursor: zoom-in; flex: none; }
+.e .recorte { background-color: #0a0c10; border: 1px solid var(--filo2); }
+.mob .foto.icono { display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--c) 22%, var(--hoja2)), var(--hoja2) 70%); }
+.mob .foto.icono .recorte { max-width: 88%; border-radius: 6px; }
+.notas { margin-top: 10px; display: grid; gap: 5px; font-size: 13px; color: var(--tenue); }
+.notas div::before { content: "· "; }
+.cartel { align-self: start; display: grid; gap: 6px; }
+.cartel img { border-radius: 10px; border: 1px solid var(--filo2); cursor: zoom-in; width: 100%; max-height: 330px; object-fit: cover; object-position: top; }
+.cartel a { font: 500 11px var(--mono); color: var(--tenue); text-decoration: none; }
+.cartel .extras { display: flex; gap: 6px; }
+.cartel .extras img { width: 64px; height: 64px; object-fit: cover; }
+.vacio { color: var(--tenue); font-style: italic; font-size: 13.5px; }
+
+/* ---- los mobs y los jefes ---- */
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.rejilla.grande { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.mob { border: 1px solid var(--filo); border-radius: 14px; background: var(--hoja); overflow: hidden; display: flex; flex-direction: column; }
+.mob .foto { aspect-ratio: 4 / 3; background: var(--hoja2); position: relative; overflow: hidden; cursor: zoom-in; }
+.mob .foto img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.mob .foto.sin { display: grid; place-items: center; cursor: default; background: repeating-linear-gradient(45deg, var(--hoja2) 0 10px, color-mix(in srgb, var(--c) 7%, var(--hoja2)) 10px 20px); }
+.mob .foto.sin .letra { font-family: var(--display); font-weight: 900; font-size: 64px; color: color-mix(in srgb, var(--c) 55%, transparent); }
+.mob .foto.sin .vercartel { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font: 500 11px var(--mono); color: var(--texto2); }
+.mob .marca { position: absolute; top: 8px; left: 8px; font: 700 11px var(--mono); padding: 3px 7px; border-radius: 6px; background: var(--c); color: #0c0e13; }
+.mob .cuerpo { padding: 12px 14px 14px; display: grid; gap: 6px; }
+.mob h4 { margin: 0; font-family: var(--display); font-size: 18px; font-weight: 800; line-height: 1.15; }
+.mob .donde { font: 500 12px var(--mono); color: var(--tenue); }
+.mob .que { font-size: 13.5px; color: var(--texto2); }
+.mob .fuente { font: 500 11px var(--mono); color: var(--tenue); border-top: 1px solid var(--filo); padding-top: 8px; margin-top: 2px; }
+.mob details.vistos { border: 1px solid color-mix(in srgb, var(--c) 35%, var(--filo)); border-radius: 10px; background: color-mix(in srgb, var(--c) 6%, var(--hoja)); }
+.mob details.vistos summary { cursor: pointer; padding: 8px 10px; font: 600 12.5px var(--mono); color: var(--c); list-style: none; }
+.mob details.vistos summary::-webkit-details-marker { display: none; }
+.mob details.vistos summary::before { content: '▸ '; }
+.mob details.vistos[open] summary::before { content: '▾ '; }
+.mob details.vistos ul { margin: 0; padding: 0 12px 10px 26px; display: grid; gap: 7px; font-size: 13px; color: var(--texto2); }
+.mob details.vistos .vod { display: block; padding: 0 12px 10px; font: 500 11px var(--mono); }
+
+/* ---- otras y lo que falta ---- */
+.texto-ed { border: 1px solid var(--filo); border-radius: 14px; background: var(--hoja); padding: 18px 22px; margin-bottom: 14px; }
+.texto-ed h4 { font-family: var(--display); font-weight: 800; color: var(--c); margin: 14px 0 6px; font-size: 17px; }
+.texto-ed ul { margin: 6px 0; padding-left: 20px; color: var(--texto2); }
+.texto-ed li { margin: 5px 0; }
+.texto-ed p { color: var(--texto2); margin: 8px 0; }
+details.falta { margin-top: 12px; border: 1px dashed var(--filo2); border-radius: 12px; padding: 10px 16px; color: var(--texto2); }
+details.falta summary { cursor: pointer; font-weight: 600; color: var(--texto); }
+
+/* ---- por mecánica ---- */
+.seccion { margin-top: 30px; }
+.seccion h2 { font-family: var(--display); font-weight: 900; font-size: 26px; margin: 0 0 6px; }
+.seccion h2 small { font-family: var(--mono); font-size: 13px; color: var(--tenue); margin-right: 8px; }
+.seccion > p { color: var(--texto2); margin: 0 0 12px; max-width: 75ch; }
+.idea { border: 1px solid var(--filo); border-radius: 12px; background: var(--hoja); padding: 12px 14px; display: grid; gap: 6px; }
+.idea .titulo { font-weight: 700; font-size: 15px; }
+.idea .campo { font-size: 13.5px; color: var(--texto2); }
+.idea .campo em { font-style: normal; font: 500 11px var(--mono); color: var(--tenue); text-transform: uppercase; letter-spacing: .06em; margin-right: 6px; }
+.idea .atalaya { font-size: 13px; color: var(--texto); background: color-mix(in srgb, var(--mundo) 12%, transparent); border-radius: 8px; padding: 5px 8px; }
+.ded { font: 700 10.5px var(--mono); padding: 1px 6px; border-radius: 5px; color: #0c0e13; background: var(--c); margin-right: 3px; }
+.puntos { color: var(--texto2); padding-left: 20px; }
+.puntos li { margin: 6px 0; }
+
+/* ---- la ampliación ---- */
+.ampliar { position: fixed; inset: 0; background: rgba(4, 5, 8, .92); display: none; place-items: center; z-index: 50; padding: 24px; cursor: zoom-out; }
+.ampliar.abierta { display: grid; }
+.ampliar img { max-width: 94vw; max-height: 86vh; border-radius: 10px; }
+.ampliar a { margin-top: 12px; font: 500 13px var(--mono); color: var(--texto2); }
+.pie { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--filo); color: var(--tenue); font-size: 12.5px; }
+
+@media (max-width: 860px) {
+  .dia, .dia.sin-cartel { grid-template-columns: 1fr; }
+  .dia .num { font-size: 30px; }
+  .dia .num small { display: inline; margin-left: 8px; }
+  .cartel img { max-height: 240px; }
+}
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header class="cabecera">
+    <h1><span>DEDsafío</span><br>repertorio de ideas</h1>
+    <p>Todos los cambios de dificultad, los mobs y los jefes del DEDsafío 2, 3 y 4, para sacar ideas para Atalaya. Elige una
+    edición o mira todas; pulsa una imagen para verla en grande. Lo que no sale de un cartel oficial lleva su marca de
+    fuente.</p>
+    <div class="ediciones" id="ediciones"></div>
+  </header>
+  <div class="barra">
+    <div class="fila" id="vistas"></div>
+    <div class="fila" id="tipos"></div>
+    <div class="fila"><input class="buscar" id="buscar" type="search" placeholder="Buscar: creeper, telaraña, tótem, limbo, ciega…"><span class="cuenta" id="cuenta"></span></div>
+  </div>
+  <main id="contenido"></main>
+  <footer class="pie">Hecho a partir de materiales/ideas/dedsafio_2.md, dedsafio_3.md, dedsafio_4.md y repertorio.md
+  (materiales/generadores/ideas_index.py). Las imágenes se cargan desde X: son de @dedsafio y de las cuentas de fans
+  enlazadas, no nuestras. Marcas: C = captura de @Cracksterss, C-texto = lo escribió sin captura, O = oficial, F =
+  @DedsafioMuertes, F-chat = captura del chat, Mill = Millenium, Addon y fans = mods de fans.</footer>
+</div>
+<div class="ampliar" id="ampliar"><div><img id="ampliar-img" alt=""><a id="ampliar-a" target="_blank" rel="noopener">ver en X ↗</a></div></div>
+<script>
+const D = /*DATOS*/null;
+const VISTAS = [['dias', 'Días'], ['mobs', 'Mobs'], ['jefes', 'Jefes'], ['otras', 'Otras mecánicas'], ['mecanica', 'Por mecánica']];
+const COLORES = {nuevo: 'var(--nuevo)', cambiado: 'var(--cambiado)', jugador: 'var(--jugador)', mundo: 'var(--mundo)', items: 'var(--items)', evento: 'var(--evento)', otro: 'var(--otro)'};
+const NOMBRE_TIPO = Object.fromEntries(D.tipos);
+let estado = {ed: 'todas', vista: 'dias', tipos: new Set(D.tipos.map(t => t[0])), q: ''};
+try { const g = JSON.parse(localStorage.getItem('ideas_dedsafio') || '{}'); if (g.ed) estado.ed = g.ed; if (g.vista) estado.vista = g.vista; } catch (e) {}
+// #mobs, #jefes, #otras, #mecanica, #dias y #d2, #d3, #d4 (se pueden juntar: #d3-mobs)
+location.hash.slice(1).split('-').forEach(p => {
+  if (VISTAS.some(([k]) => k === p)) estado.vista = p;
+  if (/^d[234]$/.test(p)) estado.ed = p.slice(1);
+  if (p === 'todas') estado.ed = 'todas';
+});
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const sinMarcas = s => String(s ?? '').replace(/<[^>]+>/g, ' ');
+const pequena = u => u.includes('video_thumb') ? u : u + '?name=small';
+const grande = u => u.includes('video_thumb') ? u : u + '?name=large';
+const tuit = i => i ? 'https://x.com/i/status/' + i : '';
+const color = clave => `var(--d${clave})`;
+const ediciones = () => D.ediciones.filter(e => estado.ed === 'todas' || estado.ed === e.clave);
+const casa = txt => !estado.q || sinMarcas(txt).toLowerCase().includes(estado.q);
+
+function recorte(r, alto, clase) {
+  const [x0, y0, x1, y1] = r.caja, w = (x1 - x0) / 100, h = (y1 - y0) / 100;
+  const ancho = Math.round(alto * (w * 16) / (h * 9));
+  const px = w < 1 ? x0 / (100 - (x1 - x0)) * 100 : 0, py = h < 1 ? y0 / (100 - (y1 - y0)) * 100 : 0;
+  return `<div class="recorte ${clase || ''}" style="height:${alto}px;width:${ancho}px;background-image:url('${grande(r.img)}');background-size:${100 / w}% ${100 / h}%;background-position:${px}% ${py}%" data-grande="${grande(r.img)}" data-tuit="${tuit(r.tuit)}" title="Del cartel del día: pulsa para verlo entero"></div>`;
+}
+function img(u, t, clase, alt) {
+  return `<img class="${clase || ''}" loading="lazy" referrerpolicy="no-referrer" src="${pequena(u)}" data-grande="${grande(u)}" data-tuit="${tuit(t)}" alt="${esc(alt || '')}" onerror="this.style.display='none'">`;
+}
+function etiqueta(f) {
+  const t = f.toLowerCase();
+  if (t === 'o' || t.startsWith('o,')) return ['oficial', 'var(--d2)'];
+  if (t === 'c' || t === 'f' || t.startsWith('fans')) return ['fans', ''];
+  if (t === 'c-texto') return ['fans, sin captura', ''];
+  if (t === 'f-chat') return ['fans, chat del juego', ''];
+  if (t === 'mill' || t.startsWith('prensa')) return ['prensa', ''];
+  if (t.startsWith('addon') || t.startsWith('mod')) return ['mod de fans', ''];
+  if (t === 'títulos' || t.startsWith('títulos:')) return ['títulos de los directos', ''];
+  if (t === 'twitchlatam') return ['Twitch Latam', ''];
+  if (t === 'eufonia') return ['Eufonia (el estudio)', ''];
+  if (/^(vod|clips? twitch|vídeo|youtube)/.test(t)) return [f, 'var(--jugador)'];
+  return [f, ''];
+}
+function fuentes(fs) {
+  const vistas = new Set();
+  return (fs || []).map(f => {
+    // si la marca lleva el enlace del directo o del clip, la etiqueta es ese enlace
+    const u = (f.match(/https?:\/\/[^\s,;\]]+/) || [])[0];
+    const [t, c] = etiqueta(u ? f.replace(/,?\s*https?:\/\/[^\s,;\]]+/g, '').replace(/[,;\s]+$/, '') : f);
+    return [t, c, u];
+  }).filter(([t]) => !vistas.has(t) && vistas.add(t))
+    .map(([t, c, u]) => {
+      const estilo = c ? `color:${c};border-color:${c}` : '';
+      return u ? `<a class="f" href="${esc(u)}" target="_blank" rel="noopener" style="${estilo}">${esc(t)} ↗</a>`
+        : `<span class="f" style="${estilo}">${esc(t)}</span>`;
+    }).join('');
+}
+function guardar() { try { localStorage.setItem('ideas_dedsafio', JSON.stringify({ed: estado.ed, vista: estado.vista})); } catch (e) {} }
+
+function pintarEdiciones() {
+  const cajas = D.ediciones.map(e => {
+    const n = e.dias.reduce((a, d) => a + d.entradas.length, 0);
+    const m = e.mobs.filter(x => !x.jefe).length, j = e.mobs.filter(x => x.jefe).length;
+    return `<button class="ed ${estado.ed === e.clave ? 'activa' : ''}" style="--c:${color(e.clave)}" data-ed="${e.clave}">
+      <b>${esc(e.titulo)}</b><span class="fechas">${esc(e.fechas)}</span><p>${esc(e.resumen)}</p>
+      <div class="cifras"><span><b>${e.dias.length}</b>días</span><span><b>${n}</b>cambios</span><span><b>${m}</b>mobs</span><span><b>${j}</b>jefes</span></div></button>`;
+  });
+  cajas.unshift(`<button class="ed ${estado.ed === 'todas' ? 'activa' : ''}" style="--c:var(--texto)" data-ed="todas"><b>Las tres</b><span class="fechas">2022 · 2024 · 2026</span><p>Todo junto, edición tras edición.</p><div class="cifras"><span><b>${D.ediciones.reduce((a, e) => a + e.dias.reduce((b, d) => b + d.entradas.length, 0), 0)}</b>cambios</span><span><b>${D.ediciones.reduce((a, e) => a + e.mobs.length, 0)}</b>mobs y jefes</span></div></button>`);
+  document.getElementById('ediciones').innerHTML = cajas.join('');
+}
+function pintarBarra() {
+  document.getElementById('vistas').innerHTML = VISTAS.map(([k, t]) => `<button class="pestana ${estado.vista === k ? 'activa' : ''}" data-vista="${k}">${t}</button>`).join('');
+  document.getElementById('tipos').innerHTML = estado.vista === 'dias'
+    ? D.tipos.map(([k, t]) => `<button class="chip ${estado.tipos.has(k) ? '' : 'apagado'}" style="--c:${COLORES[k]}" data-tipo="${k}"><i></i>${t}</button>`).join('')
+      + `<button class="chip" data-tipo="todos">todos</button>`
+    : '';
+}
+
+function entradaHTML(e) {
+  const tc = COLORES[e.tipos[0]] || COLORES.otro;
+  const tipos = e.tipos.map(t => `<span class="t" style="--tc:${COLORES[t]}">${esc(NOMBRE_TIPO[t] || t)}</span>`).join('');
+  const lado = e.recorte ? recorte(e.recorte, 58) : e.img ? img(e.img, e.img_tuit, 'mini', e.nombre)
+    : (e.tuit ? `<a class="f" href="${tuit(e.tuit)}" target="_blank" rel="noopener">X ↗</a>` : '');
+  return `<div class="e" style="--tc:${tc}"><div><span class="tipos">${tipos}</span><span class="nom">${esc(e.nombre)}</span>${fuentes(e.fuentes)}<div class="txt">${e.html}</div></div><div>${lado}</div></div>`;
+}
+function vistaDias() {
+  let total = 0;
+  const html = ediciones().map(ed => {
+    let semana = null;
+    const dias = ed.dias.map(d => {
+      const ent = d.entradas.filter(e => e.tipos.some(t => estado.tipos.has(t)) && casa(e.nombre + ' ' + e.html));
+      const notas = estado.q ? d.notas.filter(casa) : d.notas;
+      if ((estado.q || estado.tipos.size < D.tipos.length) && !ent.length) return '';
+      total += ent.length;
+      const cab = d.semana && d.semana !== semana ? `<div class="semana">${esc(d.semana)}</div>` : '';
+      semana = d.semana;
+      const titulo = d.titulo.replace(/^Días?\s+\d+(\s+(a|y)\s+\d+)?\s*[·,]?\s*/, '');
+      const rango = (d.titulo.match(/^Días?\s+(\d+(?:\s+(?:a|y)\s+\d+)?)/) || [0, d.num])[1];
+      const cartel = d.img ? `<div class="cartel">${img(d.img, d.img_tuit, '', 'Cartel del día ' + d.num)}${d.extras.length ? `<div class="extras">${d.extras.map(([t, u]) => img(u, t, '', 'Fichas')).join('')}</div>` : ''}<a href="${tuit(d.img_tuit)}" target="_blank" rel="noopener">cartel en X ↗</a></div>` : '';
+      return cab + `<article class="dia ${d.img ? '' : 'sin-cartel'}" style="--c:${color(ed.clave)}">
+        <div class="num">${esc(rango)}<small>${esc(ed.titulo)}</small></div>
+        <div><h3>${titulo || '&nbsp;'}</h3><div class="entradas">${ent.map(entradaHTML).join('') || '<div class="vacio">Sin cambios documentados este día.</div>'}</div>
+        ${notas.length ? `<div class="notas">${notas.map(n => `<div>${n}</div>`).join('')}</div>` : ''}</div>${cartel}</article>`;
+    }).join('');
+    return `<section class="bloque-ed" style="--c:${color(ed.clave)}"><h2>${esc(ed.titulo)} · ${esc(ed.anio)}</h2><p class="sub2">${ed.intro[0] || ''}</p>${dias || '<div class="vacio">Nada con ese filtro.</div>'}</section>`;
+  }).join('');
+  return [html, total + ' cambios'];
+}
+function mobHTML(m, ed) {
+  const foto = m.recorte ? `<div class="foto icono">${recorte(m.recorte, 150)}<span class="marca">${esc(ed.titulo)}</span></div>`
+    : m.img ? `<div class="foto">${img(m.img, m.img_tuit, '', m.nombre)}<span class="marca">${esc(ed.titulo)}</span></div>`
+    : `<div class="foto sin"><span class="letra">${esc(m.nombre.trim()[0] || '?')}</span><span class="marca">${esc(ed.titulo)}</span>${m.cartel ? `<a class="vercartel" href="${tuit(m.cartel)}" target="_blank" rel="noopener">sin imagen propia · ver el cartel ↗</a>` : ''}</div>`;
+  return `<article class="mob" style="--c:${color(ed.clave)}">${foto}<div class="cuerpo"><h4>${esc(m.nombre)}</h4><div class="donde">${m.donde}</div><div class="que">${m.que}</div>${m.detalle ? vistosHTML(m.detalle) : ''}<div class="fuente">${m.fuente}</div></div></article>`;
+}
+function vistosHTML(dt) {
+  // lo que se ve del combate en los directos, plegado para que la ficha no se haga larguísima
+  return `<details class="vistos"><summary>Visto en los directos (${dt.puntos.length})</summary><ul>${dt.puntos.map(p => `<li>${p}</li>`).join('')}</ul>${dt.enlace ? `<a class="vod" href="${esc(dt.enlace)}" target="_blank" rel="noopener">ver el directo ↗</a>` : ''}</details>`;
+}
+function vistaMobs(jefes) {
+  let total = 0;
+  const html = ediciones().map(ed => {
+    const ms = ed.mobs.filter(m => m.jefe === jefes && casa(m.nombre + ' ' + m.texto + ' ' + (m.detalle ? m.detalle.puntos.join(' ') : '')));
+    total += ms.length;
+    if (!ms.length) return '';
+    return `<section class="bloque-ed" style="--c:${color(ed.clave)}"><h2>${esc(ed.titulo)} · ${esc(ed.anio)}</h2><div class="rejilla ${jefes ? 'grande' : ''}">${ms.map(m => mobHTML(m, ed)).join('')}</div></section>`;
+  }).join('');
+  return [html || '<div class="vacio">Nada con ese filtro.</div>', total + (jefes ? ' jefes' : ' mobs')];
+}
+function puntosHTML(ps) {
+  let out = '', lista = [];
+  const cierra = () => { if (lista.length) { out += `<ul>${lista.map(p => `<li>${p}</li>`).join('')}</ul>`; lista = []; } };
+  ps.forEach(([k, t]) => {
+    if (estado.q && k !== 'titulo' && !casa(t)) return;
+    if (k === 'punto') lista.push(t); else { cierra(); out += k === 'titulo' ? `<h4>${t}</h4>` : `<p>${t}</p>`; }
+  });
+  cierra();
+  return out;
+}
+function vistaOtras() {
+  const html = ediciones().map(ed => `<section class="bloque-ed" style="--c:${color(ed.clave)}"><h2>${esc(ed.titulo)} · ${esc(ed.anio)}</h2>
+    <div class="texto-ed">${ed.intro.map(p => `<p>${p}</p>`).join('')}${puntosHTML(ed.otras)}
+    <details class="falta"><summary>Lo que falta o no está claro</summary>${puntosHTML(ed.falta)}</details></div></section>`).join('');
+  return [html, ''];
+}
+function dedChips(html) {
+  return html.replace(/\bD([234])\b/g, (m, n) => `<span class="ded" style="--c:${color(n)}">D${n}</span>`);
+}
+function vistaMecanica() {
+  let total = 0;
+  const html = D.repertorio.secciones.map(s => {
+    const tarjetas = s.tablas.map(t => t.filas.filter(f => {
+      const txt = f.join(' ');
+      return casa(txt) && (estado.ed === 'todas' || new RegExp('\\bD' + estado.ed + '\\b').test(sinMarcas(txt)));
+    }).map(f => {
+      total++;
+      const campos = f.slice(1).map((c, i) => {
+        const cab = sinMarcas(t.cab[i + 1]);
+        if (/atalaya/i.test(cab)) return c.trim() === '—' ? '' : `<div class="atalaya">En Atalaya: ${c}</div>`;
+        return `<div class="campo"><em>${cab}</em>${/d[oó]nde/i.test(cab) ? dedChips(c) : c}</div>`;
+      }).join('');
+      return `<div class="idea"><div class="titulo">${f[0]}</div>${campos}</div>`;
+    }).join('')).join('');
+    const pts = s.puntos.filter(([k]) => k !== 'titulo');
+    const listas = pts.filter(([k]) => k === 'punto').filter(([, t]) => casa(t) && (estado.ed === 'todas' || new RegExp('\\bD' + estado.ed + '\\b').test(sinMarcas(t))));
+    total += listas.length;
+    const parrafos = pts.filter(([k]) => k === 'parrafo').map(([, t]) => `<p>${t}</p>`).join('');
+    if (!tarjetas && !listas.length) return '';
+    return `<section class="seccion"><h2><small>${esc(s.num)}</small>${esc(s.titulo)}</h2>${parrafos}${tarjetas ? `<div class="rejilla">${tarjetas}</div>` : ''}${listas.length ? `<ul class="puntos">${listas.map(([, t]) => `<li>${dedChips(t)}</li>`).join('')}</ul>` : ''}</section>`;
+  }).join('');
+  return [html || '<div class="vacio">Nada con ese filtro.</div>', total + ' ideas'];
+}
+function pintar() {
+  pintarEdiciones(); pintarBarra();
+  const [html, cuenta] = estado.vista === 'dias' ? vistaDias() : estado.vista === 'mobs' ? vistaMobs(false)
+    : estado.vista === 'jefes' ? vistaMobs(true) : estado.vista === 'otras' ? vistaOtras() : vistaMecanica();
+  document.getElementById('contenido').innerHTML = html;
+  document.getElementById('cuenta').textContent = cuenta;
+}
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-ed],[data-vista],[data-tipo]');
+  if (b) {
+    if (b.dataset.ed) estado.ed = b.dataset.ed;
+    if (b.dataset.vista) estado.vista = b.dataset.vista;
+    if (b.dataset.tipo) {
+      const k = b.dataset.tipo;
+      if (k === 'todos') estado.tipos = new Set(D.tipos.map(t => t[0]));
+      else if (estado.tipos.size === D.tipos.length) estado.tipos = new Set([k]);
+      else { estado.tipos.has(k) ? estado.tipos.delete(k) : estado.tipos.add(k); if (!estado.tipos.size) estado.tipos = new Set(D.tipos.map(t => t[0])); }
+    }
+    guardar(); pintar(); return;
+  }
+  const i = ev.target.closest('[data-grande]');
+  if (i) {
+    document.getElementById('ampliar-img').src = i.dataset.grande;
+    const a = document.getElementById('ampliar-a');
+    a.href = i.dataset.tuit || i.dataset.grande;
+    document.getElementById('ampliar').classList.add('abierta');
+    return;
+  }
+  if (ev.target.closest('#ampliar') && !ev.target.closest('#ampliar-a')) document.getElementById('ampliar').classList.remove('abierta');
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') document.getElementById('ampliar').classList.remove('abierta'); });
+document.getElementById('buscar').addEventListener('input', ev => { estado.q = ev.target.value.trim().toLowerCase(); pintar(); });
+pintar();
+</script>
+</body>
+</html>
