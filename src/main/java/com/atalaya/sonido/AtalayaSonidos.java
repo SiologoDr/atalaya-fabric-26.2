@@ -449,6 +449,19 @@ public final class AtalayaSonidos {
     public static SoundEvent MOMENTO_FIN;
     public static SoundEvent MOMENTO_CIELO;
 
+    // La Ruleta, la tragaperras de los cambios de dificultad (ruleta_sonidos.py): la animacion hasta que para, lo de
+    // cada final, la salida y la campanilla del chat.
+    public static SoundEvent RULETA_ANIMACION;
+    public static SoundEvent RULETA_MOB;
+    public static SoundEvent RULETA_DIFICULTAD;
+    public static SoundEvent RULETA_PENALIZACION;
+    public static SoundEvent RULETA_MINIJUEGO;
+    public static SoundEvent RULETA_SALE;
+    public static SoundEvent RULETA_AVISO;
+    /** El interruptor de los menus de los cambios y de las dimensiones (al encender y al apagar). */
+    public static SoundEvent RULETA_ENCIENDE;
+    public static SoundEvent RULETA_APAGA;
+
     // El Fogonazo (fogonazo_sonidos.py): el bicho-luciernaga que estalla en luz. No suena al andar ni quieto: solo al
     // pegarle, al morir, la mecha y el estallido.
     public static SoundEvent FOGONAZO_HERIDO;
@@ -878,6 +891,15 @@ public final class AtalayaSonidos {
         MOMENTO_AVISO = registrar("momento.aviso");
         MOMENTO_FIN = registrar("momento.fin");
         MOMENTO_CIELO = registrar("momento.cielo");
+        RULETA_ANIMACION = registrar("ruleta.animacion");
+        RULETA_MOB = registrar("ruleta.mob");
+        RULETA_DIFICULTAD = registrar("ruleta.dificultad");
+        RULETA_PENALIZACION = registrar("ruleta.penalizacion");
+        RULETA_MINIJUEGO = registrar("ruleta.minijuego");
+        RULETA_SALE = registrar("ruleta.sale");
+        RULETA_AVISO = registrar("ruleta.aviso");
+        RULETA_ENCIENDE = registrar("ruleta.enciende");
+        RULETA_APAGA = registrar("ruleta.apaga");
         FOGONAZO_HERIDO = registrar("fogonazo.herido");
         FOGONAZO_MUERTE = registrar("fogonazo.muerte");
         FOGONAZO_MECHA = registrar("fogonazo.mecha");

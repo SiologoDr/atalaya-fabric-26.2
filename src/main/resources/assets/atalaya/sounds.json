@@ -2701,5 +2701,59 @@
     "sounds": [
       "atalaya:coco/revienta"
     ]
+  },
+  "ruleta.animacion": {
+    "subtitle": "subtitles.atalaya.ruleta.animacion",
+    "sounds": [
+      "atalaya:ruleta/animacion"
+    ]
+  },
+  "ruleta.mob": {
+    "subtitle": "subtitles.atalaya.ruleta.mob",
+    "sounds": [
+      "atalaya:ruleta/mob"
+    ]
+  },
+  "ruleta.dificultad": {
+    "subtitle": "subtitles.atalaya.ruleta.dificultad",
+    "sounds": [
+      "atalaya:ruleta/dificultad"
+    ]
+  },
+  "ruleta.penalizacion": {
+    "subtitle": "subtitles.atalaya.ruleta.penalizacion",
+    "sounds": [
+      "atalaya:ruleta/penalizacion"
+    ]
+  },
+  "ruleta.minijuego": {
+    "subtitle": "subtitles.atalaya.ruleta.minijuego",
+    "sounds": [
+      "atalaya:ruleta/minijuego"
+    ]
+  },
+  "ruleta.sale": {
+    "subtitle": "subtitles.atalaya.ruleta.sale",
+    "sounds": [
+      "atalaya:ruleta/sale"
+    ]
+  },
+  "ruleta.aviso": {
+    "subtitle": "subtitles.atalaya.ruleta.aviso",
+    "sounds": [
+      "atalaya:ruleta/aviso"
+    ]
+  },
+  "ruleta.enciende": {
+    "subtitle": "subtitles.atalaya.ruleta.enciende",
+    "sounds": [
+      "atalaya:ruleta/enciende"
+    ]
+  },
+  "ruleta.apaga": {
+    "subtitle": "subtitles.atalaya.ruleta.apaga",
+    "sounds": [
+      "atalaya:ruleta/apaga"
+    ]
   }
 }

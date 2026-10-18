@@ -849,5 +849,14 @@
   "subtitles.atalaya.coco.aviso": "Coco cracks its shell open",
   "subtitles.atalaya.coco.traga": "Coco swallows",
   "subtitles.atalaya.coco.latido": "A heartbeat, through the flesh",
-  "subtitles.atalaya.coco.revienta": "Coco's belly bursts"
+  "subtitles.atalaya.coco.revienta": "Coco's belly bursts",
+  "subtitles.atalaya.ruleta.animacion": "A slot machine spins",
+  "subtitles.atalaya.ruleta.mob": "An eggshell cracks",
+  "subtitles.atalaya.ruleta.dificultad": "An alarm rings",
+  "subtitles.atalaya.ruleta.penalizacion": "Bad luck",
+  "subtitles.atalaya.ruleta.minijuego": "Let's play!",
+  "subtitles.atalaya.ruleta.sale": "The slot machine leaves",
+  "subtitles.atalaya.ruleta.aviso": "A bell dings",
+  "subtitles.atalaya.ruleta.enciende": "A switch turns on",
+  "subtitles.atalaya.ruleta.apaga": "A switch turns off"
 }

@@ -170,6 +170,131 @@ public final class AtalayaRed {
         }
     }
 
+    /**
+     * La Ruleta (Ruleta), del servidor a cada cliente: que salga la tragaperras y en que final para, o que se quite.
+     *
+     * @param accion  TIRA o PARA
+     * @param fin     el final (el orden de Ruleta.Fin: mob, dificultad, penalizacion, minijuego)
+     * @param semilla la de la tira de iconos del rodillo, la misma para todos
+     */
+    public record Ruleta(int accion, int fin, int semilla) implements CustomPacketPayload {
+
+        public static final int TIRA = 0;
+        public static final int PARA = 1;
+
+        public static final Type<Ruleta> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ruleta"));
+
+        public static final StreamCodec<FriendlyByteBuf, Ruleta> CODEC = StreamCodec.of(
+                (buf, r) -> {
+                    buf.writeVarInt(r.accion());
+                    buf.writeVarInt(r.fin());
+                    buf.writeInt(r.semilla());
+                },
+                buf -> new Ruleta(buf.readVarInt(), buf.readVarInt(), buf.readInt()));
+
+        @Override
+        public Type<Ruleta> type() {
+            return TIPO;
+        }
+    }
+
+    /**
+     * El estado de un cambio de dificultad, para el menu (com.atalaya.cambios.Cambio por su id).
+     *
+     * @param estado APAGADO, ENCENDIDO o ESPERA (esperando a que pare su Ruleta)
+     * @param quedan los ticks que le quedan a uno que dura (0, los que no duran)
+     */
+    public record EstadoCambio(String id, int estado, int quedan) {
+        public static final int APAGADO = 0;
+        public static final int ENCENDIDO = 1;
+        public static final int ESPERA = 2;
+    }
+
+    /** El menu de los cambios de dificultad: abrirlo con su estado (abrir) o solo ponerlo al dia si esta abierto. */
+    public record MenuCambios(boolean abrir, java.util.List<EstadoCambio> estados) implements CustomPacketPayload {
+
+        public static final Type<MenuCambios> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "menu_cambios"));
+
+        public static final StreamCodec<FriendlyByteBuf, MenuCambios> CODEC = StreamCodec.of(
+                (buf, m) -> {
+                    buf.writeBoolean(m.abrir());
+                    buf.writeVarInt(m.estados().size());
+                    for (EstadoCambio e : m.estados()) {
+                        buf.writeUtf(e.id(), 64);
+                        buf.writeVarInt(e.estado());
+                        buf.writeVarInt(e.quedan());
+                    }
+                },
+                buf -> {
+                    boolean abrir = buf.readBoolean();
+                    int n = buf.readVarInt();
+                    java.util.List<EstadoCambio> estados = new java.util.ArrayList<>();
+                    for (int i = 0; i < n; i++) {
+                        estados.add(new EstadoCambio(buf.readUtf(64), buf.readVarInt(), buf.readVarInt()));
+                    }
+                    return new MenuCambios(abrir, estados);
+                });
+
+        @Override
+        public Type<MenuCambios> type() {
+            return TIPO;
+        }
+    }
+
+    /** El menu de las dimensiones: abrirlo (abrir) o ponerlo al dia; si el Nether y el End estan abiertos. */
+    public record MenuDimensiones(boolean abrir, boolean nether, boolean end) implements CustomPacketPayload {
+
+        public static final Type<MenuDimensiones> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "menu_dimensiones"));
+
+        public static final StreamCodec<FriendlyByteBuf, MenuDimensiones> CODEC = StreamCodec.of(
+                (buf, m) -> {
+                    buf.writeBoolean(m.abrir());
+                    buf.writeBoolean(m.nether());
+                    buf.writeBoolean(m.end());
+                },
+                buf -> new MenuDimensiones(buf.readBoolean(), buf.readBoolean(), buf.readBoolean()));
+
+        @Override
+        public Type<MenuDimensiones> type() {
+            return TIPO;
+        }
+    }
+
+    /** "He pulsado este cambio en el menu" (el servidor mira que sea operador). */
+    public record PulsaCambio(String id) implements CustomPacketPayload {
+
+        public static final Type<PulsaCambio> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "pulsa_cambio"));
+
+        public static final StreamCodec<FriendlyByteBuf, PulsaCambio> CODEC = StreamCodec.of(
+                (buf, m) -> buf.writeUtf(m.id(), 64),
+                buf -> new PulsaCambio(buf.readUtf(64)));
+
+        @Override
+        public Type<PulsaCambio> type() {
+            return TIPO;
+        }
+    }
+
+    /** "He pulsado esta dimension en el menu" (0, el Nether; 1, el End). */
+    public record PulsaDimension(int cual) implements CustomPacketPayload {
+
+        public static final Type<PulsaDimension> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "pulsa_dimension"));
+
+        public static final StreamCodec<FriendlyByteBuf, PulsaDimension> CODEC = StreamCodec.of(
+                (buf, m) -> buf.writeVarInt(m.cual()),
+                buf -> new PulsaDimension(buf.readVarInt()));
+
+        @Override
+        public Type<PulsaDimension> type() {
+            return TIPO;
+        }
+    }
+
     private AtalayaRed() {
     }
 
@@ -181,6 +306,15 @@ public final class AtalayaRed {
         PayloadTypeRegistry.serverboundPlay().register(DueloNota.TIPO, DueloNota.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Momento.TIPO, Momento.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Deslumbre.TIPO, Deslumbre.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(Ruleta.TIPO, Ruleta.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(MenuCambios.TIPO, MenuCambios.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(MenuDimensiones.TIPO, MenuDimensiones.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PulsaCambio.TIPO, PulsaCambio.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PulsaDimension.TIPO, PulsaDimension.CODEC);
+    }
+
+    private static boolean esOperador(net.minecraft.server.level.ServerPlayer p) {
+        return net.minecraft.commands.Commands.LEVEL_GAMEMASTERS.check(p.createCommandSourceStack().permissions());
     }
 
     /** Y esto solo en el servidor: quien atiende el aviso. */
@@ -193,5 +327,18 @@ public final class AtalayaRed {
                 com.atalaya.entity.NereaEntity.alNotaDuelo(contexto.player(), carga.jefe(), carga.indice(), carga.bien()));
         ServerPlayNetworking.registerGlobalReceiver(Habilidad.TIPO, (carga, contexto) ->
                 com.atalaya.habilidad.Habilidades.activar(contexto.player()));
+        // Los menus de los cambios y de las dimensiones: solo los operadores (el menu se abre con un comando suyo, pero
+        // el paquete lo podria mandar cualquiera).
+        ServerPlayNetworking.registerGlobalReceiver(PulsaCambio.TIPO, (carga, contexto) -> {
+            com.atalaya.cambios.Cambio c = com.atalaya.cambios.Cambio.porId(carga.id());
+            if (c != null && esOperador(contexto.player())) {
+                com.atalaya.cambios.CambiosDificultad.pulsar(contexto.player(), c);
+            }
+        });
+        ServerPlayNetworking.registerGlobalReceiver(PulsaDimension.TIPO, (carga, contexto) -> {
+            if ((carga.cual() == 0 || carga.cual() == 1) && esOperador(contexto.player())) {
+                com.atalaya.cambios.CambiosDificultad.pulsarDimension(contexto.player(), carga.cual());
+            }
+        });
     }
 }

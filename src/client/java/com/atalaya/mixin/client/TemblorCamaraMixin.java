@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * El temblor de camara de los golpes de Nerea (y de la cinematica del
- * Momento Maldicion).
+ * Momento Maldicion, y de los latidos y el cerrojo de la Ruleta).
  *
  * Se engancha al final de bobHurt, el sitio donde vanilla ya inclina la vista
  * al recibir dano: se aplica siempre (no depende de la opcion de balanceo al
@@ -29,6 +29,10 @@ public abstract class TemblorCamaraMixin {
         float[] m = com.atalaya.client.MomentoMaldicionCliente.angulos(parcial);
         if (m != null) {
             a = a == null ? m : new float[]{a[0] + m[0], a[1] + m[1], a[2] + m[2]};
+        }
+        float[] r = com.atalaya.client.RuletaCliente.angulos(parcial);
+        if (r != null) {
+            a = a == null ? r : new float[]{a[0] + r[0], a[1] + r[1], a[2] + r[2]};
         }
         if (a == null) {
             return;

@@ -188,11 +188,14 @@ CARTEL_CUADROS = 36       # los cuadros de la animación (de 2 ticks): el brillo
 CARTEL_CRUZA = 22
 
 
-def metal(v):
-    """El color del metal rojo pulido a la altura v (0 arriba, 1 abajo): reflejo, rojo vivo, el horizonte oscuro,
-    rojo hondo y el reflejo de abajo."""
-    tramos = [(0.0, (255, 226, 214)), (0.14, (255, 120, 104)), (0.42, (226, 40, 52)), (0.48, (96, 8, 16)),
+# El metal rojo pulido, por alturas (0 arriba, 1 abajo): reflejo, rojo vivo, el horizonte oscuro, rojo hondo y el
+# reflejo de abajo.
+METAL_ROJO = [(0.0, (255, 226, 214)), (0.14, (255, 120, 104)), (0.42, (226, 40, 52)), (0.48, (96, 8, 16)),
               (0.56, (150, 14, 24)), (0.84, (214, 44, 48)), (1.0, (255, 120, 88))]
+
+
+def metal(v, tramos=METAL_ROJO):
+    """El color del metal a la altura v (0 arriba, 1 abajo)."""
     for (v0, c0), (v1, c1) in zip(tramos, tramos[1:]):
         if v <= v1:
             k = (v - v0) / (v1 - v0)
@@ -200,33 +203,47 @@ def metal(v):
     return tramos[-1][1]
 
 
-def cartel():
-    """El rótulo en metal: las letras de las barras a escala 3 con su bisel, contorno oscuro y halo rojo, y en cada
-    cuadro de la animación una franja de luz en diagonal (con un destello en estrella) que lo cruza."""
+def cartel(texto=CARTEL, prefijo='momento_cartel', tramos=METAL_ROJO, halo=(255, 32, 16), halo_luz=(255, 182, 136),
+           oscuro=(26, 2, 6), y0=6):
+    """Un rótulo en metal (el del Momento, y los de la Ruleta con otro texto y otro metal): las letras de las barras a
+    escala 3 con su bisel, contorno oscuro y halo de su color, y en cada cuadro de la animación una franja de luz en
+    diagonal (con un destello en estrella) que lo cruza. Las tildes van encima, más pequeñas (a escala 2), para que
+    quepan en los 32 de alto."""
     e = CARTEL_ESC
-    ancho_txt = sum((len(GRANDE[c][0]) + 1) * e for c in CARTEL) - e
+    ea = 2
+    ancho_txt = sum((len(GRANDE[c][0]) + 1) * e for c in texto) - e
     cuadros = -(-(ancho_txt + 16) // 32)
     W, Hh = cuadros * 32, 32
     x0 = (W - ancho_txt) // 2
-    y0 = 6
     # La máscara de las letras.
     dentro = [[False] * W for _ in range(Hh)]
     x = x0
-    for c in CARTEL:
+    for c in texto:
         g = GRANDE[c]
-        for fy, fila in enumerate(g):
+        cuerpo = g[-7:]
+        for fy, fila in enumerate(cuerpo):
             for fx, ch in enumerate(fila):
                 if ch == '#':
                     for dy in range(e):
                         for dx in range(e):
                             dentro[y0 + fy * e + dy][x + fx * e + dx] = True
+        # La tilde (las filas de encima, sin la del hueco), a escala pequeña y centrada.
+        acento = [f for f in g[:-7] if '#' in f]
+        if acento:
+            ax = x + (len(g[0]) * e - len(g[0]) * ea) // 2
+            ay = y0 - 2 - len(acento) * ea
+            for fy, fila in enumerate(acento):
+                for fx, ch in enumerate(fila):
+                    if ch == '#':
+                        for dy in range(ea):
+                            for dx in range(ea):
+                                dentro[ay + fy * ea + dy][ax + fx * ea + dx] = True
         x += (len(g[0]) + 1) * e
     alto_letra = 7 * e
 
     def es(px, py):
         return 0 <= px < W and 0 <= py < Hh and dentro[py][px]
 
-    import math
     tiras = [Image.new('RGBA', (32, 32 * CARTEL_CUADROS), (0, 0, 0, 0)) for _ in range(cuadros)]
     for f in range(CARTEL_CUADROS):
         im = Image.new('RGBA', (W, Hh), (0, 0, 0, 0))
@@ -235,8 +252,8 @@ def cartel():
         for py in range(Hh):
             for px in range(W):
                 if es(px, py):
-                    v = (py - y0) / (alto_letra - 1)
-                    r, g, b = metal(v)
+                    v = min(1.0, max(0.0, (py - y0) / (alto_letra - 1)))
+                    r, g, b = metal(v, tramos)
                     # Bisel: luz arriba a la izquierda, sombra abajo a la derecha.
                     if not es(px - 1, py) or not es(px, py - 1):
                         r, g, b = (min(255, int(c * 1.25 + 30)) for c in (r, g, b))
@@ -252,16 +269,17 @@ def cartel():
                         r, g, b = (int(c + (255 - c) * k) for c in (r, g, b))
                     im.putpixel((px, py), (r, g, b, 255))
                 else:
-                    # Contorno oscuro pegado a la letra y, más fuera, el halo rojo.
+                    # Contorno oscuro pegado a la letra y, más fuera, el halo de su color.
                     cerca = min((abs(dx) + abs(dy) for dx in range(-3, 4) for dy in range(-3, 4) if es(px + dx, py + dy)),
                                 default=99)
                     if cerca <= 1:
-                        im.putpixel((px, py), (26, 2, 6, 255))
+                        im.putpixel((px, py), oscuro + (255,))
                     elif cerca <= 4:
                         a = int(150 * (1 - (cerca - 1) / 4))
                         d = abs(px - franja - (py - y0) * 0.55)
                         brilla = max(0.0, 1 - d / 8)
-                        im.putpixel((px, py), (255, int(32 + 150 * brilla), int(16 + 120 * brilla), min(255, a + int(80 * brilla))))
+                        im.putpixel((px, py), tuple(int(halo[i] + (halo_luz[i] - halo[i]) * brilla) for i in range(3))
+                                    + (min(255, a + int(80 * brilla)),))
         # El destello en estrella en lo alto de la franja.
         if 0 <= franja < W:
             sx, sy = int(franja + 2), y0 + 2
@@ -274,15 +292,15 @@ def cartel():
             tiras[i].paste(im.crop((i * 32, 0, i * 32 + 32, 32)), (0, f * 32))
     carpeta = os.path.join(RAIZ, 'src/main/resources/assets/atalaya/textures/item')
     for viejo in os.listdir(carpeta):
-        if viejo.startswith('momento_cartel_'):
+        if viejo.startswith(prefijo + '_'):
             os.remove(os.path.join(carpeta, viejo))
     for i, tira in enumerate(tiras):
-        ruta = os.path.join(carpeta, f'momento_cartel_{i:02d}.png')
+        ruta = os.path.join(carpeta, f'{prefijo}_{i:02d}.png')
         tira.save(ruta)
         with open(ruta + '.mcmeta', 'w', encoding='utf-8', newline='\n') as fh:
             json.dump({'animation': {'frametime': 2, 'interpolate': False}}, fh, indent=2)
             fh.write('\n')
-    print('cartel:', cuadros, 'cuadros de 32 x 32,', CARTEL_CUADROS, 'fotogramas')
+    print(f'cartel {texto}', cuadros, 'cuadros de 32 x 32,', CARTEL_CUADROS, 'fotogramas')
     return cuadros
 
 

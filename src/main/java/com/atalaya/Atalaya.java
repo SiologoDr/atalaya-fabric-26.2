@@ -118,6 +118,8 @@ public class Atalaya implements ModInitializer {
         AtalayaRed.registrarServidor();
         // El Momento Maldicion (/atalaya momento_maldicion): la cuenta y los avisos; lo demas, en el cliente.
         com.atalaya.momento.MomentoMaldicion.registrar();
+        com.atalaya.momento.Ruleta.registrar();
+        com.atalaya.cambios.CambiosDificultad.registrar();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
         // El tercer parametro de CHUNK_LOAD (recien generado o no) no nos importa:

@@ -39,6 +39,8 @@ public final class FotosPrueba {
     private static final String HUECO = "HUECO ";
     /** "COCO_HUD 1|0": muestra (o quita) la pantalla roja de dentro del Coco, para fotografiar el aviso de encima. */
     private static final String COCO_HUD = "COCO_HUD ";
+    /** "CLIC x y": un clic izquierdo en la pantalla abierta, en coordenadas de la interfaz (los menus propios); "CERRAR", la cierra. */
+    private static final String CLIC = "CLIC ";
     /** "GOLPEAR": un clic izquierdo a lo que tenga delante (un bloque o una entidad). */
     private static final String GOLPEAR = "GOLPEAR";
     /** "INTERACTUAR": un clic derecho a la entidad que tenga delante (las veletas de Aeralis). */
@@ -51,6 +53,19 @@ public final class FotosPrueba {
     /** "MANDA_AUTO 1|0": obedece solo al Caballero Manda (solo las de verdad). */
     private static final String MANDA_AUTO = "MANDA_AUTO ";
     private static boolean mandaAuto;
+    /**
+     * "RULETA_FILM nombre t0 t1 paso": fotografia la Ruleta en marcha con su reloj parado en t0, t0+paso... hasta t1,
+     * una foto por tiempo y solo cuando ya esta pintado (asi las fotos no dependen de lo deprisa que vaya el juego).
+     * Mientras, el chat no se ve hasta el tick del aviso (124).
+     */
+    private static final String RULETA_FILM = "RULETA_FILM ";
+    private static boolean filmando;
+    private static String filmNombre = "";
+    private static float filmT;
+    private static float filmFin;
+    private static float filmPaso;
+    /** El aviso de la Ruleta que llega mientras se filma: se guarda y sale cuando la pelicula llega a su tick. */
+    private static net.minecraft.network.chat.@org.jspecify.annotations.Nullable Component avisoGuardado;
     private static int mandaVista = -1;
     private static int mandaSuelta;
 
@@ -63,9 +78,25 @@ public final class FotosPrueba {
         }
         Atalaya.LOGGER.info("Fotos de prueba activadas (atalaya_fotos.flag).");
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(FotosPrueba::forjar);
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(FotosPrueba::filmar);
         ClientReceiveMessageEvents.ALLOW_GAME.register((mensaje, encima) -> {
             String texto = mensaje.getString();
             Minecraft cliente = Minecraft.getInstance();
+            if (filmando && filmT < RuletaCliente.T_AVISO && texto.contains("ruleta_")) {
+                avisoGuardado = mensaje;
+                return false;
+            }
+            if (texto.startsWith(RULETA_FILM)) {
+                String[] p = texto.substring(RULETA_FILM.length()).trim().split(" ");
+                filmNombre = p[0];
+                filmT = Float.parseFloat(p[1]);
+                filmFin = Float.parseFloat(p[2]);
+                filmPaso = Float.parseFloat(p[3]);
+                filmando = true;
+                RuletaCliente.pruebaT = filmT;
+                RuletaHud.pintadoCon = -1;
+                return false;
+            }
             if (texto.startsWith(TECLA) && cliente.player != null) {
                 cliente.player.getInventory().setSelectedSlot(Math.clamp(Integer.parseInt(texto.substring(TECLA.length()).trim()), 0, 8));
                 return false;
@@ -84,6 +115,25 @@ public final class FotosPrueba {
             }
             if (texto.startsWith(FORJA_AUTO)) {
                 forjaAuto = texto.substring(FORJA_AUTO.length()).trim().equals("1");
+                return false;
+            }
+            if (texto.startsWith("BUSCA ")) {
+                if (cliente.gui.screen() instanceof MenuCambiosScreen menu) {
+                    menu.buscar(texto.substring(6));
+                }
+                return false;
+            }
+            if (texto.equals("CERRAR")) {
+                cliente.gui.setScreen(null);
+                return false;
+            }
+            if (texto.startsWith(CLIC)) {
+                String[] xy = texto.substring(CLIC.length()).trim().split(" ");
+                net.minecraft.client.gui.screens.Screen pantalla = cliente.gui.screen();
+                if (pantalla != null) {
+                    pantalla.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(Double.parseDouble(xy[0]),
+                            Double.parseDouble(xy[1]), new net.minecraft.client.input.MouseButtonInfo(0, 0)), false);
+                }
                 return false;
             }
             if (texto.equals(GOLPEAR)) {
@@ -151,6 +201,34 @@ public final class FotosPrueba {
             });
             return false;
         });
+    }
+
+    /** Si el chat no se ve (mientras se filma la Ruleta, antes de su aviso). */
+    public static boolean ocultaChat() {
+        return filmando && filmT < RuletaCliente.T_AVISO;
+    }
+
+    /** La pelicula de la Ruleta: foto del fotograma pintado con el tiempo de ahora y al siguiente. */
+    private static void filmar(Minecraft mc) {
+        if (!filmando || RuletaHud.pintadoCon != RuletaCliente.pruebaT) {
+            return;
+        }
+        String nombre = filmNombre + "_" + String.format(java.util.Locale.ROOT, "%07.2f", filmT).replace('.', '_');
+        Screenshot.grab(mc.gameDirectory, nombre + ".png", mc.gameRenderer.mainRenderTarget(), 1, c -> {
+        });
+        filmT += filmPaso;
+        if (avisoGuardado != null && filmT >= RuletaCliente.T_AVISO) {
+            mc.gui.chatListener().handleSystemMessage(avisoGuardado, false);
+            avisoGuardado = null;
+        }
+        if (filmT > filmFin + 1.0E-3F) {
+            filmando = false;
+            RuletaCliente.pruebaT = -1;
+            Atalaya.LOGGER.info("RULETA_FILM {} hecha", filmNombre);
+            return;
+        }
+        RuletaCliente.pruebaT = filmT;
+        RuletaHud.pintadoCon = -1;
     }
 
     private static void apuntar(Minecraft mc, String tipo) {

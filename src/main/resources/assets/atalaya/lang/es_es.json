@@ -849,5 +849,14 @@
   "subtitles.atalaya.coco.aviso": "Un Coco abre la cáscara",
   "subtitles.atalaya.coco.traga": "Un Coco traga",
   "subtitles.atalaya.coco.latido": "Un latido, a través de la carne",
-  "subtitles.atalaya.coco.revienta": "Revienta la barriga de un Coco"
+  "subtitles.atalaya.coco.revienta": "Revienta la barriga de un Coco",
+  "subtitles.atalaya.ruleta.animacion": "Gira una tragaperras",
+  "subtitles.atalaya.ruleta.mob": "Se raja un cascarón",
+  "subtitles.atalaya.ruleta.dificultad": "Suena una alarma",
+  "subtitles.atalaya.ruleta.penalizacion": "La mala suerte",
+  "subtitles.atalaya.ruleta.minijuego": "¡A jugar!",
+  "subtitles.atalaya.ruleta.sale": "La tragaperras se va",
+  "subtitles.atalaya.ruleta.aviso": "Suena un timbre",
+  "subtitles.atalaya.ruleta.enciende": "Se enciende un interruptor",
+  "subtitles.atalaya.ruleta.apaga": "Se apaga un interruptor"
 }

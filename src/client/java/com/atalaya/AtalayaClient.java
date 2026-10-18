@@ -508,6 +508,24 @@ public class AtalayaClient implements ClientModInitializer {
                 (carga, contexto) -> com.atalaya.client.MomentoMaldicionCliente.recibir(carga));
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
                 (manejador, cliente) -> com.atalaya.client.MomentoMaldicionCliente.olvidar());
+        // La Ruleta (/atalaya ruleta): la tragaperras de los cambios de dificultad, por encima de todo el HUD. La tira el
+        // servidor; al salir del mundo se olvida.
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "ruleta"),
+                new com.atalaya.client.RuletaHud());
+        ClientTickEvents.END_CLIENT_TICK.register(com.atalaya.client.RuletaCliente::tick);
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
+                com.atalaya.net.AtalayaRed.Ruleta.TIPO,
+                (carga, contexto) -> com.atalaya.client.RuletaCliente.recibir(carga));
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+                (manejador, cliente) -> com.atalaya.client.RuletaCliente.olvidar());
+        // Los menus de los cambios de dificultad y de las dimensiones (/atalaya menu cambios | dimensiones): pantallas
+        // propias que abre y pone al dia el servidor.
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
+                com.atalaya.net.AtalayaRed.MenuCambios.TIPO,
+                (carga, contexto) -> com.atalaya.client.MenusCliente.recibirCambios(carga));
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
+                com.atalaya.net.AtalayaRed.MenuDimensiones.TIPO,
+                (carga, contexto) -> com.atalaya.client.MenusCliente.recibirDimensiones(carga));
         java.util.List<Identifier> escondidos = new java.util.ArrayList<>(java.util.List.of(
                 VanillaHudElements.CROSSHAIR, VanillaHudElements.HOTBAR, VanillaHudElements.ARMOR_BAR,
                 VanillaHudElements.HEALTH_BAR, VanillaHudElements.FOOD_BAR, VanillaHudElements.AIR_BAR,
@@ -515,8 +533,9 @@ public class AtalayaClient implements ClientModInitializer {
                 VanillaHudElements.HELD_ITEM_TOOLTIP, VanillaHudElements.MOB_EFFECTS, VanillaHudElements.BOSS_BAR,
                 VanillaHudElements.SCOREBOARD, VanillaHudElements.OVERLAY_MESSAGE, VanillaHudElements.CHAT));
         for (Identifier id : escondidos) {
+            boolean chat = id.equals(VanillaHudElements.CHAT);
             HudElementRegistry.replaceElement(id, original -> (g, delta) -> {
-                if (!com.atalaya.client.PresentacionJefe.ocultaHud()) {
+                if (!com.atalaya.client.PresentacionJefe.ocultaHud() && !(chat && com.atalaya.client.FotosPrueba.ocultaChat())) {
                     original.extractRenderState(g, delta);
                 }
             });

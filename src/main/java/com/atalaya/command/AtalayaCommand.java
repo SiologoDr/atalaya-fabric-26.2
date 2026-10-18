@@ -43,6 +43,9 @@ import java.util.List;
  *
  * Subcomandos:
  *   /atalaya menu                 -> panel de interruptores
+ *   /atalaya menu cambios         -> el menu de los cambios de dificultad (encender uno lanza la Ruleta y se aplica al
+ *                                    salir su aviso; apagarlo lo quita al momento)
+ *   /atalaya menu dimensiones     -> el menu de las dimensiones: el Nether y el End, abiertos o cerrados
  *   /atalaya hidratacion &lt;0-100&gt;  -> fija tu hidratacion, para probar
  *   /atalaya frio &lt;0-50&gt;          -> fija tu frio, para probar
  *   /atalaya momento_fractura "titulo" "texto" [segundos]
@@ -52,6 +55,11 @@ import java.util.List;
  *                                 -> la prueba: romper tierra o cesped (10 si no se dice) antes de que el
  *                                    contador llegue a cero; a quien no, lo mata (aunque tenga totems)
  *   /atalaya momento_fractura stop -> lo para
+ *   /atalaya ruleta &lt;final&gt; [texto]
+ *                                 -> la Ruleta para todos: la tragaperras gira y para en su final (mob,
+ *                                    dificultad, penalizacion o minijuego) y el texto sale en el chat del
+ *                                    color del final; si hay otra girando, espera su turno
+ *   /atalaya ruleta stop          -> quita la que gira y las que esperan
  *   /atalaya nerea &lt;orden&gt;         -> fuerza a la Nerea mas cercana un ataque o
  *                                    momento del combate (despertar, rompeolas,
  *                                    remolino, burbujas, molino, arpon, lejano,
@@ -92,7 +100,11 @@ public final class AtalayaCommand {
                 Commands.literal("atalaya")
                         .then(Commands.literal("menu")
                                 .requires(AtalayaCommand::esOperador)
-                                .executes(ctx -> abrirMenu(ctx.getSource())))
+                                .executes(ctx -> abrirMenu(ctx.getSource()))
+                                .then(Commands.literal("cambios")
+                                        .executes(ctx -> abrirMenuCambios(ctx.getSource(), false)))
+                                .then(Commands.literal("dimensiones")
+                                        .executes(ctx -> abrirMenuCambios(ctx.getSource(), true))))
                         .then(Commands.literal("hidratacion")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -148,6 +160,7 @@ public final class AtalayaCommand {
                                                 StringArgumentType.getString(ctx, "orden")))))
                         .then(ordenMomento("momento_fractura"))
                         .then(ordenMomento("momento_maldicion"))
+                        .then(ordenRuleta())
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -231,6 +244,49 @@ public final class AtalayaCommand {
         int queda = com.atalaya.momento.MomentoMaldicion.queda();
         fuente.sendSuccess(() -> Component.literal("En marcha: «" + com.atalaya.momento.MomentoMaldicion.titulo() + "»"
                 + (queda >= 0 ? ", quedan " + queda / 20 + " s." : ", sin limite.")), false);
+        return 1;
+    }
+
+    /**
+     * La Ruleta: /atalaya ruleta &lt;final&gt; [texto] (el texto sin comillas, o con ellas) y /atalaya ruleta stop.
+     */
+    private static LiteralArgumentBuilder<CommandSourceStack> ordenRuleta() {
+        LiteralArgumentBuilder<CommandSourceStack> raiz = Commands.literal("ruleta")
+                .requires(AtalayaCommand::esOperador)
+                .executes(ctx -> {
+                    ctx.getSource().sendSuccess(() -> Component.literal(
+                            "Uso: /atalaya ruleta <mob|dificultad|penalizacion|minijuego> [texto]  ·  /atalaya ruleta stop"), false);
+                    return 0;
+                })
+                .then(Commands.literal("stop")
+                        .executes(ctx -> pararRuleta(ctx.getSource())));
+        for (com.atalaya.momento.Ruleta.Fin fin : com.atalaya.momento.Ruleta.Fin.values()) {
+            raiz.then(Commands.literal(fin.nombre)
+                    .executes(ctx -> tirarRuleta(ctx.getSource(), fin, ""))
+                    .then(Commands.argument("texto", StringArgumentType.greedyString())
+                            .executes(ctx -> tirarRuleta(ctx.getSource(), fin, StringArgumentType.getString(ctx, "texto")))));
+        }
+        return raiz;
+    }
+
+    private static int tirarRuleta(CommandSourceStack fuente, com.atalaya.momento.Ruleta.Fin fin, String texto) {
+        String t = texto.strip();
+        if (t.length() >= 2 && t.startsWith("\"") && t.endsWith("\"")) {
+            t = t.substring(1, t.length() - 1);
+        }
+        int delante = com.atalaya.momento.Ruleta.tirar(fuente.getServer(), fin, t);
+        fuente.sendSuccess(() -> Component.literal("Ruleta: " + fin.dicho
+                + (delante > 0 ? " (espera su turno: " + delante + " delante)." : ".")), true);
+        return 1;
+    }
+
+    private static int pararRuleta(CommandSourceStack fuente) {
+        int habia = com.atalaya.momento.Ruleta.parar(fuente.getServer());
+        if (habia == 0) {
+            fuente.sendFailure(Component.literal("No hay ninguna ruleta girando."));
+            return 0;
+        }
+        fuente.sendSuccess(() -> Component.literal("Ruleta parada" + (habia > 1 ? " (y la cola vacia)." : ".")), true);
         return 1;
     }
 
@@ -493,6 +549,21 @@ public final class AtalayaCommand {
      */
     private static boolean esOperador(CommandSourceStack fuente) {
         return Commands.LEVEL_GAMEMASTERS.check(fuente.permissions());
+    }
+
+    /** Los menus propios (pantallas del cliente): el de los cambios de dificultad o el de las dimensiones. */
+    private static int abrirMenuCambios(CommandSourceStack fuente, boolean dimensiones) {
+        ServerPlayer jugador = fuente.getPlayer();
+        if (jugador == null) {
+            fuente.sendFailure(Component.literal("Solo un jugador puede abrir el menu."));
+            return 0;
+        }
+        if (dimensiones) {
+            com.atalaya.cambios.CambiosDificultad.abrirDimensiones(jugador);
+        } else {
+            com.atalaya.cambios.CambiosDificultad.abrirCambios(jugador);
+        }
+        return 1;
     }
 
     private static int abrirMenu(CommandSourceStack fuente) {

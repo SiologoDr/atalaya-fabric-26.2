@@ -17,6 +17,7 @@
     "ManiquiAccessor",
     "NivelExplosionAccessor",
     "PoisonMobEffectMixin",
+    "PortalCerradoMixin",
     "QuemaduraAguaMixin",
     "RanuraAturdidoMixin",
     "RecipeManagerMixin",

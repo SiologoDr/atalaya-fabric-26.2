@@ -1,6 +1,6 @@
 # Atalaya
 
-Mod de **Fabric** para Minecraft **26.2** · versión **1.2.1**.
+Mod de **Fabric** para Minecraft **26.2** · versión **1.2.2**.
 
 **Un mundo que se pone más difícil por fases.** Cada fase vuelve invivible una
 parte del mundo y desbloquea a la vez lo que hace falta para volver a entrar:
@@ -2600,6 +2600,162 @@ tick a tick (`FotosPrueba`, en el mundo Escenas) y se cambió:
 - **El rendimiento**, con la gráfica del procesador de esta máquina: la fractura pasa de 28 a 34 FPS y la cinemática se
   queda en 44.
 
+## La Ruleta
+
+Los **cambios de dificultad** de Atalaya, como la ruleta de DEDsafío pero a nuestra manera (17-10-2026). Juan: «vamos
+a hacer como un casino pero no de 3 sino de solo 1 ... la casilla se mueva, mueva, mueva y pare»; una misma animación
+con cuatro finales, y en el chat «amarillo si es cambio de dificultad, anaranjado si es un mob nuevo, celeste si es
+penalización y verde si es minijuego». Con esos cuatro se cubre lo que en DEDsafío sale en sus avisos («Cambio de
+Dificultad:», «Nuevo Mob —») y en los Momentos con prueba (ver `materiales/ideas/repertorio.md`).
+
+```
+/atalaya ruleta mob|dificultad|penalizacion|minijuego [texto]
+/atalaya ruleta stop
+```
+
+El texto va sin comillas (si se ponen, se quitan). Puede ir vacío: entonces solo sale el rótulo.
+
+| Final | Icono del rodillo | Rótulo del chat | Color del texto |
+|---|---|---|---|
+| `mob` | un huevo con una interrogación | NUEVO MOB: | naranja |
+| `dificultad` | una advertencia (el triángulo con la exclamación) | CAMBIO DE DIFICULTAD: | amarillo |
+| `penalizacion` | un corazón roto | PENALIZACIÓN: | celeste |
+| `minijuego` | un mando | MINIJUEGO: | verde |
+
+Los iconos son la opción A de cada uno y el rótulo, el estilo B; las otras propuestas están en la página «Iconos de la
+Ruleta», donde Juan elige (cambiar uno es cambiar `ELEGIDOS` o `ROTULO` en `ruleta.py` y volver a generarlo).
+
+**La segunda versión** (el mismo día). Juan: «para que los usuarios no sepan qué acción es, con el inicio de la animación
+debería aparecer ya girando, y debe ser más inmersivo y dar esa tensión»; «el diseño me gusta, pero puede usar mejor su
+espacio, así como hace la ruleta de DEDsafío, que es su círculo»; «más rápido el giro y que dure el doble o un poco
+más». La tragaperras dejó de ser un mueble con una ventanita y es **un medallón redondo en el que el rodillo lo ocupa
+casi todo**, sale ya girando, gira el doble de deprisa y el doble de tiempo, y la tira de iconos es al azar en cada tirada.
+Y de los rótulos del chat: «no se lee muy bien; deja el brillo que pasa, pero el tipo de letra y la textura que tiene
+es muy metálico».
+
+**La tirada** (10,7 s; a todos a la vez):
+
+- **0:** el medallón entra girando sobre sí mismo, **ya con el rodillo a tope**: nunca se ve un icono quieto que delate
+  el final. Es pixel art propio a escala entera: el aro de oro con 22 bombillas, un anillo de laca morada con el sol art
+  déco y cuatro gemas (una por final), el aro de cromo de la ventana y, arriba, la cresta con la atalaya y su farol.
+  El mundo se apaga alrededor.
+- **0-60, a tope** (1,8 iconos por tick): un borrón de colores; dos cometas de luz corren por el aro con el rodillo, y el
+  medallón se traga chispas en espiral.
+- **60-128, frena:** los iconos empiezan a leerse; la gema del que pasa por la línea de premio se enciende y la luz de
+  detrás toma su color.
+- **126-170, el suspense:** el corazón late cada vez más seguido, el medallón se acerca, la viñeta se cierra y las
+  bombillas se apagan y solo laten. El rodillo se queda casi parado en un icono (**el señuelo**, al azar)… y pasa al
+  siguiente.
+- **170, el cerrojo:** la cámara da un golpe y el medallón se sacude, el icono salta por encima de todo, la luz, las
+  bombillas, las gemas y el farol se ponen del color del final, y salen rayos, una onda, destellos y monedas.
+- **200:** el medallón se va girando y el icono vuela al chat.
+- **206:** el aviso del chat: el icono, el rótulo de su color con el brillo que lo cruza y el texto de su color debajo,
+  con un «¡din-din!».
+
+El rodillo es un tambor de verdad: los iconos de arriba y de abajo se ven aplastados y en sombra, y deprisa, corridos.
+La tira de iconos sale de una semilla que manda el servidor (todos ven la misma), sin dos iguales seguidos; termina en el
+final y, justo antes, en el señuelo, que es cualquiera de los otros tres.
+
+Si se tiran varias seguidas, esperan su turno (cada una sale cuando acaba la anterior). Quien entra a mitad de una
+tirada no la ve, pero le llega el aviso. No se guarda en el mundo.
+
+**Los rótulos del chat** (segunda versión): una letra de píxel propia de 5 x 7 a escala 4, **tan alta como el texto del
+chat** (antes ocupaba dos tercios del cuadro y salía más pequeña), en colores planos y sin el metal (la franja oscura, el
+bisel y el halo la volvían ruido). Hay tres estilos: A, la letra fina del color del final; B, la misma más gruesa en dos
+tonos, que es la que va; y C, letras oscuras sobre una placa del color. Los tres ocupan los mismos cuadros, así que
+cambiar de estilo no toca el código. Las vocales con tilde pierden una fila de en medio para que quepa la tilde encima.
+
+**Los sonidos** (`ruleta_sonidos.py`), de casino y nuestros: el golpe del medallón al entrar, el chispazo y las bombillas,
+el zumbido del tambor, **un clic por cada diente del rodillo y una campanita por cada icono, sacados de la misma curva que
+lo mueve** (deprisa se juntan en un ronroneo; al frenar se oyen sueltos y las notas suben una a una; ya despacio, cada
+icono es una campana grave), una subida que aprieta mientras frena, el corazón del suspense, un redoble de campanitas que
+crece, un instante de silencio y el ¡clonc! del cerrojo. Cada final tiene lo suyo: el cascarón que se raja, unas notas que
+suben como una pregunta y algo que pía (mob); el timbre de alarma y dos golpes de metales graves (dificultad); el «uah,
+uah, uaaah» de la mala suerte con una cadena y hielo (penalización); un arpegio de recreativa y el acorde de «¡a jugar!»
+(minijuego).
+
+**Cómo está hecha:**
+
+- `Ruleta` (servidor, en `momento`) lleva la cola, manda a cada cliente que tire (`AtalayaRed.Ruleta`, con el final y la
+  semilla de la tira) y saca el aviso del chat en el tick 206.
+- `RuletaCliente` lleva el calendario (el mismo que el de los sonidos), la tira de iconos y la curva del rodillo: puntos
+  (tick, posición, velocidad) unidos con cúbicas de Hermite, siempre 164 iconos; después, el golpe del cerrojo (se pasa
+  un poco y vuelve). También el temblor de los latidos y del cerrojo (`TemblorCamaraMixin`).
+- `RuletaHud` lo pinta por encima de todo el HUD, a la resolución de la pantalla, con el medallón a escala entera (la
+  pantalla entre 330, redondeado: 3 en 1600 x 900) para que sus píxeles sean todos iguales. Lo que no se mueve está en
+  la hoja (`textures/gui/ruleta/maquina.png`); el rodillo va detrás del hueco redondo, y lo que se sale lo tapa el
+  medallón. Lo blando (los brillos, los rayos, la viñeta) usa las piezas suaves del Momento. **Pinta por tandas** (todos
+  los brillos seguidos y después todos los núcleos): con la gráfica del procesador, ir alternando texturas bajaba el
+  juego de 60 a 30 FPS. Ahora no se nota: en la prueba, 20-49 FPS sin tirada y 30-58 con ella (lo que varía es el
+  mundo).
+- `ruleta.py` hace la hoja del medallón, los iconos (los del rodillo a 48 x 48, nítidos y corridos; los del chat a
+  16 x 16), los rótulos del chat y, con una carpeta de salida, todas las propuestas de iconos y de rótulos.
+- Para probarla: `FotosPrueba` tiene `RULETA_FILM nombre t0 t1 paso`, que para el reloj de la tirada en cada tiempo y
+  saca la foto cuando ya está pintado (las fotos no dependen de lo deprisa que vaya el juego), y guarda el aviso del
+  chat hasta que la película llega a su tick. Con eso se hizo el vídeo de la página. No se graba el escritorio.
+
+## Los cambios de dificultad
+
+Los cambios del evento, en un menú propio (17-10-2026). Juan: «los quiero en un menú que ponga yo /atalaya menu cambios
+... un menú personalizado bonito, no el de Minecraft, y ahí estén todos los cambios de dificultad ... deben verse ON u
+OFF; si se pone ON, al terminar la animación y salir el mensaje se aplica el cambio; y si está ON y le doy, no se hace
+nada, solo se desactiva; también que haya un buscador»; y otro menú para las dimensiones, «con ON y OFF en Nether y End».
+
+```
+/atalaya menu cambios
+/atalaya menu dimensiones
+```
+
+**El menú de los cambios** (`MenuCambiosScreen`) es una pantalla propia con el aire de la Ruleta: el panel de laca con
+su marco de oro, el título en nuestra letra con el brillo que lo cruza, el buscador (sin mayúsculas ni tildes: «totem»
+encuentra «TÓTEM») y una fila por cambio con su icono, su título, su texto y el interruptor:
+
+- **OFF → ON:** el menú se cierra (para ver la animación) y sale **la Ruleta** en su final de dificultad. El rótulo del
+  chat ya no es «CAMBIO DE DIFICULTAD:», sino **el título del cambio**, y debajo va su texto; **al salir ese aviso se
+  aplica el cambio**. Mientras gira, el interruptor está dorado («girando») y pulsarlo no hace nada.
+- **ON → OFF:** se quita al momento, sin animación ni aviso.
+- Los que duran dicen cuánto les queda, debajo del interruptor.
+
+**Los primeros cuatro** son los de DEDsafío 2, con la misma mecánica pero el título y el texto nuestros (Juan: «el
+título y contenido cámbialo para que no sea lo mismo»):
+
+| Cambio | En DEDsafío 2 | Qué hace |
+|---|---|---|
+| **NI UN TÓTEM MÁS** | Solo se vive una vez | Los evocadores no sueltan tótems de la inmortalidad (se quitan de lo que sueltan al morir) |
+| **EL END, SELLADO** | Confinamiento dimensional | Cierra el End: sus portales no llevan a ninguna parte y quien esté dentro vuelve al Overworld |
+| **VIDA A MEDIAS** | (sin título) | La mitad de la vida máxima a todos durante 30 minutos de juego; a quien entre o reaparezca mientras dura, también. Al acabar se apaga sola y lo dice el chat |
+| **LOS PORTALES ARDEN** | Las puertas al infierno | Abre el Nether |
+
+Apagar EL END, SELLADO o LOS PORTALES ARDEN deja su dimensión **como estaba antes** de encenderlos (no la fuerza): si el
+Nether ya estaba abierto, apagar LOS PORTALES ARDEN no lo cierra.
+
+**El menú de las dimensiones** (`MenuDimensionesScreen`): dos tarjetas, el Nether y el End, con su dibujo animado (el
+remolino del portal, las estrellas del portal del End), ABIERTO o CERRADO (y un candado encima si lo está) y su
+interruptor; se abren y se cierran al momento. Una dimensión cerrada: sus portales no llevan a ella (`PortalCerradoMixin`,
+que corta antes de que el juego cree el portal de salida al otro lado) y a quien lo intenta se le dice («El Nether está
+cerrado: el portal no responde»); quien esté dentro cuando se cierra vuelve al punto de aparición del mundo. Los
+comandos de los operadores (`/tp`, `/execute in`) siguen funcionando. Por defecto las dos están abiertas, como en
+Minecraft. Abrir el End a mano quita EL END, SELLADO, y cerrar el Nether a mano quita LOS PORTALES ARDEN.
+
+**Cómo está hecho:**
+
+- `Cambio` es la lista de los cambios (id, título, texto, cuadros de su rótulo y lo que dura). Añadir uno es una línea
+  ahí, su icono y su rótulo en `menus_cambios.py` y lo que hace en `CambiosDificultad`.
+- `CambiosDificultad` (un `SavedData` del mundo: `atalaya:cambios`) guarda los cambios encendidos, cuándo acaban los que
+  duran (en tiempo de juego), cómo estaban las dimensiones antes de tocarlas y si el Nether y el End están abiertos. Un
+  End sellado sigue sellado al reiniciar. Los cambios en espera de su Ruleta no se guardan: si el servidor se para antes
+  del aviso, no se aplican.
+- La Ruleta acepta un rótulo propio y lo que hay que hacer al salir el aviso (`Ruleta.tirarCambio`); si se para con
+  `/atalaya ruleta stop` antes del aviso, el cambio vuelve a OFF.
+- Los menús los abre y los pone al día el servidor (`AtalayaRed.MenuCambios` y `MenuDimensiones`) y los clics vuelven
+  como `PulsaCambio` y `PulsaDimension`; el servidor comprueba que quien pulsa es operador.
+- `menus_cambios.py` hace todo lo de los menús en el atlas de la interfaz (`textures/gui/sprites/menu`: el panel, las
+  filas y el buscador que se estiran, el interruptor, la lupa, el candado, los títulos animados, los iconos de los cambios
+  y las dos dimensiones), a un texel por píxel de la interfaz, y los rótulos del chat de cada cambio (`cambio_<id>_NN`).
+  Los sonidos del interruptor (`ruleta.enciende` y `ruleta.apaga`) están en `ruleta_sonidos.py`.
+- Para probarlo: `FotosPrueba` tiene `CLIC x y` (un clic en la pantalla abierta, en coordenadas de la interfaz),
+  `BUSCA texto` (escribe en el buscador) y `CERRAR`.
+
 ## Cómo se hace un jefe
 
 Un jefe nuevo sale en tres tiempos:
@@ -2841,6 +2997,8 @@ El esquema es siempre el mismo:
 | Comando | Permiso | Qué hace |
 |---|---|---|
 | `/atalaya menu` | Operador | Abre el panel de configuración |
+| `/atalaya menu cambios` | Operador | El menú de los cambios de dificultad (ver [Los cambios de dificultad](#los-cambios-de-dificultad)): ON lanza la Ruleta y el cambio se aplica al salir su aviso; OFF lo quita al momento. Tiene buscador |
+| `/atalaya menu dimensiones` | Operador | El menú de las dimensiones: el Nether y el End, abiertos o cerrados (sus portales no llevan a ninguna parte) |
 | `/atalaya hidratacion <0-50>` | Operador | Fija tu hidratación. Para probar: llegar al nivel 2 esperando al sol son casi seis minutos |
 | `/atalaya frio <0-50>` | Operador | Fija tu frío. Igual: helarse del todo a la intemperie son casi seis minutos |
 | `/atalaya diagnostico` | Operador | Por qué no aparece el fulminante donde estás: interruptor, bioma, lista de monstruos y regla de sitio |
@@ -2851,6 +3009,8 @@ El esquema es siempre el mismo:
 | `/atalaya momento_fractura "título" "texto" [segundos]` | Operador | El Momento Fractura para todos (ver [El Momento Fractura](#el-momento-fractura)): la cinemática y, al acabar, el texto en el chat; con segundos se para solo. Sin nada, dice si hay uno en marcha. También vale `momento_maldicion` |
 | `/atalaya momento_fractura prueba tierra <segundos> [cantidad]` | Operador | El Momento Fractura con la prueba de la tierra: romper `cantidad` (10) bloques de tierra o césped antes de que el contador (`segundos`, desde que acaba la cinemática) llegue a cero; a quien no, lo mata aunque tenga tótems. 10 s después se va solo |
 | `/atalaya momento_fractura stop` | Operador | Lo para (sin matar a nadie) |
+| `/atalaya ruleta <mob\|dificultad\|penalizacion\|minijuego> [texto]` | Operador | La Ruleta para todos (ver [La Ruleta](#la-ruleta)): el medallón sale ya girando, frena con suspense y para en ese final, y el texto sale en el chat de su color. Si hay otra girando, espera su turno |
+| `/atalaya ruleta stop` | Operador | Quita la que gira y las que esperan |
 | `/atalaya habilidad` | Operador | Usa la activa de tu armadura de rol, como la tecla R (con el juego entero puesto) |
 | `/atalaya habilidad lista` | Operador | Te deja la activa lista al momento, sin recarga (para probar) |
 | `/repair [jugadores]` | Operador | Deja como nueva la armadura puesta, la tuya o la de otros. También el traje Hazmat, que por diseño no se repara: es una herramienta de pruebas |
@@ -2994,7 +3154,7 @@ cd atalaya-fabric-26.2
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/atalaya-1.2.1.jar`. La versión sale de
+El `.jar` queda en `build/libs/atalaya-1.2.2.jar`. La versión sale de
 `mod_version` en `gradle.properties`.
 
 Nada más hace falta para compilar: las versiones están fijadas en
@@ -3025,7 +3185,7 @@ Para comprobar que el mod carga, buscar estas líneas en el log:
 
 ```
 Loading NN mods:
-	- atalaya 1.2.1
+	- atalaya 1.2.2
 (atalaya) Atalaya iniciado (Minecraft 26.2 / Fabric).
 (atalaya) Atalaya (cliente) iniciado.
 ```
@@ -3274,10 +3434,15 @@ src/main/               código común (servidor + cliente)
 │   ├── item/AguaPurificadaItem     se bebe y devuelve hidratación
 │   ├── loot/AtalayaLoot            los cinco drops de mobs y el de la pesca
 │   ├── menu/ConfigMenu             el panel de interruptores
+│   ├── momento/MomentoMaldicion    el Momento Fractura (la cinemática, el aviso y la prueba de la tierra)
+│   ├── momento/Ruleta              la tragaperras de los cambios: la cola de tiradas y el aviso del chat
+│   ├── cambios/Cambio              los cambios de dificultad (título, texto, lo que duran)
+│   ├── cambios/CambiosDificultad   los encendidos y las dimensiones abiertas (se guardan en el mundo)
 │   ├── mixin/                      BlockItem, PoisonMobEffect, RecipeManager,
 │   │                               Creeper, daño, vitrificado, ranura, botín,
-│   │                               SpawnPlacements, y AvisoTotem (el tótem
-│   │                               avisa a todo el servidor)
+│   │                               SpawnPlacements, AvisoTotem (el tótem
+│   │                               avisa a todo el servidor) y PortalCerrado
+│   │                               (los portales a una dimensión cerrada)
 │   └── radiation/                  GeodeIndex (índice) y RadiationManager (tick)
 └── resources/
     ├── fabric.mod.json             manifiesto
@@ -3311,6 +3476,10 @@ src/client/             código SOLO de cliente
 │   ├── client/NereaPresencia       COMPARTIDO: temblor y miedo de los tres jefes
 │   ├── client/MiedoHud             la viñeta de miedo, con la textura de cada jefe
 │   ├── client/CadenaRender         los eslabones de las cadenas de Nerea
+│   ├── client/RuletaCliente        la Ruleta: el calendario, la curva del rodillo y su tira de iconos
+│   ├── client/RuletaHud            la Ruleta: el medallón, a resolución de pantalla
+│   ├── client/MenuCambiosScreen    el menú propio de los cambios de dificultad (con buscador)
+│   ├── client/MenuDimensionesScreen  el menú propio del Nether y el End
 │   ├── client/FotosPrueba          capturas desde un datapack (desarrollo)
 │   └── mixin/client/               visor translúcido, mareo suave y temblor de cámara
 └── resources/atalaya.client.mixins.json
@@ -3401,7 +3570,7 @@ Cada jugador necesita las tres cosas, con versiones que cuadren:
 
 1. **Fabric Loader** para 26.2, desde [fabricmc.net/use](https://fabricmc.net/use/)
 2. **Fabric API** `0.156.0+26.2` → carpeta `mods/`
-3. **`atalaya-1.2.1.jar`** (el de `entrega/`) → carpeta `mods/`
+3. **`atalaya-1.2.2.jar`** (el de `entrega/`) → carpeta `mods/`
 
 El servidor necesita Fabric Loader y los mismos dos jars en su `mods/`. El mod es
 obligatorio en cliente y servidor: el efecto de radiación, el visor, los jefes y
