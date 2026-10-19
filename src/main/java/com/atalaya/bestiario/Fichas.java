@@ -10,6 +10,7 @@ import com.atalaya.bestiario.mobs.GelatinaEntity;
 import com.atalaya.bestiario.mobs.Hormigas;
 import com.atalaya.bestiario.mobs.MarchitoEntity;
 import com.atalaya.bestiario.mobs.MatojoEntity;
+import com.atalaya.bestiario.mobs.Phantoms;
 import com.atalaya.bestiario.mobs.Plantas;
 import com.atalaya.bestiario.mobs.TartaEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
@@ -465,6 +466,43 @@ public final class Fichas {
             .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES)
             .regla(BombaBestia::enLaOscuridad);
 
+    // ------------------------------------------------------------------
+    //  Los phantoms
+    // ------------------------------------------------------------------
+
+    /** El Phantom Oscuro (DEDsafio 4): sin biomas, sale en las pesadillas del Insomnio (Phantoms) y con su huevo. */
+    public static final Bestia PHANTOM_OSCURO = Bestias.nueva("phantom_oscuro", Phantoms.Oscuro::new)
+            .grupo("PHANTOMS")
+            .titulo("PHANTOM OSCURO", "La pesadilla añil de alas desgarradas: baja del cielo a los que no duermen, da vueltas sobre ti y se lanza en picado. Su golpe te hace soltar un hueco entero del inventario, al azar.")
+            .etiquetas("phantom oscuro pesadilla insomnio inventario suelta vuela")
+            .medidas(0.9F, 0.5F, 0.35F)
+            .rastreo(10)
+            .atributos(Phantoms.Oscuro::atributos)
+            .sonidos("picado", "arranca")
+            .sinSonido("paso")
+            .particula("humo", Bestia.Vuelo.FLOTA, false)
+            .particula("hueso", Bestia.Vuelo.CAE, false)
+            .muerte(20, "humo")
+            .sombra(0.6F)
+            .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
+
+    /** El Phantom Explosivo (DEDsafio 4): como el Oscuro, sale en las pesadillas y con su huevo. */
+    public static final Bestia PHANTOM_EXPLOSIVO = Bestias.nueva("phantom_explosivo", Phantoms.Explosivo::new)
+            .grupo("PHANTOMS")
+            .titulo("PHANTOM EXPLOSIVO", "La pesadilla de brasa: el cuerpo carbonizado con grietas encendidas, las alas ardiendo y una mecha por cola. Su golpe te deja una brasa donde estás, que revienta al segundo y medio.")
+            .etiquetas("phantom explosivo pesadilla insomnio brasa explota vuela")
+            .medidas(0.9F, 0.5F, 0.35F)
+            .rastreo(10)
+            .inmuneFuego()
+            .atributos(Phantoms.Explosivo::atributos)
+            .sonidos("picado", "mecha", "estalla")
+            .sinSonido("paso")
+            .particula("chispa", Bestia.Vuelo.DERIVA, true)
+            .particula("humo", Bestia.Vuelo.FLOTA, false)
+            .muerte(20, "humo")
+            .sombra(0.6F)
+            .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
+
     /** Carga la clase (y con ella todas las fichas) y lo que van a necesitar: las lianas, la red y los corazones. */
     static void cargar() {
         Atrapado.registrar();
@@ -479,6 +517,7 @@ public final class Fichas {
         TartaEntity.registrarEventos();
         Hormigas.registrarEventos();
         CorazonesRobados.registrarEventos();
+        Phantoms.registrarEventos();
         ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) -> EnredaderaEntity.alEntrar(manejador.player));
     }
 }

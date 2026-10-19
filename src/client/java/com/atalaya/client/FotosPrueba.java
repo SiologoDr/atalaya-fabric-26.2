@@ -43,6 +43,8 @@ public final class FotosPrueba {
     private static final String COCO_HUD = "COCO_HUD ";
     /** "CLIC x y": un clic izquierdo en la pantalla abierta, en coordenadas de la interfaz (los menus propios); "CERRAR", la cierra. */
     private static final String CLIC = "CLIC ";
+    /** "CREATIVO pestana bajada": abre el inventario de creativo en esa pestana (atalaya:atalaya), bajada de 0 a 1. */
+    private static final String CREATIVO = "CREATIVO";
     /** "GOLPEAR": un clic izquierdo a lo que tenga delante (un bloque o una entidad). */
     private static final String GOLPEAR = "GOLPEAR";
     /** "INTERACTUAR": un clic derecho a la entidad que tenga delante (las veletas de Aeralis). */
@@ -154,6 +156,10 @@ public final class FotosPrueba {
                     pantalla.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(Double.parseDouble(xy[0]),
                             Double.parseDouble(xy[1]), new net.minecraft.client.input.MouseButtonInfo(0, 0)), false);
                 }
+                return false;
+            }
+            if (texto.startsWith(CREATIVO) && cliente.player != null && cliente.level != null) {
+                creativo(cliente, texto.substring(CREATIVO.length()).trim());
                 return false;
             }
             if (texto.equals(GOLPEAR)) {
@@ -269,6 +275,20 @@ public final class FotosPrueba {
         if (mejor != null) {
             mc.player.lookAt(net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.EYES,
                     new net.minecraft.world.phys.Vec3(mejor.getX(), mejor.getY() + mejor.getBbHeight() * 0.6, mejor.getZ()));
+        }
+    }
+
+    private static void creativo(Minecraft mc, String orden) {
+        String[] p = orden.split(" ");
+        net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen pantalla =
+                new net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen(mc.player,
+                        mc.level.enabledFeatures(), false);
+        mc.gui.setScreen(pantalla);
+        pantalla.setSelectedTab(net.minecraft.core.registries.BuiltInRegistries.CREATIVE_MODE_TAB.getValue(
+                net.minecraft.resources.Identifier.parse(p[0])));
+        if (p.length > 1) {
+            // Como la rueda del raton sobre la rejilla: cuanto se baja, de 0 (arriba) a 1 (abajo).
+            pantalla.getMenu().scrollTo(Float.parseFloat(p[1]));
         }
     }
 

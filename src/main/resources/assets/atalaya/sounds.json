@@ -3869,5 +3869,89 @@
       "atalaya:bestia/espectro_negro/zarpazo1",
       "atalaya:bestia/espectro_negro/zarpazo2"
     ]
+  },
+  "bestia.phantom_oscuro.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_oscuro.ambiente",
+    "sounds": [
+      "atalaya:bestia/phantom_oscuro/ambiente1",
+      "atalaya:bestia/phantom_oscuro/ambiente2",
+      "atalaya:bestia/phantom_oscuro/ambiente3"
+    ]
+  },
+  "bestia.phantom_oscuro.herido": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_oscuro.herido",
+    "sounds": [
+      "atalaya:bestia/phantom_oscuro/herido1",
+      "atalaya:bestia/phantom_oscuro/herido2"
+    ]
+  },
+  "bestia.phantom_oscuro.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_oscuro.muerte",
+    "sounds": [
+      "atalaya:bestia/phantom_oscuro/muerte"
+    ]
+  },
+  "bestia.phantom_oscuro.paso": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_oscuro.paso",
+    "sounds": [
+      "atalaya:bestia/phantom_oscuro/paso"
+    ]
+  },
+  "bestia.phantom_oscuro.picado": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_oscuro.picado",
+    "sounds": [
+      "atalaya:bestia/phantom_oscuro/picado"
+    ]
+  },
+  "bestia.phantom_oscuro.arranca": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_oscuro.arranca",
+    "sounds": [
+      "atalaya:bestia/phantom_oscuro/arranca"
+    ]
+  },
+  "bestia.phantom_explosivo.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.ambiente",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/ambiente1",
+      "atalaya:bestia/phantom_explosivo/ambiente2",
+      "atalaya:bestia/phantom_explosivo/ambiente3"
+    ]
+  },
+  "bestia.phantom_explosivo.herido": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.herido",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/herido1",
+      "atalaya:bestia/phantom_explosivo/herido2"
+    ]
+  },
+  "bestia.phantom_explosivo.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.muerte",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/muerte"
+    ]
+  },
+  "bestia.phantom_explosivo.paso": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.paso",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/paso"
+    ]
+  },
+  "bestia.phantom_explosivo.picado": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.picado",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/picado"
+    ]
+  },
+  "bestia.phantom_explosivo.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.mecha",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/mecha"
+    ]
+  },
+  "bestia.phantom_explosivo.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.phantom_explosivo.estalla",
+    "sounds": [
+      "atalaya:bestia/phantom_explosivo/estalla"
+    ]
   }
 }

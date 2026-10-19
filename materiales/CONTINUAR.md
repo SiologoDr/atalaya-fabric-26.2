@@ -104,6 +104,19 @@ Meter en el juego lo del DEDsafío 2, 3 y 4 (la investigación está en `materia
    `materiales/pruebas/prueba_hormigas.py` y `prueba_plantas.py` (mismo uso que las otras).
 4. **Lo que falta del catálogo:**
    - Mobs: phantoms, reptiles, la Gleba, los del agua y los sueltos. (Los fantasmas ya están; sin Espada Fantasmal.)
+     - **Phantoms (19-10):** solo el Oscuro y el Explosivo tienen dibujo (cartel del 07-10). Recreados y mejorados
+       a petición de Juan («sin la TNT», el Oscuro de otro color): el Oscuro añil con alas desgarradas, garras y
+       garfio; el Explosivo carbonizado con brasas, buche de fuego y mecha (`bestiario_phantoms.py`). **En el juego**
+       (`bestiario/mobs/Phantoms.java`): vuelan en círculos y se lanzan en picado; el Oscuro te hace soltar un hueco
+       entero del inventario y el Explosivo te deja una brasa que revienta (radio 3). Vuelan como el phantom de
+       Minecraft pero al doble, como pidió Juan: la misma lógica copiada, con velocidad, aceleración y giro al doble
+       y un picado cada 4-5 s. Salen en las pesadillas del
+       Insomnio y con huevo. Prueba: `materiales/pruebas/prueba_phantoms.py`. Los phantoms ladrones del 2 y el 3 ya
+       son un cambio.
+   - **Pestaña del creativo (19-10):** todo lo del mod está en su propia pestaña, «Atalaya», con el Ojo del Vigía de
+     icono (`item/PestanaAtalaya.java`), y ya no en las de Minecraft. El orden es huevos, armaduras, armas, tótems y
+     corazones, objetos de los cambios y materiales. Lo de los minijuegos de los jefes sigue sin salir. Prueba:
+     `materiales/pruebas/prueba_pestana.py` (fotos `pestana_*`).
    - Momentos que dependen de mobs.
    - Cambios: el tótem con trampa, la perla nuclear, el sueño pesado, las flores con dientes y mirar la luna.
 5. **Al final:** el README, y la versión solo si Juan la pide.

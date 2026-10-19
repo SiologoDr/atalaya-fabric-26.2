@@ -87,7 +87,7 @@ import java.util.List;
  *
  * Todos piden permiso de operador.
  *
- * El traje se consigue crafteandolo o desde la pestana de Combate en creativo,
+ * El traje se consigue crafteandolo o desde la pestana Atalaya en creativo,
  * asi que no hace falta un comando para darlo.
  */
 public final class AtalayaCommand {

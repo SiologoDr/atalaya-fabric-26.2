@@ -93,7 +93,7 @@ public final class Bestias {
         }
     }
 
-    /** Los huevos de todos, en orden (para la pestana de los huevos). */
+    /** Los huevos de todos, en orden (para la pestana del mod en creativo). */
     public static Item[] huevos() {
         Item[] out = new Item[TODAS.size()];
         for (int i = 0; i < out.length; i++) {

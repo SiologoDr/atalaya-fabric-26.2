@@ -36,18 +36,12 @@ import com.atalaya.radiation.GeodeIndex;
 import com.atalaya.radiation.RadiationManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,20 +52,6 @@ public class Atalaya implements ModInitializer {
 
     public static final String MOD_ID = "atalaya";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
-    /**
-     * En 26.2 CreativeModeTabs ya no expone las pestanas como campos publicos,
-     * asi que la clave se construye a mano.
-     */
-    private static final ResourceKey<CreativeModeTab> PESTANA_COMBATE =
-            ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("combat"));
-
-    private static final ResourceKey<CreativeModeTab> PESTANA_INGREDIENTES =
-            ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("ingredients"));
-
-    private static final ResourceKey<CreativeModeTab> PESTANA_HUEVOS =
-            ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("spawn_eggs"));
-
 
     @Override
     public void onInitialize() {
@@ -206,62 +186,8 @@ public class Atalaya implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) ->
                 LibroRecetas.sincronizar(manejador.getPlayer()));
 
-        // El traje aparece en la pestana de combate, justo detras de las botas de hierro.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(Items.IRON_BOOTS, HazmatArmor.todas()));
-        // Las armaduras de los jefes detras de las botas de netherite; sus armas de
-        // rol, detras de la espada de netherite (las espadas de antes ya no salen).
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(Items.NETHERITE_BOOTS, com.atalaya.item.ArmadurasJefes.armaduras()));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(Items.NETHERITE_SWORD, com.atalaya.item.ArmadurasJefes.armas()));
-
-        // Los tótems del mod, detrás del de la inmortalidad.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(Items.TOTEM_OF_UNDYING, AtalayaItems.TOTEMS));
-        // El kit de reparación y los corazones de vida y blanco, detrás de los tótems.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(AtalayaItems.TOTEMS[AtalayaItems.TOTEMS.length - 1], AtalayaItems.KIT_REPARACION,
-                        AtalayaItems.CORAZON_VIDA, AtalayaItems.CORAZON_BLANCO));
-        // Los de los cambios de dificultad, detras de los corazones.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(AtalayaItems.CORAZON_BLANCO, com.atalaya.cambios.ObjetosCambios.PILDORA_PLAGA,
-                        com.atalaya.cambios.ObjetosCambios.BOLSA_VACIO, com.atalaya.cambios.ObjetosCambios.YUNQUE_DORADO,
-                        com.atalaya.cambios.ObjetosCambios.FRUTO_RECUERDO, com.atalaya.cambios.ObjetosCambios.RAIZ_AGUA,
-                        com.atalaya.cambios.ObjetosCambios.PILDORA_TAMANO));
-
-        // Carbon activado y filtro van con los materiales, detras del carbon.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->
-                salida.insertAfter(Items.CHARCOAL, AtalayaItems.todos()));
-
-        // El huevo del fulminante va con los demas huevos, detras del de creeper.
-        // No cabe en Ingredientes: alli no lo buscaria nadie.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(Items.CREEPER_SPAWN_EGG, AtalayaItems.HUEVO_FULMINANTE));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_FULMINANTE, AtalayaItems.HUEVO_FOGONAZO));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_FOGONAZO, AtalayaItems.HUEVO_COCO));
-        // Los del bestiario, detras del Coco, en el orden del menu de los mobs.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida -> {
-            if (com.atalaya.bestiario.Bestias.huevos().length > 0) {
-                salida.insertAfter(AtalayaItems.HUEVO_COCO, com.atalaya.bestiario.Bestias.huevos());
-            }
-        });
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(Items.ENDERMAN_SPAWN_EGG, AtalayaItems.HUEVO_VIGIA));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_VIGIA, AtalayaItems.HUEVO_NEREA));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_NEREA, AtalayaItems.HUEVO_AERALIS));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_AERALIS, AtalayaItems.HUEVO_RAJANG));
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_RAJANG, AtalayaItems.HUEVO_NOVILIS));
-        // Los de los mini jefes, detras de los de los jefes.
-        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
-                salida.insertAfter(AtalayaItems.HUEVO_NOVILIS, AtalayaItems.HUEVO_MOCTEZUMA, AtalayaItems.HUEVO_YIATZO,
-                        AtalayaItems.HUEVO_ATLAHUA, AtalayaItems.HUEVO_XIUHQUETZAL));
+        // Todo lo del mod, en su propia pestana del creativo (y ya no en las de Minecraft).
+        com.atalaya.item.PestanaAtalaya.registrar();
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, entorno) -> {

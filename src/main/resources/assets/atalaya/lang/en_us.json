@@ -1,4 +1,5 @@
 {
+  "itemGroup.atalaya": "Atalaya",
   "item.atalaya.hazmat_helmet": "Hazmat Helmet",
   "item.atalaya.hazmat_chestplate": "Hazmat Chestplate",
   "item.atalaya.hazmat_leggings": "Hazmat Leggings",
@@ -1123,5 +1124,22 @@
   "subtitles.atalaya.bestia.espectro_negro.paso": "Cloth flutters",
   "subtitles.atalaya.bestia.espectro_negro.ambiente": "Black Wraith moans",
   "subtitles.atalaya.bestia.espectro_negro.roba": "Black Wraith steals a heart",
-  "subtitles.atalaya.bestia.espectro_negro.zarpazo": "Black Wraith slashes"
+  "subtitles.atalaya.bestia.espectro_negro.zarpazo": "Black Wraith slashes",
+  "entity.atalaya.phantom_oscuro": "Dark Phantom",
+  "item.atalaya.huevo_phantom_oscuro": "Dark Phantom Spawn Egg",
+  "entity.atalaya.phantom_explosivo": "Explosive Phantom",
+  "item.atalaya.huevo_phantom_explosivo": "Explosive Phantom Spawn Egg",
+  "subtitles.atalaya.bestia.phantom_oscuro.ambiente": "Dark Phantom screeches",
+  "subtitles.atalaya.bestia.phantom_oscuro.herido": "Dark Phantom hurts",
+  "subtitles.atalaya.bestia.phantom_oscuro.muerte": "Dark Phantom dies",
+  "subtitles.atalaya.bestia.phantom_oscuro.paso": "Wings flap",
+  "subtitles.atalaya.bestia.phantom_oscuro.picado": "Dark Phantom swoops",
+  "subtitles.atalaya.bestia.phantom_oscuro.arranca": "Dark Phantom rips your items away",
+  "subtitles.atalaya.bestia.phantom_explosivo.ambiente": "Explosive Phantom screeches",
+  "subtitles.atalaya.bestia.phantom_explosivo.herido": "Explosive Phantom hurts",
+  "subtitles.atalaya.bestia.phantom_explosivo.muerte": "Explosive Phantom dies",
+  "subtitles.atalaya.bestia.phantom_explosivo.paso": "Wings flap",
+  "subtitles.atalaya.bestia.phantom_explosivo.picado": "Explosive Phantom swoops",
+  "subtitles.atalaya.bestia.phantom_explosivo.mecha": "A fuse fizzes",
+  "subtitles.atalaya.bestia.phantom_explosivo.estalla": "An ember explodes"
 }

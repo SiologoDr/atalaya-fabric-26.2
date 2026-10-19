@@ -1,4 +1,5 @@
 {
+  "itemGroup.atalaya": "Atalaya",
   "item.atalaya.hazmat_helmet": "Casco de hazmat",
   "item.atalaya.hazmat_chestplate": "Pechera de hazmat",
   "item.atalaya.hazmat_leggings": "Pantalón de hazmat",
@@ -1123,5 +1124,22 @@
   "subtitles.atalaya.bestia.espectro_negro.paso": "Ondea una tela",
   "subtitles.atalaya.bestia.espectro_negro.ambiente": "Gime un Espectro Negro",
   "subtitles.atalaya.bestia.espectro_negro.roba": "Te roba un corazón un Espectro Negro",
-  "subtitles.atalaya.bestia.espectro_negro.zarpazo": "Zarpazo de un Espectro Negro"
+  "subtitles.atalaya.bestia.espectro_negro.zarpazo": "Zarpazo de un Espectro Negro",
+  "entity.atalaya.phantom_oscuro": "Phantom Oscuro",
+  "item.atalaya.huevo_phantom_oscuro": "Huevo generador de phantom oscuro",
+  "entity.atalaya.phantom_explosivo": "Phantom Explosivo",
+  "item.atalaya.huevo_phantom_explosivo": "Huevo generador de phantom explosivo",
+  "subtitles.atalaya.bestia.phantom_oscuro.ambiente": "Chilla un Phantom Oscuro",
+  "subtitles.atalaya.bestia.phantom_oscuro.herido": "Se queja un Phantom Oscuro",
+  "subtitles.atalaya.bestia.phantom_oscuro.muerte": "Muere un Phantom Oscuro",
+  "subtitles.atalaya.bestia.phantom_oscuro.paso": "Bate unas alas",
+  "subtitles.atalaya.bestia.phantom_oscuro.picado": "Se lanza en picado un Phantom Oscuro",
+  "subtitles.atalaya.bestia.phantom_oscuro.arranca": "Un Phantom Oscuro te arranca lo que llevas",
+  "subtitles.atalaya.bestia.phantom_explosivo.ambiente": "Chilla un Phantom Explosivo",
+  "subtitles.atalaya.bestia.phantom_explosivo.herido": "Se queja un Phantom Explosivo",
+  "subtitles.atalaya.bestia.phantom_explosivo.muerte": "Muere un Phantom Explosivo",
+  "subtitles.atalaya.bestia.phantom_explosivo.paso": "Bate unas alas",
+  "subtitles.atalaya.bestia.phantom_explosivo.picado": "Se lanza en picado un Phantom Explosivo",
+  "subtitles.atalaya.bestia.phantom_explosivo.mecha": "Chisporrotea una mecha",
+  "subtitles.atalaya.bestia.phantom_explosivo.estalla": "Estalla una brasa"
 }

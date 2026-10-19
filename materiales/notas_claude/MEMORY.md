@@ -26,3 +26,4 @@
 - [Los fantasmas en el juego](atalaya-fantasmas-2026-10.md) — Blanco (Lentitud), Negro (roba corazones; Corazón Blanco), Amarillo (gasta tótem y posee), Rojo (agarra); sin Espada Fantasmal
 - [Hormigas y plantas rehechas](atalaya-hormigas-plantas-2026-10.md) — 19-10: al píxel de Minecraft, detalles a 32 por bloque (B.fino); aprobadas
 - [Cuidado con los generadores del bestiario](bestiario-generadores-cuidado.md) — escriben en src/main/resources incluso para vistas; PNG con otra compresión; nunca checkout de resources entero
+- [Los phantoms en el juego](atalaya-phantoms-2026-10.md) — Oscuro (te hace soltar un hueco) y Explosivo (brasa que revienta), sin TNT; pesadillas del Insomnio
