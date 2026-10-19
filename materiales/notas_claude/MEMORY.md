@@ -20,3 +20,4 @@
 - [La Ruleta](ruleta-cambios-de-dificultad.md) — medallón tragaperras para los cambios de dificultad: sale ya girando, 4 finales (naranja/amarillo/celeste/verde), rótulos sin metal; iconos A y rótulo B hasta que elija
 - [Catálogo del DEDsafío](catalogo-dedsafio.md) — todo lo del DEDsafío 2-4 en tres menús: cambios y momentos hechos; mobs por familias (creepers, bombas, arañas, hormigas, plantas hechos); faltan fantasmas/Limbo y el resto
 - [Rediseños como el Blaze](redisenos-como-el-blaze.md) — cada mob sigue siendo él (anatomía de vanilla, su cara); añadidos en 2.ª capa; suaves con detalle; cambiar el diseño de uno ya hecho: que diga él cómo
+- [Subir a develop](subir-a-develop.md) — «sube los cambios» = commit y push directo en develop, sin ramas nuevas

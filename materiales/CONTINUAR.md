@@ -6,8 +6,8 @@ Claude no las tiene, así que conviene pedirle que las lea primero (empezando po
 
 ## Dónde está todo
 
-- **Rama:** `bestiario-pixel-minecraft` (sale de `develop`). En la otra máquina: `git fetch` y
-  `git checkout bestiario-pixel-minecraft`. Cuando esté bien, se junta con `develop`.
+- **Rama:** todo está en `develop` (Juan trabaja directamente en ella; no crear ramas aparte). En la otra máquina:
+  `git checkout develop` y `git pull`.
 - **Versión:** sigue en 1.2.2. No se sube la versión ni se deja un jar en `entrega/` hasta que Juan lo pida.
 
 ## Qué se hizo en esta tanda
