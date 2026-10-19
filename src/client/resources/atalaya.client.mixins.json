@@ -24,7 +24,8 @@
     "CieloJefesMixin",
     "SolMomentoMixin",
     "CocoOcultarMixin",
-    "ModelPartAccesor"
+    "ModelPartAccesor",
+    "GameRendererAccesor"
   ],
   "injectors": {
     "defaultRequire": 1

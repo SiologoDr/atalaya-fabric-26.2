@@ -1,5 +1,6 @@
 package com.atalaya.client;
 
+import com.atalaya.catalogo.Categoria;
 import com.atalaya.net.AtalayaRed;
 import com.atalaya.sonido.AtalayaSonidos;
 import net.minecraft.client.Minecraft;
@@ -8,19 +9,24 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundSource;
 
 /**
- * Los menus de los cambios y de las dimensiones en el cliente: los abre o los pone al dia lo que manda el servidor
- * (CambiosDificultad), y suena el interruptor al pulsar.
+ * Los menus del catalogo (los cambios, los mobs y los momentos) y el de las dimensiones en el cliente: los abre o los
+ * pone al dia lo que manda el servidor (Catalogo y CambiosDificultad), y suena el interruptor al pulsar.
  */
 public final class MenusCliente {
 
     private MenusCliente() {
     }
 
-    public static void recibirCambios(AtalayaRed.MenuCambios m) {
+    public static void recibirCatalogo(AtalayaRed.MenuCatalogo m) {
         Minecraft mc = Minecraft.getInstance();
+        Categoria[] todas = Categoria.values();
+        if (m.categoria() < 0 || m.categoria() >= todas.length) {
+            return;
+        }
+        Categoria c = todas[m.categoria()];
         if (m.abrir()) {
-            mc.gui.setScreen(new MenuCambiosScreen(m.estados()));
-        } else if (mc.gui.screen() instanceof MenuCambiosScreen pantalla) {
+            mc.gui.setScreen(new MenuCatalogoScreen(c, m.estados()));
+        } else if (mc.gui.screen() instanceof MenuCatalogoScreen pantalla && pantalla.categoria() == c) {
             pantalla.actualizar(m.estados());
         }
     }

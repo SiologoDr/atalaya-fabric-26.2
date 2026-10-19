@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:golden_apple",
+    "minecraft:ender_pearl",
+    "minecraft:amethyst_shard",
+    "minecraft:glow_berries"
+  ],
+  "result": {
+    "id": "atalaya:fruto_recuerdo",
+    "count": 1
+  }
+}

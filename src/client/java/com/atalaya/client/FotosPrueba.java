@@ -33,6 +33,8 @@ public final class FotosPrueba {
     /** "AGACHAR 1|0" y "SALTAR 1|0": mantiene (o suelta) Shift o el salto (el Caballero Manda). */
     private static final String AGACHAR = "AGACHAR ";
     private static final String SALTAR = "SALTAR ";
+    /** "PULSAR w|a|s|d|todas 1|0": mantiene (o suelta) una tecla de andar, o todas a la vez (las lianas de la Enredadera). */
+    private static final String PULSAR = "PULSAR ";
     /** "FOV n": el campo de vision (30 a 110; para acercar la vista en las fotos). */
     private static final String FOV = "FOV ";
     /** "HUECO n": mira al centro del hueco n del cielo roto del Momento Fractura (0 a 4). */
@@ -109,6 +111,24 @@ public final class FotosPrueba {
                 cliente.options.keyJump.setDown(texto.substring(SALTAR.length()).trim().equals("1"));
                 return false;
             }
+            if (texto.startsWith(PULSAR)) {
+                String[] p = texto.substring(PULSAR.length()).trim().split(" ");
+                boolean si = p.length > 1 && p[1].equals("1");
+                switch (p[0]) {
+                    case "w" -> cliente.options.keyUp.setDown(si);
+                    case "s" -> cliente.options.keyDown.setDown(si);
+                    case "a" -> cliente.options.keyLeft.setDown(si);
+                    case "d" -> cliente.options.keyRight.setDown(si);
+                    default -> {
+                        cliente.options.keyUp.setDown(si);
+                        cliente.options.keyDown.setDown(si);
+                        cliente.options.keyLeft.setDown(si);
+                        cliente.options.keyRight.setDown(si);
+                        cliente.options.keyJump.setDown(si);
+                    }
+                }
+                return false;
+            }
             if (texto.startsWith(MANDA_AUTO)) {
                 mandaAuto = texto.substring(MANDA_AUTO.length()).trim().equals("1");
                 return false;
@@ -118,7 +138,7 @@ public final class FotosPrueba {
                 return false;
             }
             if (texto.startsWith("BUSCA ")) {
-                if (cliente.gui.screen() instanceof MenuCambiosScreen menu) {
+                if (cliente.gui.screen() instanceof MenuCatalogoScreen menu) {
                     menu.buscar(texto.substring(6));
                 }
                 return false;

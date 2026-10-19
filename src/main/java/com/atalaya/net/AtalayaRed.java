@@ -200,7 +200,7 @@ public final class AtalayaRed {
     }
 
     /**
-     * El estado de un cambio de dificultad, para el menu (com.atalaya.cambios.Cambio por su id).
+     * El estado de una fila de un menu del catalogo (un cambio, un mob o un momento, por su id).
      *
      * @param estado APAGADO, ENCENDIDO o ESPERA (esperando a que pare su Ruleta)
      * @param quedan los ticks que le quedan a uno que dura (0, los que no duran)
@@ -211,14 +211,19 @@ public final class AtalayaRed {
         public static final int ESPERA = 2;
     }
 
-    /** El menu de los cambios de dificultad: abrirlo con su estado (abrir) o solo ponerlo al dia si esta abierto. */
-    public record MenuCambios(boolean abrir, java.util.List<EstadoCambio> estados) implements CustomPacketPayload {
+    /**
+     * Un menu del catalogo (la categoria: com.atalaya.catalogo.Categoria por su numero): abrirlo con su estado (abrir) o
+     * solo ponerlo al dia si esta abierto.
+     */
+    public record MenuCatalogo(int categoria, boolean abrir, java.util.List<EstadoCambio> estados)
+            implements CustomPacketPayload {
 
-        public static final Type<MenuCambios> TIPO = new Type<>(
-                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "menu_cambios"));
+        public static final Type<MenuCatalogo> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "menu_catalogo"));
 
-        public static final StreamCodec<FriendlyByteBuf, MenuCambios> CODEC = StreamCodec.of(
+        public static final StreamCodec<FriendlyByteBuf, MenuCatalogo> CODEC = StreamCodec.of(
                 (buf, m) -> {
+                    buf.writeVarInt(m.categoria());
                     buf.writeBoolean(m.abrir());
                     buf.writeVarInt(m.estados().size());
                     for (EstadoCambio e : m.estados()) {
@@ -228,17 +233,18 @@ public final class AtalayaRed {
                     }
                 },
                 buf -> {
+                    int categoria = buf.readVarInt();
                     boolean abrir = buf.readBoolean();
                     int n = buf.readVarInt();
                     java.util.List<EstadoCambio> estados = new java.util.ArrayList<>();
                     for (int i = 0; i < n; i++) {
                         estados.add(new EstadoCambio(buf.readUtf(64), buf.readVarInt(), buf.readVarInt()));
                     }
-                    return new MenuCambios(abrir, estados);
+                    return new MenuCatalogo(categoria, abrir, estados);
                 });
 
         @Override
-        public Type<MenuCambios> type() {
+        public Type<MenuCatalogo> type() {
             return TIPO;
         }
     }
@@ -263,18 +269,21 @@ public final class AtalayaRed {
         }
     }
 
-    /** "He pulsado este cambio en el menu" (el servidor mira que sea operador). */
-    public record PulsaCambio(String id) implements CustomPacketPayload {
+    /** "He pulsado esta fila de este menu del catalogo" (el servidor mira que sea operador). */
+    public record PulsaCatalogo(int categoria, String id) implements CustomPacketPayload {
 
-        public static final Type<PulsaCambio> TIPO = new Type<>(
-                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "pulsa_cambio"));
+        public static final Type<PulsaCatalogo> TIPO = new Type<>(
+                Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "pulsa_catalogo"));
 
-        public static final StreamCodec<FriendlyByteBuf, PulsaCambio> CODEC = StreamCodec.of(
-                (buf, m) -> buf.writeUtf(m.id(), 64),
-                buf -> new PulsaCambio(buf.readUtf(64)));
+        public static final StreamCodec<FriendlyByteBuf, PulsaCatalogo> CODEC = StreamCodec.of(
+                (buf, m) -> {
+                    buf.writeVarInt(m.categoria());
+                    buf.writeUtf(m.id(), 64);
+                },
+                buf -> new PulsaCatalogo(buf.readVarInt(), buf.readUtf(64)));
 
         @Override
-        public Type<PulsaCambio> type() {
+        public Type<PulsaCatalogo> type() {
             return TIPO;
         }
     }
@@ -307,9 +316,9 @@ public final class AtalayaRed {
         PayloadTypeRegistry.clientboundPlay().register(Momento.TIPO, Momento.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Deslumbre.TIPO, Deslumbre.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(Ruleta.TIPO, Ruleta.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(MenuCambios.TIPO, MenuCambios.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(MenuCatalogo.TIPO, MenuCatalogo.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(MenuDimensiones.TIPO, MenuDimensiones.CODEC);
-        PayloadTypeRegistry.serverboundPlay().register(PulsaCambio.TIPO, PulsaCambio.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(PulsaCatalogo.TIPO, PulsaCatalogo.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(PulsaDimension.TIPO, PulsaDimension.CODEC);
     }
 
@@ -327,12 +336,12 @@ public final class AtalayaRed {
                 com.atalaya.entity.NereaEntity.alNotaDuelo(contexto.player(), carga.jefe(), carga.indice(), carga.bien()));
         ServerPlayNetworking.registerGlobalReceiver(Habilidad.TIPO, (carga, contexto) ->
                 com.atalaya.habilidad.Habilidades.activar(contexto.player()));
-        // Los menus de los cambios y de las dimensiones: solo los operadores (el menu se abre con un comando suyo, pero
+        // Los menus del catalogo y el de las dimensiones: solo los operadores (el menu se abre con un comando suyo, pero
         // el paquete lo podria mandar cualquiera).
-        ServerPlayNetworking.registerGlobalReceiver(PulsaCambio.TIPO, (carga, contexto) -> {
-            com.atalaya.cambios.Cambio c = com.atalaya.cambios.Cambio.porId(carga.id());
-            if (c != null && esOperador(contexto.player())) {
-                com.atalaya.cambios.CambiosDificultad.pulsar(contexto.player(), c);
+        ServerPlayNetworking.registerGlobalReceiver(PulsaCatalogo.TIPO, (carga, contexto) -> {
+            com.atalaya.catalogo.Categoria[] todas = com.atalaya.catalogo.Categoria.values();
+            if (carga.categoria() >= 0 && carga.categoria() < todas.length && esOperador(contexto.player())) {
+                com.atalaya.catalogo.Catalogo.pulsar(contexto.player(), todas[carga.categoria()], carga.id());
             }
         });
         ServerPlayNetworking.registerGlobalReceiver(PulsaDimension.TIPO, (carga, contexto) -> {

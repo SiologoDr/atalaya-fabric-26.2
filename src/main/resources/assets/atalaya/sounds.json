@@ -2755,5 +2755,956 @@
     "sounds": [
       "atalaya:ruleta/apaga"
     ]
+  },
+  "bestia.matojo.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.ambiente",
+    "sounds": [
+      "atalaya:bestia/matojo/ambiente1",
+      "atalaya:bestia/matojo/ambiente2",
+      "atalaya:bestia/matojo/ambiente3"
+    ]
+  },
+  "bestia.matojo.herido": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.herido",
+    "sounds": [
+      "atalaya:bestia/matojo/herido1",
+      "atalaya:bestia/matojo/herido2"
+    ]
+  },
+  "bestia.matojo.paso": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.paso",
+    "sounds": [
+      "atalaya:bestia/matojo/paso1",
+      "atalaya:bestia/matojo/paso2"
+    ]
+  },
+  "bestia.matojo.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.muerte",
+    "sounds": [
+      "atalaya:bestia/matojo/muerte"
+    ]
+  },
+  "bestia.matojo.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.mecha",
+    "sounds": [
+      "atalaya:bestia/matojo/mecha"
+    ]
+  },
+  "bestia.matojo.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.estalla",
+    "sounds": [
+      "atalaya:bestia/matojo/estalla"
+    ]
+  },
+  "bestia.matojo.aparece": {
+    "subtitle": "subtitles.atalaya.bestia.matojo.aparece",
+    "sounds": [
+      "atalaya:bestia/matojo/aparece"
+    ]
+  },
+  "bestia.marchito.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.marchito.ambiente",
+    "sounds": [
+      "atalaya:bestia/marchito/ambiente1",
+      "atalaya:bestia/marchito/ambiente2",
+      "atalaya:bestia/marchito/ambiente3"
+    ]
+  },
+  "bestia.marchito.herido": {
+    "subtitle": "subtitles.atalaya.bestia.marchito.herido",
+    "sounds": [
+      "atalaya:bestia/marchito/herido1",
+      "atalaya:bestia/marchito/herido2"
+    ]
+  },
+  "bestia.marchito.paso": {
+    "subtitle": "subtitles.atalaya.bestia.marchito.paso",
+    "sounds": [
+      "atalaya:bestia/marchito/paso1",
+      "atalaya:bestia/marchito/paso2"
+    ]
+  },
+  "bestia.marchito.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.marchito.muerte",
+    "sounds": [
+      "atalaya:bestia/marchito/muerte"
+    ]
+  },
+  "bestia.marchito.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.marchito.mecha",
+    "sounds": [
+      "atalaya:bestia/marchito/mecha"
+    ]
+  },
+  "bestia.marchito.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.marchito.estalla",
+    "sounds": [
+      "atalaya:bestia/marchito/estalla"
+    ]
+  },
+  "bestia.enredadera.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.ambiente",
+    "sounds": [
+      "atalaya:bestia/enredadera/ambiente1",
+      "atalaya:bestia/enredadera/ambiente2",
+      "atalaya:bestia/enredadera/ambiente3"
+    ]
+  },
+  "bestia.enredadera.herido": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.herido",
+    "sounds": [
+      "atalaya:bestia/enredadera/herido1",
+      "atalaya:bestia/enredadera/herido2"
+    ]
+  },
+  "bestia.enredadera.paso": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.paso",
+    "sounds": [
+      "atalaya:bestia/enredadera/paso1",
+      "atalaya:bestia/enredadera/paso2"
+    ]
+  },
+  "bestia.enredadera.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.muerte",
+    "sounds": [
+      "atalaya:bestia/enredadera/muerte"
+    ]
+  },
+  "bestia.enredadera.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.mecha",
+    "sounds": [
+      "atalaya:bestia/enredadera/mecha"
+    ]
+  },
+  "bestia.enredadera.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.estalla",
+    "sounds": [
+      "atalaya:bestia/enredadera/estalla"
+    ]
+  },
+  "bestia.enredadera.latigo": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.latigo",
+    "sounds": [
+      "atalaya:bestia/enredadera/latigo"
+    ]
+  },
+  "bestia.enredadera.atrapa": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.atrapa",
+    "sounds": [
+      "atalaya:bestia/enredadera/atrapa"
+    ]
+  },
+  "bestia.enredadera.suelta": {
+    "subtitle": "subtitles.atalaya.bestia.enredadera.suelta",
+    "sounds": [
+      "atalaya:bestia/enredadera/suelta"
+    ]
+  },
+  "bestia.gelatina.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.ambiente",
+    "sounds": [
+      "atalaya:bestia/gelatina/ambiente1",
+      "atalaya:bestia/gelatina/ambiente2",
+      "atalaya:bestia/gelatina/ambiente3"
+    ]
+  },
+  "bestia.gelatina.herido": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.herido",
+    "sounds": [
+      "atalaya:bestia/gelatina/herido1",
+      "atalaya:bestia/gelatina/herido2"
+    ]
+  },
+  "bestia.gelatina.paso": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.paso",
+    "sounds": [
+      "atalaya:bestia/gelatina/paso1",
+      "atalaya:bestia/gelatina/paso2"
+    ]
+  },
+  "bestia.gelatina.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.muerte",
+    "sounds": [
+      "atalaya:bestia/gelatina/muerte"
+    ]
+  },
+  "bestia.gelatina.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.mecha",
+    "sounds": [
+      "atalaya:bestia/gelatina/mecha"
+    ]
+  },
+  "bestia.gelatina.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.estalla",
+    "sounds": [
+      "atalaya:bestia/gelatina/estalla"
+    ]
+  },
+  "bestia.gelatina.estatica": {
+    "subtitle": "subtitles.atalaya.bestia.gelatina.estatica",
+    "sounds": [
+      "atalaya:bestia/gelatina/estatica"
+    ]
+  },
+  "bestia.atomico.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.ambiente",
+    "sounds": [
+      "atalaya:bestia/atomico/ambiente1",
+      "atalaya:bestia/atomico/ambiente2",
+      "atalaya:bestia/atomico/ambiente3"
+    ]
+  },
+  "bestia.atomico.herido": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.herido",
+    "sounds": [
+      "atalaya:bestia/atomico/herido1",
+      "atalaya:bestia/atomico/herido2"
+    ]
+  },
+  "bestia.atomico.paso": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.paso",
+    "sounds": [
+      "atalaya:bestia/atomico/paso1",
+      "atalaya:bestia/atomico/paso2"
+    ]
+  },
+  "bestia.atomico.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.muerte",
+    "sounds": [
+      "atalaya:bestia/atomico/muerte"
+    ]
+  },
+  "bestia.atomico.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.mecha",
+    "sounds": [
+      "atalaya:bestia/atomico/mecha"
+    ]
+  },
+  "bestia.atomico.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.estalla",
+    "sounds": [
+      "atalaya:bestia/atomico/estalla"
+    ]
+  },
+  "bestia.atomico.onda": {
+    "subtitle": "subtitles.atalaya.bestia.atomico.onda",
+    "sounds": [
+      "atalaya:bestia/atomico/onda"
+    ]
+  },
+  "bestia.ciego.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.ambiente",
+    "sounds": [
+      "atalaya:bestia/ciego/ambiente1",
+      "atalaya:bestia/ciego/ambiente2",
+      "atalaya:bestia/ciego/ambiente3"
+    ]
+  },
+  "bestia.ciego.herido": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.herido",
+    "sounds": [
+      "atalaya:bestia/ciego/herido1",
+      "atalaya:bestia/ciego/herido2"
+    ]
+  },
+  "bestia.ciego.paso": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.paso",
+    "sounds": [
+      "atalaya:bestia/ciego/paso1",
+      "atalaya:bestia/ciego/paso2"
+    ]
+  },
+  "bestia.ciego.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.muerte",
+    "sounds": [
+      "atalaya:bestia/ciego/muerte"
+    ]
+  },
+  "bestia.ciego.escucha": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.escucha",
+    "sounds": [
+      "atalaya:bestia/ciego/escucha"
+    ]
+  },
+  "bestia.ciego.chillido": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.chillido",
+    "sounds": [
+      "atalaya:bestia/ciego/chillido"
+    ]
+  },
+  "bestia.ciego.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.mecha",
+    "sounds": [
+      "atalaya:bestia/ciego/mecha"
+    ]
+  },
+  "bestia.ciego.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.ciego.estalla",
+    "sounds": [
+      "atalaya:bestia/ciego/estalla"
+    ]
+  },
+  "bestia.tarta.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.ambiente",
+    "sounds": [
+      "atalaya:bestia/tarta/ambiente1",
+      "atalaya:bestia/tarta/ambiente2",
+      "atalaya:bestia/tarta/ambiente3"
+    ]
+  },
+  "bestia.tarta.herido": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.herido",
+    "sounds": [
+      "atalaya:bestia/tarta/herido1",
+      "atalaya:bestia/tarta/herido2"
+    ]
+  },
+  "bestia.tarta.paso": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.paso",
+    "sounds": [
+      "atalaya:bestia/tarta/paso1",
+      "atalaya:bestia/tarta/paso2"
+    ]
+  },
+  "bestia.tarta.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.muerte",
+    "sounds": [
+      "atalaya:bestia/tarta/muerte"
+    ]
+  },
+  "bestia.tarta.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.mecha",
+    "sounds": [
+      "atalaya:bestia/tarta/mecha"
+    ]
+  },
+  "bestia.tarta.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.estalla",
+    "sounds": [
+      "atalaya:bestia/tarta/estalla"
+    ]
+  },
+  "bestia.tarta.aparece": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.aparece",
+    "sounds": [
+      "atalaya:bestia/tarta/aparece"
+    ]
+  },
+  "bestia.tarta.pringue": {
+    "subtitle": "subtitles.atalaya.bestia.tarta.pringue",
+    "sounds": [
+      "atalaya:bestia/tarta/pringue"
+    ]
+  },
+  "bestia.ambar.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.ambar.ambiente",
+    "sounds": [
+      "atalaya:bestia/ambar/ambiente1",
+      "atalaya:bestia/ambar/ambiente2",
+      "atalaya:bestia/ambar/ambiente3"
+    ]
+  },
+  "bestia.ambar.herido": {
+    "subtitle": "subtitles.atalaya.bestia.ambar.herido",
+    "sounds": [
+      "atalaya:bestia/ambar/herido1",
+      "atalaya:bestia/ambar/herido2"
+    ]
+  },
+  "bestia.ambar.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.ambar.muerte",
+    "sounds": [
+      "atalaya:bestia/ambar/muerte"
+    ]
+  },
+  "bestia.ambar.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.ambar.mecha",
+    "sounds": [
+      "atalaya:bestia/ambar/mecha"
+    ]
+  },
+  "bestia.ambar.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.ambar.estalla",
+    "sounds": [
+      "atalaya:bestia/ambar/estalla"
+    ]
+  },
+  "bestia.carmesi.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.carmesi.ambiente",
+    "sounds": [
+      "atalaya:bestia/carmesi/ambiente1",
+      "atalaya:bestia/carmesi/ambiente2",
+      "atalaya:bestia/carmesi/ambiente3"
+    ]
+  },
+  "bestia.carmesi.herido": {
+    "subtitle": "subtitles.atalaya.bestia.carmesi.herido",
+    "sounds": [
+      "atalaya:bestia/carmesi/herido1",
+      "atalaya:bestia/carmesi/herido2"
+    ]
+  },
+  "bestia.carmesi.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.carmesi.muerte",
+    "sounds": [
+      "atalaya:bestia/carmesi/muerte"
+    ]
+  },
+  "bestia.carmesi.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.carmesi.mecha",
+    "sounds": [
+      "atalaya:bestia/carmesi/mecha"
+    ]
+  },
+  "bestia.carmesi.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.carmesi.estalla",
+    "sounds": [
+      "atalaya:bestia/carmesi/estalla"
+    ]
+  },
+  "bestia.negra.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.negra.ambiente",
+    "sounds": [
+      "atalaya:bestia/negra/ambiente1",
+      "atalaya:bestia/negra/ambiente2",
+      "atalaya:bestia/negra/ambiente3"
+    ]
+  },
+  "bestia.negra.herido": {
+    "subtitle": "subtitles.atalaya.bestia.negra.herido",
+    "sounds": [
+      "atalaya:bestia/negra/herido1",
+      "atalaya:bestia/negra/herido2"
+    ]
+  },
+  "bestia.negra.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.negra.muerte",
+    "sounds": [
+      "atalaya:bestia/negra/muerte"
+    ]
+  },
+  "bestia.negra.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.negra.mecha",
+    "sounds": [
+      "atalaya:bestia/negra/mecha"
+    ]
+  },
+  "bestia.negra.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.negra.estalla",
+    "sounds": [
+      "atalaya:bestia/negra/estalla"
+    ]
+  },
+  "bestia.abismo.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.abismo.ambiente",
+    "sounds": [
+      "atalaya:bestia/abismo/ambiente1",
+      "atalaya:bestia/abismo/ambiente2",
+      "atalaya:bestia/abismo/ambiente3"
+    ]
+  },
+  "bestia.abismo.herido": {
+    "subtitle": "subtitles.atalaya.bestia.abismo.herido",
+    "sounds": [
+      "atalaya:bestia/abismo/herido1",
+      "atalaya:bestia/abismo/herido2"
+    ]
+  },
+  "bestia.abismo.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.abismo.muerte",
+    "sounds": [
+      "atalaya:bestia/abismo/muerte"
+    ]
+  },
+  "bestia.abismo.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.abismo.mecha",
+    "sounds": [
+      "atalaya:bestia/abismo/mecha"
+    ]
+  },
+  "bestia.abismo.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.abismo.estalla",
+    "sounds": [
+      "atalaya:bestia/abismo/estalla"
+    ]
+  },
+  "bestia.lancera.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.lancera.ambiente",
+    "sounds": [
+      "atalaya:bestia/lancera/ambiente1",
+      "atalaya:bestia/lancera/ambiente2",
+      "atalaya:bestia/lancera/ambiente3"
+    ]
+  },
+  "bestia.lancera.herido": {
+    "subtitle": "subtitles.atalaya.bestia.lancera.herido",
+    "sounds": [
+      "atalaya:bestia/lancera/herido1",
+      "atalaya:bestia/lancera/herido2"
+    ]
+  },
+  "bestia.lancera.paso": {
+    "subtitle": "subtitles.atalaya.bestia.lancera.paso",
+    "sounds": [
+      "atalaya:bestia/lancera/paso1",
+      "atalaya:bestia/lancera/paso2"
+    ]
+  },
+  "bestia.lancera.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.lancera.muerte",
+    "sounds": [
+      "atalaya:bestia/lancera/muerte"
+    ]
+  },
+  "bestia.lancera.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.lancera.mordisco",
+    "sounds": [
+      "atalaya:bestia/lancera/mordisco"
+    ]
+  },
+  "bestia.polvorin.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.ambiente",
+    "sounds": [
+      "atalaya:bestia/polvorin/ambiente1",
+      "atalaya:bestia/polvorin/ambiente2",
+      "atalaya:bestia/polvorin/ambiente3"
+    ]
+  },
+  "bestia.polvorin.herido": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.herido",
+    "sounds": [
+      "atalaya:bestia/polvorin/herido1",
+      "atalaya:bestia/polvorin/herido2"
+    ]
+  },
+  "bestia.polvorin.paso": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.paso",
+    "sounds": [
+      "atalaya:bestia/polvorin/paso1",
+      "atalaya:bestia/polvorin/paso2"
+    ]
+  },
+  "bestia.polvorin.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.muerte",
+    "sounds": [
+      "atalaya:bestia/polvorin/muerte"
+    ]
+  },
+  "bestia.polvorin.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.mordisco",
+    "sounds": [
+      "atalaya:bestia/polvorin/mordisco"
+    ]
+  },
+  "bestia.polvorin.mecha": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.mecha",
+    "sounds": [
+      "atalaya:bestia/polvorin/mecha"
+    ]
+  },
+  "bestia.polvorin.estalla": {
+    "subtitle": "subtitles.atalaya.bestia.polvorin.estalla",
+    "sounds": [
+      "atalaya:bestia/polvorin/estalla"
+    ]
+  },
+  "bestia.cabezona.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.cabezona.ambiente",
+    "sounds": [
+      "atalaya:bestia/cabezona/ambiente1",
+      "atalaya:bestia/cabezona/ambiente2",
+      "atalaya:bestia/cabezona/ambiente3"
+    ]
+  },
+  "bestia.cabezona.herido": {
+    "subtitle": "subtitles.atalaya.bestia.cabezona.herido",
+    "sounds": [
+      "atalaya:bestia/cabezona/herido1",
+      "atalaya:bestia/cabezona/herido2"
+    ]
+  },
+  "bestia.cabezona.paso": {
+    "subtitle": "subtitles.atalaya.bestia.cabezona.paso",
+    "sounds": [
+      "atalaya:bestia/cabezona/paso1",
+      "atalaya:bestia/cabezona/paso2"
+    ]
+  },
+  "bestia.cabezona.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.cabezona.muerte",
+    "sounds": [
+      "atalaya:bestia/cabezona/muerte"
+    ]
+  },
+  "bestia.cabezona.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.cabezona.mordisco",
+    "sounds": [
+      "atalaya:bestia/cabezona/mordisco"
+    ]
+  },
+  "bestia.radiactiva.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.radiactiva.ambiente",
+    "sounds": [
+      "atalaya:bestia/radiactiva/ambiente1",
+      "atalaya:bestia/radiactiva/ambiente2",
+      "atalaya:bestia/radiactiva/ambiente3"
+    ]
+  },
+  "bestia.radiactiva.herido": {
+    "subtitle": "subtitles.atalaya.bestia.radiactiva.herido",
+    "sounds": [
+      "atalaya:bestia/radiactiva/herido1",
+      "atalaya:bestia/radiactiva/herido2"
+    ]
+  },
+  "bestia.radiactiva.paso": {
+    "subtitle": "subtitles.atalaya.bestia.radiactiva.paso",
+    "sounds": [
+      "atalaya:bestia/radiactiva/paso1",
+      "atalaya:bestia/radiactiva/paso2"
+    ]
+  },
+  "bestia.radiactiva.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.radiactiva.muerte",
+    "sounds": [
+      "atalaya:bestia/radiactiva/muerte"
+    ]
+  },
+  "bestia.radiactiva.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.radiactiva.mordisco",
+    "sounds": [
+      "atalaya:bestia/radiactiva/mordisco"
+    ]
+  },
+  "bestia.brasa.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.brasa.ambiente",
+    "sounds": [
+      "atalaya:bestia/brasa/ambiente1",
+      "atalaya:bestia/brasa/ambiente2",
+      "atalaya:bestia/brasa/ambiente3"
+    ]
+  },
+  "bestia.brasa.herido": {
+    "subtitle": "subtitles.atalaya.bestia.brasa.herido",
+    "sounds": [
+      "atalaya:bestia/brasa/herido1",
+      "atalaya:bestia/brasa/herido2"
+    ]
+  },
+  "bestia.brasa.paso": {
+    "subtitle": "subtitles.atalaya.bestia.brasa.paso",
+    "sounds": [
+      "atalaya:bestia/brasa/paso1",
+      "atalaya:bestia/brasa/paso2"
+    ]
+  },
+  "bestia.brasa.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.brasa.muerte",
+    "sounds": [
+      "atalaya:bestia/brasa/muerte"
+    ]
+  },
+  "bestia.brasa.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.brasa.mordisco",
+    "sounds": [
+      "atalaya:bestia/brasa/mordisco"
+    ]
+  },
+  "bestia.brasa.quema": {
+    "subtitle": "subtitles.atalaya.bestia.brasa.quema",
+    "sounds": [
+      "atalaya:bestia/brasa/quema"
+    ]
+  },
+  "bestia.fauces_verde.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_verde.ambiente",
+    "sounds": [
+      "atalaya:bestia/fauces_verde/ambiente1",
+      "atalaya:bestia/fauces_verde/ambiente2",
+      "atalaya:bestia/fauces_verde/ambiente3"
+    ]
+  },
+  "bestia.fauces_verde.herido": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_verde.herido",
+    "sounds": [
+      "atalaya:bestia/fauces_verde/herido1",
+      "atalaya:bestia/fauces_verde/herido2"
+    ]
+  },
+  "bestia.fauces_verde.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_verde.muerte",
+    "sounds": [
+      "atalaya:bestia/fauces_verde/muerte"
+    ]
+  },
+  "bestia.fauces_verde.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_verde.mordisco",
+    "sounds": [
+      "atalaya:bestia/fauces_verde/mordisco1",
+      "atalaya:bestia/fauces_verde/mordisco2"
+    ]
+  },
+  "bestia.fauces_verde.acido": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_verde.acido",
+    "sounds": [
+      "atalaya:bestia/fauces_verde/acido"
+    ]
+  },
+  "bestia.fauces_carmin.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_carmin.ambiente",
+    "sounds": [
+      "atalaya:bestia/fauces_carmin/ambiente1",
+      "atalaya:bestia/fauces_carmin/ambiente2",
+      "atalaya:bestia/fauces_carmin/ambiente3"
+    ]
+  },
+  "bestia.fauces_carmin.herido": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_carmin.herido",
+    "sounds": [
+      "atalaya:bestia/fauces_carmin/herido1",
+      "atalaya:bestia/fauces_carmin/herido2"
+    ]
+  },
+  "bestia.fauces_carmin.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_carmin.muerte",
+    "sounds": [
+      "atalaya:bestia/fauces_carmin/muerte"
+    ]
+  },
+  "bestia.fauces_carmin.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_carmin.mordisco",
+    "sounds": [
+      "atalaya:bestia/fauces_carmin/mordisco1",
+      "atalaya:bestia/fauces_carmin/mordisco2"
+    ]
+  },
+  "bestia.fauces_carmin.quema": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_carmin.quema",
+    "sounds": [
+      "atalaya:bestia/fauces_carmin/quema"
+    ]
+  },
+  "bestia.fauces_escarcha.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_escarcha.ambiente",
+    "sounds": [
+      "atalaya:bestia/fauces_escarcha/ambiente1",
+      "atalaya:bestia/fauces_escarcha/ambiente2",
+      "atalaya:bestia/fauces_escarcha/ambiente3"
+    ]
+  },
+  "bestia.fauces_escarcha.herido": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_escarcha.herido",
+    "sounds": [
+      "atalaya:bestia/fauces_escarcha/herido1",
+      "atalaya:bestia/fauces_escarcha/herido2"
+    ]
+  },
+  "bestia.fauces_escarcha.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_escarcha.muerte",
+    "sounds": [
+      "atalaya:bestia/fauces_escarcha/muerte"
+    ]
+  },
+  "bestia.fauces_escarcha.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_escarcha.mordisco",
+    "sounds": [
+      "atalaya:bestia/fauces_escarcha/mordisco1",
+      "atalaya:bestia/fauces_escarcha/mordisco2"
+    ]
+  },
+  "bestia.fauces_escarcha.hiela": {
+    "subtitle": "subtitles.atalaya.bestia.fauces_escarcha.hiela",
+    "sounds": [
+      "atalaya:bestia/fauces_escarcha/hiela"
+    ]
+  },
+  "bestia.trampa.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.trampa.ambiente",
+    "sounds": [
+      "atalaya:bestia/trampa/ambiente1",
+      "atalaya:bestia/trampa/ambiente2"
+    ]
+  },
+  "bestia.trampa.herido": {
+    "subtitle": "subtitles.atalaya.bestia.trampa.herido",
+    "sounds": [
+      "atalaya:bestia/trampa/herido1",
+      "atalaya:bestia/trampa/herido2"
+    ]
+  },
+  "bestia.trampa.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.trampa.muerte",
+    "sounds": [
+      "atalaya:bestia/trampa/muerte"
+    ]
+  },
+  "bestia.trampa.cierra": {
+    "subtitle": "subtitles.atalaya.bestia.trampa.cierra",
+    "sounds": [
+      "atalaya:bestia/trampa/cierra"
+    ]
+  },
+  "bestia.trampa.mastica": {
+    "subtitle": "subtitles.atalaya.bestia.trampa.mastica",
+    "sounds": [
+      "atalaya:bestia/trampa/mastica1",
+      "atalaya:bestia/trampa/mastica2"
+    ]
+  },
+  "bestia.trampa.abre": {
+    "subtitle": "subtitles.atalaya.bestia.trampa.abre",
+    "sounds": [
+      "atalaya:bestia/trampa/abre"
+    ]
+  },
+  "bestia.pina.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.pina.ambiente",
+    "sounds": [
+      "atalaya:bestia/pina/ambiente1",
+      "atalaya:bestia/pina/ambiente2",
+      "atalaya:bestia/pina/ambiente3"
+    ]
+  },
+  "bestia.pina.herido": {
+    "subtitle": "subtitles.atalaya.bestia.pina.herido",
+    "sounds": [
+      "atalaya:bestia/pina/herido1",
+      "atalaya:bestia/pina/herido2"
+    ]
+  },
+  "bestia.pina.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.pina.muerte",
+    "sounds": [
+      "atalaya:bestia/pina/muerte"
+    ]
+  },
+  "bestia.pina.paso": {
+    "subtitle": "subtitles.atalaya.bestia.pina.paso",
+    "sounds": [
+      "atalaya:bestia/pina/paso1",
+      "atalaya:bestia/pina/paso2"
+    ]
+  },
+  "bestia.pina.puno": {
+    "subtitle": "subtitles.atalaya.bestia.pina.puno",
+    "sounds": [
+      "atalaya:bestia/pina/puno1",
+      "atalaya:bestia/pina/puno2"
+    ]
+  },
+  "bestia.zombi_planta.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.zombi_planta.ambiente",
+    "sounds": [
+      "atalaya:bestia/zombi_planta/ambiente1",
+      "atalaya:bestia/zombi_planta/ambiente2",
+      "atalaya:bestia/zombi_planta/ambiente3"
+    ]
+  },
+  "bestia.zombi_planta.herido": {
+    "subtitle": "subtitles.atalaya.bestia.zombi_planta.herido",
+    "sounds": [
+      "atalaya:bestia/zombi_planta/herido1",
+      "atalaya:bestia/zombi_planta/herido2"
+    ]
+  },
+  "bestia.zombi_planta.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.zombi_planta.muerte",
+    "sounds": [
+      "atalaya:bestia/zombi_planta/muerte"
+    ]
+  },
+  "bestia.zombi_planta.paso": {
+    "subtitle": "subtitles.atalaya.bestia.zombi_planta.paso",
+    "sounds": [
+      "atalaya:bestia/zombi_planta/paso1",
+      "atalaya:bestia/zombi_planta/paso2"
+    ]
+  },
+  "bestia.zombi_planta.enraiza": {
+    "subtitle": "subtitles.atalaya.bestia.zombi_planta.enraiza",
+    "sounds": [
+      "atalaya:bestia/zombi_planta/enraiza"
+    ]
+  },
+  "bestia.zombi_planta.florece": {
+    "subtitle": "subtitles.atalaya.bestia.zombi_planta.florece",
+    "sounds": [
+      "atalaya:bestia/zombi_planta/florece"
+    ]
+  },
+  "limbo.musica": {
+    "subtitle": "subtitles.atalaya.limbo.musica",
+    "sounds": [
+      {
+        "name": "atalaya:limbo/musica",
+        "stream": true
+      }
+    ]
+  },
+  "limbo.susurro": {
+    "subtitle": "subtitles.atalaya.limbo.susurro",
+    "sounds": [
+      "atalaya:limbo/susurro1",
+      "atalaya:limbo/susurro2",
+      "atalaya:limbo/susurro3"
+    ]
+  },
+  "limbo.destierro": {
+    "subtitle": "subtitles.atalaya.limbo.destierro",
+    "sounds": [
+      "atalaya:limbo/destierro"
+    ]
+  },
+  "limbo.salida": {
+    "subtitle": "subtitles.atalaya.limbo.salida",
+    "sounds": [
+      "atalaya:limbo/salida"
+    ]
+  },
+  "limbo.cambia": {
+    "subtitle": "subtitles.atalaya.limbo.cambia",
+    "sounds": [
+      "atalaya:limbo/cambia"
+    ]
+  },
+  "limbo.escapa": {
+    "subtitle": "subtitles.atalaya.limbo.escapa",
+    "sounds": [
+      "atalaya:limbo/escapa"
+    ]
+  },
+  "limbo.bloque.paso": {
+    "subtitle": "subtitles.atalaya.limbo.bloque.paso",
+    "sounds": [
+      "atalaya:limbo/bloque_paso1",
+      "atalaya:limbo/bloque_paso2",
+      "atalaya:limbo/bloque_paso3",
+      "atalaya:limbo/bloque_paso4"
+    ]
+  },
+  "limbo.bloque.golpe": {
+    "subtitle": "subtitles.atalaya.limbo.bloque.golpe",
+    "sounds": [
+      "atalaya:limbo/bloque_golpe1",
+      "atalaya:limbo/bloque_golpe2"
+    ]
+  },
+  "limbo.bloque.poner": {
+    "subtitle": "subtitles.atalaya.limbo.bloque.poner",
+    "sounds": [
+      "atalaya:limbo/bloque_poner"
+    ]
+  },
+  "limbo.bloque.romper": {
+    "subtitle": "subtitles.atalaya.limbo.bloque.romper",
+    "sounds": [
+      "atalaya:limbo/bloque_romper"
+    ]
+  },
+  "limbo.bloque.caida": {
+    "subtitle": "subtitles.atalaya.limbo.bloque.caida",
+    "sounds": [
+      "atalaya:limbo/bloque_caida"
+    ]
   }
 }

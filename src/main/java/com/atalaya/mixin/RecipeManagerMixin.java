@@ -55,7 +55,8 @@ public class RecipeManagerMixin {
         if (resultado == null || resultado.isEmpty()) {
             return;
         }
-        if (!AtalayaConfig.get().permiteReceta(resultado.get().id().identifier())) {
+        if (!AtalayaConfig.get().permiteReceta(resultado.get().id().identifier())
+                || !com.atalaya.cambios.ObjetosCambios.permiteReceta(resultado.get().id().identifier())) {
             cir.setReturnValue(Optional.empty());
         }
     }

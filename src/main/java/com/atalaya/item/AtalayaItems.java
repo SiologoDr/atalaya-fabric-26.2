@@ -399,7 +399,7 @@ public final class AtalayaItems {
                 props));
     }
 
-    private static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
+    public static Item registrar(String nombre, Function<Item.Properties, Item> constructor) {
         ResourceKey<Item> clave = ResourceKey.create(
                 Registries.ITEM,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, nombre));

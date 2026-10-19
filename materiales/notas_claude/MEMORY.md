@@ -1,0 +1,22 @@
+- [Serie tipo DEDsafío](serie-tipo-dedsafio.md) — objetivo del mod, decisión Fabric+keyframes vanilla, Vigía como primer mob
+- [Todo propio, nada de vanilla](todo-propio-sin-vanilla.md) — sonidos (acordes a la temática del mob), partículas y animaciones siempre creados por nosotros
+- [Nerea: diseño A elegido](nerea-diseno-a.md) — jefe de agua, construir A en el mod; no actualizar más el link del boceto
+- [Jefes rápidos e imponentes](jefes-rapidos-e-imponentes.md) — ritmo, física, efectos de boss y cómo probarlos en el juego
+- [Aeralis, la Mariposa del Vendaval](mariposa-vendaval.md) — jefe del aire (2 de 4): diseño A elegido, en construcción, más fuerte que Nerea
+- [Diseñar con libertad](disenar-con-libertad.md) — mis diseños propios le convencen más que copiar sus referencias al pie de la letra
+- [Pósters: solo el jefe](posters-solo-el-jefe.md) — presentar al jefe con algunos efectos; sin jugadores, lista de ataques ni franja de datos
+- [Rajang, el Jaguar de Jade](rajang-jaguar-de-jade.md) — jefe de tierra (3 de 4): construido; sin Coloso, Sello con plataformas-entidad, Garra = zarpazo
+- [Daño letal por fase](danos-letales-por-fase.md) — objetivos de daño contra netherita P4 + Notch; fase IV muy letal; Mirada y meteorito matan
+- [Armaduras y armas por rol](armaduras-por-rol.md) — diseño aprobado: tanque/sanador/soporte/DPS, activa R 120 s/30 s, equilibrado para 60 jugadores
+- [Letras de píxel en el juego](letras-de-pixel-en-el-juego.md) — rótulos dentro de Minecraft con las letras de píxel de las barras, nunca fuentes suavizadas
+- [Sin avisos de texto en los jefes](sin-avisos-de-texto-en-jefes.md) — nada de carteles, alerta sonora ni arcos rojos al lanzar habilidades: avisan el jefe y el suelo
+- [Entrega solo cuando lo pida](entrega-solo-cuando-lo-pida.md) — no subir versión ni dejar jar en entrega/ sin que lo pida; última 1.2.2
+- [Templos de jefes descartados](templos-de-jefes-descartados.md) — se borraron las estructuras de los jefes; no proponerlas otra vez; si vuelven, sin figuras del jefe
+- [Mini jefes](mini-jefes.md) — Moctezuma, Yiatzo, Atlahua, Xiuhquetzal: 9-10 bloques, estilo mob, barra como la de jefes más baja, sin fases/clima/minijuegos, 3 ataques; estilo Mitologías probado y descartado
+- [Detalle sin cubos visibles](detalle-sin-cubos-visibles.md) — mucha forma, cubitos que no se notan, pero en el juego como mob de Minecraft (textura de píxel, luz plana)
+- [Iconos con propuestas](iconos-con-propuestas.md) — iconos/objetos nuevos: primero una página con varias opciones para elegir; estilo de tótems que le gusta
+- [Armaduras al estilo del vídeo](armaduras-estilo-video.md) — rediseño probado y descartado («está feo, dejemos ese tema»); no proponerlo otra vez salvo que lo pida
+- [Momento Maldición](momento-maldicion.md) — nuestro momento Reviil: sin texto en la animación, MOMENTO FRACTURA metálico en el chat, la fractura en el cielo, nada en el HUD
+- [La Ruleta](ruleta-cambios-de-dificultad.md) — medallón tragaperras para los cambios de dificultad: sale ya girando, 4 finales (naranja/amarillo/celeste/verde), rótulos sin metal; iconos A y rótulo B hasta que elija
+- [Catálogo del DEDsafío](catalogo-dedsafio.md) — todo lo del DEDsafío 2-4 en tres menús: cambios y momentos hechos; mobs por familias (creepers, bombas, arañas, hormigas, plantas hechos); faltan fantasmas/Limbo y el resto
+- [Rediseños como el Blaze](redisenos-como-el-blaze.md) — cada mob sigue siendo él (anatomía de vanilla, su cara); añadidos en 2.ª capa; suaves con detalle; cambiar el diseño de uno ya hecho: que diga él cómo

@@ -30,7 +30,11 @@ public abstract class PortalCerradoMixin {
         } else {
             destino = nivel.dimension() == Level.END ? Level.OVERWORLD : Level.END;
         }
-        if (!CambiosDificultad.abierta(nivel.getServer(), destino)) {
+        // Los momentos que cierran pasos mientras duran: los meteoritos cierran el Nether; la tormenta marchita, la
+        // vuelta del Nether al mundo.
+        boolean momento = (destino == Level.NETHER && com.atalaya.momento.Momentos.netherCerrado())
+                || (destino == Level.OVERWORLD && nivel.dimension() == Level.NETHER && com.atalaya.momento.Momentos.vueltaCerrada());
+        if (momento || !CambiosDificultad.abierta(nivel.getServer(), destino)) {
             cir.setReturnValue(null);
             CambiosDificultad.avisarCerrado(entidad, destino);
         }

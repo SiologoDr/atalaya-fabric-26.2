@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:beetroot",
+    "minecraft:kelp",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "atalaya:raiz_agua",
+    "count": 1
+  }
+}

@@ -24,7 +24,27 @@
     "SpawnPlacementsInvoker",
     "ThrownTridentAccessor",
     "TranceClicMixin",
-    "VitrificarMixin"
+    "VitrificarMixin",
+    "MobAccessor",
+    "cambios.CambiosVivosMixin",
+    "cambios.CambiosJugadorMixin",
+    "cambios.CambiosAireMixin",
+    "cambios.CambiosZombiMixin",
+    "cambios.CambiosLavaMixin",
+    "cambios.CambiosCrecerMixin",
+    "cambios.CambiosHuesoMixin",
+    "cambios.CambiosBloquesMixin",
+    "cambios.CambiosPuertaMixin",
+    "cambios.CambiosPlacaMixin",
+    "cambios.CambiosMundoMixin",
+    "cambios.CambiosGolemMixin",
+    "cambios.CambiosPerlaMixin",
+    "cambios.CambiosAldeaMixin",
+    "cambios.CambiosGolemAldeaMixin",
+    "cambios.CambiosSpawnMixin",
+    "cambios.CambiosComerMixin",
+    "cambios.CambiosRecuerdoMixin",
+    "cambios.CambiosSolMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -20,6 +20,10 @@
     "atalaya:nerea_duelo",
     "atalaya:rajang_foso",
     "atalaya:momento_fractura",
-    "atalaya:coco"
+    "atalaya:coco",
+    "atalaya:cambio_trampa",
+    "atalaya:cambio_gas",
+    "atalaya:cambio_plaga",
+    "atalaya:momento_peligro"
   ]
 }

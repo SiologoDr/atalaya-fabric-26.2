@@ -917,7 +917,7 @@ public final class AtalayaSonidos {
         COCO_MANOTAZO = registrar("coco.manotazo");
     }
 
-    private static SoundEvent registrar(String nombre) {
+    public static SoundEvent registrar(String nombre) {
         Identifier id = Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, nombre);
         return Registry.register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
     }

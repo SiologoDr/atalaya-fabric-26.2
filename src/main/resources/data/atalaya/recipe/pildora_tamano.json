@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:golden_apple",
+    "minecraft:golden_apple",
+    "minecraft:rabbit_foot",
+    "minecraft:rabbit_foot",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "atalaya:pildora_tamano",
+    "count": 1
+  }
+}

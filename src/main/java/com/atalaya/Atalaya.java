@@ -85,7 +85,13 @@ public class Atalaya implements ModInitializer {
         // Las entidades van ANTES que los items: el huevo generador necesita
         // que su tipo de entidad exista cuando se construye.
         AtalayaEntities.registrar();
+        // Los mobs del bestiario (los del menu de los mobs): sus tipos, y despues sus huevos.
+        com.atalaya.limbo.Limbo.registrar();
+        com.atalaya.bestiario.Bestias.registrar();
         AtalayaItems.registrar();
+        com.atalaya.bestiario.Bestias.registrarHuevos();
+        // Los objetos de los cambios de dificultad (la pildora de la plaga y las ayudas).
+        com.atalaya.cambios.ObjetosCambios.registrar();
         // Las armaduras y las espadas de los jefes (solo en creativo, por ahora).
         com.atalaya.item.ArmadurasJefes.registrar();
         RadiacionEffect.registrar();
@@ -104,6 +110,10 @@ public class Atalaya implements ModInitializer {
         BendicionTierraEffect.registrar();
         com.atalaya.effect.QuemaduraEffect.registrar();
         com.atalaya.effect.BendicionSolEffect.registrar();
+        com.atalaya.effect.DeslumbradoEffect.registrar();
+        com.atalaya.effect.VidaOcultaEffect.registrar();
+        com.atalaya.effect.EnraizadoEffect.registrar();
+        com.atalaya.effect.CongeladoEffect.registrar();
         AtalayaLoot.registrar();
         Hidratacion.registrar();
         Frio.registrar();
@@ -120,6 +130,8 @@ public class Atalaya implements ModInitializer {
         com.atalaya.momento.MomentoMaldicion.registrar();
         com.atalaya.momento.Ruleta.registrar();
         com.atalaya.cambios.CambiosDificultad.registrar();
+        com.atalaya.bestiario.Bestiario.registrar();
+        com.atalaya.momento.Momentos.registrar();
 
         // Indice de geodas: se mantiene al dia con la carga y descarga de chunks.
         // El tercer parametro de CHUNK_LOAD (recien generado o no) no nos importa:
@@ -211,6 +223,12 @@ public class Atalaya implements ModInitializer {
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(AtalayaItems.TOTEMS[AtalayaItems.TOTEMS.length - 1], AtalayaItems.KIT_REPARACION,
                         AtalayaItems.CORAZON_VIDA));
+        // Los de los cambios de dificultad, detras del corazon.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
+                salida.insertAfter(AtalayaItems.CORAZON_VIDA, com.atalaya.cambios.ObjetosCambios.PILDORA_PLAGA,
+                        com.atalaya.cambios.ObjetosCambios.BOLSA_VACIO, com.atalaya.cambios.ObjetosCambios.YUNQUE_DORADO,
+                        com.atalaya.cambios.ObjetosCambios.FRUTO_RECUERDO, com.atalaya.cambios.ObjetosCambios.RAIZ_AGUA,
+                        com.atalaya.cambios.ObjetosCambios.PILDORA_TAMANO));
 
         // Carbon activado y filtro van con los materiales, detras del carbon.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_INGREDIENTES).register(salida ->
@@ -224,6 +242,12 @@ public class Atalaya implements ModInitializer {
                 salida.insertAfter(AtalayaItems.HUEVO_FULMINANTE, AtalayaItems.HUEVO_FOGONAZO));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(AtalayaItems.HUEVO_FOGONAZO, AtalayaItems.HUEVO_COCO));
+        // Los del bestiario, detras del Coco, en el orden del menu de los mobs.
+        CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida -> {
+            if (com.atalaya.bestiario.Bestias.huevos().length > 0) {
+                salida.insertAfter(AtalayaItems.HUEVO_COCO, com.atalaya.bestiario.Bestias.huevos());
+            }
+        });
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->
                 salida.insertAfter(Items.ENDERMAN_SPAWN_EGG, AtalayaItems.HUEVO_VIGIA));
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_HUEVOS).register(salida ->

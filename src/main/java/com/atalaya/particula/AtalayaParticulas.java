@@ -353,7 +353,7 @@ public final class AtalayaParticulas {
         MJ_GRIETA = registrar("mj_grieta", true);
     }
 
-    private static SimpleParticleType registrar(String nombre, boolean siempre) {
+    public static SimpleParticleType registrar(String nombre, boolean siempre) {
         return Registry.register(BuiltInRegistries.PARTICLE_TYPE,
                 Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, nombre),
                 FabricParticleTypes.simple(siempre));

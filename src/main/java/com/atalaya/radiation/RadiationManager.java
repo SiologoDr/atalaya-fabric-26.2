@@ -11,7 +11,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Aplica el efecto de radiacion a quien se acerca a una geoda.
@@ -68,7 +71,41 @@ public final class RadiationManager {
 
     private static long contador = 0;
 
+    /**
+     * La lluvia radiactiva del Creeper Atomico, por jugador: hasta que tick del mundo dura y a que nivel (el
+     * amplificador). Mientras dura, la radiacion no se le quita al salir del alcance de las geodas, y si esta cerca de
+     * una se queda con el nivel mas alto de los dos.
+     */
+    private static final Map<UUID, long[]> LLUVIA = new HashMap<>();
+
     private RadiationManager() {
+    }
+
+    /** Le cae la lluvia radiactiva: la radiacion a ese nivel (amplificador) durante esos ticks, haya geodas o no. */
+    public static void lluvia(ServerPlayer jugador, int amplificador, int ticks) {
+        long ahora = jugador.level().getGameTime();
+        long hasta = ahora + ticks;
+        long[] antes = LLUVIA.get(jugador.getUUID());
+        if (antes != null && antes[0] > ahora) {
+            amplificador = Math.max(amplificador, (int) antes[1]);
+            hasta = Math.max(hasta, antes[0]);
+        }
+        LLUVIA.put(jugador.getUUID(), new long[]{hasta, amplificador});
+        jugador.addEffect(new MobEffectInstance(RadiacionEffect.RADIACION, (int) (hasta - ahora), amplificador,
+                AMBIENTE, true, true));
+    }
+
+    /** El nivel de su lluvia radiactiva si le dura (o -1). */
+    private static int lluviaActiva(ServerPlayer jugador) {
+        long[] l = LLUVIA.get(jugador.getUUID());
+        if (l == null) {
+            return -1;
+        }
+        if (l[0] <= jugador.level().getGameTime()) {
+            LLUVIA.remove(jugador.getUUID());
+            return -1;
+        }
+        return (int) l[1];
     }
 
     public static void tick(MinecraftServer servidor) {
@@ -156,16 +193,20 @@ public final class RadiationManager {
         ServerLevel nivel = jugador.level();
         double distancia = GeodeIndex.distanciaMasCercana(
                 nivel, jugador.position(), DISTANCIA_MAXIMA, DISTANCIA_NIVEL_MAX);
+        int lluvia = lluviaActiva(jugador);
         if (distancia < 0) {
             // Fuera de alcance se retira A MANO, no se deja caducar. La cuerda
             // es larga a proposito para que el icono no parpadee, asi que
             // esperar a que se agote dejaria la radiacion puesta medio minuto
-            // despues de haber salido de la geoda.
-            jugador.removeEffect(RadiacionEffect.RADIACION);
+            // despues de haber salido de la geoda. Salvo si le esta cayendo la
+            // lluvia radiactiva: esa dura lo suyo.
+            if (lluvia < 0) {
+                jugador.removeEffect(RadiacionEffect.RADIACION);
+            }
             return;
         }
 
-        int amplificador = nivelPorDistancia(distancia) - 1;
+        int amplificador = Math.max(nivelPorDistancia(distancia) - 1, lluvia);
 
         // No reenviar el efecto si ya lo tiene igual y le queda cuerda de sobra.
         // Sin esto se manda un paquete por jugador y segundo aunque no cambie

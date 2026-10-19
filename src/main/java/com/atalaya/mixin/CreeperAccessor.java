@@ -22,4 +22,10 @@ public interface CreeperAccessor {
     /** Radio de la explosion. En vanilla, 3. */
     @Accessor("explosionRadius")
     void atalaya$ponerRadio(int radio);
+
+    /** El dato de si esta cargado (el del rayo): lo usan los cambios de dificultad. */
+    @Accessor("DATA_IS_POWERED")
+    static net.minecraft.network.syncher.EntityDataAccessor<Boolean> atalaya$datoCargado() {
+        throw new AssertionError("lo reemplaza el mixin");
+    }
 }

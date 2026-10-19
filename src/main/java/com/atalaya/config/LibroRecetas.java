@@ -48,7 +48,7 @@ public final class LibroRecetas {
             if (!Atalaya.MOD_ID.equals(id.getNamespace())) {
                 continue; // no es nuestra: ni la miramos
             }
-            if (cfg.permiteReceta(id)) {
+            if (cfg.permiteReceta(id) && com.atalaya.cambios.ObjetosCambios.permiteReceta(id)) {
                 permitidas.add(receta);
             } else {
                 prohibidas.add(receta);

@@ -125,6 +125,10 @@ public class AtalayaClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
                 (manejador, cliente) -> com.atalaya.client.DeslumbreHud.olvidar());
 
+        // Los mobs del bestiario (los del menu de los mobs): sus mallas, sus renders y sus particulas.
+        com.atalaya.client.bestiario.BestiasCliente.registrar();
+        // Lo que los cambios de dificultad ponen en la pantalla (la plaga, el insomnio, el deslumbrado).
+        com.atalaya.client.cambios.CambiosCliente.registrar();
         // El Coco: la malla generada por coco_juego.py, que anima CocoModel; lo que brilla, el aviso de encima cuando
         // tiene a alguien dentro (CocoRenderer) y, para el de dentro, la pantalla roja con el latido (por debajo de la
         // barra y los corazones, para que vea como se le va la vida).
@@ -518,11 +522,11 @@ public class AtalayaClient implements ClientModInitializer {
                 (carga, contexto) -> com.atalaya.client.RuletaCliente.recibir(carga));
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
                 (manejador, cliente) -> com.atalaya.client.RuletaCliente.olvidar());
-        // Los menus de los cambios de dificultad y de las dimensiones (/atalaya menu cambios | dimensiones): pantallas
-        // propias que abre y pone al dia el servidor.
+        // Los menus del catalogo y el de las dimensiones (/atalaya menu cambios | mobs | momentos | dimensiones):
+        // pantallas propias que abre y pone al dia el servidor.
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
-                com.atalaya.net.AtalayaRed.MenuCambios.TIPO,
-                (carga, contexto) -> com.atalaya.client.MenusCliente.recibirCambios(carga));
+                com.atalaya.net.AtalayaRed.MenuCatalogo.TIPO,
+                (carga, contexto) -> com.atalaya.client.MenusCliente.recibirCatalogo(carga));
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
                 com.atalaya.net.AtalayaRed.MenuDimensiones.TIPO,
                 (carga, contexto) -> com.atalaya.client.MenusCliente.recibirDimensiones(carga));

@@ -12,6 +12,10 @@
     "atalaya:nerea_marea_alta",
     "atalaya:nerea_duelo",
     "atalaya:rajang_foso",
-    "atalaya:momento_fractura"
+    "atalaya:momento_fractura",
+    "atalaya:cambio_trampa",
+    "atalaya:cambio_gas",
+    "atalaya:cambio_plaga",
+    "atalaya:momento_peligro"
   ]
 }

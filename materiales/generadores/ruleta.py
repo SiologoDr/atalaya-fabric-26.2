@@ -895,9 +895,9 @@ LETRA = {
 # Las vocales con tilde: la letra pierde una fila de en medio (queda de 6, con su forma: la O sigue siendo una O) y
 # baja una fila, y la tilde va arriba, a media escala (ver rotulo()). La Ñ pierde una de abajo, para no romper la
 # diagonal.
-for _b, _a in (('A', 'Á'), ('E', 'É'), ('I', 'Í'), ('O', 'Ó'), ('U', 'Ú'), ('N', 'Ñ')):
+for _b, _a in (('A', 'Á'), ('E', 'É'), ('I', 'Í'), ('O', 'Ó'), ('U', 'Ú'), ('N', 'Ñ'), ('U', 'Ü')):
     LETRA[_a] = LETRA[_b]
-TILDES = {'Á': 'tilde', 'É': 'tilde', 'Í': 'tilde', 'Ó': 'tilde', 'Ú': 'tilde', 'Ñ': 'virgulilla'}
+TILDES = {'Á': 'tilde', 'É': 'tilde', 'Í': 'tilde', 'Ó': 'tilde', 'Ú': 'tilde', 'Ñ': 'virgulilla', 'Ü': 'dieresis'}
 SIN_FILA = {'Ñ': 5}
 ROTULO_ESC = 4
 # Los colores de cada final: el del chat, uno claro, uno hondo y uno oscuro (el contorno y las letras de la etiqueta).
@@ -959,6 +959,8 @@ def rotulo(texto, final, estilo):
             cx_ = x + (len(g[0]) * esc) // 2
             if tilde == 'tilde':
                 celdas = ((1, 0), (0, 1))
+            elif tilde == 'dieresis':
+                celdas = ((-2, 0), (-2, 1), (1, 0), (1, 1))
             else:
                 celdas = ((-2, 1), (-1, 0), (0, 1), (1, 0))
             for (cxl, cyl) in celdas:

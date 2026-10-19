@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "atalaya:block/salida_limbo"
+    }
+  }
+}

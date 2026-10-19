@@ -98,13 +98,39 @@ public final class AtalayaCommand {
     public static void registrar(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("atalaya")
+                        // Encender o apagar un cambio de dificultad al momento, sin la Ruleta (para probar y para
+                        // arreglar): /atalaya cambio <id> on|off. Sin on/off, dice si esta encendido.
+                        .then(Commands.literal("cambio")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("id", StringArgumentType.word())
+                                        .suggests((ctx, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                                java.util.Arrays.stream(com.atalaya.cambios.Cambio.values()).map(c -> c.id), b))
+                                        .executes(ctx -> cambioDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), null))
+                                        .then(Commands.literal("on")
+                                                .executes(ctx -> cambioDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), true)))
+                                        .then(Commands.literal("off")
+                                                .executes(ctx -> cambioDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), false)))))
+                        // Soltar o recoger un mob del bestiario al momento, sin la Ruleta: /atalaya mob <id> on|off.
+                        .then(Commands.literal("mob")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("id", StringArgumentType.word())
+                                        .suggests((ctx, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                                com.atalaya.bestiario.Bestias.todas().stream().map(x -> x.id()), b))
+                                        .then(Commands.literal("on")
+                                                .executes(ctx -> mobDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), true)))
+                                        .then(Commands.literal("off")
+                                                .executes(ctx -> mobDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), false)))))
                         .then(Commands.literal("menu")
                                 .requires(AtalayaCommand::esOperador)
                                 .executes(ctx -> abrirMenu(ctx.getSource()))
                                 .then(Commands.literal("cambios")
-                                        .executes(ctx -> abrirMenuCambios(ctx.getSource(), false)))
+                                        .executes(ctx -> abrirMenuCatalogo(ctx.getSource(), com.atalaya.catalogo.Categoria.CAMBIO)))
+                                .then(Commands.literal("mobs")
+                                        .executes(ctx -> abrirMenuCatalogo(ctx.getSource(), com.atalaya.catalogo.Categoria.MOB)))
+                                .then(Commands.literal("momentos")
+                                        .executes(ctx -> abrirMenuCatalogo(ctx.getSource(), com.atalaya.catalogo.Categoria.MOMENTO)))
                                 .then(Commands.literal("dimensiones")
-                                        .executes(ctx -> abrirMenuCambios(ctx.getSource(), true))))
+                                        .executes(ctx -> abrirMenuCatalogo(ctx.getSource(), null))))
                         .then(Commands.literal("hidratacion")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -158,9 +184,20 @@ public final class AtalayaCommand {
                                         .suggests((ctx, sb) -> SharedSuggestionProvider.suggest(ORDENES_NOVILIS, sb))
                                         .executes(ctx -> probarNovilis(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "orden")))))
+                        // Un momento del catalogo, sin pasar por el menu (para probar): /atalaya momento <id> [rapido].
+                        // Rapido acorta los contadores veinte veces (solo para las pruebas).
+                        .then(Commands.literal("momento")
+                                .requires(AtalayaCommand::esOperador)
+                                .then(Commands.argument("id", StringArgumentType.word())
+                                        .suggests((ctx, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                                java.util.Arrays.stream(com.atalaya.momento.Momento.values()).map(m -> m.id()), b))
+                                        .executes(ctx -> momentoDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), false))
+                                        .then(Commands.literal("rapido")
+                                                .executes(ctx -> momentoDirecto(ctx.getSource(), StringArgumentType.getString(ctx, "id"), true)))))
                         .then(ordenMomento("momento_fractura"))
                         .then(ordenMomento("momento_maldicion"))
                         .then(ordenRuleta())
+                        .then(com.atalaya.limbo.Limbo.orden())
                         .then(Commands.literal("frio")
                                 .requires(AtalayaCommand::esOperador)
                                 .then(Commands.argument("puntos",
@@ -551,18 +588,65 @@ public final class AtalayaCommand {
         return Commands.LEVEL_GAMEMASTERS.check(fuente.permissions());
     }
 
-    /** Los menus propios (pantallas del cliente): el de los cambios de dificultad o el de las dimensiones. */
-    private static int abrirMenuCambios(CommandSourceStack fuente, boolean dimensiones) {
+    /** Los menus propios (pantallas del cliente): los del catalogo (una categoria) o, sin ella, el de las dimensiones. */
+    private static int abrirMenuCatalogo(CommandSourceStack fuente, com.atalaya.catalogo.@org.jspecify.annotations.Nullable Categoria categoria) {
         ServerPlayer jugador = fuente.getPlayer();
         if (jugador == null) {
             fuente.sendFailure(Component.literal("Solo un jugador puede abrir el menu."));
             return 0;
         }
-        if (dimensiones) {
+        if (categoria == null) {
             com.atalaya.cambios.CambiosDificultad.abrirDimensiones(jugador);
         } else {
-            com.atalaya.cambios.CambiosDificultad.abrirCambios(jugador);
+            com.atalaya.catalogo.Catalogo.abrir(jugador, categoria);
         }
+        return 1;
+    }
+
+    /** /atalaya momento: lanza ese momento del catalogo (rapido: con los contadores veinte veces mas cortos). */
+    private static int momentoDirecto(CommandSourceStack fuente, String id, boolean rapido) {
+        for (com.atalaya.momento.Momento m : com.atalaya.momento.Momento.values()) {
+            if (m.id().equals(id)) {
+                com.atalaya.momento.Momentos.prisa(rapido ? 0.05F : 1.0F);
+                com.atalaya.momento.Momentos.lanzar(fuente.getServer(), m);
+                fuente.sendSuccess(() -> Component.literal("Momento: " + m.titulo() + (rapido ? " (rápido)" : "")), true);
+                return 1;
+            }
+        }
+        fuente.sendFailure(Component.literal("No hay ningún momento «" + id + "»."));
+        return 0;
+    }
+
+    /** /atalaya mob: suelta o recoge ese mob ya (sin Ruleta). */
+    private static int mobDirecto(CommandSourceStack fuente, String id, boolean soltar) {
+        com.atalaya.bestiario.Bestia b = com.atalaya.bestiario.Bestias.porId(id);
+        if (b == null) {
+            fuente.sendFailure(Component.literal("No hay ningún mob «" + id + "»."));
+            return 0;
+        }
+        com.atalaya.bestiario.Bestiario.poner(fuente.getServer(), b, soltar);
+        fuente.sendSuccess(() -> Component.literal(b.titulo() + ": " + (soltar ? "suelto" : "recogido")), true);
+        return 1;
+    }
+
+    /** /atalaya cambio: lo enciende o lo apaga ya (sin Ruleta), o dice como esta. */
+    private static int cambioDirecto(CommandSourceStack fuente, String id, @org.jspecify.annotations.Nullable Boolean encender) {
+        com.atalaya.cambios.Cambio c = com.atalaya.cambios.Cambio.porId(id);
+        if (c == null) {
+            fuente.sendFailure(Component.literal("No hay ningún cambio «" + id + "»."));
+            return 0;
+        }
+        boolean esta = com.atalaya.cambios.CambiosDificultad.activo(c);
+        if (encender == null) {
+            fuente.sendSuccess(() -> Component.literal(c.titulo + ": " + (esta ? "ON" : "OFF")), false);
+            return esta ? 1 : 0;
+        }
+        if (encender && !esta) {
+            com.atalaya.cambios.CambiosDificultad.activar(fuente.getServer(), c);
+        } else if (!encender && esta) {
+            com.atalaya.cambios.CambiosDificultad.desactivar(fuente.getServer(), c);
+        }
+        fuente.sendSuccess(() -> Component.literal(c.titulo + ": " + (encender ? "ON" : "OFF")), true);
         return 1;
     }
 

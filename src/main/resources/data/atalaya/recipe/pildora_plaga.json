@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:rotten_flesh",
+    "minecraft:spider_eye",
+    "minecraft:sugar",
+    "minecraft:glistering_melon_slice"
+  ],
+  "result": {
+    "id": "atalaya:pildora_plaga",
+    "count": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "atalaya:limbo",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "atalaya:limbo",
+      "features": false,
+      "lakes": false,
+      "layers": [],
+      "structure_overrides": []
+    }
+  }
+}

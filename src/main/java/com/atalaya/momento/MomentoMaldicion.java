@@ -90,6 +90,12 @@ public final class MomentoMaldicion {
     private static final java.util.Random AZAR = new java.util.Random();
     /** Lo que lleva roto cada jugador mientras corre el contador. */
     private static final Map<UUID, Integer> rotos = new HashMap<>();
+    /**
+     * Un momento del catalogo (com.atalaya.catalogo.Momentos): lo que se hace al salir su aviso (se aplica) y al acabar
+     * (se deshace), sea porque se acaba el tiempo, porque lo paran o porque empieza otro momento.
+     */
+    private static @Nullable Runnable alAvisar;
+    private static @Nullable Runnable alAcabar;
     /** Los ultimos que se usaron: los repite el interruptor del menu. */
     private static String ultimoTitulo = "La maldición";
     private static String ultimoTexto = "Algo ha despertado bajo Atalaya.";
@@ -135,6 +141,11 @@ public final class MomentoMaldicion {
         return duracion <= 0 ? -1 : Math.max(0, INTRO + duracion - pasado);
     }
 
+    /** Los ticks desde que salio el aviso (desde que acabo la cinematica), o -1 si no ha salido. */
+    public static int desdeAviso() {
+        return activo && pasado >= INTRO ? pasado - INTRO : -1;
+    }
+
     /** Si el contador de la prueba esta corriendo. */
     private static boolean corre() {
         return prueba != 0 && pasado >= INTRO && pasado < INTRO + contador;
@@ -142,6 +153,7 @@ public final class MomentoMaldicion {
 
     /** Empieza (o vuelve a empezar, con otro titulo) el momento para todos, sin prueba. */
     public static void empezar(MinecraftServer s, String nuevoTitulo, String nuevoTexto, int segundos) {
+        acabarCatalogo();
         prueba = 0;
         contador = 0;
         lanzar(s, nuevoTitulo, nuevoTexto, Math.max(0, segundos) * 20);
@@ -156,12 +168,39 @@ public final class MomentoMaldicion {
      * de que el contador ('segundos', desde que acaba la cinematica) llegue a cero.
      */
     public static void empezarPruebaTierra(MinecraftServer s, int segundos, int cuantos) {
+        acabarCatalogo();
         prueba = PRUEBA_TIERRA;
         cantidad = Math.max(1, cuantos);
         contador = Math.max(1, segundos) * 20;
         lanzar(s, "Prueba de la tierra", "Rompe " + cantidad + (cantidad == 1 ? " bloque" : " bloques")
                 + " de tierra o césped antes de que el contador llegue a cero.", contador + TRAS_PRUEBA);
         Atalaya.LOGGER.info("Momento fractura, prueba de la tierra: {} bloques en {} s.", cantidad, segundos);
+    }
+
+    /**
+     * Un momento del catalogo: la misma cinematica y el mismo cielo, con su texto; al salir el aviso se hace 'avisar'
+     * y al acabar (el tiempo, stop u otro momento) se hace 'acabar'. Con segundos 0 dura hasta que se pare. Con
+     * ticksContador, arriba sale el contador (lo que pasa al llegar a cero lo hace el momento).
+     */
+    public static void empezarCatalogo(MinecraftServer s, String nuevoTitulo, String nuevoTexto, int segundos,
+                                       int ticksContador, Runnable avisar, Runnable acabar) {
+        acabarCatalogo();
+        prueba = 0;
+        contador = Math.max(0, ticksContador);
+        lanzar(s, nuevoTitulo, nuevoTexto, Math.max(0, segundos) * 20);
+        alAvisar = avisar;
+        alAcabar = acabar;
+        Atalaya.LOGGER.info("Momento fractura del catalogo: «{}» ({}).", titulo, segundos > 0 ? segundos + " s" : "sin limite");
+    }
+
+    /** Si el momento en marcha es uno del catalogo, se deshace (una sola vez). */
+    private static void acabarCatalogo() {
+        Runnable fin = alAcabar;
+        alAvisar = null;
+        alAcabar = null;
+        if (fin != null) {
+            fin.run();
+        }
     }
 
     private static void lanzar(MinecraftServer s, String nuevoTitulo, String nuevoTexto, int ticks) {
@@ -188,6 +227,7 @@ public final class MomentoMaldicion {
         rotos.clear();
         enviar(new AtalayaRed.Momento(AtalayaRed.Momento.PARA, titulo, texto, 0, pasado, 0, semilla));
         Atalaya.LOGGER.info("Momento fractura parado.");
+        acabarCatalogo();
         return true;
     }
 
@@ -208,6 +248,11 @@ public final class MomentoMaldicion {
         if (!avisado && pasado >= INTRO) {
             avisado = true;
             avisoChat(s);
+            Runnable aplicar = alAvisar;
+            alAvisar = null;
+            if (aplicar != null) {
+                aplicar.run();
+            }
         }
         if (prueba != 0 && !juzgado && pasado >= INTRO + contador) {
             juzgado = true;

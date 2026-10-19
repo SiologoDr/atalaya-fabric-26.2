@@ -221,7 +221,7 @@ public final class AtalayaEntities {
     private AtalayaEntities() {
     }
 
-    private static ResourceKey<EntityType<?>> clave(String nombre) {
+    public static ResourceKey<EntityType<?>> clave(String nombre) {
         return ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, nombre));
     }
 
