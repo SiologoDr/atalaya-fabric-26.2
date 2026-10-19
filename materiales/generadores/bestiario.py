@@ -65,6 +65,7 @@ class Pintor:
     def __init__(self, nombre, fn, pleno=False):
         self.nombre, self.fn, self.pleno = nombre, fn, pleno
         self.nativo = 1          # píxeles de la textura por cada píxel que pinta (2 en los de 16 por bloque)
+        self.texel = None        # su propio tamaño de píxel (en píxeles del modelo); None: el del modelo
 
     def __call__(self, tw, th, cara, semilla):
         tex, emis = self.fn(tw, th, cara, semilla)
@@ -98,6 +99,14 @@ def _bisel(idx, tw, th, cara, claro=1, oscuro=1):
 
 def _azar(semilla):
     return np.random.default_rng(int(semilla) * 7919 + 17)
+
+
+def fino(p, texel=0.5):
+    """El pintor 'p' con más píxeles que el resto (Juan, 19-10-2026: «en algunos casos sí deberías aumentar los píxeles
+    para que quede bien»): pinta a 'texel' píxeles del modelo (0,5 a escala 1: 32 por bloque), para los detalles que a 16
+    por bloque salen toscos (escamas, dientes, ojos, grietas...). Lo demás sigue al píxel de Minecraft."""
+    p.texel = texel
+    return p
 
 
 def liso(nombre, r, base=2):
@@ -649,7 +658,8 @@ class Modelo:
     def pintar_cara(self, f, tw, th, cara, s):
         """Una cara de tw x th píxeles de la textura. Con 'texel', el pintor pinta de verdad con píxeles de ese tamaño
         (en píxeles del modelo): cada píxel, un color suyo, como los de Minecraft; luego se agranda."""
-        P = int(round(self.texel * self.K)) if self.texel else 1         # píxeles de la textura por píxel
+        texel = f.texel if getattr(f, 'texel', None) is not None else self.texel
+        P = int(round(texel * self.K)) if texel else 1                    # píxeles de la textura por píxel
         if P <= f.nativo:
             return f(tw, th, cara, s)
         n, m = max(1, -(-tw // P)), max(1, -(-th // P))                  # los píxeles de la cara (el último, partido)

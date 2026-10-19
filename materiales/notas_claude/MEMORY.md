@@ -18,6 +18,11 @@
 - [Armaduras al estilo del vídeo](armaduras-estilo-video.md) — rediseño probado y descartado («está feo, dejemos ese tema»); no proponerlo otra vez salvo que lo pida
 - [Momento Maldición](momento-maldicion.md) — nuestro momento Reviil: sin texto en la animación, MOMENTO FRACTURA metálico en el chat, la fractura en el cielo, nada en el HUD
 - [La Ruleta](ruleta-cambios-de-dificultad.md) — medallón tragaperras para los cambios de dificultad: sale ya girando, 4 finales (naranja/amarillo/celeste/verde), rótulos sin metal; iconos A y rótulo B hasta que elija
-- [Catálogo del DEDsafío](catalogo-dedsafio.md) — todo lo del DEDsafío 2-4 en tres menús: cambios y momentos hechos; mobs por familias (creepers, bombas, arañas, hormigas, plantas hechos); faltan fantasmas/Limbo y el resto
+- [Catálogo del DEDsafío](catalogo-dedsafio.md) — todo lo del DEDsafío 2-4 en tres menús: cambios y momentos hechos; mobs por familias (creepers, bombas, hormigas, plantas y los 4 fantasmas hechos); falta el resto
 - [Rediseños como el Blaze](redisenos-como-el-blaze.md) — cada mob sigue siendo él (anatomía de vanilla, su cara); añadidos en 2.ª capa; suaves con detalle; cambiar el diseño de uno ya hecho: que diga él cómo
 - [Subir a develop](subir-a-develop.md) — «sube los cambios» = commit y push directo en develop, sin ramas nuevas
+- [Recrear primero, luego mejorar](recrear-primero-luego-mejorar.md) — con ilustración del DEDsafío: copia fiel (caras calcadas) junto al original; las mejoras con piezas añadidas no le gustaron
+- [La 2.ª capa es como los dientes](segunda-capa-como-dientes.md) — «2.ª capa» = picos macizos en una caja algo mayor (dientes_capa de las Fauces), nunca velo translúcido
+- [Los fantasmas en el juego](atalaya-fantasmas-2026-10.md) — Blanco (Lentitud), Negro (roba corazones; Corazón Blanco), Amarillo (gasta tótem y posee), Rojo (agarra); sin Espada Fantasmal
+- [Hormigas y plantas rehechas](atalaya-hormigas-plantas-2026-10.md) — 19-10: al píxel de Minecraft, detalles a 32 por bloque (B.fino); aprobadas
+- [Cuidado con los generadores del bestiario](bestiario-generadores-cuidado.md) — escriben en src/main/resources incluso para vistas; PNG con otra compresión; nunca checkout de resources entero

@@ -219,13 +219,13 @@ public class Atalaya implements ModInitializer {
         // Los tótems del mod, detrás del de la inmortalidad.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(Items.TOTEM_OF_UNDYING, AtalayaItems.TOTEMS));
-        // El kit de reparación y el corazón de vida, detrás de los tótems.
+        // El kit de reparación y los corazones de vida y blanco, detrás de los tótems.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
                 salida.insertAfter(AtalayaItems.TOTEMS[AtalayaItems.TOTEMS.length - 1], AtalayaItems.KIT_REPARACION,
-                        AtalayaItems.CORAZON_VIDA));
-        // Los de los cambios de dificultad, detras del corazon.
+                        AtalayaItems.CORAZON_VIDA, AtalayaItems.CORAZON_BLANCO));
+        // Los de los cambios de dificultad, detras de los corazones.
         CreativeModeTabEvents.modifyOutputEvent(PESTANA_COMBATE).register(salida ->
-                salida.insertAfter(AtalayaItems.CORAZON_VIDA, com.atalaya.cambios.ObjetosCambios.PILDORA_PLAGA,
+                salida.insertAfter(AtalayaItems.CORAZON_BLANCO, com.atalaya.cambios.ObjetosCambios.PILDORA_PLAGA,
                         com.atalaya.cambios.ObjetosCambios.BOLSA_VACIO, com.atalaya.cambios.ObjetosCambios.YUNQUE_DORADO,
                         com.atalaya.cambios.ObjetosCambios.FRUTO_RECUERDO, com.atalaya.cambios.ObjetosCambios.RAIZ_AGUA,
                         com.atalaya.cambios.ObjetosCambios.PILDORA_TAMANO));

@@ -21,6 +21,8 @@ Hecho (sin commit, versión aún 1.2.2):
 
 Avance que le di a Juan (18-10-2026): cambios 72 de 77 (~94 %), momentos 28 de 32 (~88 %), mobs 32 de unos 95-100 en el juego (un tercio; 10 con el diseño definitivo); en conjunto, la mitad del trabajo.
 
-Falta: fantasmas (con la Espada Fantasmal y la Linterna; el Limbo ya está), phantoms, reptiles, Gleba, los del agua, los sueltos (serpiente, toro, basilisca, illagers, Ahool, abejas, espectros del cielo + Espada Celestial, naves Phora...), Fogonazo/Coco/Fulminante en el menú, y lo que depende de mobs: momentos de la nereida, el impostor, todos al Limbo y la caída del cubo; cambios de tótem con trampa, perla nuclear, sueño pesado, flores con dientes y mirar la luna.
+Hecho el 19-10 (en la otra máquina): hormigas y plantas rehechas al píxel de Minecraft, las bombas aprobadas, y los cuatro fantasmas en el juego, sin Espada Fantasmal (ver [[atalaya-fantasmas-2026-10]]).
+
+Falta: phantoms, reptiles, Gleba, los del agua, los sueltos (serpiente, toro, basilisca, illagers, Ahool, abejas, espectros del cielo + Espada Celestial, naves Phora...), Fogonazo/Coco/Fulminante en el menú, y lo que depende de mobs: momentos de la nereida, el impostor, todos al Limbo y la caída del cubo; cambios de tótem con trampa, perla nuclear, sueño pesado, flores con dientes y mirar la luna.
 
 **How to apply:** seguir por los mobs familia a familia, probando cada una en el juego (FotosPrueba; «CERRAR» solo cierra pantallas: cerrar mi cliente a mano antes de lanzar otro; esperar a que el cliente monte el suelo antes de las fotos). Al acabar, README y la versión solo si Juan la pide ([[entrega-solo-cuando-lo-pida]]). Los iconos nuevos se hicieron sin página de propuestas porque lo quiere todo en el juego: decírselo ([[iconos-con-propuestas]]).

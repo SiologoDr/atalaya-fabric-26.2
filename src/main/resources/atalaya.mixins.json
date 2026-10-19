@@ -23,6 +23,7 @@
     "RecipeManagerMixin",
     "SpawnPlacementsInvoker",
     "ThrownTridentAccessor",
+    "TotemInvoker",
     "TranceClicMixin",
     "VitrificarMixin",
     "MobAccessor",

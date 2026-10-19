@@ -1,14 +1,22 @@
 """
-Las plantas del bestiario (18-10-2026): las del DEDsafío 2 (las Carnivenus de tres colores, la Tramplanta y la Piña
-Malibú) y el Zombie Planta del DEDsafío 4, con nuestro diseño:
+Las plantas del bestiario, rehechas (19-10-2026): las del DEDsafío 2 (las Carnivenus de tres colores, la Tramplanta y la
+Piña Malibú) y el Zombie Planta del DEDsafío 4, como en sus fichas de la DEDciclopedia pero mejor, y al píxel de
+Minecraft (materiales/CONTINUAR.md, regla 1): escala 1 y B.TEXEL = 1, todas las piezas de píxeles enteros y cada
+detalle de la textura, un píxel (un estoma, un diente, una escama).
 
-  fauces_verde/carmin/escarcha   una planta carnívora plantada en el suelo: la raíz con sus hojas por el suelo, un
-                                 tallo grueso y una cabeza de dos mandíbulas con dientes en el borde (por dentro, del
-                                 color: verde, carmín o escarcha); te sigue con la cabeza y muerde al que se acerca
-  trampa                         una trampa de dos hojas dentadas tumbada en el suelo, del color de la hierba (casi no se
-                                 ve); al pisarla salta y se cierra
-  pina                           una piña chica con patas, la corona de hojas en punta y cara de pocos amigos
-  zombi_planta                   un zombi comido por la planta: musgo, hiedra, flores en la cabeza y los ojos de polen
+  fauces_verde/carmin/escarcha   el tallo de bloques que sale del suelo, sube y se dobla hacia delante (en J, como el
+                                 de su ficha), con sus nudos y dos hojas, y la cabeza de dos mandíbulas cuadradas, rosa
+                                 por dentro y con los dientes blancos en el borde. La verde babea veneno, la carmín
+                                 tiene espinas en el tallo y la boca encendida, la de escarcha lleva carámbanos y los
+                                 dientes de hielo
+  trampa                         dos lóbulos de pie unidos por la bisagra, con las pestañas largas en el borde; escondida
+                                 se tumba abierta en el suelo, del verde de la hierba de su bioma
+  pina                           una piña chica (las escamas en rombo, cada una con su ojo) con la corona de hojas en
+                                 punta, dos patas cortas y dos puños de hoja: sin cara, como la de su ficha
+  zombi_planta                   un zombi (la anatomía de siempre) comido por la planta: la hiedra y el musgo en 2.ª
+                                 capa, una flor que le brota del ojo, los pies que echan raíz y un arbolito a la espalda
+
+Lo que hacen (las mecánicas, los sonidos y los efectos) no cambia: está en Plantas.java.
 
 Uso: python bestiario_plantas.py <raíz> [carpeta de las vistas] [ids separados por comas]
 """
@@ -19,15 +27,12 @@ import sys
 import numpy as np
 
 import bestiario as B
+import bestiario_limpio as L
 from bestiario import rampa
-from bestiario import brizna, petalo
+from bestiario_hormigas import _azar1, _v, encender, redondo, rotar
 
 CARPETA = None
 LADOS = ((1, 'i'), (-1, 'd'))
-
-
-def juntar(*rampas):
-    return np.vstack(rampas)
 
 
 def terminar(m, raiz, nombre_es, nombre_en, huevo, retrato, particulas=(), poses=None):
@@ -45,6 +50,9 @@ def terminar(m, raiz, nombre_es, nombre_en, huevo, retrato, particulas=(), poses
     return m
 
 
+# ======================================================================================================================
+#  Las partículas
+# ======================================================================================================================
 def esquirla(color, n=8):
     cuadros = []
     for k in range(3):
@@ -70,8 +78,7 @@ def chispa(color, n=8):
 
 
 def copo(n=8):
-    """Un copo de escarcha: una cruz de seis brazos cortos (a 8 x 8, una estrella de puntas), blanco con el borde
-    celeste; tres tamaños."""
+    """Un copo de escarcha: una estrella de seis puntas, blanca con el borde celeste; tres tamaños."""
     cuadros = []
     for k in range(3):
         def f(x, y, k=k):
@@ -86,370 +93,368 @@ def copo(n=8):
     return cuadros
 
 
-HOJA = rampa('0e2a08', '1a4a10', '2a6a1a', '3e8a26', '5aac36')
-HOJA_O = rampa('081c06', '10300a', '1a4610', '245c18', '307222')
-TALLO = rampa('14300c', '204814', '30621c', '427e26', '58a032')
-RAIZ = rampa('2e1e10', '4a3018', '6a4824', '8e6634', 'b08850')
-DIENTE = rampa('6a6250', 'a89c80', 'd8ccb0', 'f2ead8', 'fffcf2')
-COLORES = {
-    'verde': (rampa('2a5a04', '4a8a0a', '7ac418', 'b0f040', 'e8ffa0'), 'Verde', 'Green', '7ac418', 'b0f040'),
-    'carmin': (rampa('5a0410', '8a0a1e', 'c81a32', 'f04a5a', 'ffb0b8'), 'Carmín', 'Crimson', 'c81a32', 'f04a5a'),
-    'escarcha': (rampa('0a4a5a', '127a8a', '2ab8c8', '7ae8f0', 'd8ffff'), 'Escarcha', 'Frost', '2ab8c8', '7ae8f0'),
-}
+# ======================================================================================================================
+#  Los pintores de las plantas, al píxel de Minecraft
+# ======================================================================================================================
+def tallo(nombre, R, base=2.0, estomas=0.05, nudo=False):
+    """La piel del tallo: el tono que corre (más claro arriba), las fibras a lo largo (una columna de cada tres, un
+    tono más clara) y estomas de un píxel (más oscuros); con 'nudo', la fila de abajo es el anillo del nudo."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        a = _azar1(xs, ys, s)
+        v = _v(tw, th, cara, s, base, 0.8)
+        if cara not in ('arriba', 'abajo'):
+            v = v + ((xs % 3) == 1) * 0.35
+            if nudo:
+                v = np.where(ys == th - 1, v - 0.9, v)
+        v = v - (a < estomas) * 0.7
+        return L._rgba(L.color_continuo(R, v)), None
+    return B.Pintor(nombre, fn)
+
+
+def hoja_plana(nombre, R, ancho_base=1.0):
+    """Una hoja en punta en una lámina (lo de fuera, transparente): el nervio claro en medio, las venas en espiga (un
+    píxel más claro cada dos filas) y el borde un tono más oscuro."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        u = (xs + 0.5) / tw - 0.5
+        v = (ys + 0.5) / th
+        perfil = 0.5 * ancho_base * np.sin(np.clip(v, 0, 1) * math.pi) ** 0.7
+        dentro = np.abs(u) < perfil + 0.02
+        cx = (tw - 1) / 2
+        val = np.full((th, tw), 2.0) + (xs < cx) * 0.3
+        val = np.where(np.abs(xs - cx) < 0.6, 3.4, val)
+        val = np.where(((ys + np.abs(xs - cx).astype(int)) % 2 == 0) & (np.abs(xs - cx) > 0.6), val + 0.3, val)
+        val = np.where(np.abs(u) > perfil - 1.0 / tw, val - 0.8, val)
+        tex = L._rgba(L.color_continuo(R, val))
+        tex[..., 3] = np.where(dentro, 255, 0)
+        return tex, None
+    return B.Pintor(nombre, fn)
+
+
+def boca(nombre, R, brilla=None):
+    """Por dentro de la boca: la carne (más clara en el centro, más oscura hacia el canto) con los pliegues a lo largo
+    (un píxel más oscuro de cada tres); con 'brilla' (una rampa), el centro encendido."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        d = np.minimum(np.minimum(xs, ys), np.minimum(tw - 1 - xs, th - 1 - ys))
+        v = 1.6 + np.minimum(d, 3) * 0.55 - ((xs % 3) == 1) * 0.4
+        tex = L._rgba(L.color_continuo(R, v))
+        if brilla is None:
+            return tex, None
+        a = np.clip((d - 1) / 2.0, 0, 1)
+        return encender(tex, a, brilla, 2.0 + a)
+    return B.Pintor(nombre, fn)
+
+
+def diente(nombre, R):
+    """Un diente (una caja de 1 x 2 x 1): blanco, la punta más clara y la raíz un tono más oscura."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        v = np.full((th, tw), 3.0) - (ys == 0) * 0.8 + (cara == 'frente') * 0.4
+        return L._rgba(L.color_continuo(R, v)), None
+    return B.Pintor(nombre, fn)
+
+
+def luz_plana(nombre, R, v=3.0):
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        tex = L._rgba(L.color_continuo(R, np.full((th, tw), v) - ys * 0.3))
+        return tex, tex.copy()
+    return B.Pintor(nombre, fn, pleno=True)
 
 
 # ======================================================================================================================
-#  Las Fauces
+#  Las Fauces (Carnivenus)
 # ======================================================================================================================
 TIERRA = rampa('24160c', '382412', '503420', '6c4a2c', '8a6640')
-DIENTES = {
-    'verde': rampa('6a6250', 'a89c80', 'd8ccb0', 'f2ead8', 'fffcf2'),
-    'carmin': rampa('6a6250', 'a89c80', 'e0d4b8', 'f6eedc', 'fffcf2'),
-    'escarcha': rampa('3a6a7a', '6aa8b8', 'a8e0ea', 'd8f8fc', 'ffffff'),
+CARNE = rampa('4a1018', '7a2232', 'b0485a', 'e07a8a', 'ffb4be')
+DIENTE_B = rampa('6a6250', 'a89c80', 'd8ccb0', 'f2ead8', 'fffcf2')
+COLORES = {
+    # piel, hojas, dientes, (nombre, en), huevo (claro, medio, oscuro), contorno
+    'verde': (rampa('0e3006', '1c5a0c', '2e8a16', '4cb826', '7ee048'), rampa('0a2a06', '14480c', '226a16', '3a9022', '5cb836'),
+              DIENTE_B, ('Verde', 'Green'), ('7ee048', '4cb826', '2e8a16'), ('0e3006', '061804')),
+    'carmin': (rampa('2a0406', '58080e', '8c141c', 'c02a30', 'e8585a'), rampa('2a0a06', '4a140a', '6e2010', '963018', 'be4824'),
+               DIENTE_B, ('Carmín', 'Crimson'), ('e8585a', 'c02a30', '8c141c'), ('2a0406', '140202')),
+    'escarcha': (rampa('063a3a', '0c6462', '169490', '30c4bc', '7ef0e6'), rampa('0a2e34', '124a54', '1c6a76', '2c8e9a', '4ab4c0'),
+                 rampa('3a6a7a', '7ab0c0', 'b0e4ee', 'dcf8fc', 'ffffff'), ('de Escarcha', 'Frost'),
+                 ('7ef0e6', '30c4bc', '169490'), ('063a3a', '021c1c')),
 }
+VENENO = rampa('1a4a04', '3a8a0a', '7ad21a', 'b6ff4a', 'eaffb0')
+ASCUA = rampa('6a1604', 'c04a0a', 'f08a1a', 'ffc84a', 'fff2b0')
+HIELO = rampa('5a9ab0', '8ac8dc', 'b8ecf6', 'e0fcff', 'ffffff')
 
 
-def cupula(m, parte, c, signo, w0, d0, alto, capas, fuera, dentro, labio):
-    """Una mandíbula en cúpula: rebanadas desde la del labio (la del borde de la boca) hasta la del lomo, cada una con
-    dos cajas cruzadas (octogonal vista desde arriba). La cara de la boca de la primera, 'dentro'; sus lados, el labio
-    (la segunda caja del labio, un pelo metida hacia dentro para que su cara de la boca no pise la de la primera).
-    Devuelve los medios anchos (W, D) del labio, para los dientes."""
-    cx, cy, cz = c
-    h = alto / capas
-    W = D = 0.0
-    for k in range(capas):
-        f = math.sqrt(max(0.0, 1.0 - ((k + 0.3) / capas) ** 2))
-        y = cy + signo * (h * k + h / 2)
-        w, d = w0 * f, d0 * f
-        if k == 0:
-            W, D = w / 2, d / 2
-            caras = {cc: labio for cc in ('frente', 'atras', 'izq', 'der')}
-            caras['abajo' if signo > 0 else 'arriba'] = dentro
-            caras['arriba' if signo > 0 else 'abajo'] = fuera
-            m.caja(parte, (cx, y, cz), (w, h + 0.02, d * 0.74), None, caras=caras)
-            m.caja(parte, (cx, y + signo * 0.08, cz), (w * 0.74, h - 0.14, d), None, caras=caras)
-        else:
-            m.caja(parte, (cx, y, cz), (w, h + 0.02, d * 0.74), fuera)
-            m.caja(parte, (cx, y, cz), (w * 0.74, h + 0.02, d), fuera)
-    return W, D
-
-
-def hoja_hacia(m, parte, base, a, incl, ancho, alto, pint):
-    """Una hoja que nace en 'base' y sale hacia el rumbo 'a' (grados, 0 = adelante, 90 = a su izquierda), inclinada
-    'incl' grados desde la vertical (90, tumbada; más de 90, hacia abajo). La punta de la textura queda en la punta."""
-    ar, ir = math.radians(a), math.radians(incl)
-    up = np.array((math.sin(ir) * math.sin(ar), math.cos(ir), math.sin(ir) * math.cos(ar)))
-    m.hoja(parte, tuple(np.asarray(base, float) + up * alto / 2), ancho, alto, pint, rot=(incl, a, 0))
-
-
-def colmillo(m, parte, base, hacia, tangente, largo, ancho, pint):
-    """Un diente suelto (una hoja) clavado en 'base', hacia 'hacia'."""
-    base = np.asarray(base, float)
-    m.dientes(parte, base, base + np.asarray(tangente, float) * 0.01, 1, largo, hacia, pint, ancho=ancho)
-
-
-def corona_de_dientes(m, parte, c, signo, W, D, pint, desfase):
-    """Los dientes del borde de una mandíbula: por delante, en las dos esquinas y por los lados (hasta media cabeza;
-    atrás está la bisagra). Apuntan a la otra mandíbula y un poco hacia fuera, para que al cerrar se crucen por fuera
-    del labio de la otra. 'desfase' (0 o 1) los corre medio paso, para que los de arriba y los de abajo se crucen."""
-    cx, cy, cz = c
-    y = cy - signo * 0.1
-    abajo = np.array((0.0, -signo, 0.0))
-    # Por delante.
-    n = 5 - desfase
-    xs = np.linspace(-0.62 * W, 0.62 * W, 5)
-    if desfase:
-        xs = (xs[:-1] + xs[1:]) / 2
-    for x in xs:
-        colmillo(m, parte, (cx + x, y, cz + D - 0.25), abajo + np.array((0, 0, 0.32)), (1, 0, 0), 2.5, 0.75, pint)
-    # Las esquinas (en diagonal) y los lados.
-    for lado in (-1, 1):
-        diag = np.array((lado * 0.7, 0.0, 0.7))
-        p = np.array((cx + lado * 0.87 * W, y, cz + 0.87 * D)) - diag * 0.25
-        colmillo(m, parte, p, abajo + diag * 0.45, (-diag[2], 0, diag[0]), 2.2, 0.75, pint)
-        for z in ((0.45, -0.15) if not desfase else (0.15, -0.45)):
-            colmillo(m, parte, (cx + lado * (W - 0.25), y, cz + z * D), abajo + np.array((lado * 0.32, 0, 0)), (0, 0, 1),
-                     1.9, 0.7, pint)
-    return n
+def dientes_capa(nombre, R, arriba=True, encia=2, largo=5, paso=4, colmillo=True):
+    """Los dientes en una 2.ª capa (la caja algo mayor que la mandíbula, recortada), a 32 por bloque para que salgan en
+    punta: una fila de dientes triangulares (cada uno, de 3 píxeles de base y de largo distinto; más largos los de las
+    esquinas, los colmillos), claros a la izquierda y en sombra a la derecha, con la punta más clara y la raíz un tono
+    más oscura, y encima la encía (una fila rosa oscura). 'arriba': los de la mandíbula de arriba, que cuelgan; si no,
+    los de abajo, de pie. 'encia': las filas de la capa que montan sobre la mandíbula (transparentes salvo la encía)."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        tex = np.zeros((th, tw, 4), np.uint8)
+        if cara in ('arriba', 'abajo', 'atras'):
+            return tex, None
+        y = ys if arriba else (th - 1 - ys)             # filas desde la encía hacia la punta
+        r = y - encia                                   # fila dentro del diente (0, la raíz)
+        rng = np.random.default_rng(int(s) * 31 + tw * 7 + th)
+        n = max(1, tw // paso)
+        inicio = (tw - n * paso) // 2
+        k = np.clip((xs - inicio) // paso, 0, n - 1)
+        u = (xs - inicio) - k * paso                    # columna dentro del hueco de cada diente (0..paso-1)
+        largos = rng.integers(max(2, largo - 2), largo + 1, n)
+        if colmillo and n >= 3:
+            largos[0] = largos[-1] = largo + 1
+        L_ = largos[k]
+        c = (paso - 2) / 2.0                            # el centro del diente (la última columna es el hueco)
+        ancho = (paso - 1) / 2.0 * (1 - r / np.maximum(L_, 1))   # medio ancho en cada fila: de la base a la punta
+        dentro = (r >= 0) & (r < L_) & (np.abs(u - c) <= ancho + 0.01) & (u <= paso - 2)
+        v = 2.9 + (u < c) * 0.6 - (u > c) * 0.5 + (r >= L_ - 2) * 0.5 - (r == 0) * 0.6
+        dnt = L.color_continuo(R, v)
+        encia_ = (y == encia - 1)
+        rgb = np.where(encia_[..., None], L.color_continuo(CARNE, np.full(v.shape, 1.4)), dnt)
+        tex = L._rgba(rgb)
+        tex[..., 3] = np.where(dentro | encia_, 255, 0)
+        return tex, None
+    return B.fino(B.Pintor(nombre, fn))
 
 
 def fauces(raiz, color):
-    """Una Fauces: plantada en un montículo de tierra con raíces que asoman y seis hojas anchas tumbadas alrededor; un
-    tallo grueso en ese y, con una gorguera de hojitas, la cabeza: dos mandíbulas en cúpula (verde oscuro por fuera, con
-    venas y motas del color; el labio del color) con una corona de dientes que se cruzan al cerrar. Dentro, del color,
-    un señuelo que brilla en la garganta (se le ve por la rendija de la boca, siempre entreabierta). La verde babea
-    ácido; la carmín tiene espinas en el tallo y una cresta; la de escarcha, carámbanos, cristales en el lomo y dientes
-    de hielo."""
-    G, nombre_es, nombre_en, c1, c2 = COLORES[color]
+    """La Fauces (la Carnivenus de su ficha), más grande: el tallo de bloques que sale del suelo, sube y se dobla hacia
+    delante en J, con un nudo en cada junta y dos hojas, y la cabeza de dos mandíbulas cuadradas, rosa por dentro, con
+    los dientes en una 2.ª capa alrededor del canto (pintados más finos, en punta). Al píxel de Minecraft lo demás."""
+    R, RH, RD, (nombre_es, nombre_en), piel_h, cont_h = COLORES[color]
     m = B.Modelo(f'fauces_{color}', K=2, ancho=128)
-    m.escala = 1.1
-    R = juntar(HOJA, G)
-
-    # ---- El montículo, las raíces y las hojas del suelo.
-    def tierra(xs, ys, tw, th, cara, s):
-        idx = np.full((th, tw), 2)
-        raices = B.grietas(tw, th, s, cara, cuantas=max(1, tw * th // 50), giro=0.4, ramas=0.08)
-        idx[raices] = 4
-        idx[B.vecinos(raices) & (ys % 2 == 0)] = 1
-        if cara == 'arriba':
-            idx[((xs * 7 + ys * 3) % 11) == 0] = 3
-        return idx
-    pint_tierra = B.trazo('tierra_fauces', tierra, TIERRA)
+    m.escala = 1.0
+    piel = tallo(f'tallo_{color}', R)
+    piel_nudo = tallo(f'nudo_{color}', R, base=1.6, nudo=True)
+    hoja = hoja_plana(f'hoja_{color}', RH)
+    # La raíz: el bulbo hundido en el suelo y cuatro hojas tendidas, abiertas.
     m.parte('raiz', None, (0, 0, 0))
-    for k, (r, h) in enumerate(((4.4, 1.2), (3.6, 1.1), (2.4, 1.0))):
-        y = sum(hh for _, hh in ((4.4, 1.2), (3.6, 1.1), (2.4, 1.0))[:k]) + h / 2
-        m.caja('raiz', (0, y, 0), (2 * r, h + 0.02, 2 * r * 0.74), pint_tierra)
-        m.caja('raiz', (0, y, 0), (2 * r * 0.74, h + 0.02, 2 * r), pint_tierra)
-    raiz_p = B.anillos('raiz_fauces', RAIZ, paso=2)
-    for k in range(5):
-        a = math.radians(k * 72 + 40)
-        m.viga('raiz', (math.sin(a) * 2.6, 1.4, math.cos(a) * 2.6), (math.sin(a) * 6.4, 0.2, math.cos(a) * 6.4), 0.9,
-               raiz_p, extra=0.4)
-    hoja_suelo = brizna('hoja_suelo', HOJA, ancho_base=1.9)
-    for k in range(6):
-        a = k * 60 + 10
-        hoja_hacia(m, 'raiz', (math.sin(math.radians(a)) * 2.4, 0.9, math.cos(math.radians(a)) * 2.4), a, 80, 4.8, 7.4,
-                   hoja_suelo)
+    redondo(m, 'raiz', (0, 1.5, 0), (8, 3, 8), tallo(f'bulbo_{color}', RH, base=1.6))
+    for k, ang in enumerate((40, 130, 220, 310)):
+        a = math.radians(ang)
+        d = np.array((math.sin(a), 0.0, math.cos(a)))
+        m.hoja('raiz', tuple(np.array((0, 0.7, 0)) + d * 6.5), 5, 10, hoja, rot=(-78, ang + 180, 0))
+    # El tallo: cuatro tramos de bloques, que sube y se dobla hacia delante (en J), con un nudo en cada junta.
+    puntos = [np.array(p) for p in ((0, 2.5, -0.6), (0, 9.5, -1.8), (0, 16.0, -1.6), (0, 21.5, 0.5), (0, 24.0, 4.0))]
+    gruesos = (5, 5, 4, 4)
+    padre = 'raiz'
+    for i in range(4):
+        n = m.parte(f'tallo{i}', padre, tuple(puntos[i]))
+        m.viga(n, puntos[i], puntos[i + 1], gruesos[i], piel, extra=0.8)
+        if i > 0:
+            m.caja(n, tuple(puntos[i]), (gruesos[i] + 1, 1, gruesos[i] + 1), piel_nudo)
+        padre = n
+    # Dos hojas en el tallo, hacia los lados.
+    for (i, lado) in ((1, 1), (2, -1)):
+        p = puntos[i] + np.array((lado * 4.4, 2.0, 0))
+        m.hoja(f'tallo{i - 1}', tuple(p), 4, 8, hoja, rot=(0, 90, lado * -55))
 
-    # ---- El tallo, en ese, con dos hojas.
-    tallo = B.anillos('tallo_fauces', TALLO, paso=3)
-    m.parte('tallo', 'raiz', (0, 2.6, 0))
-    m.viga('tallo', (0, 2.2, 0), (1.0, 6.8, -0.6), 2.6, tallo, extra=0.6)
-    m.viga('tallo', (1.0, 6.8, -0.6), (0.4, 10.4, -1.2), 2.3, tallo, extra=0.6)
-    m.parte('tallob', 'tallo', (0.4, 10.4, -1.2))
-    m.viga('tallob', (0.4, 10.4, -1.2), (0, 14.4, 0.0), 2.0, tallo, extra=0.6)
-    hoja_tallo = brizna('hoja_tallo', HOJA, ancho_base=1.7)
-    hoja_hacia(m, 'tallo', (1.6, 5.6, -0.4), 90, 55, 3.2, 5.6, hoja_tallo)
-    hoja_hacia(m, 'tallob', (-0.6, 11.4, -1.0), -100, 60, 2.8, 4.8, hoja_tallo)
-    if color == 'carmin':
-        espina = B.diente('espina_carmin', G)
-        for (y, a) in ((4.0, 30), (5.6, 200), (7.6, 110), (9.2, 300), (11.6, 60), (13.0, 230)):
-            ar = math.radians(a)
-            # El tallo pasa (más o menos) por el eje: las espinas salen de su piel hacia fuera.
-            cxz = (0.6 if y < 11 else 0.2, -0.8 if y < 11 else -0.6)
-            base = (cxz[0] + math.sin(ar) * 1.0, y, cxz[1] + math.cos(ar) * 1.0)
-            colmillo(m, 'tallo' if y < 10.4 else 'tallob', base, (math.sin(ar), 0.25, math.cos(ar)), (0, 1, 0), 1.6,
-                     0.6, espina)
+    # La cabeza: la mandíbula de arriba (cuadrada, con la carne por dentro) y la de abajo, que se abre.
+    p4 = puntos[4]
+    m.parte('cabeza', 'tallo3', tuple(p4))
+    z0 = p4[2] - 3.0
+    W, D = 11, 13
+    fuera = tallo(f'cabeza_{color}', R, base=2.2, estomas=0.07)
+    brillo_boca = ASCUA if color == 'carmin' else None
+    dentro = B.fino(boca(f'boca_{color}', CARNE, brilla=brillo_boca))
+    cy_sup = p4[1] + 3.2
+    redondo(m, 'cabeza', (0, cy_sup, z0 + D / 2), (W, 4, D), fuera, caras={'abajo': dentro})
+    # La garganta (la bisagra de atrás), con la carne por dentro.
+    m.caja('cabeza', (0, p4[1] - 0.2, z0 + 1.2), (W - 2, 5, 2), fuera, caras={'frente': dentro})
+    m.parte('mandibula', 'cabeza', (0, p4[1] - 1.2, z0 + 1.2))
+    cy_inf = p4[1] - 3.0
+    redondo(m, 'mandibula', (0, cy_inf, z0 + D / 2 - 0.5), (W - 1, 3, D - 1), fuera, caras={'arriba': dentro})
+    # Los dientes, en una 2.ª capa alrededor del canto de cada mandíbula (delante y a los lados; detrás, la bisagra).
+    borde_sup = cy_sup - 2.0
+    m.caja('cabeza', (0, borde_sup - 0.75, z0 + D / 2), (W + 0.5, 3.5, D + 0.5),
+           dientes_capa(f'dientes_arriba_{color}', RD, arriba=True, encia=2, largo=5))
+    borde_inf = cy_inf + 1.5
+    m.caja('mandibula', (0, borde_inf + 0.5, z0 + D / 2 - 0.5), (W - 0.5, 3.0, D - 0.5),
+           dientes_capa(f'dientes_abajo_{color}', RD, arriba=False, encia=2, largo=4))
 
-    # ---- La cabeza.
-    cy, cz = 17.8, 2.2
-    w0, d0, alto = 9.8, 8.6, 4.6
-    c = np.array((0.0, cy, cz))
-    m.parte('cabeza', 'tallob', (0, 14.4, 0.0))
-    # La gorguera: hojitas alrededor del cuello, hacia fuera y hacia abajo.
-    gorguera = brizna('gorguera', HOJA_O, ancho_base=1.5)
-    for k in range(7):
-        a = k * 360 / 7 + 8
-        hoja_hacia(m, 'cabeza', (math.sin(math.radians(a)) * 1.0, 13.8, 0.4 + math.cos(math.radians(a)) * 1.0), a, 112,
-                   2.2, 3.4, gorguera)
-
-    def piel_fuera(xs, ys, tw, th, cara, s):
-        idx = np.full((th, tw), 1)
-        venas = B.grietas(tw, th, s, cara, cuantas=max(1, tw * th // 36), giro=0.35, ramas=0.1)
-        idx[venas] = 3
-        idx[B.vecinos(venas) & ((xs + ys) % 2 == 0)] = 2
-        g = B._azar(s * 3 + tw)
-        for _ in range(max(1, tw * th // 45)):
-            x, y = int(g.integers(0, tw)), int(g.integers(0, th))
-            idx[y, x] = 7
-            if x + 1 < tw:
-                idx[y, x + 1] = 6
-        if cara == 'arriba':
-            idx[idx == 1] = 2
-        return idx
-    fuera = B.trazo(f'fuera_{color}', piel_fuera, R)
-
-    def piel_dentro(xs, ys, tw, th, cara, s):
-        # La carne de dentro: del color, la garganta oscura en medio, venas que salen de ella, el borde más oscuro (para
-        # que se separe del labio) y tres pelillos claros (los que, al tocarlos, la hacen cerrarse).
-        u, v = (xs + 0.5) / tw - 0.5, (ys + 0.5) / th - 0.5
-        rr = np.hypot(u, v * 1.1)
-        ang = np.arctan2(v, u)
-        idx = np.full((th, tw), 7)
-        idx[(np.abs(np.sin(ang * 5 + rr * 4)) < 0.16) & (rr > 0.12)] = 8
-        idx[rr < 0.22] = 6
-        idx[rr < 0.11] = 5
-        idx[rr > 0.43] = 6
-        for a0 in (0.5, 2.6, 4.7):
-            hx, hy = 0.27 * math.cos(a0), 0.27 * math.sin(a0)
-            idx[(np.abs(u - hx) < 0.6 / tw) & (np.abs(v - hy) < 0.6 / th)] = 9
-        return idx
-    dentro = B.trazo(f'dentro_{color}', piel_dentro, R)
-
-    def labio_f(xs, ys, tw, th, cara, s):
-        idx = np.full((th, tw), 7)
-        idx[((xs + s) % 4) == 0] = 8
-        return idx
-    labio = B.trazo(f'labio_{color}', labio_f, R)
-    pint_diente = B.diente(f'diente_{color}', DIENTES[color])
-    bisagra = (0.0, cy, cz - d0 / 2 * 0.86)
-    for nombre, signo in (('mandibula_sup', 1), ('mandibula_inf', -1)):
-        n = m.parte(nombre, 'cabeza', bisagra)
-        W, D = cupula(m, n, c, signo, w0, d0, alto, 6, fuera, dentro, labio)
-        corona_de_dientes(m, n, c, signo, W, D, pint_diente, 0 if signo > 0 else 1)
-    # El señuelo: un tallito con una bola que brilla, en la garganta (en la mandíbula de abajo).
-    m.viga('mandibula_inf', (0, cy - 0.4, cz + 0.4), (0, cy + 0.3, cz + 0.7), 0.6, B.liso('tallito', G, base=1))
-    m.caja('mandibula_inf', (0, cy + 0.6, cz + 0.8), (1.3, 1.2, 1.3), B.luz(f'senuelo_{color}', G))
     # Lo de cada color.
     if color == 'verde':
-        baba = B.luz('baba_verde', G)
-        m.viga('mandibula_sup', (1.2, cy - 0.2, cz + D - 0.6), (1.4, cy - 2.6, cz + D - 0.2), 0.45, baba)
-        m.caja('mandibula_sup', (1.4, cy - 2.9, cz + D - 0.2), (0.8, 0.9, 0.8), baba)
-        m.viga('mandibula_sup', (-2.4, cy - 0.2, cz + D - 1.4), (-2.6, cy - 1.6, cz + D - 1.2), 0.4, baba)
-    elif color == 'escarcha':
-        hielo = B.liso('hielo', G, base=3)
-        for (x, z, l) in ((-2.8, 2.6, 2.4), (-0.6, 3.4, 3.2), (1.6, 3.0, 2.0), (3.2, 1.0, 2.6)):
-            m.viga('mandibula_inf', (x, cy - alto * 0.55, cz + z * 0.9), (x * 1.05, cy - alto * 0.55 - l, cz + z * 0.9),
-                   0.7, hielo)
-        cristal = B.luz('cristal_escarcha', rampa('4ac8e0', '8ae8f4', 'c0f8fc', 'e8ffff', 'ffffff'))
-        for (x, z, ry) in ((-1.8, -0.6, 25), (0.4, 1.0, -10), (2.0, -1.2, 40)):
-            m.viga('mandibula_sup', (x, cy + alto - 1.0, cz + z), (x * 1.5, cy + alto + 2.2, cz + z - 0.8), 1.0, cristal,
-                   rodar=ry)
-    m.mirar(('cabeza', 0.6), ('tallob', 0.3))
+        # La baba de veneno que cuelga de la mandíbula de abajo (gotas encendidas).
+        gota = luz_plana('baba_veneno', VENENO, v=2.2)
+        for (x, largo) in ((-2.5, 2), (1.5, 3)):
+            m.caja('mandibula', (x, cy_inf - 1.5 - largo / 2, z0 + D - 3.0), (1, largo, 1), gota)
+    elif color == 'carmin':
+        # Las espinas del tallo: púas de un píxel, oscuras, hacia fuera y algo hacia arriba.
+        espina = tallo('espina_carmin', rampa('0a0202', '1e0606', '360c0c', '501414', '6c1e1e'), base=1.4, estomas=0)
+        for i, (lado, z) in enumerate(((1, 0), (-1, 0), (0, -1), (1, 0), (-1, 1), (0, 1))):
+            t = i % 4
+            base_p = puntos[t] + (puntos[t + 1] - puntos[t]) * (0.3 + 0.15 * (i % 3))
+            g = gruesos[t] / 2
+            dirv = np.array((lado, 0.6, z if lado == 0 else 0.0))
+            dirv = dirv / np.linalg.norm(dirv)
+            m.viga(f'tallo{t}', base_p + dirv * (g - 0.3), base_p + dirv * (g + 2.0), 1, espina)
+    else:
+        # Los carámbanos que cuelgan de la mandíbula de abajo, y escarcha encima de la cabeza (2.ª capa).
+        hielo = luz_plana('hielo_escarcha', HIELO, v=2.6)
+        for (x, z, largo) in ((-3.5, D - 3.0, 3), (-0.5, D - 2.5, 2), (3.0, D - 3.5, 4), (4.0, 5.0, 2), (-4.0, 6.0, 3)):
+            m.caja('mandibula', (x, cy_inf - 1.5 - largo / 2, z0 + z), (1, largo, 1), hielo)
 
-    # siempre: el tallo se mece, la cabeza cabecea y la boca respira entreabierta (se le ve el señuelo).
+        def escarcha_capa(tw, th, cara, s):
+            xs, ys = L._malla(tw, th)
+            a = _azar1(xs, ys, s)
+            if cara == 'arriba':
+                dentro_ = a < 0.45
+            elif cara == 'abajo':
+                dentro_ = np.zeros((th, tw), bool)
+            else:
+                dentro_ = (ys == 0) & (a < 0.7) | ((ys == 1) & (a < 0.25))
+            v = 2.6 + (a > 0.8) * 0.8
+            tex = L._rgba(L.color_continuo(HIELO, np.full((th, tw), 1.0) * v))
+            tex[..., 3] = np.where(dentro_, 255, 0)
+            return tex, None
+        redondo(m, 'cabeza', (0, cy_sup + 0.25, z0 + D / 2), (W + 1, 4, D + 1), B.Pintor('escarcha_capa', escarcha_capa))
+
+    m.mirar(('cabeza', 0.5), ('tallo3', 0.3))
+    # siempre: el tallo se mece, la cabeza respira con la boca entreabierta.
     s = m.anim('siempre', 3.0, bucle=True)
-    s.onda('tallo', 'r', 2, 4, periodo=3.0)
-    s.onda('tallob', 'r', 0, 5, periodo=1.5, fase=0.2)
-    s.onda('cabeza', 'r', 0, 4, periodo=1.5, fase=0.45)
-    s.onda('mandibula_sup', 'r', 0, 5, periodo=1.5, base=-15)
-    s.onda('mandibula_inf', 'r', 0, -3, periodo=1.5, base=9)
-    # ataque: se echa atrás abriendo la boca de par en par y se lanza cerrándola de golpe (y la sujeta un momento).
+    s.onda('tallo1', 'r', 2, 3, periodo=3.0)
+    s.onda('tallo2', 'r', 0, 3, periodo=1.5, fase=0.25)
+    s.onda('cabeza', 'r', 0, -3, periodo=1.5)
+    s.onda('mandibula', 'r', 0, 6, periodo=1.5, forma=lambda v: (v + 1) / 2)
+    # ataque: se echa atrás, abre la boca de par en par, se lanza y la cierra de golpe.
     at = m.anim('ataque', 0.6)
-    at.rot('tallob', [(0, 0, 0, 0), (0.16, -22, 0, 0), (0.28, 34, 0, 0), (0.44, 26, 0, 0), (0.6, 0, 0, 0)])
-    at.rot('cabeza', [(0, 0, 0, 0), (0.16, -16, 0, 0), (0.28, 12, 0, 0), (0.44, 8, 0, 0), (0.6, 0, 0, 0)])
-    at.rot('mandibula_sup', [(0, 0, 0, 0), (0.16, -40, 0, 0), (0.27, 17, 0, 0), (0.44, 15, 0, 0), (0.6, 0, 0, 0)])
-    at.rot('mandibula_inf', [(0, 0, 0, 0), (0.16, 26, 0, 0), (0.27, -10, 0, 0), (0.44, -9, 0, 0), (0.6, 0, 0, 0)])
-    # muerte: se marchita: el tallo se dobla, la cabeza cae con la boca abierta y se encoge.
+    at.rot('tallo2', [(0, 0, 0, 0), (0.16, -16, 0, 0), (0.28, 22, 0, 0), (0.6, 0, 0, 0)])
+    at.rot('tallo3', [(0, 0, 0, 0), (0.16, -14, 0, 0), (0.28, 26, 0, 0), (0.6, 0, 0, 0)])
+    at.rot('cabeza', [(0, 0, 0, 0), (0.16, -20, 0, 0), (0.28, 10, 0, 0), (0.6, 0, 0, 0)])
+    at.rot('mandibula', [(0, 0, 0, 0), (0.16, 38, 0, 0), (0.28, -2, 0, 0), (0.6, 0, 0, 0)])
+    # muerte: se marchita y se dobla hasta el suelo.
     d = m.anim('muerte', 1.0)
-    d.rot('tallo', [(0, 0, 0, 0), (1.0, 32, 0, 18)])
-    d.rot('tallob', [(0, 0, 0, 0), (1.0, 55, 0, 0)])
-    d.rot('cabeza', [(0, 0, 0, 0), (1.0, 30, 0, 0)])
-    d.rot('mandibula_sup', [(0, 0, 0, 0), (1.0, -32, 0, 0)])
-    d.rot('mandibula_inf', [(0, 0, 0, 0), (1.0, 18, 0, 0)])
-    d.esc('cabeza', [(0, 1, 1, 1), (1.0, 0.85, 0.85, 0.85)])
+    d.rot('tallo1', [(0, 0, 0, 0), (1.0, 34, 0, 8)])
+    d.rot('tallo2', [(0, 0, 0, 0), (1.0, 40, 0, 0)])
+    d.rot('tallo3', [(0, 0, 0, 0), (1.0, 30, 0, 0)])
+    d.rot('mandibula', [(0, 0, 0, 0), (0.4, 30, 0, 0), (1.0, 24, 0, 0)])
+    d.esc('raiz', [(0, 1, 1, 1), (1.0, 0.9, 0.8, 0.9)])
+    m.paso = 0.0
 
     def dib(px, filas, c_):
-        # La cabeza (dos mandíbulas con dientes) y el tallo.
-        for x in range(4, 12):
-            px[x, 3] = c_('2a6a1a')
-            px[x, 4] = c_(c2)
-            px[x, 7] = c_(c2)
-            px[x, 8] = c_('2a6a1a')
-        for x in (5, 7, 9, 11):
+        for f in range(4, 8):
+            a, b = filas[f]
+            for x in range(a + 1, b):
+                px[x, f] = c_(piel_h[1])
+        for x in range(5, 11):
+            px[x, 6] = c_('e07a8a')
+        for x in (5, 7, 9):
             px[x, 5] = c_('fffcf2')
-        for x in (4, 6, 8, 10):
-            px[x, 6] = c_('fffcf2')
+        for x in (6, 8, 10):
+            px[x, 7] = c_('fffcf2')
         for f in range(9, 14):
-            px[7, f] = px[8, f] = c_('427e26')
-    return terminar(m, raiz, f'Fauces {nombre_es}', f'{nombre_en} Maw',
-                    (('5aac36', '3e8a26', '2a6a1a'), ('0e2a08', '061404'), dib),
-                    ((1.25, 1.45, 1.95), (0, 0.85, 0.05)),
-                    particulas=(('savia', chispa(tuple(int(c2[i:i + 2], 16) for i in (0, 2, 4)))),
+            px[7, f] = px[8, f] = c_(piel_h[2])
+    return terminar(m, raiz, f'Fauces {nombre_es}', f'{nombre_en} Maw', (piel_h, cont_h, dib),
+                    ((1.9, 2.0, 2.8), (0, 1.2, 0.15)),
+                    particulas=(('savia', chispa(tuple(int(piel_h[0][i:i + 2], 16) for i in (0, 2, 4)))),
                                 ('hoja', esquirla((62, 138, 38))))
                     + ((('escarcha', copo()),) if color == 'escarcha' else ()),
                     poses=[('siempre', 0.5), ('ataque', 0.16), ('ataque', 0.3), ('muerte', 1.0)])
 
 
 # ======================================================================================================================
-#  La Trampa Verde
+#  La Trampa Verde (Tramplanta)
 # ======================================================================================================================
-# La hierba de dentro, en grises (el juego la tiñe del verde de su bioma mientras espera), y la de las briznas.
-CESPED = rampa('707070', '858585', '9a9a9a', 'afafaf', 'c4c4c4')
-SALVIA = rampa('5a7a4a', '6e8e5a', '82a26a', '96b67a', 'aaca8a')
-PESTANA = rampa('4a6a30', '7a9a50', 'b8d090', 'e0f0c0', 'f8fff0')
-CARNE = rampa('5a1a2a', '8a2a40', 'b84a62', 'e07a90', 'ffb8c8')
+# Lo de dentro, en grises, como la hierba de Minecraft: mientras espera, el juego la tiñe del verde de su bioma.
+CESPED = rampa('6a6a6a', '808080', '969696', 'acacac', 'c2c2c2')
+HOJA_T = rampa('0e2a08', '1a4a10', '2a6a1a', '3e8a26', '5aac36')
+ROJO_T = rampa('4a0a14', '7a1424', 'aa2a3a', 'd84a5a', 'f87a88')
+# Las pestañas, en grises claros: escondida, el juego las tiñe del verde de la hierba (un poco más claras que ella, como
+# briznas); cerrada, son los dientes pálidos de su ficha.
+PESTANA = rampa('76766f', '93938a', 'adada3', 'c4c4ba', 'd8d8ce')
+# Los cantos de los lóbulos: un gris verdoso que cerrado parece la hoja y teñido se confunde con la hierba.
+CANTO_T = rampa('5e6658', '737d6c', '899482', '9faa97', 'b4beab')
 
 
 def trampa(raiz):
-    """La Trampa Verde: dos lóbulos en media luna unidos por un nervio (la bisagra), con una fila de pestañas largas en
-    el borde. Escondida (estado1), los lóbulos están abiertos y tumbados en el suelo: por dentro son del verde del césped
-    (con tres pelillos rosados, los que la disparan) y las pestañas quedan tendidas como si fueran hierba. Al pisarla se
-    cierra de golpe: por fuera es verde con las venas oscuras y el borde se enrojece; las pestañas se cruzan arriba.
-
-    Lo de dentro va en grises, como la hierba de Minecraft: mientras espera, el juego la tiñe del verde de la hierba de
-    su bioma (BestiaRenderer, getModelTint), así que es del color exacto del suelo en el que está."""
+    """La Trampa Verde: dos lóbulos de pie unidos por la bisagra (en escalones, de media luna), con las pestañas largas
+    en el borde de arriba. Por fuera, verdes con las venas y el borde enrojecido; por dentro, el césped (en grises, que el
+    juego tiñe del verde de la hierba del bioma) con los tres pelillos que la disparan. Escondida, se tumba abierta en el
+    suelo, se hunde un píxel y casi no se ve (Juan, 19-10-2026: «solo un poco debe diferenciarse… si un despistado no
+    presta la atención mínima, va a caer»): lo que queda a la vista es del gris de la hierba de Minecraft (la misma luz y
+    el mismo contraste, a 16 por bloque), que el juego tiñe del verde de su bioma; solo la delatan las pestañas, algo más
+    claras, y la línea del labio."""
     m = B.Modelo('trampa', K=2, ancho=128)
-    m.escala = 1.3
-    # El nervio de en medio (la bisagra) y unas briznas que lo tapan.
+    m.escala = 1.0
     m.parte('base', None, (0, 0, 0))
-    m.caja('base', (0, 0.5, 0), (1.8, 1.0, 15.6), B.anillos('bisagra_trampa', TALLO, paso=2))
-    hierba = brizna('brizna_trampa', SALVIA, ancho_base=0.9)
-    for k, (x, z) in enumerate(((-0.4, 6.6), (0.5, 3.8), (-0.3, 1.0), (0.5, -2.0), (-0.5, -4.6), (0.4, -6.8))):
-        for g in (30 + k * 17, 120 + k * 17):
-            hoja_hacia(m, 'base', (x, 0.8, z), g, 18, 1.1, 2.6 + (k % 2) * 0.6, hierba)
+    canto = B.Pintor('canto_trampa', lambda tw, th, c, s_: (L._rgba(L.color_continuo(
+        CANTO_T, np.full((th, tw), 2.0) + (_azar1(*L._malla(tw, th), s_) > 0.7) * 0.5)), None))
+    m.caja('base', (0, 0.5, 0), (2, 1, 14), canto, caras={'arriba': None})
 
-    def fuera_f(alto_):
-        def f(xs, ys, tw, th, cara, s):
-            idx = np.full((th, tw), 2)
-            venas = B.grietas(tw, th, s, cara, cuantas=max(1, tw * th // 30), giro=0.25, ramas=0.12)
-            idx[venas] = 1
-            if alto_:
-                # El borde se enrojece (las filas de arriba de la parte alta del lóbulo).
-                v = (ys + 0.5) / th
-                idx = np.where((v < 0.45) & ~venas, 7, idx)
-                idx = np.where((v < 0.2) & ~venas, 8, idx)
-            return idx
-        return f
-    fuera_bajo = B.trazo('fuera_trampa', fuera_f(False), juntar(HOJA, CARNE))
-    fuera_alto = B.trazo('fuera_alto_trampa', fuera_f(True), juntar(HOJA, CARNE))
+    def fuera_fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        a = _azar1(xs, ys, s)
+        v = _v(tw, th, cara, s, 2.0, 0.6)
+        venas = B.grietas(tw, th, s, cara, cuantas=max(1, tw * th // 24), giro=0.25, ramas=0.1)
+        v = np.where(venas, v - 0.7, v)
+        tex = L._rgba(L.color_continuo(HOJA_T, v))
+        return tex, None
 
-    def dentro_f(xs, ys, tw, th, cara, s):
-        # El césped: motas de dos verdes y alguna más clara, y algún pelillo rosado.
-        g = B._azar(s * 5 + tw * 11 + th)
-        idx = np.full((th, tw), 2)
-        idx[((xs * 3 + ys * 7 + s) % 5) == 0] = 1
-        idx[((xs * 5 + ys * 3 + s) % 7) == 0] = 3
-        idx[((xs * 2 + ys * 9 + s) % 13) == 0] = 4
-        if tw * th > 12 and g.random() < 0.5:
-            idx[int(g.integers(0, th)), int(g.integers(0, tw))] = 8
-        return idx
-    dentro = B.trazo('dentro_trampa', dentro_f, juntar(CESPED, CARNE))
-    borde = B.liso('borde_trampa', CARNE, base=2)
-    pestana = B.diente('pestana_trampa', PESTANA)
-    R = 8.0
-    zs = (-7.0, -5.0, -3.0, -1.0, 1.0, 3.0, 5.0, 7.0)
+    def borde_fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        v = 2.4 + ((xs + ys) % 2) * 0.4
+        return L._rgba(L.color_continuo(ROJO_T, v)), None
+
+    def dentro_fn(tw, th, cara, s):
+        # El césped como la hierba de Minecraft (en grises, que el juego tiñe): un gris de media 147 y desviación 18,
+        # de 112 a 195, píxel a píxel a 16 por bloque.
+        xs, ys = L._malla(tw, th)
+        z = (_azar1(xs, ys, s) + _azar1(xs, ys, s + 3) + _azar1(xs, ys, s + 7) - 1.5) / 0.5
+        g = np.clip(147 + z * 18, 112, 195)
+        # Los pelillos que la disparan: dos o tres píxeles apenas más oscuros y algo rojizos.
+        pelo = _azar1(xs, ys, s + 11) > 0.985
+        rgb = np.stack([g, g, g], -1)
+        rgb[pelo] = (128, 104, 100)
+        return L._rgba(rgb), None
+    fuera = B.fino(B.Pintor('fuera_trampa', fuera_fn))
+    borde = B.Pintor('borde_trampa', borde_fn)
+    dentro = B.Pintor('dentro_trampa', dentro_fn)
+    pestana = diente('pestana_trampa', PESTANA)
+    # Las filas del lóbulo, de abajo arriba: (alto, largo); la media luna en escalones.
+    filas = ((2, 14), (2, 12), (1, 10), (1, 7))
     for lado, ld in LADOS:
-        n = m.parte(f'hoja_{ld}', 'base', (lado * 0.9, 1.0, 0))
+        n = m.parte(f'hoja_{ld}', 'base', (lado * 1.0, 1.0, 0))
         ext, inn = ('der', 'izq') if lado > 0 else ('izq', 'der')
-        for i, z in enumerate(zs):
-            c = math.sqrt(max(0.0, 1.0 - (z / 8.8) ** 2))
-            h = R * c + 0.6
-            # La parte de abajo, abombada hacia fuera; la de arriba vuelve hacia dentro, inclinada.
-            caras_b = {'frente': fuera_bajo, 'atras': fuera_bajo, ext: fuera_bajo, inn: dentro, 'abajo': fuera_bajo,
-                       'arriba': fuera_bajo}
-            m.caja(n, (lado * (1.4 + 1.3 * c), 1.0 + h * 0.3, z), (1.0, h * 0.6, 2.06), None, caras=caras_b)
-            caras_a = {'frente': fuera_alto, 'atras': fuera_alto, ext: fuera_alto, inn: dentro, 'abajo': fuera_alto,
-                       'arriba': borde}
-            xa = lado * (1.2 + 0.7 * c)
-            m.caja(n, (xa, 1.0 + h * 0.78, z), (1.0, h * 0.46, 2.06), None, caras=caras_a, rot=(0, 0, lado * 14))
-        # Las pestañas del borde (una por píxel, corridas medio píxel entre un lóbulo y el otro para que se crucen):
-        # arriba y hacia dentro; escondida, quedan de punta entre la hierba.
-        zc = -7.5 if lado > 0 else -7.0
-        while zc <= 7.5 + 1e-6:
-            c = math.sqrt(max(0.0, 1.0 - (zc / 8.8) ** 2))
-            h = R * c + 0.6
-            xa = lado * (1.2 + 0.7 * c)
-            s14, c14 = math.sin(math.radians(14)), math.cos(math.radians(14))
-            top = (xa - lado * 0.23 * h * s14, 1.0 + 0.78 * h + 0.23 * h * c14 - 0.2, zc)
-            colmillo(m, n, top, (-lado * 0.62, 1.0, 0.0), (0, 0, 1), 3.4 * c + 0.4, 0.55, pestana)
-            zc += 1.0
+        y = 1.0
+        for k, (h, largo) in enumerate(filas):
+            x = lado * (1.5 + (0.5 if k < 2 else 0.0))
+            # Lo que se ve escondida (lo de dentro, los cantos de las puntas y lo de arriba de cada escalón), del gris de la
+            # hierba; solo el labio de arriba del todo, rojo.
+            caras = {'frente': canto, 'atras': canto, ext: fuera, inn: dentro, 'abajo': canto,
+                     'arriba': borde if k == len(filas) - 1 else dentro}
+            m.caja(n, (x, y + h / 2, 0), (1, h, largo), None, caras=caras)
+            # Las pestañas: en los escalones que deja la fila de encima, una por cada tres píxeles, cortas.
+            sig = filas[k + 1][1] if k + 1 < len(filas) else 0
+            for z in np.arange(-largo / 2 + 0.5, largo / 2, 3.0):
+                if abs(z) < sig / 2 - 0.1:
+                    continue
+                m.caja(n, (x - lado * 0.5, y + h + 1.0, z), (1, 2, 1), pestana, rot=(0, 0, lado * 25))
+            y += h
+        # Las pestañas de arriba del todo, más largas, que se cruzan con las del otro lóbulo.
+        for z in np.arange(-filas[-1][1] / 2 + 0.5, filas[-1][1] / 2, 2.0):
+            m.caja(n, (lado * 1.5 - lado * 0.6, y + 1.4, z + (1.0 if lado > 0 else 0.0)), (1, 3, 1), pestana,
+                   rot=(0, 0, lado * 28))
     # estado1: escondida (los lóbulos abiertos y tumbados en el suelo).
     e1 = m.anim('estado1', 1.0, bucle=True)
     for lado, ld in LADOS:
         e1.rot(f'hoja_{ld}', [(0, 0, 0, lado * -90), (1.0, 0, 0, lado * -90)])
+    # Hundida un píxel en el suelo: solo asoma la cara de arriba.
+    e1.mov('base', [(0, 0, -1.2, 0), (1.0, 0, -1.2, 0)])
     # aparece: salta y se cierra de golpe (de tumbada a cerrada, pasándose un poco y rebotando).
     ap = m.anim('aparece', 0.45)
     for lado, ld in LADOS:
         ap.rot(f'hoja_{ld}', [(0, 0, 0, lado * -90), (0.07, 0, 0, lado * -40), (0.12, 0, 0, lado * 8),
                              (0.2, 0, 0, lado * -4), (0.3, 0, 0, 0)])
-    ap.mov('base', [(0, 0, 0, 0), (0.08, 0, 2.6, 0), (0.2, 0, -0.4, 0), (0.3, 0, 0, 0)])
-    # reposo (cerrada, sin esconderse): mastica, apretando y aflojando.
+    ap.mov('base', [(0, 0, 0, 0), (0.08, 0, 2.0, 0), (0.2, 0, -0.3, 0), (0.3, 0, 0, 0)])
+    # reposo (cerrada): mastica, apretando y aflojando.
     r = m.anim('reposo', 1.2, bucle=True)
     for lado, ld in LADOS:
         r.onda(f'hoja_{ld}', 'r', 2, lado * -7, periodo=0.6, forma=lambda v: max(0.0, v))
     r.onda('base', 'e', 1, 0.04, periodo=0.6, base=1.0)
-    # ataque: aprieta fuerte (el mordisco de cada golpe de veneno).
+    # ataque: aprieta fuerte.
     at = m.anim('ataque', 0.4)
     for lado, ld in LADOS:
         at.rot(f'hoja_{ld}', [(0, 0, 0, 0), (0.08, 0, 0, lado * 6), (0.4, 0, 0, 0)])
@@ -464,91 +469,138 @@ def trampa(raiz):
     for lado, ld in LADOS:
         d.rot(f'hoja_{ld}', [(0, 0, 0, 0), (1.0, 0, 0, lado * -65)])
     d.esc('base', [(0, 1, 1, 1), (1.0, 0.85, 0.6, 0.85)])
+    m.paso = 0.0
 
-    def dib(px, filas, c_):
+    def dib(px, filas_, c_):
         for f in range(6, 13):
-            a, b = filas[f]
+            a, b = filas_[f]
             for x in range(a + 1, b):
-                px[x, f] = c_('4e922c' if (x + f) % 3 else '3e7a22')
+                px[x, f] = c_('3e8a26' if (x + f) % 3 else '2a6a1a')
         for x in (4, 6, 8, 10, 12):
             px[x, 5] = c_('f8fff0')
         for x in (5, 7, 9, 11):
-            px[x, 6] = c_('e07a90')
-    return terminar(m, raiz, 'Trampa Verde', 'Green Trap', (('88cc56', '5eaa36', '3e7a22'), ('1a4a10', '0e2a08'), dib),
-                    ((0.95, 0.95, 1.35), (0, 0.3, 0)),
+            px[x, 6] = c_('d84a5a')
+    return terminar(m, raiz, 'Trampa Verde', 'Green Trap', (('5aac36', '3e8a26', '2a6a1a'), ('0e2a08', '061404'), dib),
+                    ((1.1, 1.0, 1.5), (0, 0.3, 0)),
                     particulas=(('hoja', esquirla((94, 170, 54))), ('pestana', esquirla((224, 240, 192)))),
                     poses=[('estado1', 0.5), ('aparece', 0.1), ('reposo', 0.15), ('muerte', 1.0)])
 
 
 # ======================================================================================================================
-#  La Piña Brava
+#  La Piña Brava (Piña Malibú)
 # ======================================================================================================================
-PINA = rampa('6a3a04', 'a8640a', 'd8941a', 'f6c24a', 'fff0a0')
-CORONA = rampa('0e3a10', '1a5a1a', '2a7a2a', '42a03a', '6ac85a')
+PINA = rampa('6a3a04', '9a5a0a', 'd08e1a', 'f0bc3a', 'fde27a')
+OJO_PINA = rampa('2a1404', '4a2808', '6a3a0e', '8a5418', 'a86e22')
+CORONA = rampa('0e3a10', '1a5a16', '2a7e22', '44a432', '6ec84a')
+RAIZ_P = rampa('2e1e10', '4a3018', '6a4824', '8e6634', 'b08850')
+
+
+def escamas_pina(nombre):
+    """La piel de la piña, pintada más fina (a 32 por bloque: Juan, 19-10-2026, «en la piña sí deberías aumentar los
+    píxeles»): rombos en filas desplazadas, cada uno abombado (más claro arriba, en sombra abajo), con su junta oscura,
+    su ojo pardo abajo en el centro y su pincho claro arriba; más clara arriba la piña entera."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        v = _v(tw, th, cara, s, 2.3, 1.0)
+        if cara not in ('arriba', 'abajo') and tw > 4:
+            # Lo redondo: las columnas de los cantos, más oscuras.
+            v = v - ((xs == 0) | (xs == tw - 1)) * 0.5 - ((xs == 1) | (xs == tw - 2)) * 0.2
+        P = 6
+        u = (xs + ys) % P
+        w = (xs - ys) % P
+        # La posición dentro del rombo: de -1 a 1 en las dos diagonales; arriba es donde u + w es pequeño.
+        du = (u + 0.5) / P * 2 - 1
+        dw = (w + 0.5) / P * 2 - 1
+        alto = -(du + dw) / 2                       # 1 arriba del rombo, -1 abajo
+        v = v + alto * 0.45
+        junta = (u == 0) | (w == 0)
+        v = np.where(junta, v - 1.0, v)
+        rgb = L.color_continuo(PINA, v)
+        if cara not in ('arriba', 'abajo'):
+            ojo = (np.abs(du) < 0.36) & (np.abs(dw) < 0.36) & (alto < 0.1)
+            ojo_c = (np.abs(du) < 0.2) & (np.abs(dw) < 0.2) & (alto < 0.1)
+            punta = (np.abs(du + 0.5) < 0.2) & (np.abs(dw + 0.5) < 0.2)
+            rgb = np.where(ojo[..., None], L.color_continuo(OJO_PINA, np.full(ojo.shape, 2.4)), rgb)
+            rgb = np.where(ojo_c[..., None], L.color_continuo(OJO_PINA, np.full(ojo.shape, 1.2)), rgb)
+            rgb = np.where(punta[..., None], L.color_continuo(PINA, np.full(punta.shape, 4.2)), rgb)
+        return L._rgba(rgb), None
+    return B.fino(B.Pintor(nombre, fn))
+
+
+def hoja_corona(nombre):
+    """Una hoja de la corona en una lámina, pintada fina: estrecha, en punta, con el nervio claro, el borde un tono más
+    oscuro y la punta más clara (lo de fuera, transparente)."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        u = (xs + 0.5) / tw - 0.5
+        v = (ys + 0.5) / th                      # 0 arriba (la punta), 1 abajo (la base)
+        perfil = 0.5 * np.clip(v * 1.15, 0.05, 1.0)
+        dentro = np.abs(u) <= perfil
+        val = 2.0 + (1 - v) * 1.4 + (u < 0) * 0.3
+        val = np.where(np.abs(u) < 0.5 / tw + 0.01, val + 0.6, val)
+        val = np.where(np.abs(u) > perfil - 1.0 / tw, val - 0.6, val)
+        tex = L._rgba(L.color_continuo(CORONA, val))
+        tex[..., 3] = np.where(dentro, 255, 0)
+        return tex, None
+    return B.fino(B.Pintor(nombre, fn))
+
+
+def _giro_hacia(d, giro):
+    """Los ángulos (x, y, z en radianes, Z·Y·X como ModelPart) que llevan el eje Y a la dirección d, girando además
+    'giro' grados alrededor de ella (para cruzar dos láminas)."""
+    d = np.asarray(d, float) / np.linalg.norm(d)
+    ref = np.array((0.0, 0.0, 1.0)) if abs(d[2]) < 0.9 else np.array((1.0, 0.0, 0.0))
+    x = np.cross(d, ref)
+    x /= np.linalg.norm(x)
+    z = np.cross(x, d)
+    g = math.radians(giro)
+    x, z = x * math.cos(g) + z * math.sin(g), -x * math.sin(g) + z * math.cos(g)
+    R = np.stack([x, d, z], axis=1)
+    return np.array(B.euler_zyx(R))
 
 
 def pina(raiz):
-    """La Piña Brava: una piña chica (las escamas en rombos, cada una con su pincho) con una corona de hojas en punta
-    en tres pisos (las de dentro, de pie; las de fuera, abiertas), cejas fruncidas, ojos negros con su brillo y una boca
-    de dientes apretados; dos bracitos de tallo con los puños de hoja y dos patas cortas de raíz. Pega muy deprisa:
-    un uno-dos con los puños."""
+    """La Piña Brava: una piña chica (las escamas en rombo, cada una con su ojo y su pincho) con la corona de hojas en
+    punta (las de dentro de pie, las de fuera abiertas), dos patas cortas de raíz y dos puños de hoja: sin cara, como
+    la de su ficha. Corre y pega muy deprisa: un uno-dos con los puños."""
     m = B.Modelo('pina', K=2, ancho=128)
-    m.escala = 0.85
-
-    def escamas(xs, ys, tw, th, cara, s):
-        u = (xs + ys) % 6
-        v = (xs - ys) % 6
-        idx = np.full((th, tw), 2)
-        idx[(u == 0) | (v == 0)] = 1
-        idx[(u == 3) & (v == 3)] = 4
-        idx[((u == 2) & (v == 3)) | ((u == 3) & (v == 2))] = 3
-        if cara == 'abajo':
-            idx[...] = 1
-        return idx
-    pint = B.trazo('escamas_pina', escamas, PINA)
-    m.parte('cuerpo', None, (0, 4.0, 0))
-    r = 4.6
-    cyb = 8.4
-    m.esfera('cuerpo', (0, cyb, 0), r, lambda k, n: pint, cortes=7)
-    # La cara: ojos negros con su brillo, cejas fruncidas y la boca de dientes apretados.
-    zf = r * 1.03 * 0.995 + 0.1
-    negro = B.liso('ojo_pina', rampa('000000', '050505', '0c0c0c', '161616', '202020'), base=2)
-    brillo = B.liso('brillo_pina', rampa('ffffff', 'ffffff', 'ffffff', 'ffffff', 'ffffff'))
-    ceja = B.liso('ceja_pina', rampa('2a1402', '3a1e04', '4a2806', '5a3208', '6a3a0a'), base=2)
-    for lado in (-1, 1):
-        m.caja('cuerpo', (lado * 1.5, cyb + 1.0, zf), (1.5, 1.5, 0.3), negro)
-        m.caja('cuerpo', (lado * 1.5 - lado * 0.35, cyb + 1.4, zf + 0.18), (0.5, 0.5, 0.1), brillo)
-        m.caja('cuerpo', (lado * 1.7, cyb + 2.25, zf + 0.12), (2.3, 0.7, 0.4), ceja, rot=(0, 0, lado * 24))
-    boca = B.liso('boca_pina', rampa('1a0404', '2a0808', '3a0c0c', '4a1010', '5a1414'), base=1)
-    m.caja('cuerpo', (0, cyb - 1.5, zf - 0.05), (3.6, 1.6, 0.3), boca)
-    dpina = B.diente('diente_pina')
-    m.dientes('cuerpo', (-1.35, cyb - 0.75, zf + 0.12), (1.35, cyb - 0.75, zf + 0.12), 4, 0.8, (0, -1, 0), dpina,
-              ancho=0.6)
-    m.dientes('cuerpo', (-0.9, cyb - 2.25, zf + 0.12), (0.9, cyb - 2.25, zf + 0.12), 3, 0.7, (0, 1, 0), dpina,
-              ancho=0.6)
-    # La corona: tres pisos de hojas.
-    m.parte('corona', 'cuerpo', (0, cyb + r - 0.4, 0))
-    hoja_c = brizna('hoja_corona', CORONA, ancho_base=1.3)
-    base_c = (0.0, cyb + r - 0.6, 0.0)
-    for k in range(4):
-        hoja_hacia(m, 'corona', base_c, k * 90 + 45, 10, 2.4, 7.4, hoja_c)
-    for k in range(6):
-        hoja_hacia(m, 'corona', base_c, k * 60 + 15, 32, 2.4, 6.0, hoja_c)
-    for k in range(8):
-        hoja_hacia(m, 'corona', (0.0, cyb + r - 1.0, 0.0), k * 45, 62, 2.2, 4.6, hoja_c)
-    # Los bracitos y los puños.
-    tallo_b = B.anillos('brazo_pina', TALLO, paso=2)
-    puno = B.trazo('puno_pina', lambda xs, ys, tw, th, cara, s: np.where((xs + ys) % 3 == 0, 3, 2), CORONA)
+    m.escala = 1.0
+    m.parte('cuerpo', None, (0, 3.0, 0))
+    cyb = 6.5
+    esc = escamas_pina('escamas_pina')
+    m.caja('cuerpo', (0, cyb, 0), (6, 7, 6), esc)
+    # Los hombros y la base, más estrechos: la piña se cierra arriba y abajo.
+    m.caja('cuerpo', (0, cyb + 3.5 + 0.5, 0), (4, 1, 4), esc)
+    m.caja('cuerpo', (0, cyb - 3.5 - 0.5, 0), (4, 1, 4), esc)
+    # La corona: un tocón y las hojas en tres pisos.
+    m.parte('corona', 'cuerpo', (0, cyb + 3.5, 0))
+    m.caja('corona', (0, cyb + 4.0, 0), (2, 1, 2), tallo('toco_pina', CORONA, base=1.6))
+    # Las hojas, en dos láminas cruzadas (para que se vean de todos lados), estrechas y en punta.
+    hoja = hoja_corona('hoja_corona')
+    base_c = np.array((0, cyb + 4.4, 0))
+    for k, (ang, incl, largo) in enumerate(((0, 6, 6), (180, 8, 5), (60, 24, 5), (120, 24, 5), (240, 24, 5), (300, 24, 5),
+                                            (30, 46, 4), (90, 46, 4), (150, 46, 4), (210, 46, 4), (270, 46, 4),
+                                            (330, 46, 4), (0, 66, 3), (90, 66, 3), (180, 66, 3), (270, 66, 3))):
+        a, b = math.radians(ang), math.radians(incl)
+        dvec = np.array((math.sin(a) * math.sin(b), math.cos(b), math.cos(a) * math.sin(b)))
+        centro = base_c + dvec * (largo / 2 + 0.3)
+        for giro in (0, 90):
+            m.hoja('corona', tuple(centro), 2, largo, hoja, rot=tuple(np.degrees(_giro_hacia(dvec, giro))))
+    # Los bracitos (de tallo) y los puños de hoja.
+    brazo = tallo('brazo_pina', CORONA, base=1.8)
+    puno = tallo('puno_pina', CORONA, base=2.4, estomas=0.12)
     for lado, ld in LADOS:
-        n = m.parte(f'brazo_{ld}', 'cuerpo', (lado * (r - 0.4), cyb - 0.2, 0.4))
-        m.viga(n, (lado * (r - 0.4), cyb - 0.2, 0.4), (lado * (r + 1.6), cyb - 2.2, 1.6), 1.0, tallo_b, extra=0.4)
-        m.caja(n, (lado * (r + 1.8), cyb - 2.6, 1.9), (1.9, 1.9, 1.9), puno)
-    # Las patas.
-    pata = B.anillos('pata_pina', RAIZ, paso=2)
+        h = np.array((lado * 3.0, cyb - 0.5, 0.5))
+        n = m.parte(f'brazo_{ld}', 'cuerpo', tuple(h))
+        mano = h + np.array((lado * 1.2, -1.6, 1.4))
+        m.viga(n, h, mano, 1, brazo, extra=0.5)
+        m.caja(n, tuple(mano + np.array((0, -0.4, 0.5))), (2, 2, 2), puno)
+    # Las patas, cortas, de raíz.
+    pata = tallo('pata_pina', RAIZ_P, base=1.8)
     for lado, ld in LADOS:
-        n = m.parte(f'pata_{ld}', 'cuerpo', (lado * 1.8, 4.6, 0))
-        m.caja_desde(n, (lado * 1.8, 0.6, 0.0), (1.8, 4.6, 1.8), pata)
-        m.caja(n, (lado * 1.9, 0.5, 0.7), (2.2, 1.0, 3.0), pata)
+        n = m.parte(f'pata_{ld}', 'cuerpo', (lado * 1.5, 3.0, 0))
+        m.caja_desde(n, (lado * 1.5, 0.0, 0.0), (2, 3.4, 2), pata)
+        m.caja(n, (lado * 1.5, 0.5, 0.6), (2, 1, 3), pata)
     m.mirar(('cuerpo', 0.3))
     a = m.anim('andar', 0.3, bucle=True)
     a.onda('pata_d', 'r', 0, 42)
@@ -559,192 +611,205 @@ def pina(raiz):
     a.onda('cuerpo', 'm', 1, 0.6, periodo=0.15, forma=lambda v: abs(v))
     a.onda('corona', 'r', 0, 8, periodo=0.15)
     s = m.anim('siempre', 2.0, bucle=True)
-    s.onda('corona', 'r', 2, 5, periodo=1.0)
+    s.onda('corona', 'r', 2, 4, periodo=2.0)
     rp = m.anim('reposo', 1.2, bucle=True)
-    rp.onda('cuerpo', 'e', 1, 0.03, base=1.0, periodo=0.6)
-    rp.onda('brazo_d', 'r', 0, -12, periodo=0.6, forma=lambda v: max(0.0, v))
-    rp.onda('brazo_i', 'r', 0, -12, periodo=0.6, fase=0.5, forma=lambda v: max(0.0, v))
-    # ataque: un uno-dos (el puño derecho y luego el izquierdo) echándose adelante.
+    rp.onda('cuerpo', 'm', 1, 0.4, periodo=0.6, forma=lambda v: abs(v))
+    for lado, ld in LADOS:
+        rp.onda(f'brazo_{ld}', 'r', 0, -10, periodo=0.6, fase=0.5 if lado > 0 else 0.0)
+    # ataque: el uno-dos (derecha, izquierda), con el cuerpo que gira en cada golpe.
     at = m.anim('ataque', 0.36)
-    at.rot('cuerpo', [(0, 0, 0, 0), (0.08, 12, -12, 0), (0.2, 12, 12, 0), (0.36, 0, 0, 0)])
-    at.rot('brazo_d', [(0, 0, 0, 0), (0.06, -70, 0, 0), (0.14, 0, 0, 0)])
-    at.rot('brazo_i', [(0, 0, 0, 0), (0.14, 0, 0, 0), (0.2, -70, 0, 0), (0.3, 0, 0, 0)])
+    at.rot('brazo_d', [(0, 0, 0, 0), (0.07, -80, 0, 0), (0.16, 0, 0, 0)])
+    at.rot('brazo_i', [(0, 0, 0, 0), (0.18, 0, 0, 0), (0.25, -80, 0, 0), (0.34, 0, 0, 0)])
+    at.rot('cuerpo', [(0, 0, 0, 0), (0.07, 0, -14, 0), (0.18, 0, 0, 0), (0.25, 0, 14, 0), (0.36, 0, 0, 0)])
     d = m.anim('muerte', 1.0)
-    d.rot('cuerpo', [(0, 0, 0, 0), (0.5, 60, 0, 10), (1.0, 90, 0, 15)])
-    d.mov('cuerpo', [(0, 0, 0, 0), (1.0, 0, -3.5, 1)])
-    m.paso = 5.0
+    d.rot('cuerpo', [(0, 0, 0, 0), (0.4, 0, 0, 60), (0.7, 0, 0, 92), (1.0, 0, 0, 90)])
+    d.mov('cuerpo', [(0, 0, 0, 0), (1.0, 0, -2.5, 0)])
+    d.rot('corona', [(0, 0, 0, 0), (1.0, 20, 0, 0)])
+    m.paso = 2.4
 
-    def dib(px, filas, c):
-        for x, f in ((6, 7), (9, 7)):
-            px[x, f] = c('000000')
-        for x, f in ((5, 6), (10, 6)):
-            px[x, f] = c('3a1e04')
-        for x in (6, 7, 8, 9):
-            px[x, 10] = c('3a0c0c')
-        for x, f in ((6, 1), (8, 0), (10, 1), (7, 2), (9, 2)):
-            px[x, f] = c('42a03a')
-    return terminar(m, raiz, 'Piña Brava', 'Fierce Pineapple', (('fff0a0', 'f6c24a', 'd8941a'), ('6a3a04', '3a1e02'), dib),
-                    ((0.85, 0.85, 1.25), (0, 0.45, 0)),
+    def dib(px, filas, c_):
+        for f in range(1, 4):
+            for x in (6, 8, 10):
+                px[x, f] = c_('44a432')
+        for f in range(5, 14):
+            a, b = filas[f]
+            for x in range(a + 1, b):
+                if (x + f) % 3 == 0:
+                    px[x, f] = c_('9a5a0a')
+    return terminar(m, raiz, 'Piña Brava', 'Fierce Pineapple', (('fde27a', 'f0bc3a', 'd08e1a'), ('6a3a04', '3a1e02'), dib),
+                    ((0.8, 0.7, 1.1), (0, 0.42, 0)),
                     particulas=(('jugo', chispa((246, 194, 74))), ('hoja', esquirla((66, 160, 58)))),
-                    poses=[('andar', 0.08), ('andar', 0.22), ('ataque', 0.07), ('ataque', 0.21)])
+                    poses=[('andar', 0.08), ('andar', 0.22), ('ataque', 0.07), ('ataque', 0.25)])
 
 
 # ======================================================================================================================
 #  El Zombi Planta
 # ======================================================================================================================
-PIEL_Z = rampa('1a3a1a', '2a5228', '3e6e36', '588c48', '7aac5e')
-MUSGO = rampa('0e2a0a', '1a4210', '2a5c18', '3e7a22', '5a9a30')
-CORTEZA = rampa('2a1c10', '42301c', '5e4428', '7a5c36', '9a7848')
-POLEN = rampa('6a5004', 'a88a0a', 'e8c41a', 'fff060', 'fffcc0')
-CAMISA = rampa('0e3a3a', '145252', '1e6a6a', '2a8484', '3aa0a0')
-PANTALON = rampa('1a1a34', '26264a', '343464', '46467e', '5c5c98')
-FLOR = rampa('6a1a3a', 'a02a5a', 'd84a8a', 'f48ab4', 'ffd0e4')
+PIEL_Z = rampa('1e3a1e', '2e5428', '3e6e34', '548a44', '6ea458')
+CAMISA = rampa('0e3e3e', '145a5a', '1e7676', '2a9090', '40aaaa')
+PANTALON = rampa('1a1a3a', '262658', '343476', '444490', '5656a8')
+HIEDRA = rampa('0a2a08', '14440e', '206214', '2e7e1c', '44a02a')
+FLOR = rampa('6a1a4a', 'a0306e', 'd04a94', 'f07ab8', 'ffb4dc')
+POLEN = rampa('6a4a04', 'a0780a', 'd8aa1a', 'f8d84a', 'fff4a0')
+CORTEZA = rampa('2a1a0c', '3e2814', '563a1e', '6e4c28', '886034')
+
+
+def piel_zombi(nombre, cara=False):
+    """La piel del zombi, verde podrida, al píxel: el tono que corre, manchas de musgo (dos píxeles más oscuros) y, en
+    la cara, los ojos (el derecho, una cuenca honda; el izquierdo, encendido de polen), la nariz y la boca."""
+    def fn(tw, th, cara_, s):
+        xs, ys = L._malla(tw, th)
+        a = _azar1(xs, ys, s)
+        v = _v(tw, th, cara_, s, 2.2, 0.7)
+        v = v - (a < 0.12) * 0.7 + (a > 0.93) * 0.5
+        tex = L._rgba(L.color_continuo(PIEL_Z, v))
+        emis = None
+        if cara and cara_ == 'frente' and tw >= 8 and th >= 8:
+            # La cara de 8 x 8, como la de los zombis: ojos en la fila 4, la nariz y la boca.
+            ojo_d = (ys == 4) & ((xs == 1) | (xs == 2))
+            ojo_i = (ys == 4) & ((xs == 5) | (xs == 6))
+            tex[ojo_d, :3] = (8, 14, 8)
+            tex[(ys == 3) & ((xs == 1) | (xs == 2)), :3] = L.color_continuo(PIEL_Z, np.full(2, 0.6))
+            tex[ojo_i, :3] = L.color_continuo(POLEN, np.full(int(ojo_i.sum()), 3.2))
+            tex[(ys == 5) & ((xs == 3) | (xs == 4)), :3] = L.color_continuo(PIEL_Z, np.full(2, 0.8))
+            tex[(ys == 6) & (xs >= 2) & (xs <= 5), :3] = (14, 22, 12)
+            emis = np.zeros_like(tex)
+            emis[ojo_i] = tex[ojo_i]
+        return tex, emis
+    return B.Pintor(nombre, fn)
+
+
+def ropa(nombre, R, rotos=0.12):
+    """La ropa desteñida y rota: el tono que corre, las costuras, y los rotos (la piel verde asoma)."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        a = _azar1(xs, ys, s)
+        n = L._ruido(tw, th, s * 3 + 1, 2.5)
+        v = _v(tw, th, cara, s, 2.1, 0.7) - (a < 0.08) * 0.6
+        rgb = L.color_continuo(R, v)
+        roto = n > 1.0 - rotos * 2.5
+        rgb = np.where(roto[..., None], L.color_continuo(PIEL_Z, np.full(n.shape, 1.6) + (a > 0.5) * 0.6), rgb)
+        return L._rgba(rgb), None
+    return B.Pintor(nombre, fn)
+
+
+def hiedra_capa(nombre, densidad=0.35, flores=0.0, arriba=0.8):
+    """La 2.ª capa de hiedra y musgo (recortada): hojitas de un píxel en grupos (lo de arriba más tupido, el musgo), con
+    alguna flor rosa con su centro de polen. Lo demás, transparente."""
+    def fn(tw, th, cara, s):
+        xs, ys = L._malla(tw, th)
+        a = _azar1(xs, ys, s)
+        n = L._ruido(tw, th, s * 5 + 2, 2.0)
+        if cara == 'arriba':
+            dentro = n + a * 0.4 > 1.0 - arriba
+        elif cara == 'abajo':
+            dentro = np.zeros((th, tw), bool)
+        else:
+            dentro = n + a * 0.3 > 1.15 - densidad - (ys < 2) * 0.35
+        v = 2.0 + (a > 0.6) * 0.8 - (a < 0.2) * 0.6
+        rgb = L.color_continuo(HIEDRA, v)
+        flor = dentro & (_azar1(xs, ys, s + 9) < flores)
+        rgb = np.where(flor[..., None], L.color_continuo(FLOR, np.full(a.shape, 3.0)), rgb)
+        tex = L._rgba(rgb)
+        tex[..., 3] = np.where(dentro, 255, 0)
+        return tex, None
+    return B.fino(B.Pintor(nombre, fn))
 
 
 def zombi_planta(raiz):
-    """El Zombi Planta: un zombi al que se ha comido la planta. La ropa de siempre (la camisa turquesa y el pantalón
-    azul) desteñida y rota, con la piel verde podrida asomando por los rotos y manchas de musgo; hiedra que le cruza el
-    pecho y se enrosca en los brazos; los dedos, raíces que cuelgan; los pies echan raíces al suelo; en la cabeza, musgo,
-    flores y hojas; un ojo encendido de polen y, en el otro, una flor que le ha brotado de la cuenca; y a la espalda, un
-    arbolito que le crece del hombro."""
+    """El Zombi Planta: un zombi (la anatomía de siempre: cabeza de 8, cuerpo de 8 x 12, brazos y piernas de 4 x 12)
+    al que se ha comido la planta: la piel verde podrida, la camisa turquesa y el pantalón azul desteñidos y rotos, la
+    hiedra y el musgo en 2.ª capa (más tupidos en la cabeza y los hombros, con alguna flor), una flor rosa que le brota
+    de un ojo (el otro, encendido de polen), raíces en los pies y un arbolito que le crece a la espalda."""
     m = B.Modelo('zombi_planta', K=2, ancho=128)
-    R = juntar(PIEL_Z, POLEN)
-
-    def piel(xs, ys, tw, th, cara, s):
-        idx = np.full((th, tw), 2)
-        g = B._azar(s + tw * 3 + th)
-        for _ in range(max(1, (tw * th) // 40)):
-            cx, cy = g.integers(0, tw), g.integers(0, th)
-            idx[max(0, cy - 1):cy + 2, max(0, cx - 1):cx + 2] = 1
-        idx[((xs + ys * 2) % 7) == 0] = 3
-        return idx
-
-    def cara(xs, ys, tw, th, c, s):
-        idx = piel(xs, ys, tw, th, c, s)
-        u, v = (xs + 0.5) / tw, (ys + 0.5) / th
-        # El ojo de polen (el izquierdo del zombi, a la derecha de quien lo mira), la cuenca vacía del otro y la boca.
-        ojo = (np.abs(u - 0.7) < 0.11) & (np.abs(v - 0.45) < 0.08)
-        cuenca = (np.abs(u - 0.3) < 0.12) & (np.abs(v - 0.45) < 0.1)
-        boca = (np.abs(u - 0.5) < 0.24) & (np.abs(v - 0.76) < 0.05)
-        idx = np.where(ojo, 8, np.where(cuenca | boca, 0, idx))
-        return idx, ojo
-    pint = B.trazo('piel_zombi_planta', piel, R)
-
-    def ropa(rampa_, nombre):
-        def f(xs, ys, tw, th, cara_, s):
-            # La tela, desteñida a manchas, con rotos por los que asoma la piel verde (índices 5..: la piel) y musgo.
-            g = B._azar(s * 7 + tw + th * 5)
-            idx = np.full((th, tw), 2)
-            idx[((xs + ys * 3) % 5) == 0] = 1
-            idx[((xs * 2 + ys) % 9) == 0] = 3
-            for _ in range(max(1, tw * th // 55)):
-                cx, cy = int(g.integers(0, tw)), int(g.integers(0, th))
-                rr = g.uniform(0.8, 1.8)
-                roto = (xs - cx) ** 2 + (ys - cy) ** 2 < rr * rr
-                idx[roto] = 7
-                idx[B.vecinos(roto)] = 0
-            for _ in range(max(1, tw * th // 70)):
-                cx, cy = int(g.integers(0, tw)), int(g.integers(0, th))
-                idx[max(0, cy - 1):cy + 1, max(0, cx - 1):cx + 2] = 10 + int(g.integers(2, 4))
-            return idx
-        return B.trazo(nombre, f, np.vstack((rampa_, PIEL_Z, MUSGO)))
-    camisa = ropa(CAMISA, 'camisa_zombi_planta')
-    pantalon = ropa(PANTALON, 'pantalon_zombi_planta')
-    musgo = B.trazo('musgo', lambda xs, ys, tw, th, c, s: np.where(((xs // 2 + ys // 2) % 3) == 0, 3,
-                                                                np.where((xs + ys) % 4 == 0, 1, 2)), MUSGO)
-    hiedra = B.anillos('hiedra', MUSGO, paso=2)
-    raiz_p = B.anillos('raiz_zombi', CORTEZA, paso=2)
-    hoja = brizna('hoja_zombi', HOJA, ancho_base=1.5)
-    # El cuerpo: tronco, cabeza, brazos por delante y piernas.
+    m.escala = 1.0
+    piel = piel_zombi('piel_zombi')
+    camisa = ropa('camisa_zombi', CAMISA)
+    pantalon = ropa('pantalon_zombi', PANTALON, rotos=0.08)
+    capa = hiedra_capa('hiedra_capa', densidad=0.3, flores=0.03)
+    capa_cab = hiedra_capa('musgo_cabeza', densidad=0.5, flores=0.06, arriba=1.2)
     m.parte('cuerpo', None, (0, 12, 0))
-    m.caja_desde('cuerpo', (0, 12, 0), (8, 12, 4), camisa)
-    m.caja('cuerpo', (1.6, 21.2, 0.2), (5.6, 3.2, 4.5), musgo)
-    # La hiedra que le cruza el pecho (y la espalda).
-    m.viga('cuerpo', (-4.2, 23.4, 2.2), (3.6, 13.6, 2.2), 0.8, hiedra, extra=0.2)
-    m.viga('cuerpo', (4.2, 22.0, -2.2), (-3.0, 14.4, -2.2), 0.8, hiedra, extra=0.2)
-    for (x, y, z, a) in ((-1.6, 20.2, 2.3, 0), (1.4, 16.8, 2.3, 0), (2.0, 18.4, -2.3, 180)):
-        hoja_hacia(m, 'cuerpo', (x, y, z), a, 70, 1.8, 3.2, hoja)
+    m.caja('cuerpo', (0, 18, 0), (8, 12, 4), camisa)
+    m.caja('cuerpo', (0, 18, 0), (9, 13, 5), capa)
     m.parte('cabeza', 'cuerpo', (0, 24, 0))
-    m.caja_desde('cabeza', (0, 24, 0), (8, 8, 8), pint, caras={'frente': B.trazo('cara_zombi_planta', cara, R)})
-    m.caja('cabeza', (-1.2, 32.3, -0.6), (6.4, 1.4, 6.6), musgo)
-    m.caja('cabeza', (2.6, 31.6, 1.8), (3.0, 1.0, 3.4), musgo)
-    # La flor que le brota de la cuenca (el ojo derecho del zombi, a la izquierda de quien lo mira).
-    flor = petalo('flor_zombi', FLOR)
-    centro = B.luz('centro_flor', POLEN)
-    m.viga('cabeza', (-1.6, 28.4, 3.6), (-1.9, 28.7, 5.2), 0.5, B.liso('tallo_flor', TALLO))
-    m.hoja('cabeza', (-2.0, 28.8, 5.3), 3.4, 3.4, flor, rot=(0, 0, 15))
-    m.caja('cabeza', (-2.0, 28.8, 5.45), (0.9, 0.9, 0.5), centro)
-    # Una raíz que le cuelga de la boca.
-    m.viga('cabeza', (0.8, 25.8, 4.1), (1.1, 23.2, 4.4), 0.45, raiz_p)
-    # Lo que le brota de la cabeza: flores y hojas.
-    m.parte('brotes', 'cabeza', (0, 32, 0))
-    for (x, z, a) in ((-2.4, 1.4, 20), (2.2, -1.6, -30), (0.4, -2.8, 70)):
-        m.viga('brotes', (x, 32.6, z), (x * 1.2, 35.6, z * 1.2), 0.5, B.liso('tallo_flor', TALLO))
-        m.hoja('brotes', (x * 1.2, 35.9, z * 1.2), 3.2, 3.2, flor, rot=(70, a, 0))
-        m.caja('brotes', (x * 1.2, 36.1, z * 1.2), (0.8, 0.8, 0.8), centro)
-    for (x, z, a, incl) in ((3.2, 2.6, 60, 50), (-3.4, -2.4, 230, 55), (0.6, 3.4, 10, 40), (-3.0, 2.0, 300, 60)):
-        hoja_hacia(m, 'brotes', (x, 32.8, z), a, incl, 2.0, 3.8, hoja)
-    # El arbolito del hombro (a la espalda).
-    m.parte('arbolito', 'cuerpo', (-2.4, 23.4, -2.2))
-    m.viga('arbolito', (-2.4, 23.4, -2.2), (-4.4, 30.4, -4.2), 1.0, raiz_p, extra=0.3)
-    m.viga('arbolito', (-3.6, 27.6, -3.4), (-1.6, 31.0, -5.2), 0.6, raiz_p)
-    copa = B.trazo('copa_zombi', lambda xs, ys, tw, th, c, s: np.where(((xs * 3 + ys * 5) % 7) == 0, 4,
-                                                                    np.where((xs + ys) % 3 == 0, 2, 3)), HOJA)
-    m.ovalo('arbolito', (-4.6, 31.4, -4.4), (2.0, 1.6, 2.0), copa)
-    m.ovalo('arbolito', (-1.6, 31.6, -5.4), (1.4, 1.2, 1.4), copa)
-    # Los brazos, por delante: hiedra enroscada, una hoja y los dedos de raíz.
+    m.caja('cabeza', (0, 28, 0), (8, 8, 8), piel, caras={'frente': piel_zombi('cara_zombi', cara=True)})
+    m.caja('cabeza', (0, 28.25, 0), (9, 8.5, 9), capa_cab, caras={'abajo': None})
+    # La flor que le brota del ojo derecho (a la izquierda de quien lo mira): cuatro pétalos y el centro de polen.
+    m.parte('flor', 'cabeza', (-2.0, 28.0, 4.0))
+    flor = B.fino(B.Pintor('flor_ojo', lambda tw, th, c, s: _flor(tw, th)))
+    m.hoja('flor', (-2.0, 28.5, 4.6), 4, 4, flor, rot=(0, 0, 0), dos_caras=False)
+    m.caja('flor', (-2.0, 28.2, 4.3), (1, 1, 1), tallo('tallito_flor', HIEDRA, base=2.0))
+    # Los brazos, hacia delante, con la hiedra enroscada.
     for lado, ld in LADOS:
-        n = m.parte(f'brazo_{ld}', 'cuerpo', (lado * 5, 22, 0))
-        m.caja_desde(n, (lado * 6, 22, -2), (4, 12, 4), pint, rot=(90, 0, 0))
-        for k in range(5):
-            z0 = -1.4 + k * 2.2
-            a0 = k * 1.5 + (0 if lado > 0 else 0.8)
-            a1 = a0 + 1.5
-            m.viga(n, (lado * 6 + math.cos(a0) * 2.4, 22 + math.sin(a0) * 2.4, z0),
-                   (lado * 6 + math.cos(a1) * 2.4, 22 + math.sin(a1) * 2.4, z0 + 2.2), 0.6, hiedra)
-        hoja_hacia(m, n, (lado * 8.0, 21.4, 4.0), lado * 90, 60, 1.8, 3.4, hoja)
-        for k, dx in enumerate((-1.2, 0.0, 1.2)):
-            m.viga(n, (lado * 6 + dx, 20.3, 9.4), (lado * 6 + dx * 1.3, 17.4 - k % 2, 10.0), 0.45, raiz_p)
-        p = m.parte(f'pierna_{ld}', 'cuerpo', (lado * 2, 12, 0))
-        m.caja_desde(p, (lado * 2, 0, 0), (4, 12, 4), pantalon)
-        # Las raíces de los pies, hacia el suelo.
-        for (dx, dz) in ((lado * 2.2, 1.6), (lado * 1.0, 2.4), (lado * 2.4, -1.4)):
-            m.viga(p, (lado * 2 + dx * 0.6, 1.2, dz * 0.6), (lado * 2 + dx * 1.3, -0.2, dz * 1.4), 0.6, raiz_p)
+        n = m.parte(f'brazo_{ld}', 'cuerpo', (lado * 6, 22, 0))
+        m.caja(n, (lado * 6, 22, 4), (4, 4, 12), camisa if True else piel,
+               caras={'frente': piel, 'abajo': piel, 'arriba': camisa})
+        m.caja(n, (lado * 6, 22, 4.5), (4.6, 4.6, 11), hiedra_capa('hiedra_brazo', densidad=0.05, arriba=0.25),
+               caras={'abajo': None})
+        # Los dedos, raíces que cuelgan.
+        for dx in (-1.0, 1.0):
+            m.caja(n, (lado * 6 + dx, 19.0, 9.5), (1, 2, 1), tallo('raicilla', CORTEZA, base=2.0))
+    # Las piernas, con raíces en los pies.
+    for lado, ld in LADOS:
+        n = m.parte(f'pierna_{ld}', 'cuerpo', (lado * 2, 12, 0))
+        m.caja(n, (lado * 2, 6, 0), (4, 12, 4), pantalon)
+        for (dx, dz, ang) in ((-1.5, 1.5, 30), (1.5, 1.0, -30), (0.0, -1.5, 0)):
+            m.viga(n, (lado * 2 + dx * 0.6, 1.0, dz * 0.6), (lado * 2 + dx * 1.6, 0.2, dz * 1.6), 1,
+                   tallo('raiz_pie', CORTEZA, base=1.8))
+    # El arbolito de la espalda: el tronco que sale del hombro y la copa.
+    m.parte('arbolito', 'cuerpo', (1.5, 22, -2.5))
+    m.viga('arbolito', (1.5, 21, -2.5), (2.5, 29, -3.5), 1, tallo('tronco_arbolito', CORTEZA, base=2.0))
+    m.viga('arbolito', (2.0, 25, -3.0), (4.0, 27, -3.2), 1, tallo('rama_arbolito', CORTEZA, base=2.0))
+    copa = hiedra_capa('copa_arbolito', densidad=0.9, flores=0.04, arriba=1.5)
+    redondo(m, 'arbolito', (2.5, 31, -3.5), (5, 4, 5), tallo('hojas_arbolito', HIEDRA, base=2.0, estomas=0.2))
     m.mirar(('cabeza', 1.0))
     a = m.anim('andar', 1.0, bucle=True)
     a.onda('pierna_d', 'r', 0, 30)
     a.onda('pierna_i', 'r', 0, 30, fase=0.5)
-    a.onda('brazo_d', 'r', 0, 6, fase=0.5)
-    a.onda('brazo_i', 'r', 0, 6)
-    a.onda('arbolito', 'r', 2, 6, periodo=0.5)
+    for lado, ld in LADOS:
+        a.onda(f'brazo_{ld}', 'r', 0, 4, fase=0.25 if lado > 0 else 0.75)
+    a.onda('arbolito', 'r', 2, 5, periodo=0.5)
+    a.onda('cuerpo', 'r', 2, 2, periodo=1.0)
     s = m.anim('siempre', 3.0, bucle=True)
-    s.onda('brotes', 'r', 2, 5)
-    s.onda('arbolito', 'r', 0, 4, periodo=1.5)
-    s.onda('brazo_d', 'r', 2, 3, periodo=1.5)
-    s.onda('brazo_i', 'r', 2, -3, periodo=1.5, fase=0.3)
+    s.onda('arbolito', 'r', 0, 3, periodo=3.0)
+    s.onda('flor', 'r', 2, 8, periodo=1.5)
     at = m.anim('ataque', 0.5)
-    for ld in ('d', 'i'):
+    for lado, ld in LADOS:
         at.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.15, -25, 0, 0), (0.3, 30, 0, 0), (0.5, 0, 0, 0)])
-    at.rot('cuerpo', [(0, 0, 0, 0), (0.3, 8, 0, 0), (0.5, 0, 0, 0)])
+    at.rot('cuerpo', [(0, 0, 0, 0), (0.15, -6, 0, 0), (0.3, 8, 0, 0), (0.5, 0, 0, 0)])
     d = m.anim('muerte', 1.0)
-    d.rot('cuerpo', [(0, 0, 0, 0), (0.6, -70, 0, 6), (1.0, -88, 0, 8)])
+    d.rot('cuerpo', [(0, 0, 0, 0), (0.5, -50, 0, 0), (0.85, -92, 0, 0), (1.0, -90, 0, 0)])
     d.mov('cuerpo', [(0, 0, 0, 0), (1.0, 0, -10, -2)])
-    m.paso = 2.0
+    m.paso = 1.7
 
-    def dib(px, filas, c):
-        for x, f in ((9, 5),):
-            px[x, f] = c('fff060')
-        for x, f in ((5, 5), (6, 5), (5, 4), (6, 6)):
-            px[x, f] = c('d84a8a')
-        for x, f in ((4, 2), (7, 1), (10, 2)):
-            px[x, f] = c('d84a8a')
+    def dib(px, filas, c_):
+        for x, f in ((6, 6), (7, 6)):
+            px[x, f] = c_('0a120a')
+        for x, f in ((9, 6), (10, 6)):
+            px[x, f] = c_('f8d84a')
+        for x, f in ((5, 3), (8, 2), (11, 4)):
+            px[x, f] = c_('d04a94')
         for x in range(5, 11):
-            px[x, 9] = c('1e6a6a')
-    return terminar(m, raiz, 'Zombi Planta', 'Plant Zombie', (('7aac5e', '588c48', '3e6e36'), ('1a3a1a', '0a1a0a'), dib),
-                    ((1.1, 2.0, 2.0), (0, 1.3, 0)),
+            px[x, 9] = c_('1e7676')
+    return terminar(m, raiz, 'Zombi Planta', 'Plant Zombie', (('6ea458', '548a44', '3e6e34'), ('1e3a1e', '0a1a0a'), dib),
+                    ((1.2, 2.0, 2.1), (0, 1.3, 0)),
                     particulas=(('polen', chispa((232, 196, 26))), ('hoja', esquirla((62, 138, 38))),
                                 ('raiz', esquirla((122, 92, 54)))),
                     poses=[('andar', 0.25), ('andar', 0.75), ('ataque', 0.3), ('muerte', 1.0)])
+
+
+def _flor(tw, th):
+    """Una flor de cuatro pétalos al píxel (en una lámina de 4 x 4): los pétalos rosas en cruz, el centro de polen."""
+    xs, ys = L._malla(tw, th)
+    cx, cy = (tw - 1) / 2, (th - 1) / 2
+    dx, dy = np.abs(xs - cx), np.abs(ys - cy)
+    petalo = (dx + dy <= max(tw, th) * 0.5) & ~((dx > tw * 0.3) & (dy > th * 0.3))
+    centro = (dx < tw * 0.2) & (dy < th * 0.2)
+    rgb = L.color_continuo(FLOR, 2.6 + (ys < cy) * 0.6 - (xs > cx) * 0.3)
+    rgb = np.where(centro[..., None], L.color_continuo(POLEN, np.full(dx.shape, 3.0)), rgb)
+    tex = L._rgba(rgb)
+    tex[..., 3] = np.where(petalo, 255, 0)
+    return tex, None
 
 
 MOBS = {}
@@ -763,8 +828,11 @@ def main():
     if CARPETA:
         os.makedirs(CARPETA, exist_ok=True)
     pedidos = sys.argv[3].split(',') if len(sys.argv) > 3 else list(MOBS)
+    # El píxel de Minecraft (16 por bloque): van a escala 1, así que es de 1 píxel del modelo.
+    B.TEXEL = 1.0
     for p in pedidos:
         MOBS[p](raiz)
+    B.TEXEL = None
 
 
 if __name__ == '__main__':

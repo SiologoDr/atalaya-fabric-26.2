@@ -3706,5 +3706,168 @@
     "sounds": [
       "atalaya:limbo/bloque_caida"
     ]
+  },
+  "bestia.espectro_rojo.herido": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_rojo.herido",
+    "sounds": [
+      "atalaya:bestia/espectro_rojo/herido1",
+      "atalaya:bestia/espectro_rojo/herido2"
+    ]
+  },
+  "bestia.espectro_rojo.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_rojo.muerte",
+    "sounds": [
+      "atalaya:bestia/espectro_rojo/muerte"
+    ]
+  },
+  "bestia.espectro_rojo.paso": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_rojo.paso",
+    "sounds": [
+      "atalaya:bestia/espectro_rojo/paso1",
+      "atalaya:bestia/espectro_rojo/paso2"
+    ]
+  },
+  "bestia.espectro_rojo.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_rojo.ambiente",
+    "sounds": [
+      "atalaya:bestia/espectro_rojo/ambiente1",
+      "atalaya:bestia/espectro_rojo/ambiente2",
+      "atalaya:bestia/espectro_rojo/ambiente3"
+    ]
+  },
+  "bestia.espectro_rojo.zarpazo": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_rojo.zarpazo",
+    "sounds": [
+      "atalaya:bestia/espectro_rojo/zarpazo1",
+      "atalaya:bestia/espectro_rojo/zarpazo2"
+    ]
+  },
+  "bestia.espectro_rojo.agarra": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_rojo.agarra",
+    "sounds": [
+      "atalaya:bestia/espectro_rojo/agarra"
+    ]
+  },
+  "bestia.espectro_blanco.herido": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_blanco.herido",
+    "sounds": [
+      "atalaya:bestia/espectro_blanco/herido1",
+      "atalaya:bestia/espectro_blanco/herido2"
+    ]
+  },
+  "bestia.espectro_blanco.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_blanco.muerte",
+    "sounds": [
+      "atalaya:bestia/espectro_blanco/muerte"
+    ]
+  },
+  "bestia.espectro_blanco.paso": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_blanco.paso",
+    "sounds": [
+      "atalaya:bestia/espectro_blanco/paso1",
+      "atalaya:bestia/espectro_blanco/paso2"
+    ]
+  },
+  "bestia.espectro_blanco.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_blanco.ambiente",
+    "sounds": [
+      "atalaya:bestia/espectro_blanco/ambiente1",
+      "atalaya:bestia/espectro_blanco/ambiente2",
+      "atalaya:bestia/espectro_blanco/ambiente3"
+    ]
+  },
+  "bestia.espectro_blanco.zarpazo": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_blanco.zarpazo",
+    "sounds": [
+      "atalaya:bestia/espectro_blanco/zarpazo1",
+      "atalaya:bestia/espectro_blanco/zarpazo2"
+    ]
+  },
+  "bestia.espectro_amarillo.herido": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.herido",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/herido1",
+      "atalaya:bestia/espectro_amarillo/herido2"
+    ]
+  },
+  "bestia.espectro_amarillo.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.muerte",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/muerte"
+    ]
+  },
+  "bestia.espectro_amarillo.paso": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.paso",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/paso1",
+      "atalaya:bestia/espectro_amarillo/paso2"
+    ]
+  },
+  "bestia.espectro_amarillo.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.ambiente",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/ambiente1",
+      "atalaya:bestia/espectro_amarillo/ambiente2",
+      "atalaya:bestia/espectro_amarillo/ambiente3"
+    ]
+  },
+  "bestia.espectro_amarillo.posee": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.posee",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/posee"
+    ]
+  },
+  "bestia.espectro_amarillo.sale": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.sale",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/sale"
+    ]
+  },
+  "bestia.espectro_amarillo.zarpazo": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_amarillo.zarpazo",
+    "sounds": [
+      "atalaya:bestia/espectro_amarillo/zarpazo"
+    ]
+  },
+  "bestia.espectro_negro.herido": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_negro.herido",
+    "sounds": [
+      "atalaya:bestia/espectro_negro/herido1",
+      "atalaya:bestia/espectro_negro/herido2"
+    ]
+  },
+  "bestia.espectro_negro.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_negro.muerte",
+    "sounds": [
+      "atalaya:bestia/espectro_negro/muerte"
+    ]
+  },
+  "bestia.espectro_negro.paso": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_negro.paso",
+    "sounds": [
+      "atalaya:bestia/espectro_negro/paso1",
+      "atalaya:bestia/espectro_negro/paso2"
+    ]
+  },
+  "bestia.espectro_negro.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_negro.ambiente",
+    "sounds": [
+      "atalaya:bestia/espectro_negro/ambiente1",
+      "atalaya:bestia/espectro_negro/ambiente2",
+      "atalaya:bestia/espectro_negro/ambiente3"
+    ]
+  },
+  "bestia.espectro_negro.roba": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_negro.roba",
+    "sounds": [
+      "atalaya:bestia/espectro_negro/roba"
+    ]
+  },
+  "bestia.espectro_negro.zarpazo": {
+    "subtitle": "subtitles.atalaya.bestia.espectro_negro.zarpazo",
+    "sounds": [
+      "atalaya:bestia/espectro_negro/zarpazo1",
+      "atalaya:bestia/espectro_negro/zarpazo2"
+    ]
   }
 }

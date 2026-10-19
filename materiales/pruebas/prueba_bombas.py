@@ -65,7 +65,19 @@ tomas = [
 for k, (nombre, (x, y, z, yaw, pitch)) in enumerate(tomas):
     en(260 + k * 50, f'tp @a {x} {y} {z} {yaw} {pitch}')
     foto(290 + k * 50, nombre)
-t = 260 + len(tomas) * 50 + 20
+t = 260 + len(tomas) * 50
+# Cada una de cerca (el campo de visión cerrado, para ver los píxeles).
+en(t, 'tellraw @a "FOV 40"')
+for k, (e, x) in enumerate(bombas):
+    en(t + 10 + k * 40, f'tp @a {x + 0.4} {Y + 0.7} -10.4 176 6')
+    foto(t + 40 + k * 40, 'bombas_zoom_' + e.split(':')[1])
+t += 20 + len(bombas) * 40
+en(t, 'tellraw @a "FOV 70"')
+# De noche (sin visión nocturna): la mecha y lo que brilla.
+en(t, 'time set 18000', 'effect clear @a minecraft:night_vision')
+en(t + 10, f'tp @a 16.75 {Y + 0.9} -7.6 180 8')
+foto(t + 50, 'bombas_noche')
+t += 70
 en(t, 'tellraw @a "FIN DE LA PRUEBA BOMBAS"')
 
 lineas = ['scoreboard players add #t tp 1']

@@ -167,6 +167,7 @@ def espectro_blanco():
 def espectro_negro():
     espectro_base('espectro_negro', 'Espectro Negro', 'Black Wraith', 95, 'u', {
         'roba': ('Te roba un corazón un Espectro Negro', 'Black Wraith steals a heart'),
+        'zarpazo': ('Zarpazo de un Espectro Negro', 'Black Wraith slashes'),
     })
     for k in range(3):
         d = 2.0 + 0.3 * k
@@ -182,6 +183,8 @@ def espectro_negro():
     x = mezclar(pico(boom(48, 28, 0.25, 1.2), 1.0), en(0.15, pico(soplo(0.8, 3000, 300, 1.0, 0.1)[::-1], 0.6)),
                 en(0.1, pico(burbujas(0.5, 30, 200, 700), 0.4)))
     bs.guardar('roba', reverb(x, 0.4, 2.2), alto=0.9)
+    for k in range(2):
+        bs.guardar('zarpazo', reverb(zarpazo(1.1, 0.7 + 0.08 * k), 0.3, 1.6), k + 1, alto=0.8)
 
 
 def espectro_amarillo():

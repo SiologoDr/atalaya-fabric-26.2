@@ -6,8 +6,11 @@ propuestas, con sus colores (no los de los tótems):
   - kit_reparacion: el yunque de bolsillo de hierro con la correa de cuero en la cintura (el D, sin asa).
   - corazon_vida:   un corazón que se come (antes era un elixir en un cáliz; Juan: "cambiémoslo a un corazón que se
                     pueda comer"): rojo y brillante entre dos alas de oro con sus plumas (el F, mejorado).
+  - corazon_blanco: el corazón que te robó el Espectro Negro, que se come para recuperarlo (19-10-2026, Juan: "se
+                    puede volver a recuperar, pero con un corazón blanco, no uno dorado"): blanco, con la sombra azul
+                    pálida de los fantasmas y su brillo arriba a la izquierda.
 
-Uso: python objetos_apoyo.py <raiz del proyecto>
+Uso: python objetos_apoyo.py <raiz del proyecto> [nombres]
 """
 import json
 import os
@@ -62,6 +65,25 @@ ICONOS = {
         '.......O........',
         '................',
     ]),
+    # El corazón blanco: W el brillo, L el blanco, S la sombra azul pálida y s la más honda, O el canto.
+    'corazon_blanco': ({'O': H('3a4456'), 'W': H('ffffff'), 'L': H('e8eff7'), 'S': H('b8c8da'), 's': H('8ea2ba')}, [
+        '................',
+        '................',
+        '..OOOO....OOOO..',
+        '.OWWLLO..OLLLSO.',
+        'OWWLLLLOOLLLLSSO',
+        'OWLLLLLLLLLLLSSO',
+        'OLLLLLLLLLLLSSsO',
+        'OLLLLLLLLLLSSSsO',
+        '.OLLLLLLLLSSSsO.',
+        '..OLLLLLLSSSsO..',
+        '...OLLLLSSSsO...',
+        '....OLLSSSsO....',
+        '.....OLSSsO.....',
+        '......OSsO......',
+        '.......OO.......',
+        '................',
+    ]),
 }
 
 
@@ -76,8 +98,8 @@ def pintar(nombre):
     return im
 
 
-def escribir():
-    for nombre in ICONOS:
+def escribir(nombres=None):
+    for nombre in nombres or ICONOS:
         pintar(nombre).save(os.path.join(RAIZ, f'src/main/resources/assets/atalaya/textures/item/{nombre}.png'))
         with open(os.path.join(RAIZ, f'src/main/resources/assets/atalaya/models/item/{nombre}.json'), 'w',
                   encoding='utf-8', newline='\n') as fh:
@@ -91,4 +113,4 @@ def escribir():
 
 
 if __name__ == '__main__':
-    escribir()
+    escribir(sys.argv[2:] or None)

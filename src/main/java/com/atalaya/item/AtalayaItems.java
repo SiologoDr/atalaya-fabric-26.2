@@ -263,6 +263,8 @@ public final class AtalayaItems {
     public static Item KIT_REPARACION;
     /** El Corazón de Vida: se come y te deja la vida llena. */
     public static Item CORAZON_VIDA;
+    /** El Corazón Blanco: se come y te devuelve un corazón que te robó el Espectro Negro. */
+    public static Item CORAZON_BLANCO;
 
     private AtalayaItems() {
     }
@@ -386,6 +388,9 @@ public final class AtalayaItems {
         KIT_REPARACION = registrar("kit_reparacion", props -> new KitReparacionItem(props.stacksTo(16).rarity(Rarity.UNCOMMON)));
         // Se come aunque tengas el hambre llena: lleva consumable, pero no food.
         CORAZON_VIDA = registrar("corazon_vida", props -> new CorazonVidaItem(props.stacksTo(16).rarity(Rarity.RARE)
+                .component(DataComponents.CONSUMABLE, Consumables.DEFAULT_FOOD)));
+        // Como el de vida, se come aunque tengas el hambre llena.
+        CORAZON_BLANCO = registrar("corazon_blanco", props -> new CorazonBlancoItem(props.stacksTo(16).rarity(Rarity.RARE)
                 .component(DataComponents.CONSUMABLE, Consumables.DEFAULT_FOOD)));
         PLANTILLA_SELLADO = registrar("plantilla_sellado", props -> new SmithingTemplateItem(
                 azul("item.atalaya.plantilla_sellado.aplica_a"),

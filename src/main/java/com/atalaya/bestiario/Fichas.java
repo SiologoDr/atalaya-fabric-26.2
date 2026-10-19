@@ -1,9 +1,11 @@
 package com.atalaya.bestiario;
 
+import com.atalaya.Atalaya;
 import com.atalaya.bestiario.mobs.BombasVoladoras;
 import com.atalaya.bestiario.mobs.AtomicoEntity;
 import com.atalaya.bestiario.mobs.CiegoEntity;
 import com.atalaya.bestiario.mobs.EnredaderaEntity;
+import com.atalaya.bestiario.mobs.Fantasmas;
 import com.atalaya.bestiario.mobs.GelatinaEntity;
 import com.atalaya.bestiario.mobs.Hormigas;
 import com.atalaya.bestiario.mobs.MarchitoEntity;
@@ -12,8 +14,12 @@ import com.atalaya.bestiario.mobs.Plantas;
 import com.atalaya.bestiario.mobs.TartaEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.entity.SpawnPlacementTypes;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -137,7 +143,7 @@ public final class Fichas {
     /** La Bomba Ambar (DEDsafio 3, la bomba amarilla). */
     public static final Bestia AMBAR = Bestias.nueva("ambar", BombasVoladoras.Ambar::new)
             .grupo("BOMBAS")
-            .titulo("BOMBA ÁMBAR", "Una bomba con la cara tallada como una calabaza y el fuego dentro, con alas de pluma doradas: te ve desde treinta bloques, se te pone encima y revienta; su estallido seca el agua de alrededor. Sale de noche, también en el aire y bajo tierra.")
+            .titulo("BOMBA ÁMBAR", "Un cubo de ámbar con la mecha encendida y alas de pluma doradas: te ve desde treinta bloques, se te pone encima y revienta; su estallido seca el agua de alrededor. Sale de noche, también en el aire y bajo tierra.")
             .etiquetas("bomba amarilla ambar voladora agua seca")
             .medidas(0.75F, 0.9F, 0.5F)
             .atributos(BombasVoladoras.Ambar::atributos)
@@ -155,7 +161,7 @@ public final class Fichas {
     /** La Bomba Carmesi (DEDsafio 3, la bomba roja). */
     public static final Bestia CARMESI = Bestias.nueva("carmesi", BombasVoladoras.Carmesi::new)
             .grupo("BOMBAS")
-            .titulo("BOMBA CARMESÍ", "Una mina carmesí con fauces que muerden y alas de murciélago, la más rápida de las bombas: se te pone encima y revienta prendiéndolo todo. Sale de noche y en el Nether.")
+            .titulo("BOMBA CARMESÍ", "Un cubo de chapa lacada roja con la mecha encendida y alas de murciélago, la más rápida de las bombas: se te pone encima y revienta prendiéndolo todo. Sale de noche y en el Nether.")
             .etiquetas("bomba roja carmesi voladora fuego nether")
             .medidas(0.7F, 0.85F, 0.5F)
             .atributos(BombasVoladoras.Carmesi::atributos)
@@ -172,7 +178,7 @@ public final class Fichas {
     /** La Bomba Negra (DEDsafio 3 y 4). */
     public static final Bestia NEGRA = Bestias.nueva("negra", BombasVoladoras.Negra::new)
             .grupo("BOMBAS")
-            .titulo("BOMBA NEGRA", "Un yelmo de hierro con cuernos, la visera encendida y alas de cuervo, la más grande: no hay forma de empujarla y su estallido es el más fuerte. Sale de noche al aire libre.")
+            .titulo("BOMBA NEGRA", "Un cubo de hierro negro en placas, con la mecha encendida y alas de cuervo, la más grande: no hay forma de empujarla y su estallido es el más fuerte. Sale de noche al aire libre.")
             .etiquetas("bomba negra hierro voladora murcielago fuerte")
             .medidas(0.95F, 1.1F, 0.6F)
             .atributos(BombasVoladoras.Negra::atributos)
@@ -189,7 +195,7 @@ public final class Fichas {
     /** La Bomba del Abismo (DEDsafio 4, las Bombas Warden Voladoras). */
     public static final Bestia ABISMO = Bestias.nueva("abismo", BombasVoladoras.Abismo::new)
             .grupo("BOMBAS")
-            .titulo("BOMBA DEL ABISMO", "Una bomba de sculk con la boca del chillador, los zarcillos del warden y alas de sculk: no te ve, te oye, y en cuanto te oye va a por ti; su estallido deja la oscuridad. Sale en la Oscuridad Profunda.")
+            .titulo("BOMBA DEL ABISMO", "Un cubo de sculk con la mecha detrás y alas de sculk con las venas encendidas: no te ve, te oye, y en cuanto te oye va a por ti; su estallido deja la oscuridad. Sale en la Oscuridad Profunda.")
             .etiquetas("bomba warden sculk abismo voladora ciega oido oscuridad")
             .medidas(0.75F, 0.9F, 0.5F)
             .atributos(BombasVoladoras.Abismo::atributos)
@@ -210,9 +216,9 @@ public final class Fichas {
     /** La Hormiga Lancera (DEDsafio 2, Cantimplo). */
     public static final Bestia LANCERA = Bestias.nueva("lancera", Hormigas.Lancera::new)
             .grupo("HORMIGAS")
-            .titulo("HORMIGA LANCERA", "La soldado del hormiguero: parda, con su casco de cáscara y una lanza de pedernal; va en grupo y pega fuerte desde más lejos que las demás. Sale por todas partes, también en las cuevas y en el Nether.")
+            .titulo("HORMIGA LANCERA", "La soldado del hormiguero, erguida sobre cuatro patas: parda, con la cúpula de una bellota por casco y una lanza de pedernal en la mano; va en grupo y pega fuerte desde más lejos que las demás. Sale por todas partes, también en las cuevas y en el Nether.")
             .etiquetas("hormiga lancera soldado lanza grupo")
-            .medidas(0.9F, 0.7F, 0.45F)
+            .medidas(0.9F, 1.5F, 1.3F)
             .atributos(Hormigas.Lancera::atributos)
             .sonidos("mordisco")
             .particula("astilla", Bestia.Vuelo.CAE, false)
@@ -223,9 +229,9 @@ public final class Fichas {
     /** La Hormiga Polvorin (DEDsafio 2, Bombermant). */
     public static final Bestia POLVORIN = Bestias.nueva("polvorin", Hormigas.Polvorin::new)
             .grupo("HORMIGAS")
-            .titulo("HORMIGA POLVORÍN", "Lleva una bomba de barro atada al lomo con la mecha encendida: cuando te tiene cerca, revienta, y todo el que esté a quince bloques se queda alucinando diez segundos.")
+            .titulo("HORMIGA POLVORÍN", "Lleva en alto, con los dos brazos, una bomba de barro con la mecha encendida: cuando te tiene cerca, revienta, y todo el que esté a quince bloques se queda alucinando diez segundos.")
             .etiquetas("hormiga polvorin bomba explota alucinacion")
-            .medidas(0.8F, 0.9F, 0.45F)
+            .medidas(0.9F, 1.5F, 1.3F)
             .atributos(Hormigas.Polvorin::atributos)
             .sonidos("mordisco", "mecha", "estalla")
             .particula("chispa", Bestia.Vuelo.DERIVA, true)
@@ -238,9 +244,9 @@ public final class Fichas {
     /** La Hormiga Cabezona (DEDsafio 2, Parapona). */
     public static final Bestia CABEZONA = Bestias.nueva("cabezona", Hormigas.Cabezona::new)
             .grupo("HORMIGAS")
-            .titulo("HORMIGA CABEZONA", "Una cabeza enorme con mandíbulas de tenaza: su mordisco te deja lentísimo cinco segundos (y las demás te alcanzan).")
+            .titulo("HORMIGA CABEZONA", "Una cabeza ámbar enorme con mandíbulas de tenaza: su mordisco te deja lentísimo cinco segundos (y las demás te alcanzan).")
             .etiquetas("hormiga cabezona mandibula lentitud grupo")
-            .medidas(0.95F, 0.8F, 0.5F)
+            .medidas(1.0F, 1.5F, 1.3F)
             .atributos(Hormigas.Cabezona::atributos)
             .sonidos("mordisco")
             .particula("astilla", Bestia.Vuelo.CAE, false)
@@ -251,9 +257,9 @@ public final class Fichas {
     /** La Hormiga Radiactiva (DEDsafio 2, Compona). */
     public static final Bestia RADIACTIVA = Bestias.nueva("radiactiva", Hormigas.Radiactiva::new)
             .grupo("HORMIGAS")
-            .titulo("HORMIGA RADIACTIVA", "Negra como el carbón, con marcas verdes que brillan: su mordisco te deja radiación cinco segundos.")
+            .titulo("HORMIGA RADIACTIVA", "Negra como el carbón, con los ojos y el gáster hinchado brillando de verde entre las placas: su mordisco te deja radiación cinco segundos.")
             .etiquetas("hormiga radiactiva negra radiacion verde")
-            .medidas(0.8F, 0.65F, 0.4F)
+            .medidas(0.9F, 1.5F, 1.3F)
             .atributos(Hormigas.Radiactiva::atributos)
             .sonidos("mordisco")
             .particula("radiacion", Bestia.Vuelo.SUBE, true)
@@ -264,9 +270,9 @@ public final class Fichas {
     /** La Hormiga Brasa (DEDsafio 2, Solvetus). */
     public static final Bestia BRASA = Bestias.nueva("brasa", Hormigas.Brasa::new)
             .grupo("HORMIGAS")
-            .titulo("HORMIGA BRASA", "Roja, con grietas de brasa y el lomo al rojo: si te muerde o la tocas, te prende un fuego que no se apaga hasta que te metes en el agua o te llueve encima.")
+            .titulo("HORMIGA BRASA", "Roja como el carbón encendido, con grietas de brasa y una tea en la mano: si te muerde o la tocas, te prende un fuego que no se apaga hasta que te metes en el agua o te llueve encima.")
             .etiquetas("hormiga brasa roja fuego quema agua nether")
-            .medidas(0.8F, 0.65F, 0.4F)
+            .medidas(0.9F, 1.5F, 1.3F)
             .inmuneFuego()
             .atributos(Hormigas.Brasa::atributos)
             .sonidos("mordisco", "quema")
@@ -288,7 +294,7 @@ public final class Fichas {
             .grupo("PLANTAS")
             .titulo("FAUCES VERDE", "Una planta carnívora plantada en el suelo: no se mueve, pero te sigue con la cabeza y, si te acercas a menos de tres bloques, se echa atrás y te muerde. Su mordisco te envenena (veneno II, cinco segundos). Crece en selvas, bosques y pantanos.")
             .etiquetas("fauces planta carnivora verde veneno mordisco plantada")
-            .medidas(0.9F, 1.5F, 1.25F)
+            .medidas(1.1F, 1.85F, 1.55F)
             .atributos(Plantas.FaucesVerde::atributos)
             .sonidos("mordisco", "acido")
             .sinSonido("paso")
@@ -305,7 +311,7 @@ public final class Fichas {
             .grupo("PLANTAS")
             .titulo("FAUCES CARMÍN", "La Fauces del Nether: roja por dentro, con espinas en el tallo y el fuego no le hace nada. Si te acercas, te muerde y te prende fuego cinco segundos.")
             .etiquetas("fauces planta carnivora roja carmin fuego quema nether mordisco plantada")
-            .medidas(0.9F, 1.5F, 1.25F)
+            .medidas(1.1F, 1.85F, 1.55F)
             .inmuneFuego()
             .atributos(Plantas.FaucesCarmin::atributos)
             .sonidos("mordisco", "quema")
@@ -322,7 +328,7 @@ public final class Fichas {
             .grupo("PLANTAS")
             .titulo("FAUCES DE ESCARCHA", "La Fauces de la nieve, con carámbanos y dientes de hielo: su mordisco te deja congelado cinco segundos (sin poder moverte, con la escarcha cubriéndote la vista) y envenenado dos.")
             .etiquetas("fauces planta carnivora azul escarcha hielo congela nieve mordisco plantada")
-            .medidas(0.9F, 1.5F, 1.25F)
+            .medidas(1.1F, 1.85F, 1.55F)
             .atributos(Plantas.FaucesEscarcha::atributos)
             .sonidos("mordisco", "hiela")
             .sinSonido("paso")
@@ -381,10 +387,89 @@ public final class Fichas {
             .sombra(0.5F)
             .aparece(BiomeSelectors.foundInOverworld(), 18, 1, 2);
 
-    /** Carga la clase (y con ella todas las fichas) y lo que van a necesitar: las lianas y la red. */
+    // ------------------------------------------------------------------
+    //  Los fantasmas
+    // ------------------------------------------------------------------
+
+    /** El bioma del Limbo (la dimension del laberinto). */
+    private static final ResourceKey<Biome> LIMBO = ResourceKey.create(Registries.BIOME,
+            Identifier.fromNamespaceAndPath(Atalaya.MOD_ID, "limbo"));
+
+    /** El Espectro Blanco (DEDsafio 4, el Fantasma Blanco; y los fantasmas blancos del 3). */
+    public static final Bestia ESPECTRO_BLANCO = Bestias.nueva("espectro_blanco", Fantasmas.Blanco::new)
+            .grupo("FANTASMAS")
+            .titulo("ESPECTRO BLANCO", "El fantasma de la máscara triste: vuela, te da zarpazos rapidísimos (uno cada ocho ticks) y cada zarpazo te deja con Lentitud. Sale de noche por todas partes, también en el Nether y en el Limbo.")
+            .etiquetas("fantasma espectro blanco rapido lentitud vuela limbo")
+            .medidas(0.8F, 1.7F, 1.3F)
+            .atributos(Fantasmas.Blanco::atributos)
+            .sonidos("zarpazo")
+            .sinSonido("paso")
+            .particula("alma", Bestia.Vuelo.FLOTA, false)
+            .particula("escarcha", Bestia.Vuelo.DERIVA, true)
+            .muerte(20, "alma")
+            .sombra(0.4F)
+            .aparece(BiomeSelectors.foundInOverworld().or(BiomeSelectors.foundInTheNether())
+                    .or(BiomeSelectors.includeByKey(LIMBO)), 10, 1, 2)
+            .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES)
+            .regla(BombaBestia::enLaOscuridad);
+
+    /** El Espectro Negro (DEDsafio 4, el Fantasma Negro). */
+    public static final Bestia ESPECTRO_NEGRO = Bestias.nueva("espectro_negro", Fantasmas.Negro::new)
+            .grupo("FANTASMAS")
+            .titulo("ESPECTRO NEGRO", "El fantasma del Limbo que roba corazones: cada golpe suyo te quita un corazón para siempre (aunque mueras). Al morir suelta un Corazón Blanco por cada corazón que robó: comiéndolo, recuperas uno.")
+            .etiquetas("fantasma espectro negro corazon roba vida limbo vuela")
+            .medidas(0.8F, 1.7F, 1.3F)
+            .atributos(Fantasmas.Negro::atributos)
+            .sonidos("zarpazo", "roba")
+            .sinSonido("paso")
+            .particula("humo", Bestia.Vuelo.FLOTA, false)
+            .particula("corazon", Bestia.Vuelo.SUBE, true)
+            .muerte(20, "humo")
+            .sombra(0.4F)
+            .aparece(BiomeSelectors.includeByKey(LIMBO), 8, 1, 1)
+            .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES)
+            .regla(BombaBestia::enLaOscuridad);
+
+    /** El Espectro Amarillo (DEDsafio 4, el Fantasma Amarillo). */
+    public static final Bestia ESPECTRO_AMARILLO = Bestias.nueva("espectro_amarillo", Fantasmas.Amarillo::new)
+            .grupo("FANTASMAS")
+            .titulo("ESPECTRO AMARILLO", "El fantasma del Limbo que se te mete dentro: su golpe te hace gastar el tótem que lleves en la mano; luego se te mete en el cuerpo y, a los cinco segundos, sale a por otro jugador de cerca.")
+            .etiquetas("fantasma espectro amarillo totem posee cuerpo limbo vuela")
+            .medidas(0.8F, 1.7F, 1.3F)
+            .atributos(Fantasmas.Amarillo::atributos)
+            .sonidos("zarpazo", "posee", "sale")
+            .sinSonido("paso")
+            .particula("chispa", Bestia.Vuelo.DERIVA, true)
+            .particula("alma", Bestia.Vuelo.FLOTA, false)
+            .muerte(20, "alma")
+            .sombra(0.4F)
+            .aparece(BiomeSelectors.includeByKey(LIMBO), 8, 1, 1)
+            .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES)
+            .regla(BombaBestia::enLaOscuridad);
+
+    /** El Espectro Rojo (DEDsafio 3, los fantas rojos; y el Fantasma Rojo del 4). */
+    public static final Bestia ESPECTRO_ROJO = Bestias.nueva("espectro_rojo", Fantasmas.Rojo::new)
+            .grupo("FANTASMAS")
+            .titulo("ESPECTRO ROJO", "El fantasma que te agarra y no te suelta: te deja clavado donde estás y te sigue pegando hasta que muere él o mueres tú, tótem tras tótem. Sale de noche por todas partes, también en el Nether y en el Limbo.")
+            .etiquetas("fantasma espectro rojo agarra sujeta totems limbo vuela")
+            .medidas(0.8F, 1.7F, 1.3F)
+            .atributos(Fantasmas.Rojo::atributos)
+            .sonidos("zarpazo", "agarra")
+            .sinSonido("paso")
+            .particula("brasa", Bestia.Vuelo.SUBE, true)
+            .particula("ceniza", Bestia.Vuelo.DERIVA, false)
+            .muerte(20, "ceniza")
+            .sombra(0.4F)
+            .aparece(BiomeSelectors.foundInOverworld().or(BiomeSelectors.foundInTheNether())
+                    .or(BiomeSelectors.includeByKey(LIMBO)), 10, 1, 2)
+            .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES)
+            .regla(BombaBestia::enLaOscuridad);
+
+    /** Carga la clase (y con ella todas las fichas) y lo que van a necesitar: las lianas, la red y los corazones. */
     static void cargar() {
         Atrapado.registrar();
         BestiaRed.registrar();
+        CorazonesRobados.registrar();
     }
 
     /** Lo que hace salir a cada uno (sus eventos): despues de registrar los tipos. */
@@ -393,6 +478,7 @@ public final class Fichas {
         AtomicoEntity.registrarEventos();
         TartaEntity.registrarEventos();
         Hormigas.registrarEventos();
+        CorazonesRobados.registrarEventos();
         ServerPlayConnectionEvents.JOIN.register((manejador, emisor, servidor) -> EnredaderaEntity.alEntrar(manejador.player));
     }
 }
