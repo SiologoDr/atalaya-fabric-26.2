@@ -8,7 +8,8 @@ Claude no las tiene, así que conviene pedirle que las lea primero (empezando po
 
 - **Rama:** todo está en `develop` (Juan trabaja directamente en ella; no crear ramas aparte). En la otra máquina:
   `git checkout develop` y `git pull`.
-- **Versión:** sigue en 1.2.2. No se sube la versión ni se deja un jar en `entrega/` hasta que Juan lo pida.
+- **Versión:** 1.2.3 (20-10-2026, `entrega/atalaya-1.2.3.jar`, pedida por Juan). No se sube la versión ni se deja un jar
+  en `entrega/` hasta que Juan lo pida.
 
 ## Qué se hizo en esta tanda
 
