@@ -1,29 +1,106 @@
-- [Serie tipo DEDsafío](serie-tipo-dedsafio.md) — objetivo del mod, decisión Fabric+keyframes vanilla, Vigía como primer mob
-- [Todo propio, nada de vanilla](todo-propio-sin-vanilla.md) — sonidos (acordes a la temática del mob), partículas y animaciones siempre creados por nosotros
-- [Nerea: diseño A elegido](nerea-diseno-a.md) — jefe de agua, construir A en el mod; no actualizar más el link del boceto
-- [Jefes rápidos e imponentes](jefes-rapidos-e-imponentes.md) — ritmo, física, efectos de boss y cómo probarlos en el juego
-- [Aeralis, la Mariposa del Vendaval](mariposa-vendaval.md) — jefe del aire (2 de 4): diseño A elegido, en construcción, más fuerte que Nerea
-- [Diseñar con libertad](disenar-con-libertad.md) — mis diseños propios le convencen más que copiar sus referencias al pie de la letra
-- [Pósters: solo el jefe](posters-solo-el-jefe.md) — presentar al jefe con algunos efectos; sin jugadores, lista de ataques ni franja de datos
-- [Rajang, el Jaguar de Jade](rajang-jaguar-de-jade.md) — jefe de tierra (3 de 4): construido; sin Coloso, Sello con plataformas-entidad, Garra = zarpazo
-- [Daño letal por fase](danos-letales-por-fase.md) — objetivos de daño contra netherita P4 + Notch; fase IV muy letal; Mirada y meteorito matan
-- [Armaduras y armas por rol](armaduras-por-rol.md) — diseño aprobado: tanque/sanador/soporte/DPS, activa R 120 s/30 s, equilibrado para 60 jugadores
-- [Letras de píxel en el juego](letras-de-pixel-en-el-juego.md) — rótulos dentro de Minecraft con las letras de píxel de las barras, nunca fuentes suavizadas
-- [Sin avisos de texto en los jefes](sin-avisos-de-texto-en-jefes.md) — nada de carteles, alerta sonora ni arcos rojos al lanzar habilidades: avisan el jefe y el suelo
-- [Entrega solo cuando lo pida](entrega-solo-cuando-lo-pida.md) — no subir versión ni dejar jar en entrega/ sin que lo pida; última 1.2.2
-- [Templos de jefes descartados](templos-de-jefes-descartados.md) — se borraron las estructuras de los jefes; no proponerlas otra vez; si vuelven, sin figuras del jefe
-- [Mini jefes](mini-jefes.md) — Moctezuma, Yiatzo, Atlahua, Xiuhquetzal: 9-10 bloques, estilo mob, barra como la de jefes más baja, sin fases/clima/minijuegos, 3 ataques; estilo Mitologías probado y descartado
-- [Detalle sin cubos visibles](detalle-sin-cubos-visibles.md) — mucha forma, cubitos que no se notan, pero en el juego como mob de Minecraft (textura de píxel, luz plana)
-- [Iconos con propuestas](iconos-con-propuestas.md) — iconos/objetos nuevos: primero una página con varias opciones para elegir; estilo de tótems que le gusta
-- [Armaduras al estilo del vídeo](armaduras-estilo-video.md) — rediseño probado y descartado («está feo, dejemos ese tema»); no proponerlo otra vez salvo que lo pida
-- [Momento Maldición](momento-maldicion.md) — nuestro momento Reviil: sin texto en la animación, MOMENTO FRACTURA metálico en el chat, la fractura en el cielo, nada en el HUD
-- [La Ruleta](ruleta-cambios-de-dificultad.md) — medallón tragaperras para los cambios de dificultad: sale ya girando, 4 finales (naranja/amarillo/celeste/verde), rótulos sin metal; iconos A y rótulo B hasta que elija
-- [Catálogo del DEDsafío](catalogo-dedsafio.md) — todo lo del DEDsafío 2-4 en tres menús: cambios y momentos hechos; mobs por familias (creepers, bombas, hormigas, plantas y los 4 fantasmas hechos); falta el resto
-- [Rediseños como el Blaze](redisenos-como-el-blaze.md) — cada mob sigue siendo él (anatomía de vanilla, su cara); añadidos en 2.ª capa; suaves con detalle; cambiar el diseño de uno ya hecho: que diga él cómo
-- [Subir a develop](subir-a-develop.md) — «sube los cambios» = commit y push directo en develop, sin ramas nuevas
-- [Recrear primero, luego mejorar](recrear-primero-luego-mejorar.md) — con ilustración del DEDsafío: copia fiel (caras calcadas) junto al original; las mejoras con piezas añadidas no le gustaron
-- [La 2.ª capa es como los dientes](segunda-capa-como-dientes.md) — «2.ª capa» = picos macizos en una caja algo mayor (dientes_capa de las Fauces), nunca velo translúcido
-- [Los fantasmas en el juego](atalaya-fantasmas-2026-10.md) — Blanco (Lentitud), Negro (roba corazones; Corazón Blanco), Amarillo (gasta tótem y posee), Rojo (agarra); sin Espada Fantasmal
-- [Hormigas y plantas rehechas](atalaya-hormigas-plantas-2026-10.md) — 19-10: al píxel de Minecraft, detalles a 32 por bloque (B.fino); aprobadas
-- [Cuidado con los generadores del bestiario](bestiario-generadores-cuidado.md) — escriben en src/main/resources incluso para vistas; PNG con otra compresión; nunca checkout de resources entero
-- [Los phantoms en el juego](atalaya-phantoms-2026-10.md) — Oscuro (te hace soltar un hueco) y Explosivo (brasa que revienta), sin TNT; pesadillas del Insomnio
+- [Temática de Atalaya: dificultad progresiva por fases](atalaya-tematica-dificultad-progresiva.md) — el hazmat es solo el primer módulo, no el eje del mod
+- [Método de diseño de Atalaya](atalaya-metodo-de-diseno.md) — leer DISEÑO.md del repo antes de añadir nada
+- [Ficha de diseño antes de cada jefe](atalaya-jefes-ficha-previa.md) — en HTML LOCAL, nada de artifacts (14-10); al aprobar, <nombre>_ficha.html en su carpeta de fichas
+- [Dos máquinas y entorno de esta](atalaya-dos-maquinas.md) — casa + esta; relevo con materiales/CONTINUAR.md y notas_claude/; PruebaVigia creado aquí (19-10)
+- [Mejoras de Rajang (oct 2026)](atalaya-rajang-mejoras-2026-10.md) — terminado y aprobado por Juan; su ficha se quitó de materiales/fichas el 12-10 (sigue en git)
+- [Remake de Aeralis (oct 2026)](atalaya-aeralis-remake-2026-10.md) — implementado + ronda 2 (Furia, Parálisis, viento de vuelta); sin commit; barra de Rajang solo propuesta
+- [Remake de Nerea (oct 2026)](atalaya-nerea-remake-2026-10.md) — entregado en la 1.1.4 con la música de los 3 jefes
+- [Armaduras y espadas de los jefes (oct 2026)](atalaya-armaduras-jefes-2026-10.md) — 3D con capas y animadas, el doble que netherite, solo creativo
+- [Novilis, jefe del fuego (oct 2026)](atalaya-novilis-ficha-2026-10.md) — en la 1.1.5 (develop, 6734fad) con carrera; ojo PER_FACE_LIGHTING en 26.2
+- [Presentación, corazones e iconos de armadura (oct 2026)](atalaya-presentacion-jefes-2026-10.md) — presentación sin saltar, corazones C toda la batalla, armadura por conjunto; en la 1.1.7
+- [Animación de muerte (oct 2026)](atalaya-animacion-muerte-2026-10.md) — CANCELADA; esperar la ilustración de Juan antes de retomarla
+- [Avisos de jefes por testers (oct 2026)](atalaya-avisos-testers-2026-10.md) — espera de aviso ≥0,8 s, alerta «¡!», indicador de golpe + Aeralis (rasante, cuchillas, viento, Juicio) + Rajang (grupa, Tumba anillo, al más lejano) + Furia 30 s inmune en los 4; en la 1.1.7
+- [Reglas de todos los jefes](atalaya-reglas-jefes.md) — solo atacan a jugadores (y maniquíes), nunca entre ellos; uno de cada tipo por mundo (JefesUnicos); ninguno se cura
+- [Mecánicas cooperativas de los jefes (oct 2026)](atalaya-nerea-mecanicas-2026-10.md) — Nerea (Canto, Encadenados, Marea Alta en cúpulas) y Rajang (Ídolo de Oro) en la 1.1.7; Sombra del Escudo (Novilis) y Ráfaga Ladrona (Aeralis) en la 1.1.8 (23ad116); minijuegos de Nerea en 9f37202; Rajang: Prisma, Impostor, Glifos y Suelo elegidos e implementados
+- [Testers 09-10 (oct 2026)](atalaya-testers-2026-10-09.md) — objetivo rotatorio, estrados (ColisionGrande), Arpón que sigue, Gran Marea por detrás y con aviso, Picado fijo, meteoritos +1 s; sin commit
+- [Todo propio y a lo Minecraft](atalaya-todo-propio.md) — sonidos, partículas y dibujos nuestros (nada de vanilla); lo redondo, de píxeles; nada de cajas planas
+- [Minijuegos de Rajang (oct 2026)](atalaya-rajang-minijuegos-2026-10.md) — Prisma, Impostor, Glifos y Suelo hechos el 09-10, Rajang cerrado por Juan; commiteado por Juan (290d9f5)
+- [Minijuegos de Novilis (oct 2026)](atalaya-novilis-minijuegos-2026-10.md) — los 4 hechos y probados el 10-10 (Manda y Forja I, Piedra III, Caliente IV); texturas rehechas y aprobadas por Juan el 10-10; en develop (95a5b0b)
+- [Tres Cielos: Boreala, Nocturna, Duneara (oct 2026)](atalaya-tres-cielos-2026-10.md) — RECHAZADOS por exagerados el 12-10
+- [Jefes sin exagerar](atalaya-jefes-sin-exagerar.md) — nada cósmico; monstruos INVENTADOS (no animales reales); como Espinara/Ofidia (fauces encendidas de un neón); texturas LIMPIAS; una entidad con 3 variantes que cambien de FORMA
+- [Cuatro Guaridas: Yelmora, Cienara, Osaria, Geodra (oct 2026)](atalaya-cuatro-guaridas-2026-10.md) — bien pero no excelentes; guardadas en materiales/fichas/mobs/guaridas
+- [Cuatro Materias: Micelia, Betuna, Mandrágora, Velaria (oct 2026)](atalaya-cuatro-materias-2026-10.md) — NO gustaron; se alejaban del aspecto de Espinara y Ofidia
+- [Fauces: Lutia, Farolera, Otoñara (oct 2026)](atalaya-fauces-2026-10.md) — NO gustaron: texturas sucias, modelos por debajo de Espinara/Ofidia/Guaridas
+- [Simara, la Sierpe de las Simas (oct 2026)](atalaya-simara-2026-10.md) — LE GUSTÓ: una entidad en 3 tipos con texturas limpias tipo Ofidia; guardada en materiales/fichas/bosses/simara; es el formato a seguir
+- [Riscara, la Dragona de los Riscos (oct 2026)](atalaya-riscara-2026-10.md) — LE GUSTÓ: segundo jefe en 3 tipos (Tormenta, Escarcha, Ponzoña); guardada en materiales/fichas/bosses/riscara
+- [Tenazara, la Alacrana Hambrienta (oct 2026)](atalaya-tenazara-2026-10.md) — GUARDADA en materiales/fichas/bosses/tenazara, pero es un escorpión literal, no un monstruo: no seguir por ahí
+- [Lernara, la Hidra de la Ciénaga (oct 2026)](atalaya-lernara-2026-10.md) — GUARDADA en materiales/fichas/bosses/lernara; 3 variantes que cambian de forma (3, 5 y 2 cabezas)
+- [Lumara, la Sirena de los Cebos (antes Ofidia)](atalaya-lumara-2026-10.md) — FINALIZADA: el mejor diseño para Juan (13-10); cartel por variante, borde blanco (también en las alas), costillas curvas, dientes en hoja; en materiales/fichas/bosses/lumara
+- [Fotos de las fichas sin letras](fichas-fotos-sin-letras.md) — sin letras y con borde blanco; aplicado a TODAS las fichas de bosses el 13-10
+- [Almenara, la Gárgola de las Atalayas (oct 2026)](atalaya-almenara-2026-10.md) — RECHAZADA el 13-10 (gárgola de piedra = estatua); no guardar la ficha; guiones en git (d9a1eaa)
+- [Guía de cómo hacemos los monstruos](atalaya-guia-monstruos.md) — está en materiales/fichas/COMO_HACEMOS_LOS_MONSTRUOS.md; leerla antes de diseñar otro
+- [Referencias de Dedsafio 4](dedsafio4-referencias.md) — carteles en X (api.fxtwitter.com) y directos en Kick (api/v2/channels/<canal>/videos → m3u8 → ffmpeg)
+- [Minijuegos de Aeralis (oct 2026)](atalaya-aeralis-minijuegos-2026-10.md) — Ocelos y Veletas (I), Pararrayos y Chispa (IV); afinados («mira y clic») y diseño nuevo el 10-10; en develop (95a5b0b), falta que Juan los pruebe
+- [Serpiente del Eclipse, quinto jefe (oct 2026)](atalaya-serpiente-eclipse-2026-10.md) — ficha con 3 variantes publicada el 12-10 (listón: Ofidia de Dedsafio 4); falta que Juan elija variante y nombre
+- [Quinto jefe: tres quimeras (oct 2026)](atalaya-quimeras-quinto-jefe-2026-10.md) — a Juan le gusto mucho mas ESPINARA (naturaleza; fotos sin letras y con borde blanco desde el 13-10), guardada en materiales/fichas/bosses/espinara; pidio mas jefes de otros tipos sin forma de serpiente
+- [Guía, no ejemplo (13-10)](atalaya-guia-no-ejemplo.md) — no copiar piezas de Lumara (alas); más colores que morado/azul/verde; revisar cada parte a fondo
+- [Melenara, la Mantícora (oct 2026)](atalaya-melenara-2026-10.md) — RECHAZADA el 13-10: mezcla rara y no impone (parece un cachorro); no guardar
+- [Hilandra, la Reina de las Telas (oct 2026)](atalaya-hilandra-2026-10.md) — RECHAZADA el 13-10: el monstruo araña no convence; la mujer debe ser más atractiva y femenina; no guardar
+- [Vulpina, la Dama de las Nueve Colas (oct 2026)](atalaya-vulpina-2026-10.md) — RECHAZADA por fanservice y quitada de fichas/bosses (13-10); no volver a proponerla
+- [Jefas: mujer adulta, cara C3 con mirada de jefa](atalaya-jefas-anatomia.md) — cuerpo ADULTO (6,5 cabezas); C3 que imponga; NADA de fanservice (la Gorgona es el estilo)
+- [Amuna, la referencia de Juan para las jefas](atalaya-amuna-referencia.md) — «todo no debe ser texturas»: traje en piezas 3D (Mitologías RPG); su cara esculpida NO funcionó, ahora C3
+- [La Gorgona y sus hermanas (oct 2026)](atalaya-gorgona-2026-10.md) — APROBADA (13-10): Medusa, Esteno arquera, Euríale alada; guardada en fichas/bosses/gorgona (d9a1eaa)
+- [Muestrario de jefas (13-10)](atalaya-jefas-catalogo.md) — Juan eligió C3, B2 B3 B5 B6, L2 L3 L4 L5, P1; cuerpo adulto en jefa_modelo.py
+- [El Minotauro y sus formas (oct 2026)](atalaya-minotauro-2026-10.md) — APROBADO el 14-10 (cuerpo macizo y encorvado en las 3); guardado en fichas/bosses/minotauro, sin commit
+- [La Tarasca y sus formas (oct 2026)](atalaya-tarasca-2026-10.md) — RECHAZADA el 14-10 (v1 «muy robusta», v2 «tenemos bosses que se parecen»); no guardar
+- [Cerbero y sus formas (oct 2026)](atalaya-cerbero-2026-10.md) — APROBADO el 14-10 y guardado en fichas/bosses/cerbero; aun así «se parece» a otros
+- [La Estinfálida y sus formas (oct 2026)](atalaya-estinfalida-2026-10.md) — RECHAZADA el 14-10: «usas más animales en vez de crear tus monstruos»; volver a lo inventado (Espinara, Lumara)
+- [Tañara, la Campana de Hueso (oct 2026)](atalaya-tanara-2026-10.md) — RECHAZADA el 14-10 (v1 fauces, v2 momia en cúpula); no guardar
+- [No todo son bocas con dientes ni cabezas grandes](atalaya-no-todo-bocas.md) — 14-10: REVOCADO al final del día (ver atalaya-volver-a-antes)
+- [Zancara, la Vigía de los Zancos (oct 2026)](atalaya-zancara-2026-10.md) — RECHAZADA el 14-10 (ojo sobre zancos); no guardar
+- [Anubis y sus formas (oct 2026)](atalaya-anubis-2026-10.md) — RECHAZADO el 14-10: «copiaste el perro típico de Egipto»; ser más creativo; siguiente tema: plantas y naturaleza
+- [Florara, la Flor que Camina (oct 2026)](atalaya-florara-2026-10.md) — RECHAZADA el 14-10; no guardar
+- [Sin restricciones](atalaya-sin-restricciones.md) — 14-10: crear el boss y sus 3 tipos con libertad, sin tema impuesto; con tema salen más feos
+- [Mantara, la Dragona Mantis (oct 2026)](atalaya-mantara-2026-10.md) — 14-10: v1 «cara muy grotesca, muy grande; si es mantis, rasgos de mantis»; v2 tampoco; RECHAZADA, no guardar
+- [Sudaria, la Amortajada (oct 2026)](atalaya-sudaria-2026-10.md) — 14-10: momia rara inventada, manda la luz por las rendijas y un ojo; RECHAZADA, no guardar
+- [Volver a como antes del 14-10](atalaya-volver-a-antes.md) — Juan: «sigue como lo estabas haciendo antes de hoy»; receta de Lumara/Espinara/Simara/Riscara: cabeza grande con fauces encendidas
+- [Branquara, la Salamandra del Cenote (oct 2026)](atalaya-branquara-2026-10.md) — RECHAZADA el 14-10 («no me gustó»); no guardar
+- [Escila (oct 2026)](atalaya-escila-2026-10.md) — aprobada y luego QUITADA de las fichas el 14-10; de sus morenas sale el jefe morena
+- [Tifón y sus formas (oct 2026)](atalaya-tifon-2026-10.md) — RECHAZADO el 14-10 («no me gustó para nada»); no guardar
+- [Equidna, la Madre de los Monstruos (oct 2026)](atalaya-equidna-2026-10.md) — RECHAZADA el 14-10 («ya estamos repitiendo cosas»); no guardar
+- [No repetir, toque propio](atalaya-no-repetir.md) — 14-10: nada de repetir la fórmula de un jefe que gustó; animales y mitos sí, pero con nuestro toque
+- [Murena, la Morena del Arrecife (oct 2026)](atalaya-murena-2026-10.md) — APROBADA el 14-10: solo la Cinta, sin la segunda mandíbula; guardada en fichas/bosses/murena
+- [Tintara, un kraken (oct 2026)](atalaya-tintara-2026-10.md) — 14-10: descartado por mí sin enseñarlo (se lee como el calamar de Minecraft)
+- [Kelpia, la Acechadora del Lago (oct 2026)](atalaya-kelpia-2026-10.md) — APROBADA el 14-10 («este sí se acercó a lo que busco»): monstruo inventado con rastros del kelpie; guardada en fichas/bosses/kelpia
+- [Volutara, la Ermitaña del Mar Seco (oct 2026)](atalaya-volutara-2026-10.md) — RECHAZADA el 14-10 («no me gustó pero se ve bien»): monstruo con caracola; no guardar
+- [Zotzara, la Murciélaga de Xibalbá (oct 2026)](atalaya-zotzara-2026-10.md) — APROBADA el 14-10: misma pose (alas abiertas) en Pedernal, Desgarrada y Coronada; en fichas/bosses/zotzara
+- [Los tipos llevan la misma pose](atalaya-tipos-misma-pose.md) — 14-10: «esto de los tipos es de un solo boss, una misma pose pero diferentes»; cambian las piezas, no la postura
+- [Ahuizara, la Mano del Agua (oct 2026)](atalaya-ahuizara-2026-10.md) — APROBADA a la primera (15-10): bestia de cuatro manos con la mano en la cola; en fichas/bosses/ahuizara, sin commit
+- [Ayunara, la Hambre del Bosque Helado (oct 2026)](atalaya-ayunara-2026-10.md) — APROBADA a la primera (15-10): del wendigo, con astas; en fichas/bosses/ayunara, sin commit
+- [Sedara, la Sed del Monte (oct 2026)](atalaya-sedara-2026-10.md) — 15-10: del chupacabras, corona de púas en abanico; RECHAZADA (15-10): «el mismo formato… cantidad copiando de diseños anteriores»; no guardar
+- [Variedad y calidad, no cantidad](atalaya-variedad-calidad.md) — 15-10: no copiar la cabeza, la paleta, la escena ni el formato de los jefes anteriores; cada jefe desde cero
+- [Bravara, la Luchadora del Estanque (oct 2026)](atalaya-bravara-2026-10.md) — 15-10: pez luchador monstruo, cabeza en cuña, color y atardecer; RECHAZADA (15-10): «gran diseño, pero no es lo que busco»; no guardar
+- [El Cíclope (oct 2026)](atalaya-ciclope-2026-10.md) — 15-10: descartado por mí sin enseñarlo; gigante humano de cajas = robot, y se parece al Minotauro
+- [Cómo son los jefes del mod](atalaya-jefes-del-mod.md) — guardianes malditos con el corazón o núcleo en el pecho como punto débil; pista de lo que busca Juan
+- [El Mapinguarí (oct 2026)](atalaya-mapinguari-2026-10.md) — RECHAZADO el 15-10 («no me gustó el diseño»); no guardar
+- [El capitán pirata ahogado (oct 2026)](atalaya-capitan-ahogado-2026-10.md) — 15-10: de la ilustración «MOB DE ELITE»; CERRADO, no gustó ninguna versión; volver a crear con libertad
+- [Kalara, la Cara del Hambre (oct 2026)](atalaya-kalara-2026-10.md) — 15-10: del Kala; cara sin cuerpo con manos, boca en arco; RECHAZADA (15-10): «se ve raro, no es intimidante»
+- [El Oni (oct 2026)](atalaya-oni-2026-10.md) — APROBADO (15-10): demonio japonés con kanabo alzado; Rojo, Azul, Negro; en fichas/bosses/oni, sin commit
+- [Mobs normales (desde el 15-10)](atalaya-mobs-normales.md) — se acabaron los jefes; ahora mobs normales con 3 tipos, tamaño de Minecraft, en fichas/mobs
+- [El Lobisón (oct 2026)](atalaya-lobison-2026-10.md) — RECHAZADO (15-10): «debemos crear nuestros propios monstruos»; no guardar
+- [Rediseño del Blaze (oct 2026)](atalaya-blaze-rediseno-2026-10.md) — 15-10: con las referencias de Juan (las varas se vuelven espadas o tablillas que flotan), APROBADO (15-10): Espadas, Cristales (amatista) y Lanzas; en fichas/mobs/blaze, sin commit
+- [Rediseño del Slime (oct 2026)](atalaya-slime-rediseno-2026-10.md) — 15-10: Tragón (fauces), Erizo (armas clavadas), Fundido (ácido); gelatina translúcida de verdad; APROBADO, en fichas/mobs/slime, sin commit
+- [Mobs que hacen algo (desde el 15-10)](atalaya-mobs-que-hacen-algo.md) — te traga, te lleva al aire, se te aferra; lo que hacen los de Dedsafío 3 y 4 y los ids de sus carteles diarios
+- [El Izador (oct 2026)](atalaya-izador-2026-10.md) — globo vivo con jaula de costillas que te sube; de Fuego, Tormenta y Ciénaga; RECHAZADO el 15-10 («no me gustó»), no guardar
+- [El Trasgo (oct 2026)](atalaya-trasgo-2026-10.md) — el que se te aferra: duende con gorro rojo; Colgón (espalda), Jinete (te tapa los ojos), Ladrón (te roba); APROBADO, en fichas/mobs/trasgo, subido (d591ca3)
+- [El Tragaldabas (oct 2026)](atalaya-tragaldabas-2026-10.md) — el que te traga: sapo-monstruo con buche translúcido; de Lengua, de Cebo (trampa), Escupidor; RECHAZADO el 15-10, no guardar
+- [Mirar los mobs que ya hay](atalaya-mirar-mobs-que-hay.md) — 16-10: el Tragaldabas era otro sapo (ya estaba Cienara); mejorar el que existe en vez de repetir
+- [Momento Maldición/Fractura (oct 2026)](atalaya-momento-fractura-2026-10.md) — 3dbdf58; 16-10: un solo hueco, ojos con cuerpo, vidrio, sonidos de miedo; el cielo se queda como está (variantes descartadas); subido en la 1.2.1 (81cd952)
+- [Seguir las referencias al pie de la letra](seguir-referencias-al-pie.md) — 16-10: con una imagen de Juan, copiar su forma sin extras (huecos, anillos, tipos, detalle)
+- [El Fogonazo (oct 2026)](atalaya-fogonazo-2026-10.md) — 16-10: en el juego (solo huevo); silencioso salvo herido/muerte/mecha/estallido; corre 5,7 b/s (0,36); animaciones de trote y de quieto; subido en la 1.2.1 (81cd952)
+- [Sin aparición natural (16-10)](atalaya-sin-aparicion-natural.md) — ningún mob ni jefe sale solo todavía: por ahora, solo con huevo
+- [Grabar un vídeo del juego](atalaya-grabar-video.md) — BitBlt de la ventana tapada, mensajes a la ventana, sonido montado con los .ogg; mundo Video con aldea; momento_fractura.mp4 en la raíz (16-10)
+- [El Coco, el que te mete en la barriga (oct 2026)](atalaya-coco-2026-10.md) — 16-10: cáscara de coco; SIN panza translúcida, aviso encima; el Glotón en el juego, 1.2.1 (81cd952, en develop)
+- [Ideas del DEDsafío 2, 3 y 4 (17-10)](atalaya-ideas-dedsafio.md) — materiales/ideas/: repertorio por mecánica, un .md por edición e index.html visual (ideas_index.py); fuentes: fxtwitter, fans, VOD de Kick/Twitch
+- [Hormigas y plantas rehechas (oct 2026)](atalaya-hormigas-plantas-2026-10.md) — 19-10: hormigas erguidas; Fauces más grandes con dientes en 2.ª capa; detalles a 32 por bloque (B.fino); sin commit
+- [Cuidado con los generadores del bestiario](bestiario-generadores-cuidado.md) — escriben en src/main/resources incluso para vistas; PNG con otra compresión; manchas no determinista; nunca checkout de resources entero
+- [Recrear primero, luego mejorar](recrear-primero-luego-mejorar.md) — 19-10: con ilustración del DEDsafío, primero la copia fiel (caras en mapas de píxeles) junto al original; mejorar solo cuando la apruebe; sin ilustración, no se hace
+- [La 2.ª capa es como los dientes](segunda-capa-como-dientes.md) — 19-10: para Juan, «2.ª capa» = picos macizos en una caja algo mayor (dientes_capa de las Fauces), nunca velo translúcido
+- [Los fantasmas en el juego (oct 2026)](atalaya-fantasmas-2026-10.md) — 19-10: Blanco (Lentitud), Negro (roba corazones; Corazón Blanco), Amarillo (gasta tótem y posee), Rojo (agarra); sin Espada Fantasmal; Atómico se queda
+- [Los phantoms en el juego (oct 2026)](atalaya-phantoms-2026-10.md) — 19-10: Oscuro (añil, te hace soltar un hueco) y Explosivo (brasa, revienta), sin TNT; vuelan como el phantom al doble; en develop (c6303ba) con la pestaña Atalaya del creativo
+- [Los reptiles (oct 2026)](atalaya-reptiles-2026-10.md) — 7 vueltas; raptor como en la 6.ª con textura nueva; Dáctylo ELIMINADO; EN EL JUEGO el 20-10 (Reptiles.java), sin commit
+- [Lo fino no va en bloques](lo-fino-no-en-bloques.md) — 20-10: musgo, llamas, garras, dientes, ojos, colmillos… en láminas o 2.ª capa, nunca cajas; y pegado a la piel, no flotando
+- [La Gleba (oct 2026)](atalaya-gleba-2026-10.md) — 20-10: sus mobs solo tienen dibujo en el bestiario del evento (directo de elded 30-09, 2:37:51); página gleba.html enseñada
+- [Buscar la imagen antes de descartar](buscar-imagen-antes-de-descartar.md) — 20-10: nada es «sin dibujo» sin mirar carteles, fans, el bestiario del evento en los directos, clips y VOD
+- [Revisión de imágenes del DEDsafío (oct 2026)](atalaya-revision-imagenes-2026-10.md) — 20-10: D2 24/48, D3 33/50, D4 67/71 con icono del libro del juego; registro en materiales/ideas/imagenes_mobs.md; Cavador = Molusco Rocoso
+- [Brazos de los reptisaurios en arco](reptisaurios-brazos-en-arco.md) — 20-10: su dibujo vale para todos los reptisaurios: en arco por fuera y las manos hacia dentro (BRAZO_REPTISAURIO)

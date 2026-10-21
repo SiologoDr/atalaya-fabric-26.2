@@ -3953,5 +3953,245 @@
     "sounds": [
       "atalaya:bestia/phantom_explosivo/estalla"
     ]
+  },
+  "bestia.dromoraptor_rojo.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_rojo.ambiente",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_rojo/ambiente1",
+      "atalaya:bestia/dromoraptor_rojo/ambiente2",
+      "atalaya:bestia/dromoraptor_rojo/ambiente3"
+    ]
+  },
+  "bestia.dromoraptor_rojo.herido": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_rojo.herido",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_rojo/herido1",
+      "atalaya:bestia/dromoraptor_rojo/herido2"
+    ]
+  },
+  "bestia.dromoraptor_rojo.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_rojo.muerte",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_rojo/muerte"
+    ]
+  },
+  "bestia.dromoraptor_rojo.paso": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_rojo.paso",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_rojo/paso"
+    ]
+  },
+  "bestia.dromoraptor_rojo.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_rojo.mordisco",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_rojo/mordisco"
+    ]
+  },
+  "bestia.dromoraptor_rojo.llamada": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_rojo.llamada",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_rojo/llamada"
+    ]
+  },
+  "bestia.dromoraptor_azul.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_azul.ambiente",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_azul/ambiente1",
+      "atalaya:bestia/dromoraptor_azul/ambiente2",
+      "atalaya:bestia/dromoraptor_azul/ambiente3"
+    ]
+  },
+  "bestia.dromoraptor_azul.herido": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_azul.herido",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_azul/herido1",
+      "atalaya:bestia/dromoraptor_azul/herido2"
+    ]
+  },
+  "bestia.dromoraptor_azul.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_azul.muerte",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_azul/muerte"
+    ]
+  },
+  "bestia.dromoraptor_azul.paso": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_azul.paso",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_azul/paso"
+    ]
+  },
+  "bestia.dromoraptor_azul.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_azul.mordisco",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_azul/mordisco"
+    ]
+  },
+  "bestia.dromoraptor_azul.llamada": {
+    "subtitle": "subtitles.atalaya.bestia.dromoraptor_azul.llamada",
+    "sounds": [
+      "atalaya:bestia/dromoraptor_azul/llamada"
+    ]
+  },
+  "bestia.plumosaurio.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.plumosaurio.ambiente",
+    "sounds": [
+      "atalaya:bestia/plumosaurio/ambiente1",
+      "atalaya:bestia/plumosaurio/ambiente2",
+      "atalaya:bestia/plumosaurio/ambiente3"
+    ]
+  },
+  "bestia.plumosaurio.herido": {
+    "subtitle": "subtitles.atalaya.bestia.plumosaurio.herido",
+    "sounds": [
+      "atalaya:bestia/plumosaurio/herido1",
+      "atalaya:bestia/plumosaurio/herido2"
+    ]
+  },
+  "bestia.plumosaurio.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.plumosaurio.muerte",
+    "sounds": [
+      "atalaya:bestia/plumosaurio/muerte"
+    ]
+  },
+  "bestia.plumosaurio.paso": {
+    "subtitle": "subtitles.atalaya.bestia.plumosaurio.paso",
+    "sounds": [
+      "atalaya:bestia/plumosaurio/paso"
+    ]
+  },
+  "bestia.plumosaurio.golpe": {
+    "subtitle": "subtitles.atalaya.bestia.plumosaurio.golpe",
+    "sounds": [
+      "atalaya:bestia/plumosaurio/golpe"
+    ]
+  },
+  "bestia.molusco_rocoso.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.ambiente",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/ambiente1",
+      "atalaya:bestia/molusco_rocoso/ambiente2",
+      "atalaya:bestia/molusco_rocoso/ambiente3"
+    ]
+  },
+  "bestia.molusco_rocoso.herido": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.herido",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/herido1",
+      "atalaya:bestia/molusco_rocoso/herido2"
+    ]
+  },
+  "bestia.molusco_rocoso.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.muerte",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/muerte"
+    ]
+  },
+  "bestia.molusco_rocoso.paso": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.paso",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/paso"
+    ]
+  },
+  "bestia.molusco_rocoso.mordisco": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.mordisco",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/mordisco"
+    ]
+  },
+  "bestia.molusco_rocoso.entierra": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.entierra",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/entierra"
+    ]
+  },
+  "bestia.molusco_rocoso.sale": {
+    "subtitle": "subtitles.atalaya.bestia.molusco_rocoso.sale",
+    "sounds": [
+      "atalaya:bestia/molusco_rocoso/sale"
+    ]
+  },
+  "bestia.reptisaurio_salvaje.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_salvaje.ambiente",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_salvaje/ambiente1",
+      "atalaya:bestia/reptisaurio_salvaje/ambiente2",
+      "atalaya:bestia/reptisaurio_salvaje/ambiente3"
+    ]
+  },
+  "bestia.reptisaurio_salvaje.herido": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_salvaje.herido",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_salvaje/herido1",
+      "atalaya:bestia/reptisaurio_salvaje/herido2"
+    ]
+  },
+  "bestia.reptisaurio_salvaje.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_salvaje.muerte",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_salvaje/muerte"
+    ]
+  },
+  "bestia.reptisaurio_salvaje.paso": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_salvaje.paso",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_salvaje/paso"
+    ]
+  },
+  "bestia.reptisaurio_salvaje.zarpazo": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_salvaje.zarpazo",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_salvaje/zarpazo"
+    ]
+  },
+  "bestia.reptisaurio_salvaje.rugido": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_salvaje.rugido",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_salvaje/rugido"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.ambiente": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.ambiente",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/ambiente1",
+      "atalaya:bestia/reptisaurio_guerrero/ambiente2",
+      "atalaya:bestia/reptisaurio_guerrero/ambiente3"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.herido": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.herido",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/herido1",
+      "atalaya:bestia/reptisaurio_guerrero/herido2"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.muerte": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.muerte",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/muerte"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.paso": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.paso",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/paso"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.zarpazo": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.zarpazo",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/zarpazo"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.rugido": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.rugido",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/rugido"
+    ]
+  },
+  "bestia.reptisaurio_guerrero.veneno": {
+    "subtitle": "subtitles.atalaya.bestia.reptisaurio_guerrero.veneno",
+    "sounds": [
+      "atalaya:bestia/reptisaurio_guerrero/veneno"
+    ]
   }
 }

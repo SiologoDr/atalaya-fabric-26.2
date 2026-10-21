@@ -117,6 +117,68 @@ Meter en el juego lo del DEDsafío 2, 3 y 4 (la investigación está en `materia
      icono (`item/PestanaAtalaya.java`), y ya no en las de Minecraft. El orden es huevos, armaduras, armas, tótems y
      corazones, objetos de los cambios y materiales. Lo de los minijuegos de los jefes sigue sin salir. Prueba:
      `materiales/pruebas/prueba_pestana.py` (fotos `pestana_*`).
+   - **Reptiles (19-10):** los siete con dibujo en los carteles del día 2 y del día 4 están recreados tal cual en
+     `bestiario_reptiles.py`. Son el Reptisaurio Salvaje, el Guerrero, los Dromoraptores Rojo y Azul, el Plumosaurio,
+     el Dáctylo Bebé y el «Cavador» (el otro «Reptisaurio Salvaje» del día 4; el nombre es provisional). La primera
+     recreación, a ojo y con cajas lisas, a Juan le pareció «un chiste al lado de los originales». La segunda está
+     medida al píxel en los iconos (cuatro píxeles del cartel por píxel), con la paleta sacada del cartel y texturas de
+     4 o 5 tonos con escamas, anillos y mechones como las de los originales. Se comparó cada uno con el contorno del
+     original encima. La tercera se afinó pieza a pieza. La cuarta (20-10) aplica su lista de correcciones por mob:
+     - lo fino ya no va en bloques (musgo, llamas, garras, dientes, ojos, colmillos y la cresta amarilla van en láminas
+       recortadas o en 2.ª capa);
+     - texturas nuevas en los siete;
+     - los raptores con piernas y brazos de velociraptor;
+     - el Plumosaurio con el cuello adelantado y la cabeza en escalera;
+     - el Dáctylo rehecho como un quetzalcoatlus de pie;
+     - el Cavador con pilar, extremidad y cuerpo.
+     La quinta (20-10) sigue los dibujos que Juan hizo encima de los nuestros:
+     - los Reptisaurios con manos, 4 dientes, ojos de línea a los costados y piel sin cuadrícula;
+     - los raptores con el cuello grande, la pierna grande, el brazo en L y aletas de púas;
+     - el Plumosaurio con la cabeza de una pieza, orejas y la escalera unida al cuello;
+     - el Cavador con 4 colmillos y pilares de madera;
+     - el Dáctylo rehecho como su icono, erguido y con las patas colgando.
+     La sexta (20-10):
+     - los Reptisaurios con la cara que pintó Juan y las manos giradas hacia dentro (dijo que así «quedarían
+       excelentes»);
+     - los raptores con anatomía de raptor (cuerpo horizontal, cola larga, pierna en zigzag), según dos referencias suyas;
+     - el Plumosaurio con las aletas moradas a los lados de la cabeza («casi listo»);
+     - el Cavador con los colmillos más gruesos.
+     **El Dáctylo Bebé se eliminó** («no lo vamos a hacer»). La séptima (20-10):
+     - los Reptisaurios con el pelo pegado a la piel, los ojos rectángulos, los colmillos enteros con la boca más
+       abierta, el hueso del hombro alineado con el brazo y las manos planas mirando hacia dentro;
+     - los raptores adultos, con piel de manchas grandes, cabeza de cráneo y hocico, garras gris oscuro (2 y 3) y la
+       aleta de los hombros recta;
+     - el Plumosaurio con las aletas abiertas y la boca pequeña.
+     Después (20-10) Juan pidió el raptor «como estaba antes, y solo mejora su textura» y «mételos al juego».
+     - **Raptor:** vuelve a la forma de la 6.ª, con la textura nueva.
+     - **En el juego:**
+       - el generador exporta el modelo, el huevo, los nombres, el retrato y las partículas
+         (`python bestiario_reptiles.py ../.. -`);
+       - los sonidos salen de `bestiario_sonidos_reptiles.py`;
+       - las mecánicas están en `bestiario/mobs/Reptiles.java` y las fichas en `Fichas.java` (grupo REPTILES, solo con
+         huevo);
+       - los rótulos del chat, con `catalogo.py`;
+       - la prueba es `pruebas/prueba_reptiles.py`.
+     - **Ojo con `catalogo.py`:** reescribe todos los PNG de rótulos con otra compresión. Hay que devolver uno a uno los
+       que no cambian de píxeles.
+     - **Tamaños**, que pidió Juan: Plumosaurio 6,3 bloques, Dromoraptores 3,1, Cavador 1,0, Salvaje 2,9 y Guerrero
+       2,6. Se hacen con `TAM` y `agrandar` en el generador, sin cambiar el píxel.
+     - **Animaciones** rehechas (20-10):
+       - reptisaurios con brazos en V, rodilla, codo, rugido y carrera;
+       - raptores con rodilla, cola en dos tramos y la llamada;
+       - Plumosaurio con patas que se levantan y una mirada suave que ya no da bandazos;
+       - Cavador con pilares que pisan y que se hunde antes de enterrarse.
+     - Sigue pendiente preguntarle por el nombre del Cavador. **Falta que la dé por buena**; después tocan la mejora, el Java, los sonidos y la
+     prueba. Los que no tienen dibujo (el Dromoraptor Verde, el Arquero, el de Lanza, el Dáctylo Adulto,
+     el Fluviosaurus y el Mastodino) no se recrean.
+   - **Revisión de imágenes (20-10):** `materiales/ideas/imagenes_mobs.md` dice, para cada mob del DEDsafío 2, 3 y 4,
+     si hay imagen y de dónde sale.
+     - En el D4, el libro del juego (el bestiario que abren los streamers) tiene el icono de casi todos. La página
+       completa está en elded, 13-10, 5:58.
+     - **Mirarla antes de recrear un mob.** Ningún mob es «sin dibujo» sin buscar ahí.
+     - El «Reptisaurio Cavador» es el **Molusco Rocoso** del libro. Ya está renombrado (`molusco_rocoso`) y con la
+       mecánica del original: se entierra si te alejas y te sigue bajo tierra.
+     - Los brazos de todos los reptisaurios siguen el dibujo de Juan (`BRAZO_REPTISAURIO`).
    - Momentos que dependen de mobs.
    - Cambios: el tótem con trampa, la perla nuclear, el sueño pesado, las flores con dientes y mirar la luna.
 5. **Al final:** el README, y la versión solo si Juan la pide.

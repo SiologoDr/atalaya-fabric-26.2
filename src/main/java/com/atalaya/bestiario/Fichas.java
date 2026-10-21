@@ -12,6 +12,7 @@ import com.atalaya.bestiario.mobs.MarchitoEntity;
 import com.atalaya.bestiario.mobs.MatojoEntity;
 import com.atalaya.bestiario.mobs.Phantoms;
 import com.atalaya.bestiario.mobs.Plantas;
+import com.atalaya.bestiario.mobs.Reptiles;
 import com.atalaya.bestiario.mobs.TartaEntity;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -502,6 +503,89 @@ public final class Fichas {
             .muerte(20, "humo")
             .sombra(0.6F)
             .colocacion(SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES);
+
+    // ------------------------------------------------------------------
+    //  Los reptiles (sin biomas: de momento solo salen con su huevo)
+    // ------------------------------------------------------------------
+
+    /** El Reptisaurio Salvaje (DEDsafio 2). */
+    public static final Bestia REPTISAURIO_SALVAJE = Bestias.nueva("reptisaurio_salvaje", Reptiles.Salvaje::new)
+            .grupo("REPTILES")
+            .titulo("REPTISAURIO SALVAJE", "Un reptil encorvado, verde oliva casi negro, con musgo en la cabeza y huesos en los hombros: anda con los brazos colgando hasta las rodillas y ataca cuerpo a cuerpo con sus garras, que empujan.")
+            .etiquetas("reptil reptisaurio salvaje garras musgo cuevas")
+            .medidas(1.2F, 2.75F, 2.4F)
+            .atributos(Reptiles.Salvaje::atributos)
+            .sonidos("zarpazo", "rugido")
+            .particula("musgo", Bestia.Vuelo.DERIVA, false)
+            .particula("hueso", Bestia.Vuelo.CAE, false)
+            .muerte(20, "musgo")
+            .sombra(0.75F);
+
+    /** El Reptisaurio Guerrero (DEDsafio 2). */
+    public static final Bestia REPTISAURIO_GUERRERO = Bestias.nueva("reptisaurio_guerrero", Reptiles.Guerrero::new)
+            .grupo("REPTILES")
+            .titulo("REPTISAURIO GUERRERO", "El reptisaurio de los asentamientos: pardo, con llamas naranjas en la cabeza, calaveras de vaca en los hombros y un cuchillo de hueso. Ataca cuerpo a cuerpo y su golpe te deja Veneno Primitivo (veneno II, ocho segundos).")
+            .etiquetas("reptil reptisaurio guerrero veneno calaveras asentamiento")
+            .medidas(1.3F, 2.5F, 2.15F)
+            .atributos(Reptiles.Guerrero::atributos)
+            .sonidos("zarpazo", "rugido", "veneno")
+            .particula("veneno", Bestia.Vuelo.CAE, true)
+            .particula("llama", Bestia.Vuelo.SUBE, true)
+            .muerte(20, "llama")
+            .sombra(0.75F);
+
+    /** El Dromoraptor Rojo (DEDsafio 2). */
+    public static final Bestia DROMORAPTOR_ROJO = Bestias.nueva("dromoraptor_rojo", Reptiles.Rojo::new)
+            .grupo("REPTILES")
+            .titulo("DROMORAPTOR ROJO", "Un depredador de fuerza brutal, naranja con aletas de púas azules: su mordisco quita muchísimo. Va en manada: sale con otros dos y, cuando uno te ve, se lo dice a los demás.")
+            .etiquetas("reptil dromoraptor rojo raptor manada fuerza mordisco")
+            .medidas(1.5F, 2.4F, 2.2F)
+            .atributos(Reptiles.Rojo::atributos)
+            .sonidos("mordisco", "llamada")
+            .particula("pluma", Bestia.Vuelo.DERIVA, false)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(20, "pluma")
+            .sombra(0.95F);
+
+    /** El Dromoraptor Azul (DEDsafio 4). */
+    public static final Bestia DROMORAPTOR_AZUL = Bestias.nueva("dromoraptor_azul", Reptiles.Azul::new)
+            .grupo("REPTILES")
+            .titulo("DROMORAPTOR AZUL", "El dromoraptor turquesa de aletas rojas: muerde menos que el Rojo, pero corre muchísimo. También va en manada: sale con otros dos y se avisan.")
+            .etiquetas("reptil dromoraptor azul raptor manada veloz rapido")
+            .medidas(1.5F, 2.4F, 2.2F)
+            .atributos(Reptiles.Azul::atributos)
+            .sonidos("mordisco", "llamada")
+            .particula("pluma", Bestia.Vuelo.DERIVA, false)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(20, "pluma")
+            .sombra(0.95F);
+
+    /** El Plumosaurio (DEDsafio 2). */
+    public static final Bestia PLUMOSAURIO = Bestias.nueva("plumosaurio", Reptiles.Plumosaurio::new)
+            .grupo("REPTILES")
+            .titulo("PLUMOSAURIO", "Un coloso de seis bloques, de cuello largo y plumón morado: pacífico, no ataca a nadie. Pero si le pegas, se revuelve: su golpe hace muchísimo daño y te lanza por los aires. A los treinta segundos sin que le peguen, se calma.")
+            .etiquetas("reptil plumosaurio coloso pacifico cuello largo morado")
+            .medidas(3.0F, 5.6F, 5.4F)
+            .rastreo(12)
+            .atributos(Reptiles.Plumosaurio::atributos)
+            .sonidos("golpe")
+            .particula("plumon", Bestia.Vuelo.DERIVA, false)
+            .particula("polvo", Bestia.Vuelo.FLOTA, false)
+            .muerte(28, "plumon")
+            .sombra(2.0F);
+
+    /** El Molusco Rocoso (DEDsafio 4: el otro «Reptisaurio Salvaje» del cartel del dia 4; su nombre, del libro). */
+    public static final Bestia MOLUSCO_ROCOSO = Bestias.nueva("molusco_rocoso", Reptiles.Molusco::new)
+            .grupo("REPTILES")
+            .titulo("MOLUSCO ROCOSO", "Pequeño (un bloque) y lento, de arena, sobre cuatro pilares y con un manojo de prismas en el lomo: ataca a quien se le acerque. Si te alejas demasiado, se entierra (solo asoman las puntas de sus prismas), te sigue bajo tierra hasta encontrarte y sale debajo de ti de un mordisco. Suelta un hongo marrón y, a veces, un fragmento de netherita.")
+            .etiquetas("molusco rocoso entierra acecha tierra prismas netherita qumara")
+            .medidas(0.8F, 0.9F, 0.35F)
+            .atributos(Reptiles.Molusco::atributos)
+            .sonidos("mordisco", "entierra", "sale")
+            .particula("tierra", Bestia.Vuelo.CAE, false)
+            .particula("astilla", Bestia.Vuelo.CAE, false)
+            .muerte(20, "tierra")
+            .sombra(0.4F);
 
     /** Carga la clase (y con ella todas las fichas) y lo que van a necesitar: las lianas, la red y los corazones. */
     static void cargar() {

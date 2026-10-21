@@ -84,4 +84,10 @@ Cuando Juan dibuja encima de una captura mía:
 4. **Mejorar solo cuando Juan dé la recreación por buena**, y sin perder lo que es.
 5. Si un mob no tiene ilustración, no se recrea. Juan: «como no tenemos una ilustración no podemos recrearlos como tal y mejorarlos».
 
+Con los reptiles (19-10) pasó otra vez: una recreación a ojo, con cajas lisas, fue «un chiste al lado de los originales». Lo que funcionó:
+- medir cada pieza en píxeles del icono (a 4K, un píxel de textura son unos 4 del cartel);
+- sacar la paleta del propio cartel;
+- comparar con el contorno del original encima y en grande al lado;
+- texturas de 4 o 5 tonos al píxel con su dibujo (escamas, anillos, mechones), como los originales.
+
 Relacionado: [[seguir-referencias-al-pie]], [[atalaya-hormigas-plantas-2026-10]].

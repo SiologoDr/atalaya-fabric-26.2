@@ -19,7 +19,7 @@ El 19-10-2026 se hicieron los dos phantoms con dibujo en el cartel del 07-10 (DE
 - El Oscuro te hace soltar un hueco entero del inventario.
 - El Explosivo deja una brasa que revienta al segundo y medio (radio 3).
 - Salen en las pesadillas (`Insomnio.PESADILLAS`) y con huevo. Los phantoms ladrones del DEDsafío 2 y 3 ya son un cambio.
-- Juan los vio en la prueba y preguntó si iban muy rápidos (no se acelera el mundo en las pruebas). Pidió: «que sea como un phantom normal, pero al doble todo». Vuelan con la lógica copiada del phantom de Minecraft (control de vuelo, vueltas sobre un ancla a 20-40 bloques de altura, picado). La velocidad, la aceleración y el giro son el doble. El picado llega cada 4-5 s, cuando el phantom normal tarda 8-11 s. La prueba pasa (19-10).
+- Juan los vio en la prueba y preguntó si iban muy rápidos (no se acelera el mundo en las pruebas). Pidió: «que sea como un phantom normal, pero al doble todo». Vuelan con la lógica copiada del phantom de Minecraft (control de vuelo, vueltas sobre un ancla a 20-40 bloques de altura, picado). La velocidad, la aceleración y el giro son el doble. El picado llega cada 4-5 s, cuando el phantom normal tarda 8-11 s. La prueba pasa (19-10). Juan lo subió a develop con la pestaña «Atalaya» del creativo (c6303ba).
 
 **Lecciones de la membrana:**
 - Una lámina con dos caras en el mismo plano se pisa, porque el render de las bestias no oculta las caras de atrás. Va una sola cara.
