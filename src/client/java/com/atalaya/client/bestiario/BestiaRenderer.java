@@ -78,7 +78,7 @@ public class BestiaRenderer<T extends BestiaEntity> extends MobRenderer<T, Besti
         s.caza = e.isAggressive();
         s.valor = e.valorCliente(parcial);
         s.creeper = e instanceof com.atalaya.bestiario.ConMecha;
-        s.hasRedOverlay = e.hurtTime > 0 && e.deathTime <= 0;
+        s.hasRedOverlay = e.hurtTime > 0 || e.deathTime > 0;
         s.tinte = e instanceof com.atalaya.bestiario.Camuflada c && c.camuflada()
                 && e.level() instanceof net.minecraft.client.renderer.block.BlockAndTintGetter g
                 ? 0xFF000000 | net.minecraft.client.renderer.BiomeColors.getAverageGrassColor(g, e.blockPosition())
@@ -155,7 +155,7 @@ public class BestiaRenderer<T extends BestiaEntity> extends MobRenderer<T, Besti
         @Override
         public void submit(PoseStack pose, SubmitNodeCollector colector, int luz, BestiaRenderState s, float yRot,
                            float xRot) {
-            if (s.isInvisible) {
+            if (s.isInvisible || s.hasRedOverlay) {
                 return;
             }
             colector.order(1).submitModel(getParentModel(), s, pose, brillos[s.variante], luz, OverlayTexture.NO_OVERLAY,

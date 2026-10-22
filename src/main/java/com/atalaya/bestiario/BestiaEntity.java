@@ -169,6 +169,9 @@ public abstract class BestiaEntity extends Monster {
         super.tick();
         valorAnt = valorAhora;
         valorAhora = getValor();
+        if (!level().isClientSide()) {
+            setAggressive(presa() != null);
+        }
         if (!programados.isEmpty() && !level().isClientSide()) {
             List<Programado> listos = new ArrayList<>();
             for (Iterator<Programado> it = programados.iterator(); it.hasNext(); ) {
@@ -229,8 +232,44 @@ public abstract class BestiaEntity extends Monster {
     }
 
     // ------------------------------------------------------------------
-    //  La muerte
+    //  El dano y la muerte
     // ------------------------------------------------------------------
+
+    @Override
+    public boolean hurtServer(ServerLevel nivel, DamageSource fuente, float dano) {
+        float vidaAntes = getHealth();
+        boolean herido = super.hurtServer(nivel, fuente, dano);
+        if (herido) {
+            float quitado = vidaAntes - getHealth();
+            if (quitado > 0.0F) {
+                mostrarCorazonesDano(nivel, fuente, quitado);
+            }
+        }
+        return herido;
+    }
+
+    /** Suelta los corazones de dano en el costado que recibe el golpe (fuera de la malla en los mobs grandes). */
+    private void mostrarCorazonesDano(ServerLevel nivel, DamageSource fuente, float quitado) {
+        int corazones = Mth.clamp(Math.round(quitado * 0.5F), 1, 14);
+        double px = getX();
+        double py = getY() + Math.min(getBbHeight() * 0.55, 1.5);
+        double pz = getZ();
+        Entity origen = fuente.getDirectEntity() != null ? fuente.getDirectEntity() : fuente.getEntity();
+        if (origen != null) {
+            double dx = origen.getX() - getX();
+            double dz = origen.getZ() - getZ();
+            double dist = Math.hypot(dx, dz);
+            if (dist > 1.0E-3) {
+                double r = getBbWidth() * 0.55;
+                px += (dx / dist) * r;
+                pz += (dz / dist) * r;
+            }
+            py = Mth.clamp(origen.getEyeY() - 0.15, getY() + 0.4, getY() + getBbHeight() * 0.85);
+        }
+        double dispersion = Math.max(0.18, getBbWidth() * 0.22);
+        nivel.sendParticles(net.minecraft.core.particles.ParticleTypes.DAMAGE_INDICATOR,
+                px, py, pz, corazones, dispersion, 0.12, dispersion, 0.18);
+    }
 
     @Override
     public void die(DamageSource fuente) {

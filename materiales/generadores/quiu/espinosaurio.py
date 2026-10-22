@@ -462,7 +462,7 @@ def construir():
     vuelto al modelo con su cámara (az -42, el 13, ortográfica; proy.py): el eje de las canillas en Z = 0."""
     m = B.Modelo(ID, K=2, ancho=256)
     m.escala = 1.0
-    m.paso = 3.0
+    m.paso = 1.15
 
     # Los pintores.
     piel = celdas_espinosaurio('piel_espinosaurio', PIEL_ESPINOSAURIO, base=2.0, luz=0.6)
@@ -643,85 +643,130 @@ def construir():
 # ======================================================================================================================
 #  Las animaciones
 # ======================================================================================================================
-def anims_espinosaurio(m):
-    """Las animaciones (en los ejes del boceto: giro positivo en X = la punta hacia abajo; en Y = hacia su izquierda).
+def _ciclo_espinosaurio(a, largo, n, amp, inclina):
+    """Ciclo pesado y natural para el Espinosaurio: la pata en apoyo empuja hacia atrás con el pie asentado, y en el
+    vuelo flexiona la caña suavemente para levantar las garras sin zapatear; los brazos cuelgan en su postura natural
+    con un contrabalanceo lento y moderado."""
+    p_i, p_d, c_i, c_d, b_i, b_d = [], [], [], [], [], []
+    cuerpo_r, cuerpo_m, cab_r, mand_r = [], [], [], []
+    for k in range(n + 1):
+        ph = k / n
+        t = round(largo * ph, 4)
+        for ld_p, ld_c, ld_b, f0 in ((p_i, c_i, b_i, 0.0), (p_d, c_d, b_d, 0.5)):
+            p = (ph + f0) % 1.0
+            if p < 0.56:
+                f = p / 0.56
+                rx_p = -inclina - amp * math.cos(math.pi * f)
+                # Compensa el giro del muslo en el arranque del apoyo para que el pie apoye plano
+                rx_c = max(0.0, -0.35 * (rx_p + inclina))
+            else:
+                f = (p - 0.56) / 0.44
+                rx_p = -inclina + amp * math.cos(math.pi * f)
+                vuelo = math.sin(math.pi * f)
+                rx_c = 16.0 * (amp / 16.0) * vuelo
+            ld_p.append((t, round(rx_p, 2), 0.0, 0.0))
+            ld_c.append((t, round(rx_c, 2), 0.0, 0.0))
+            # El brazo de ese lado oscila suavemente en contrafase con la pata trasera, manteniendo su caída natural
+            rx_b = -0.28 * (rx_p + inclina)
+            ld_b.append((t, round(rx_b, 2), 0.0, 0.0))
+        pulso = math.sin(4 * math.pi * ph)
+        balanceo = math.sin(2 * math.pi * ph)
+        cuerpo_r.append((t, round(inclina + 1.4 * pulso, 2), round(1.8 * math.cos(2 * math.pi * ph), 2),
+                         round(2.0 * balanceo, 2)))
+        cuerpo_m.append((t, 0.0, round(-0.6 * (amp / 16.0) * abs(math.cos(2 * math.pi * ph)), 3), 0.0))
+        cab_r.append((t, round(-inclina * 0.55 - 1.8 * math.sin(4 * math.pi * ph + 0.8), 2),
+                      round(-1.4 * math.cos(2 * math.pi * ph), 2), 0.0))
+        mand_r.append((t, round((-4.0 if inclina > 2.0 else -8.0) + 2.0 * pulso, 2), 0.0, 0.0))
+    a.rot('pierna_i', p_i)
+    a.rot('pierna_d', p_d)
+    a.rot('cana_i', c_i)
+    a.rot('cana_d', c_d)
+    a.rot('brazo_i', b_i)
+    a.rot('brazo_d', b_d)
+    a.rot('cuerpo', cuerpo_r)
+    a.mov('cuerpo', cuerpo_m)
+    a.rot('cabeza', cab_r)
+    a.rot('mandibula', mand_r)
 
-    reposo    respira (el tronco sube y baja), la cola se mece despacio en sus dos tramos, la cabeza mira a un lado y
-              a otro y la boca se abre y se cierra un poco
-    andar     paso corto de terópodo de patas cortas: el muslo adelanta y atrasa, la rodilla solo se dobla al levantar
-              el pie; el tronco se balancea y sube y baja; la cola ondula a contrapaso; los brazos se mecen
-    correr    lo mismo, más deprisa y más largo, echado hacia delante y con la cabeza baja
-    ataque    el mordisco con Veneno: echa la cabeza atrás abriendo más la boca y la lanza cerrándola de golpe
-    especial  el rugido: la cabeza arriba, la boca abierta del todo, el pecho arriba, la vela que tiembla, los brazos
-              abiertos y la cola levantada
-    especial2 el golpe de mandíbula de lado («rompe todo a su paso»): gira la cabeza a un lado con la boca abierta y la
-              barre al otro cerrándola de golpe, con el tronco y la cola a contragolpe
-    aparece   se levanta de agachado, sacude la vela y abre la boca
-    muerte    se desploma de lado, con la cabeza y la cola caídas"""
+
+def anims_espinosaurio(m):
+    """Las animaciones serias de terópodo para el Espinosaurio (en los ejes del boceto: giro positivo en X = la punta
+    hacia abajo, y en patas/brazos que cuelgan = hacia atrás):
+
+    reposo    respiración pesada, brazos en caída natural, la cola contrapesa despacio y la cabeza acecha
+    andar     marcha pesada y pausada de dinosaurio con apoyo firme, flexión suave de caña y contrabalanceo natural
+    correr    zancada larga y potente con el cuerpo inclinado hacia delante, fauces entreabiertas y cola tensa
+    ataque    embestida de fauces con Veneno: retrae el cuello abriendo la boca y lanza el hocico hacia delante
+              cerrando las mandíbulas de golpe con una sacudida feroz
+    especial  rugido imponente de Espinosaurio: baja el pecho hacia delante, extiende la cabeza abriendo las fauces al
+              máximo, hace vibrar la vela dorsal y azota la cola
+    especial2 barrido y desgarrón lateral de mandíbula con contragolpe del tronco y la cola
+    aparece   se incorpora pesadamente, sacude la vela y ruge
+    muerte    se desploma de lado"""
     lados = ((1, 'i'), (-1, 'd'))
     r = m.anim('reposo', 4.0, bucle=True)
-    r.onda('cuerpo', 'm', 1, 0.35, periodo=4.0)
+    r.onda('cuerpo', 'm', 1, 0.4, periodo=4.0)
     r.onda('cuerpo', 'r', 0, -0.8, periodo=4.0)
     for lado, ld in lados:
         r.onda(f'pierna_{ld}', 'r', 0, 0.8, periodo=4.0)
-        r.onda(f'brazo_{ld}', 'r', 0, 3.0, periodo=4.0, fase=0.2)
-    r.onda('cola', 'r', 1, 4.0, periodo=4.0)
-    r.onda('cola2', 'r', 1, 6.0, periodo=4.0, fase=0.15)
+        r.onda(f'brazo_{ld}', 'r', 0, 1.5, periodo=4.0, fase=0.2)
+    r.onda('cola', 'r', 1, 4.5, periodo=4.0)
+    r.onda('cola2', 'r', 1, 6.5, periodo=4.0, fase=0.15)
     r.onda('vela', 'r', 2, 0.8, periodo=4.0, fase=0.3)
-    r.rot('cabeza', [(0, 0, 0, 0), (0.8, -2, 12, 0), (1.6, 0, 12, 0), (2.0, 0, 0, 0), (2.8, -2, -12, 0),
-                     (3.6, 0, -12, 0), (4.0, 0, 0, 0)])
-    r.onda('mandibula', 'r', 0, 3.0, periodo=2.0, base=-1.0)
+    r.rot('cabeza', [(0, 0, 0, 0), (0.8, -2, 10, -2), (1.6, 0, 10, -2), (2.0, 0, 0, 0), (2.8, -2, -10, 2),
+                     (3.6, 0, -10, 2), (4.0, 0, 0, 0)])
+    r.onda('mandibula', 'r', 0, 2.5, periodo=2.0, base=-6.0)
 
-    for nombre, largo, amp, inclina in (('andar', 1.2, 1.0, 0.0), ('correr', 0.75, 1.4, 6.0)):
+    for nombre, largo, amp, inclina in (('andar', 1.5, 16.0, 1.5), ('correr', 0.96, 20.0, 4.5)):
         a = m.anim(nombre, largo, bucle=True)
-        for k, (lado, ld) in enumerate(lados):
-            f = 0.5 * k
-            a.onda(f'pierna_{ld}', 'r', 0, 22 * amp, periodo=largo, fase=f, base=-inclina)
-            # La rodilla solo se dobla al adelantar la pata (el pie, en el aire); apoyada, recta.
-            a.onda(f'cana_{ld}', 'r', 0, 24 * amp, periodo=largo, fase=f - 0.25, forma=lambda v: max(0.0, v))
-            a.onda(f'brazo_{ld}', 'r', 0, 9 * amp, periodo=largo, fase=f + 0.5, base=-inclina * 0.5)
-        a.onda('cuerpo', 'r', 2, 2.5 * amp, periodo=largo)
-        a.onda('cuerpo', 'r', 1, 2.0 * amp, periodo=largo, fase=0.25)
-        a.onda('cuerpo', 'r', 0, 1.5 * amp, periodo=largo / 2, base=inclina)
-        a.onda('cuerpo', 'm', 1, 0.6 * amp, periodo=largo / 2)
-        a.onda('cola', 'r', 1, 7 * amp, periodo=largo, fase=0.5)
-        a.onda('cola2', 'r', 1, 10 * amp, periodo=largo, fase=0.62)
-        a.onda('cabeza', 'r', 0, 3 * amp, periodo=largo / 2, fase=0.25, base=inclina * 0.8)
-        a.onda('vela', 'r', 2, 1.0 * amp, periodo=largo, fase=0.1)
+        _ciclo_espinosaurio(a, largo, 16, amp, inclina)
+        escala = amp / 16.0
+        a.onda('cola', 'r', 1, 6.0 * escala, periodo=largo, fase=0.5)
+        a.onda('cola2', 'r', 1, 9.0 * escala, periodo=largo, fase=0.65)
+        a.onda('cola', 'r', 0, 1.8 * escala, periodo=largo / 2, base=inclina * 0.6)
+        a.onda('vela', 'r', 2, 1.0 * escala, periodo=largo, fase=0.1)
 
-    at = m.anim('ataque', 0.7)
-    at.rot('cabeza', [(0, 0, 0, 0), (0.22, -18, 0, 0), (0.36, 12, 0, 0), (0.5, 8, 0, 0), (0.7, 0, 0, 0)])
-    at.mov('cabeza', [(0, 0, 0, 0), (0.22, 0, 1, -1.5), (0.36, 0, -1, 3), (0.7, 0, 0, 0)])
-    # La boca, más abierta al echarse atrás y cerrada de golpe (hasta el canto del hocico) al morder.
-    at.rot('mandibula', [(0, 0, 0, 0), (0.22, 14, 0, 0), (0.34, -20, 0, 0), (0.5, -20, 0, 0), (0.7, 0, 0, 0)])
-    at.rot('cuerpo', [(0, 0, 0, 0), (0.22, -4, 0, 0), (0.36, 5, 0, 0), (0.7, 0, 0, 0)])
+    # ataque: embestida feroz y mordisco de cocodrilo/terópodo
+    at = m.anim('ataque', 0.76)
+    at.mov('cuerpo', [(0, 0, 0, 0), (0.18, 0, 0.4, -1.5), (0.34, 0, -1.0, 3.8), (0.48, 0, -0.6, 2.6), (0.76, 0, 0, 0)])
+    at.rot('cuerpo', [(0, 0, 0, 0), (0.18, -5, 4, 0), (0.34, 8, -4, 0), (0.48, 6, 3, 0), (0.76, 0, 0, 0)])
+    at.rot('cabeza', [(0, 0, 0, 0), (0.18, -14, 6, -5), (0.32, 8, -4, 4), (0.42, 14, -8, 6), (0.56, 6, 4, -3),
+                      (0.76, 0, 0, 0)])
+    at.mov('cabeza', [(0, 0, 0, 0), (0.18, 0, 0.8, -1.5), (0.34, 0, -1.0, 3.2), (0.48, 0, -0.6, 2.0), (0.76, 0, 0, 0)])
+    at.rot('mandibula', [(0, 0, 0, 0), (0.18, 16, 0, 0), (0.30, 18, 0, 0), (0.40, -24, 0, 0), (0.54, -18, 0, 0),
+                         (0.76, 0, 0, 0)])
     for lado, ld in lados:
-        at.rot(f'pierna_{ld}', [(0, 0, 0, 0), (0.22, 4, 0, 0), (0.36, -5, 0, 0), (0.7, 0, 0, 0)])
-        at.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.22, 10, 0, 0), (0.36, -25, 0, 0), (0.7, 0, 0, 0)])
-    at.rot('cola', [(0, 0, 0, 0), (0.22, 0, 6, 0), (0.36, 0, -8, 0), (0.7, 0, 0, 0)])
+        at.rot(f'pierna_{ld}', [(0, 0, 0, 0), (0.18, 5, 0, 0), (0.34, -8, 0, 0), (0.48, -6, 0, 0), (0.76, 0, 0, 0)])
+        at.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.18, 6, 0, 0), (0.34, -8, 0, 0), (0.76, 0, 0, 0)])
+    at.rot('cola', [(0, 0, 0, 0), (0.18, -4, -6, 0), (0.34, 8, 8, 0), (0.50, 6, -6, 0), (0.76, 0, 0, 0)])
+    at.rot('cola2', [(0, 0, 0, 0), (0.22, -4, -10, 0), (0.38, 6, 12, 0), (0.54, 4, -8, 0), (0.76, 0, 0, 0)])
 
-    e = m.anim('especial', 1.6)
-    e.rot('cuerpo', [(0, 0, 0, 0), (0.35, -9, 0, 0), (1.15, -9, 0, 0), (1.6, 0, 0, 0)])
+    # especial: rugido imponente de Espinosaurio (pecho adelantado, fauces abiertas y cola azotando)
+    e = m.anim('especial', 1.8)
+    e.mov('cuerpo', [(0, 0, 0, 0), (0.22, 0, 0.5, -1.2), (0.45, 0, -1.0, 2.8), (1.35, 0, -1.0, 2.8), (1.8, 0, 0, 0)])
+    e.rot('cuerpo', [(0, 0, 0, 0), (0.22, -6, 0, 0), (0.45, 7, 0, 0), (1.35, 7, 0, 0), (1.8, 0, 0, 0)])
     for lado, ld in lados:
-        # Las patas, al revés que el tronco: los pies no se mueven del suelo.
-        e.rot(f'pierna_{ld}', [(0, 0, 0, 0), (0.35, 9, 0, 0), (1.15, 9, 0, 0), (1.6, 0, 0, 0)])
-        e.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.35, -30, 0, lado * 22), (1.15, -30, 0, lado * 22), (1.6, 0, 0, 0)])
-    e.rot('cabeza', [(0, 0, 0, 0), (0.35, -26, 0, 0), (0.55, -26, 5, 0), (0.75, -26, -5, 0), (0.95, -26, 5, 0),
-                     (1.15, -26, 0, 0), (1.6, 0, 0, 0)])
-    e.rot('mandibula', [(0, 0, 0, 0), (0.35, 20, 0, 0), (1.15, 20, 0, 0), (1.6, 0, 0, 0)])
+        e.rot(f'pierna_{ld}', [(0, 0, 0, 0), (0.22, 6, 0, 0), (0.45, -7, 0, 0), (1.35, -7, 0, 0), (1.8, 0, 0, 0)])
+        e.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.45, 6, 0, 0), (1.35, 6, 0, 0), (1.8, 0, 0, 0)])
+    e.rot('cabeza', [(0, 0, 0, 0), (0.22, -16, 0, 0), (0.45, -8, 10, -4), (0.78, -6, -12, 5), (1.10, -8, 10, -4),
+                     (1.35, -6, 0, 0), (1.8, 0, 0, 0)])
+    e.mov('cabeza', [(0, 0, 0, 0), (0.45, 0, -0.5, 2.2), (1.35, 0, -0.5, 2.2), (1.8, 0, 0, 0)])
+    e.rot('mandibula', [(0, 0, 0, 0), (0.22, -10, 0, 0), (0.45, 22, 0, 0), (1.35, 22, 0, 0), (1.8, 0, 0, 0)])
     e.onda('vela', 'r', 2, 1.8, periodo=0.16)
-    # La cola, al revés que el tronco y algo más (la punta ya toca el suelo): queda un poco levantada y se mece.
-    e.rot('cola', [(0, 0, 0, 0), (0.35, 12, 4, 0), (0.75, 12, -4, 0), (1.15, 12, 0, 0), (1.6, 0, 0, 0)])
-    e.rot('cola2', [(0, 0, 0, 0), (0.35, 3, 6, 0), (0.75, 3, -6, 0), (1.15, 3, 0, 0), (1.6, 0, 0, 0)])
+    e.rot('cola', [(0, 0, 0, 0), (0.45, 8, -10, 0), (0.90, 8, 12, 0), (1.35, 8, -8, 0), (1.8, 0, 0, 0)])
+    e.rot('cola2', [(0, 0, 0, 0), (0.50, 6, -14, 0), (0.95, 6, 16, 0), (1.40, 6, -12, 0), (1.8, 0, 0, 0)])
 
-    e2 = m.anim('especial2', 0.9)
-    e2.rot('cabeza', [(0, 0, 0, 0), (0.25, 6, 28, 0), (0.45, 10, -32, -6), (0.6, 8, -32, -6), (0.9, 0, 0, 0)])
-    e2.rot('mandibula', [(0, 0, 0, 0), (0.25, 14, 0, 0), (0.42, -20, 0, 0), (0.6, -20, 0, 0), (0.9, 0, 0, 0)])
-    e2.rot('cuerpo', [(0, 0, 0, 0), (0.25, 0, 8, 0), (0.45, 2, -10, 0), (0.9, 0, 0, 0)])
-    e2.rot('cola', [(0, 0, 0, 0), (0.25, 0, -8, 0), (0.45, 0, 10, 0), (0.9, 0, 0, 0)])
-    e2.rot('cola2', [(0, 0, 0, 0), (0.3, 0, -10, 0), (0.5, 0, 12, 0), (0.9, 0, 0, 0)])
+    # especial2: desgarrón lateral de mandíbula con embestida
+    e2 = m.anim('especial2', 0.88)
+    e2.mov('cuerpo', [(0, 0, 0, 0), (0.22, 0, 0.3, -1.0), (0.42, 0, -0.8, 3.4), (0.62, 0, -0.6, 2.2), (0.88, 0, 0, 0)])
+    e2.rot('cabeza', [(0, 0, 0, 0), (0.22, 4, 24, -6), (0.42, 10, -28, 8), (0.60, 8, 14, -4), (0.88, 0, 0, 0)])
+    e2.rot('mandibula', [(0, 0, 0, 0), (0.22, 16, 0, 0), (0.40, -24, 0, 0), (0.60, -20, 0, 0), (0.88, 0, 0, 0)])
+    e2.rot('cuerpo', [(0, 0, 0, 0), (0.22, -3, 8, 0), (0.42, 6, -10, 0), (0.60, 4, 6, 0), (0.88, 0, 0, 0)])
+    e2.rot('cola', [(0, 0, 0, 0), (0.22, 0, -10, 0), (0.42, 4, 14, 0), (0.60, 2, -8, 0), (0.88, 0, 0, 0)])
+    e2.rot('cola2', [(0, 0, 0, 0), (0.26, 0, -14, 0), (0.46, 4, 18, 0), (0.64, 2, -12, 0), (0.88, 0, 0, 0)])
     for lado, ld in lados:
-        e2.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.45, -15, 0, 0), (0.9, 0, 0, 0)])
+        e2.rot(f'pierna_{ld}', [(0, 0, 0, 0), (0.22, 3, 0, 0), (0.42, -6, 0, 0), (0.60, -4, 0, 0), (0.88, 0, 0, 0)])
+        e2.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.42, -8, 0, 0), (0.88, 0, 0, 0)])
 
     ap = m.anim('aparece', 1.2)
     ap.mov('cuerpo', [(0, 0, -6, 0), (0.6, 0, -1, 0), (0.8, 0, 0, 0), (1.2, 0, 0, 0)])
@@ -729,8 +774,9 @@ def anims_espinosaurio(m):
     for lado, ld in lados:
         ap.rot(f'pierna_{ld}', [(0, -40, 0, 0), (0.6, -10, 0, 0), (0.8, 3, 0, 0), (1.2, 0, 0, 0)])
         ap.rot(f'cana_{ld}', [(0, 60, 0, 0), (0.6, 15, 0, 0), (0.8, 0, 0, 0), (1.2, 0, 0, 0)])
+        ap.rot(f'brazo_{ld}', [(0, 6, 0, 0), (1.2, 0, 0, 0)])
     ap.rot('cabeza', [(0, 15, 0, 0), (0.6, 0, 0, 0), (0.8, -12, 0, 0), (1.2, 0, 0, 0)])
-    ap.rot('mandibula', [(0, -20, 0, 0), (0.6, 0, 0, 0), (0.8, 12, 0, 0), (1.2, 0, 0, 0)])
+    ap.rot('mandibula', [(0, -20, 0, 0), (0.6, 0, 0, 0), (0.8, 16, 0, 0), (1.2, 0, 0, 0)])
     ap.onda('vela', 'r', 2, 1.5, periodo=0.2)
 
     d = m.anim('muerte', 1.2)
@@ -742,4 +788,4 @@ def anims_espinosaurio(m):
     d.rot('cola2', [(0, 0, 0, 0), (1.2, 4, 12, 0)])
     for lado, ld in lados:
         d.rot(f'pierna_{ld}', [(0, 0, 0, 0), (1.2, -15, 0, 0)])
-        d.rot(f'brazo_{ld}', [(0, 0, 0, 0), (1.2, -30, 0, 0)])
+        d.rot(f'brazo_{ld}', [(0, 12, 0, 0), (1.2, 24, 0, 0)])

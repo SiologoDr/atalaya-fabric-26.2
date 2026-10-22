@@ -787,31 +787,30 @@ def claves_pose_tyrannok(a, claves, fijar_z=False, sub=0):
 
 
 def _paso_pose_tyrannok(p, amp, rodilla, base):
-    """Una pata en la fase p (0: delante del todo, posándose; 0,5: atrás): apoya de 0 a 0,62 (el muslo va hacia atrás)
-    y en el vuelo dobla la rodilla, levanta el pie y lo lleva hacia delante."""
+    """Ciclo pesado de terópodo: fase de apoyo (0 a 0,58) empujando hacia atrás con la rodilla firme, y fase de vuelo
+    (0,58 a 1,0) recogiendo la caña hacia atrás y levantando las garras antes de clavar el paso delante."""
     p = p % 1.0
-    if p < 0.62:
-        f = p / 0.62
+    if p < 0.58:
+        f = p / 0.58
         a1 = base['muslo'] + amp * math.cos(math.pi * f)
         vuelo = 0.0
     else:
-        f = (p - 0.62) / 0.38
+        f = (p - 0.58) / 0.42
         a1 = base['muslo'] - amp * math.cos(math.pi * f)
         vuelo = math.sin(math.pi * f)
-    a2 = base['espinilla'] - rodilla * vuelo - 0.35 * (a1 - base['muslo'])
-    a3 = base['metatarso'] + rodilla * 0.55 * vuelo + 0.2 * (base['muslo'] - a1)
+    a2 = base['espinilla'] - rodilla * vuelo - 0.25 * (a1 - base['muslo'])
+    a3 = base['metatarso'] + rodilla * 0.65 * vuelo + 0.22 * (base['muslo'] - a1)
     return a1, a2, a3
 
 
 def vuelo_tyrannok(p):
     """Cuánto está en el aire una pata en la fase p (0 apoyada, 1 en lo alto del vuelo)."""
     p = p % 1.0
-    return 0.0 if p < 0.62 else math.sin(math.pi * (p - 0.62) / 0.38)
+    return 0.0 if p < 0.58 else math.sin(math.pi * (p - 0.58) / 0.42)
 
 
 def ciclo_tyrannok(a, largo, n, base, amp, rodilla, cuerpo=None):
-    """Un ciclo de marcha: n posturas seguidas, las dos patas a media vuelta. 'cuerpo(fase)' da lo demás de cada
-    postura (tronco, cuello, cola, brazos...)."""
+    """Un ciclo de marcha pesada de terópodo: n posturas seguidas, las dos patas a media vuelta."""
     claves = []
     for k in range(n + 1):
         ph = k / n
@@ -819,7 +818,7 @@ def ciclo_tyrannok(a, largo, n, base, amp, rodilla, cuerpo=None):
         for ld, f0 in (('i', 0.0), ('d', 0.5)):
             a1, a2, a3 = _paso_pose_tyrannok(ph + f0, amp, rodilla, base)
             d[f'muslo_{ld}'], d[f'espinilla_{ld}'], d[f'metatarso_{ld}'] = a1, a2, a3
-            d[f'dedos_{ld}'] = 30.0 * max(0.0, vuelo_tyrannok(ph + f0) - 0.4) / 0.6
+            d[f'dedos_{ld}'] = 24.0 * vuelo_tyrannok(ph + f0)
         if cuerpo:
             d.update(cuerpo(ph))
         claves.append((largo * ph, d))
@@ -838,34 +837,28 @@ def _onda(largo, n, amp, fase=0.0, base=0.0, eje=1, ciclos=1.0):
     return out
 
 
-# La postura del rugido (el clip de Lenniay, 0:11.6-0:11.7, y el de cracksterss, 0:17.7-0:18.6): erguido (el tronco a
-# 52°) enseñando la tripa crema, el cuello echado hacia delante para que la cabeza quede delante del pecho y la
-# mandíbula cuelgue por delante (si no, se mete en el pecho), la cabeza mirando abajo, hacia quien tiene delante, y la
-# boca abierta del todo: se ven el paladar, la lengua y el suelo de la boca, justo bajo los dientes de arriba. Los brazos, como en el clip: el brazo sale hacia fuera y algo hacia abajo, el
-# antebrazo viene hacia delante (hacia quien mira) y la mano levanta las garras. Las direcciones (brazo
-# (0,8, -0,5, 0,3), antebrazo (0,3, -0,15, 0,94) y mano (0,3, 0,6, 0,75), del lado izquierdo) dan los giros con
-# util/brazo_solver.py: los X van en la postura y los Y y Z, aparte (BRAZO_RUGIDO_TYRANNOK).
-RUGIDO_TYRANNOK = dict(inc=-52.0, cuello=-22.0, cabeza=18.0, abre=54.0, cola1=-10.0, cola2=-2.0, muslo=14.0,
-                       espinilla=-22.0, metatarso=40.0, brazo=31.4, antebrazo=81.5, mano=98.2)
-# Los giros Y y Z de los brazos en el rugido (del lado izquierdo; el derecho, al revés).
-BRAZO_RUGIDO_TYRANNOK = {'brazo': (0.0, 53.9), 'antebrazo': (-19.1, -4.0), 'mano': (38.5, 20.3)}
+# Postura del rugido serio de tiranosaurio: tronco horizontal e inclinado hacia delante sobre la presa, cuello tenso
+# proyectando la enorme cabeza al frente, fauces abiertas de par en par, brazos cortos recogidos junto al pecho y cola
+# contrapesando detrás.
+RUGIDO_TYRANNOK = dict(inc=-13.0, cuello=-8.0, cabeza=8.0, abre=38.0, cola1=4.0, cola2=6.0, muslo=16.0,
+                       espinilla=-36.0, metatarso=46.0, brazo=24.0, antebrazo=84.0, mano=78.0)
 
 
 def anims_tyrannok(m):
-    """Las animaciones (los nombres que entiende el juego):
-      siempre   respira: la mandíbula y el cuello, un poco;
-      reposo    la cola se mece despacio, el cuerpo respira y la cabeza mira a un lado y a otro;
-      andar     zancadas: la rodilla se dobla al llevar la pata delante, el pie que apoya no se mueve del suelo, el
-                cuerpo sube y baja con el paso, la cola se mece al contrapaso y los brazos se balancean;
-      correr    lo mismo, más largo y rápido: el tronco más empinado, el cuello alto, la boca abierta, los brazos
-                delante y la cola siguiendo la línea del tronco (5:29:42-49);
-      ataque    el mordisco: se echa atrás abriendo la boca, se agacha de golpe con la boca abierta del todo y las manos
-                hacia el suelo (5:29:42.67) y la cierra;
-      especial  el rugido del clip (0:11.6-0:11.7): se yergue hasta poner el tronco casi vertical, enseña la tripa
-                crema, la cabeza arriba con la boca abierta del todo y los brazos abiertos a los lados con las garras
-                hacia arriba; tiembla rugiendo y vuelve;
-      muerte    se derrumba de lado;
-      aparece   sale agachado y se levanta con un rugido corto."""
+    """Las animaciones serias de terópodo (T-Rex):
+      siempre   respiración pesada del cuello y la mandíbula;
+      reposo    la cola contrapesa despacio, el cuerpo respira con peso y la cabeza acecha a los lados;
+      andar     zancadas pesadas de dinosaurio: el tronco horizontal baja con cada pisotón, la cola ondula compensando
+                el peso y los brazos pequeños van recogidos junto al pecho (sin braceo humanoide);
+      correr    carga de depredador ápice: cuerpo y cuello bajos en línea horizontal con la cola, zancadas potentes y
+                fauces entreabiertas;
+      ataque    embestida de fauces: retrae el cuello abriendo la boca de par en par y lanza la cabeza hacia delante
+                cerrando las mandíbulas de golpe con una sacudida;
+      especial2 desgarrón de mandíbula: muerde a fondo y sacude la cabeza con violencia de lado a lado;
+      especial  rugido imponente de T-Rex: baja el pecho, adelanta el cuello y la cabeza abriendo las fauces al máximo
+                con los brazos recogidos contra las costillas;
+      muerte    se derrumba pesadamente de lado;
+      aparece   se incorpora y suelta un rugido amenazante."""
     # ---- siempre ----
     s_ = m.anim('siempre', 2.4, bucle=True)
     s_.rot('mandibula', _onda(2.4, 8, 2.0, eje=0))
@@ -873,106 +866,111 @@ def anims_tyrannok(m):
 
     # ---- reposo ----
     r = m.anim('reposo', 4.0, bucle=True)
-    r.mov('cuerpo', [(t / 2.0, 0, round(0.35 * math.sin(math.pi * t / 2.0), 3), 0) for t in range(9)])
-    r.rot('cola', _onda(4.0, 8, 5.0))
-    r.rot('cola2', _onda(4.0, 8, 7.0, fase=-0.12))
-    r.rot('cabeza', [(0, 0, 0, 0), (0.5, 2, 14, 0), (1.6, 2, 14, 0), (2.1, 0, 0, 0), (2.5, 2, -12, 0),
-                     (3.5, 2, -12, 0), (4.0, 0, 0, 0)])
-    r.rot('cuello', [(0, 0, 0, 0), (0.5, 0, 5, 0), (1.6, 0, 5, 0), (2.1, 0, 0, 0), (2.5, 0, -4, 0),
+    r.mov('cuerpo', [(t / 2.0, 0, round(0.4 * math.sin(math.pi * t / 2.0), 3), 0) for t in range(9)])
+    r.rot('cola', _onda(4.0, 8, 4.5))
+    r.rot('cola2', _onda(4.0, 8, 6.5, fase=-0.15))
+    r.rot('cabeza', [(0, 0, 0, 0), (0.6, 2, 10, -2), (1.6, 2, 10, -2), (2.1, 0, 0, 0), (2.6, 2, -10, 2),
+                     (3.5, 2, -10, 2), (4.0, 0, 0, 0)])
+    r.rot('cuello', [(0, 0, 0, 0), (0.6, 0, 4, 0), (1.6, 0, 4, 0), (2.1, 0, 0, 0), (2.6, 0, -4, 0),
                      (3.5, 0, -4, 0), (4.0, 0, 0, 0)])
 
-    # ---- andar ----
+    # ---- andar (paso pesado de T-Rex, brazos recogidos sin braceo humanoide) ----
     a = m.anim('andar', 1.4, bucle=True)
-    base = dict(POSTURA_TYRANNOK)
+    base = dict(POSTURA_TYRANNOK, inc=-17.0, cuello=-13.0, cabeza=4.0, brazo=26.0, antebrazo=82.0, mano=74.0)
 
     def cuerpo_andar(ph):
-        return {'inc': base['inc'] + 1.5 * math.sin(4 * math.pi * ph),
-                'cuello': base['cuello'] - 2.0 * math.sin(4 * math.pi * ph + 1.0),
-                'cabeza': base['cabeza'] + 2.0 * math.sin(4 * math.pi * ph + 1.6),
-                'brazo_i': base['brazo'] + 7 * math.sin(2 * math.pi * ph + math.pi),
-                'brazo_d': base['brazo'] + 7 * math.sin(2 * math.pi * ph),
-                'antebrazo_i': base['antebrazo'] + 5 * math.sin(2 * math.pi * ph + math.pi + 0.6),
-                'antebrazo_d': base['antebrazo'] + 5 * math.sin(2 * math.pi * ph + 0.6)}
-    ciclo_tyrannok(a, 1.4, 16, base, 15.0, 30.0, cuerpo_andar)
-    a.rot('cola', _onda(1.4, 16, 7.0, fase=0.25))
-    a.rot('cola2', _onda(1.4, 16, 10.0, fase=0.12))
-    a.rot('cuerpo', _onda(1.4, 16, 2.5, fase=0.25, eje=2))
+        pulso = math.sin(4 * math.pi * ph)
+        return {'inc': base['inc'] + 1.8 * pulso,
+                'cuello': base['cuello'] - 2.2 * math.sin(4 * math.pi * ph + 0.8),
+                'cabeza': base['cabeza'] + 2.2 * math.sin(4 * math.pi * ph + 1.4),
+                'cola1': base['cola1'] + 2.0 * math.sin(4 * math.pi * ph + 0.6),
+                'brazo_i': base['brazo'] + 1.5 * pulso,
+                'brazo_d': base['brazo'] + 1.5 * pulso,
+                'antebrazo_i': base['antebrazo'] + 2.0 * pulso,
+                'antebrazo_d': base['antebrazo'] + 2.0 * pulso}
+    ciclo_tyrannok(a, 1.4, 16, base, 18.0, 26.0, cuerpo_andar)
+    a.rot('cola', _onda(1.4, 16, 6.0, fase=0.5))
+    a.rot('cola2', _onda(1.4, 16, 8.5, fase=0.35))
+    a.rot('cuerpo', _onda(1.4, 16, 2.2, fase=0.0, eje=2))
 
-    # ---- correr ----
-    # Como en 5:29:49.10 (corriendo de perfil): agachado, con zancadas largas (el muslo llega casi a la horizontal al
-    # adelantar la pata), el tronco algo inclinado, el cuello alto, la cabeza recta con la boca abierta, la cola
-    # siguiendo la línea del tronco hacia atrás y abajo, los brazos colgando con los antebrazos hacia delante. Probado
-    # contra ese fotograma en 8 instantes del ciclo: 0.62-0.73 (con la carrera erguida de antes, 0.53-0.60).
-    c = m.anim('correr', 0.72, bucle=True)
-    base_c = dict(POSTURA_TYRANNOK, inc=-16.0, cuello=-40.0, cabeza=0.0, abre=24.0, cola1=-13.5, cola2=-8.8,
-                  muslo=56.0, espinilla=-54.0, metatarso=44.0, brazo=2.0, antebrazo=88.0, mano=72.0)
+    # ---- correr (carga horizontal potente de T-Rex, sin agacharse en cuclillas ni bracear) ----
+    c = m.anim('correr', 0.80, bucle=True)
+    base_c = dict(POSTURA_TYRANNOK, inc=-11.5, cuello=-8.0, cabeza=6.0, abre=16.0, cola1=3.0, cola2=2.0,
+                  muslo=18.0, espinilla=-36.0, metatarso=46.0, brazo=22.0, antebrazo=86.0, mano=78.0)
 
     def cuerpo_correr(ph):
-        return {'inc': base_c['inc'] + 2.5 * math.sin(4 * math.pi * ph),
-                'cuello': base_c['cuello'] - 3.0 * math.sin(4 * math.pi * ph + 1.0),
-                'cabeza': base_c['cabeza'] + 3.0 * math.sin(4 * math.pi * ph + 1.6),
-                'abre': base_c['abre'] + 5.0 * math.sin(4 * math.pi * ph),
-                'cola1': base_c['cola1'] - 3.0 * math.sin(4 * math.pi * ph + 0.8),
-                'brazo_i': base_c['brazo'] + 12 * math.sin(2 * math.pi * ph + math.pi),
-                'brazo_d': base_c['brazo'] + 12 * math.sin(2 * math.pi * ph)}
-    ciclo_tyrannok(c, 0.72, 16, base_c, 26.0, 32.0, cuerpo_correr)
-    c.rot('cola', _onda(0.72, 16, 6.0, fase=0.25))
-    c.rot('cola2', _onda(0.72, 16, 9.0, fase=0.12))
-    c.rot('cuerpo', _onda(0.72, 16, 3.0, fase=0.25, eje=2))
+        pulso = math.sin(4 * math.pi * ph)
+        return {'inc': base_c['inc'] + 2.4 * pulso,
+                'cuello': base_c['cuello'] - 3.0 * math.sin(4 * math.pi * ph + 0.8),
+                'cabeza': base_c['cabeza'] + 3.0 * math.sin(4 * math.pi * ph + 1.4),
+                'abre': base_c['abre'] + 3.5 * pulso,
+                'cola1': base_c['cola1'] + 2.8 * math.sin(4 * math.pi * ph + 0.6),
+                'brazo_i': base_c['brazo'] + 2.0 * pulso,
+                'brazo_d': base_c['brazo'] + 2.0 * pulso}
+    ciclo_tyrannok(c, 0.80, 16, base_c, 23.0, 30.0, cuerpo_correr)
+    c.rot('cola', _onda(0.80, 16, 7.0, fase=0.5))
+    c.rot('cola2', _onda(0.80, 16, 10.0, fase=0.35))
+    c.rot('cuerpo', _onda(0.80, 16, 2.8, fase=0.0, eje=2))
 
-    # ---- ataque: el mordisco ----
-    at = m.anim('ataque', 0.85)
-    prep = dict(inc=-27.0, cuello=-26.0, cabeza=-8.0, abre=26.0, cola1=-12.0, cola2=-4.0, muslo=34.0,
-                espinilla=-40.0, metatarso=46.0, brazo=26.0, antebrazo=86.0, mano=60.0)
-    # La postura de 5:29:42.67 (la referencia principal), buscada con util/postura.py, cada lado por su cuenta (iou
-    # 0.87 con fov 55): agachado, la cabeza baja con la boca abierta, la mano derecha (la de cerca en la foto) en el
-    # suelo y el brazo izquierdo recogido hacia atrás. La boca, a 30° (la búsqueda daba 20°, pero al lado de la foto se
-    # ve más abierta).
-    pico = dict(inc=-26.4, cuello=10.6, cabeza=16.7, abre=30.0, cola1=-4.8, cola2=-4.8, muslo=60.2, espinilla=-70.0,
-                metatarso=45.1, brazo=-11.2, antebrazo=51.0, mano=51.8,
-                brazo_i=-39.2, antebrazo_i=99.0, mano_i=86.5, brazo_d=-10.2, antebrazo_d=51.0, mano_d=51.8,
-                muslo_d=68.1, metatarso_d=40.1, metatarso_i=46.8)
-    cierre = dict(pico, abre=2.0, cabeza=22.0, cuello=10.0)
-    claves_pose_tyrannok(at, [(0.0, {}), (0.18, prep), (0.34, pico), (0.46, cierre), (0.6, dict(cierre, abre=6.0)),
-                              (0.85, {})], fijar_z=True, sub=2)
+    # ---- ataque: embestida y mordisco feroz de T-Rex (sin agacharse como humanoide) ----
+    at = m.anim('ataque', 0.78)
+    prep = dict(inc=-20.0, cuello=-24.0, cabeza=-8.0, abre=34.0, cola1=-3.0, cola2=-2.0,
+                muslo_i=10.0, espinilla_i=-32.0, metatarso_i=44.0,
+                muslo_d=18.0, espinilla_d=-36.0, metatarso_d=46.0,
+                brazo=22.0, antebrazo=86.0, mano=78.0)
+    mordisco = dict(inc=-10.0, cuello=-2.0, cabeza=12.0, abre=36.0, cola1=6.0, cola2=5.0,
+                    muslo_i=22.0, espinilla_i=-38.0, metatarso_i=46.0,
+                    muslo_d=8.0, espinilla_d=-30.0, metatarso_d=42.0,
+                    brazo=24.0, antebrazo=84.0, mano=76.0)
+    cierre = dict(mordisco, abre=-2.0, cabeza=16.0, cuello=2.0)
+    claves_pose_tyrannok(at, [(0.0, {}), (0.18, prep), (0.32, mordisco), (0.44, cierre),
+                              (0.56, dict(cierre, abre=3.0, cabeza=10.0)), (0.78, {})], fijar_z=False, sub=1)
+    at.mov('cuerpo', [(0.0, 0, 0, 0), (0.18, 0, 0.4, -1.8), (0.32, 0, -1.0, 4.2), (0.44, 0, -0.8, 3.6),
+                      (0.78, 0, 0, 0)])
+    at.rot('cabeza', [(0.0, 0, 0, 0), (0.18, 0, 6, -5), (0.32, 0, -4, 4), (0.44, 0, -10, 8), (0.56, 0, 6, -4),
+                      (0.78, 0, 0, 0)])
 
-    # ---- especial: el rugido ----
-    e = m.anim('especial', 2.6)
-    arriba = RUGIDO_TYRANNOK
-    claves_pose_tyrannok(e, [(0.0, {}), (0.22, dict(inc=-30.0, cuello=-28.0, cabeza=-4.0, abre=14.0, muslo=24.0,
-                                                    espinilla=-30.0, metatarso=44.0)),
-                             (0.55, arriba), (1.95, arriba), (2.6, {})], fijar_z=True, sub=2)
-    temblor = [(0.0, 0, 0, 0), (0.55, 0, 0, 0)]
-    t, k = 0.55, 0
-    while t < 1.8:
-        t = round(t + 0.1, 3)
-        temblor.append((t, (2.5 if k % 2 == 0 else -2.5), (3.0 if k % 2 == 0 else -3.0), 0))
-        k += 1
-    temblor += [(1.95, 0, 0, 0), (2.6, 0, 0, 0)]
-    e.rot('cabeza', temblor)
-    for lado, ld in ((1, 'i'), (-1, 'd')):
-        for parte, (gy, gz) in BRAZO_RUGIDO_TYRANNOK.items():
-            e.rot(f'{parte}_{ld}', [(0.0, 0, 0, 0), (0.22, 0, lado * gy * 0.35, lado * gz * 0.35),
-                                    (0.55, 0, lado * gy, lado * gz), (1.95, 0, lado * gy, lado * gz), (2.6, 0, 0, 0)])
-        e.rot(f'pierna_{ld}', [(0.0, 0, 0, 0), (0.55, 0, 0, lado * 9), (1.95, 0, 0, lado * 9), (2.6, 0, 0, 0)])
-        e.rot(f'cana_{ld}', [(0.0, 0, 0, 0), (0.55, 0, 0, -lado * 9), (1.95, 0, 0, -lado * 9), (2.6, 0, 0, 0)])
+    # ---- especial2: desgarrón de mandíbula y sacudida lateral ----
+    e2 = m.anim('especial2', 0.90)
+    claves_pose_tyrannok(e2, [(0.0, {}), (0.18, prep), (0.32, mordisco), (0.44, cierre), (0.64, cierre),
+                              (0.90, {})], fijar_z=False, sub=1)
+    e2.mov('cuerpo', [(0.0, 0, 0, 0), (0.18, 0, 0.4, -1.5), (0.32, 0, -1.0, 4.0), (0.64, 0, -0.8, 2.8),
+                      (0.90, 0, 0, 0)])
+    e2.rot('cuello', [(0.0, 0, 0, 0), (0.32, 0, 10, 0), (0.48, 0, -14, 0), (0.64, 0, 12, 0), (0.90, 0, 0, 0)])
+    e2.rot('cabeza', [(0.0, 0, 0, 0), (0.32, 0, 16, -8), (0.48, 0, -20, 10), (0.64, 0, 16, -6), (0.90, 0, 0, 0)])
+    e2.rot('cola', [(0.0, 0, 0, 0), (0.32, 0, -12, 0), (0.48, 0, 16, 0), (0.64, 0, -12, 0), (0.90, 0, 0, 0)])
+    e2.rot('cola2', [(0.0, 0, 0, 0), (0.36, 0, -16, 0), (0.52, 0, 20, 0), (0.68, 0, -14, 0), (0.90, 0, 0, 0)])
 
-    # ---- muerte: se tambalea echándose atrás, se le doblan las patas y cae de lado (sobre la derecha) ----
+    # ---- especial: el rugido imponente de dinosaurio ----
+    e = m.anim('especial', 2.2)
+    toma_aire = dict(inc=-23.0, cuello=-22.0, cabeza=-6.0, abre=8.0, muslo=15.0, espinilla=-35.0, metatarso=45.0,
+                     brazo=22.0, antebrazo=86.0, mano=78.0)
+    claves_pose_tyrannok(e, [(0.0, {}), (0.25, toma_aire), (0.55, RUGIDO_TYRANNOK), (1.65, RUGIDO_TYRANNOK),
+                             (2.2, {})], fijar_z=False, sub=2)
+    e.mov('cuerpo', [(0.0, 0, 0, 0), (0.25, 0, 0.5, -1.2), (0.55, 0, -0.8, 2.8), (1.65, 0, -0.8, 2.8),
+                     (2.2, 0, 0, 0)])
+    e.rot('cuello', [(0.0, 0, 0, 0), (0.55, 0, 6, 0), (0.95, 0, -8, 0), (1.35, 0, 6, 0), (1.65, 0, 0, 0),
+                     (2.2, 0, 0, 0)])
+    e.rot('cabeza', [(0.0, 0, 0, 0), (0.55, 0, 10, -4), (0.95, 0, -12, 5), (1.35, 0, 10, -4), (1.65, 0, 0, 0),
+                     (2.2, 0, 0, 0)])
+    e.rot('cola', [(0.0, 0, 0, 0), (0.55, 0, -10, 0), (1.1, 0, 12, 0), (1.65, 0, -8, 0), (2.2, 0, 0, 0)])
+    e.rot('cola2', [(0.0, 0, 0, 0), (0.6, 0, -14, 0), (1.15, 0, 16, 0), (1.7, 0, -12, 0), (2.2, 0, 0, 0)])
+
+    # ---- muerte: se tambalea y cae pesadamente de lado ----
     d = m.anim('muerte', 1.5)
-    tambalea = dict(inc=-32.0, cuello=-34.0, cabeza=-10.0, abre=34.0, muslo=34.0, espinilla=-46.0, metatarso=46.0,
-                    brazo=28.0, antebrazo=84.0)
-    caida = dict(inc=-10.0, cuello=6.0, cabeza=14.0, abre=28.0, cola1=-6.0, cola2=-2.0, muslo=66.0, espinilla=-30.0,
-                 metatarso=70.0, brazo=44.0, antebrazo=96.0, mano=110.0)
+    tambalea = dict(inc=-24.0, cuello=-22.0, cabeza=-8.0, abre=30.0, muslo=24.0, espinilla=-40.0, metatarso=46.0,
+                    brazo=26.0, antebrazo=84.0)
+    caida = dict(inc=-12.0, cuello=4.0, cabeza=12.0, abre=24.0, cola1=-4.0, cola2=-2.0, muslo=36.0, espinilla=-32.0,
+                 metatarso=56.0, brazo=34.0, antebrazo=88.0, mano=90.0)
     claves_pose_tyrannok(d, [(0.0, {}), (0.35, tambalea), (1.05, caida), (1.5, caida)], sub=1)
     d.rot('cuerpo', [(0.0, 0, 0, 0), (0.35, 0, 0, -5), (0.8, 0, 0, 40), (1.05, 0, 0, 90), (1.2, 0, 0, 84),
                      (1.5, 0, 0, 87)])
     d.rot('cola', [(0.0, 0, 0, 0), (0.6, 0, -10, 0), (1.05, 0, 12, 0), (1.5, 0, 10, 0)])
     al_suelo_tyrannok(m, d, 15)
 
-    # ---- aparece: sale agachado y se levanta rugiendo ----
-    ap = m.anim('aparece', 1.8)
-    agachado = dict(inc=-8.0, cuello=10.0, cabeza=14.0, abre=4.0, muslo=60.0, espinilla=-66.0, metatarso=34.0,
-                    brazo=34.0, antebrazo=88.0, mano=104.0)
-    ruge = dict(inc=-34.0, cuello=-40.0, cabeza=-16.0, abre=40.0, muslo=20.0, espinilla=-28.0)
-    claves_pose_tyrannok(ap, [(0.0, agachado), (0.5, agachado), (1.0, ruge), (1.4, ruge), (1.8, {})], fijar_z=True,
-                         sub=2)
+    # ---- aparece: se incorpora y ruge amenazante ----
+    ap = m.anim('aparece', 1.6)
+    agachado = dict(inc=-10.0, cuello=6.0, cabeza=12.0, abre=4.0, muslo=34.0, espinilla=-48.0, metatarso=38.0,
+                    brazo=26.0, antebrazo=84.0, mano=80.0)
+    claves_pose_tyrannok(ap, [(0.0, agachado), (0.4, agachado), (0.85, RUGIDO_TYRANNOK), (1.25, RUGIDO_TYRANNOK),
+                              (1.6, {})], fijar_z=False, sub=2)

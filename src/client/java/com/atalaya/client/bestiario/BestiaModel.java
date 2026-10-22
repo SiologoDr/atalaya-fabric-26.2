@@ -72,6 +72,10 @@ public class BestiaModel extends EntityModel<BestiaRenderState> {
                 if (paso != null) {
                     paso.applyWalk(s.walkAnimationPos, s.walkAnimationSpeed, pasoTiempo, 2.5F);
                 }
+                KeyframeAnimation alerta = s.caza ? anim.get("alerta") : null;
+                if (alerta != null && !s.ataque.isStarted() && !s.especial.isStarted() && !s.especial2.isStarted()) {
+                    alerta.apply((long) (t * 50.0F), 1.0F);
+                }
             }
             KeyframeAnimation siempre = anim.get("siempre");
             if (siempre != null) {
@@ -83,13 +87,15 @@ public class BestiaModel extends EntityModel<BestiaRenderState> {
             if (hinchado != null && s.creeper && s.valor > 0.0F) {
                 hinchado.apply((long) (s.valor * 1000.0F), 1.0F);
             }
-            // La mirada.
-            for (int i = 0; i < mira.size(); i++) {
-                ModelPart p = mira.get(i);
-                if (p != null) {
-                    float k = cuantoMira.get(i);
-                    p.yRot += s.yRot * Mth.DEG_TO_RAD * k;
-                    p.xRot += s.xRot * Mth.DEG_TO_RAD * k;
+            // La mirada (solo cuando no esta en un estado especial como escondido en el caparazon).
+            if (enEstado == null) {
+                for (int i = 0; i < mira.size(); i++) {
+                    ModelPart p = mira.get(i);
+                    if (p != null) {
+                        float k = cuantoMira.get(i);
+                        p.yRot += s.yRot * Mth.DEG_TO_RAD * k;
+                        p.xRot += s.xRot * Mth.DEG_TO_RAD * k;
+                    }
                 }
             }
         }

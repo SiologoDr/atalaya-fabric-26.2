@@ -46,7 +46,7 @@ LADOS = ((1, 'i'), (-1, 'd'))          # +X es la izquierda del mob (mira hacia 
 # Lo que se agranda cada uno (Juan, 20-10-2026): el Plumosaurio, a unos seis bloques; los Dromoraptores, a tres; el
 # Cavador, a uno; los Reptisaurios, un poco más grandes. El píxel no cambia (sigue a 16 por bloque): se agrandan las
 # piezas y la textura sale con más (o menos) píxeles (agrandar).
-TAM = {'reptisaurio_salvaje': 1.2, 'reptisaurio_guerrero': 1.2, 'dromoraptor_rojo': 1.28, 'dromoraptor_azul': 1.28,
+TAM = {'reptisaurio_salvaje': 1.0, 'reptisaurio_guerrero': 1.0, 'dromoraptor_rojo': 1.28, 'dromoraptor_azul': 1.28,
        'plumosaurio': 2.5, 'molusco_rocoso': 0.54}
 FINO = 0.5                             # el píxel fino: 32 por bloque
 
@@ -736,45 +736,8 @@ GRIS_CALAVERA = rampa('3a3834', '524f4a', '6a6660', '7f7b74', '948f87')
 
 
 def construir_reptisaurio_salvaje():
-    """El Reptisaurio Salvaje (día 2): verde oliva casi negro, encorvado, con los brazos largos que le llegan a las
-    rodillas (el de un lado echado hacia delante, como en el cartel), garras de hueso dibujadas, el musgo en manojos de
-    briznas que le cubre la cabeza y baja por la nuca y el lomo, y un hueso en L que sale de cada hombro."""
-    m = B.Modelo('reptisaurio_salvaje', K=2, ancho=128)
-    m.escala = 1.0
-    m.parte('cuerpo', None, (0, 19, 0))
-    piel = pix('piel_reptisaurio_salvaje', VERDE_OLIVA, base=2.5, patron='piel', ruido=0.3)
-    anillos = pix('anillos_reptisaurio_salvaje', VERDE_OLIVA, base=2.5, patron='piel', paso=5, ruido=0.3, semilla=3)
-    vientre = pix('vientre_reptisaurio_salvaje', VERDE_OLIVA, base=2.7, patron='piel', ruido=0.3, semilla=5)
-    k = TAM['reptisaurio_salvaje']
-    Mt, Mh, hombros, h, garras = reptisaurio(m, piel, anillos, VERDE_OLIVA, HUESO, 32, cabeza=(9, 6, 9.4),
-                                             cuello_y=15.4, cuello_z=2.2, vientre=vientre, abre_boca=30,
-                                             cara=cara_reptil(18, 8, k), k=k)
-    # El musgo, pegado a la piel (Juan, 20-10-2026: «debe estar sujetado a la piel, no a la nada»): manojos de briznas
-    # cruzadas que nacen dentro de la cabeza y del lomo y crecen pegados a ellos, hacia atrás y hacia arriba; en el
-    # lomo, solo por la nuca y lo alto de la espalda.
-    musgo = [mata(f'musgo_{k}', R, hojas=8, base=b, ancho=1.7) for k, (R, b) in
-             enumerate(((MUSGO_A, 2.2), (MUSGO_B, 2.6), (MUSGO_A, 1.8), (MUSGO_B, 2.0)))]
-    cab = [(x, 4.2, z) for z in (1.0, 3.6, 6.2) for x in (-2.6, 0.0, 2.6)]
-    manojos(m, 'cabeza', Mh, cab, musgo, 4.0, (2.0, 3.4), inclina=-30)
-    lomo = [(x, y, -2.6) for y in (14.0, 11.4) for x in (-2.4, 0.0, 2.4)]
-    manojos(m, 'tronco', Mt, lomo, musgo, 4.0, (2.2, 3.4), inclina=-18)
-    # Los brazos: los de todos los reptisaurios (BRAZO_REPTISAURIO), en arco por fuera y con las manos hacia dentro.
-    hueso_l = pix('hueso_l_salvaje', HUESO, base=2.7, luz=0.8, ruido=0.4)
-    for lado, ld, hombro in hombros:
-        codo_d = (lado * BRAZO_REPTISAURIO[0][0], BRAZO_REPTISAURIO[0][1], BRAZO_REPTISAURIO[0][2])
-        brazo_reptisaurio(m, lado, ld, hombro, anillos, piel, garras)
-        # El hueso del hombro, en L y alineado con el brazo («su punta no debería estar para arriba sino seguir la
-        # dirección del brazo»): sale un poco hacia fuera por encima del hombro y sigue la línea del brazo, más allá
-        # del hombro.
-        # Con el brazo en arco hacia fuera, el hueso va por encima del brazo, en su misma dirección.
-        a = hombro + np.array((-lado * 0.6, 1.8, 0))
-        b = a + np.array((0, 1.6, 0))
-        c = b + B._u(np.asarray(codo_d, float) + np.array((0, 2.0, 0))) * 5.0
-        m.viga('tronco', a, b, 2.4, hueso_l, extra=1.2)
-        m.viga('tronco', b, c, 2.2, hueso_l, extra=1.0)
-    m.mirar(('cabeza', 0.8))
-    anims_reptisaurio(m)
-    return m
+    from quiu.reptisaurio_salvaje import construir as c_salvaje
+    return c_salvaje()
 
 
 # La cara del Guerrero (11 x 6, a 32 por bloque: 22 x 12), como la del Salvaje.
@@ -815,64 +778,8 @@ def calavera_vaca(m, parte, c, lado, hueso, craneo_p, hocico_p, lado_p):
 
 
 def construir_reptisaurio_guerrero():
-    """El Reptisaurio Guerrero (día 2): más macizo que el Salvaje, pardo con el pecho más claro; la cresta naranja de
-    llamas en punta; una calavera de vaca con cuernos sentada en cada hombro; el cinturón verde con hojas que cuelgan a
-    los lados, el faldón y la bandolera de rayas amarillas en diagonal; las llamas de la espalda dibujadas en manojos;
-    brazales de hueso; un brazo doblado sobre la tripa con un cuchillo de hueso y el otro colgando."""
-    m = B.Modelo('reptisaurio_guerrero', K=2, ancho=128)
-    m.escala = 1.0
-    m.parte('cuerpo', None, (0, 14.5, 0))
-    piel = pix('piel_reptisaurio_guerrero', PARDO, base=2.5, patron='piel', ruido=0.3)
-    anillos = pix('anillos_reptisaurio_guerrero', PARDO, base=2.5, patron='piel', paso=5, ruido=0.3, semilla=3)
-    rayas = rayas_diag('rayas_guerrero', PARDO, FAJA)
-    vientre = pix('vientre_guerrero', PARDO_PECHO, base=2.2, patron='vientre', ruido=0.3)
-    Mt, Mh, hombros, h, garras = reptisaurio(m, piel, anillos, PARDO, HUESO, 22, y_cadera=14.5, muslo=rayas,
-                                             grueso=1.25, cabeza=(11, 6, 8), cuello_y=12.6, abre_boca=34,
-                                             cara=cara_reptil(22, 10, TAM['reptisaurio_guerrero']),
-                                             vientre=vientre, k=TAM['reptisaurio_guerrero'])
-    # Las llamas, dibujadas (Juan, 20-10-2026: «no deberían ser bloques, recuérdalo»): manojos naranjas en lo alto de la
-    # cabeza (menos y más bajos que antes) y por la nuca y el lomo.
-    llamas = [mata(f'llamas_guerrero_{k}', R, hojas=4, base=b, ancho=1.8) for k, (R, b) in
-              enumerate(((LLAMA, 2.0), (LLAMA, 1.6), (NARANJA_B, 2.4)))]
-    cab = [(x, 4.4, z) for z in (1.0, 3.8) for x in (-3.4, 0.0, 3.4)]
-    manojos(m, 'cabeza', Mh, cab, llamas, 4.6, (3.0, 4.8), inclina=-25)
-    lomo = [(x, y, -2.8) for y in (13.4, 10.8) for x in (-2.2, 0.0, 2.2)]
-    manojos(m, 'tronco', Mt, lomo, llamas, 4.0, (2.6, 4.0), inclina=-18)
-    # El cinturón verde, el faldón de rayas debajo (que sigue por los muslos), las hojas que cuelgan a los lados y la
-    # bandolera que cruza.
-    caja_en(m, 'tronco', Mt, (0, 6.0, 0), (9.0, 2.2, 7.0), pix('cinto_guerrero', CINTO, base=2.8, luz=0.4, ruido=0.5))
-    caja_en(m, 'tronco', Mt, (0, 1.2, 0.4), (10.4, 8.4, 8.4), rayas)
-    hojas = picos_capa('hojas_guerrero', CINTO, colgando=True, banda=1, largo=8, paso=3, v0=2.8)
-    caja_en(m, 'tronco', Mt, (5.4, 3.6, 1.0), (1.4, 6.0, 4.4), hojas)
-    caja_en(m, 'tronco', Mt, (-5.4, 3.6, -1.0), (1.4, 6.0, 4.4), hojas)
-    a, b = P(Mt, (-5.0, 13.6, 3.6)), P(Mt, (3.6, 6.6, 3.6))
-    m.viga('tronco', a, b, 1.0, rayas, ancho=2.6)
-    a, b = P(Mt, (-5.0, 13.6, -3.6)), P(Mt, (3.6, 6.6, -3.6))
-    m.viga('tronco', a, b, 1.0, rayas, ancho=2.6)
-    # Los brazos, los de todos los reptisaurios (BRAZO_REPTISAURIO); el cuchillo, en la mano derecha.
-    (lado_i, ld_i, h_i), (lado_d, ld_d, h_d) = hombros
-    b_i, n_i, codo_i, mano_i = brazo_reptisaurio(m, lado_i, ld_i, h_i, anillos, piel, garras, grueso=1.2)
-    b_d, n_d, codo_d, mano_d = brazo_reptisaurio(m, lado_d, ld_d, h_d, anillos, piel, garras, grueso=1.2)
-    # Las calaveras de vaca en los hombros, y los brazales.
-    hueso_c = pix('hueso_calavera', GRIS_CALAVERA, base=2.4, luz=0.6, ruido=0.4)
-    colores = {'k': H('1e1c1a'), 'w': H('9a968e')}
-    craneo_p = _con_cara('calavera_craneo', hueso_c, {'frente': CALAVERA_CRANEO}, colores)
-    hocico_p = _con_cara('calavera_hocico', hueso_c, {'frente': CALAVERA_HOCICO}, colores)
-    lado_p = _con_cara('calavera_lado', hueso_c, {'izq': CALAVERA_LADO, 'der': CALAVERA_LADO}, colores)
-    for (lado, b_, n, hombro, codo, mano) in ((lado_i, b_i, n_i, h_i, codo_i, mano_i),
-                                              (lado_d, b_d, n_d, h_d, codo_d, mano_d)):
-        calavera_vaca(m, b_, hombro + np.array((lado * 1.6, 2.8, 0.2)), lado, hueso_c, craneo_p, hocico_p, lado_p)
-        eje = B._u(codo - hombro)
-        m.viga(b_, hombro + eje * 3.2, hombro + eje * 5.6, 5.2, h)
-        eje = B._u(mano - codo)
-        m.viga(n, codo + eje * 3.6, codo + eje * 6.4, 4.6, h)
-    # El cuchillo de hueso, en la mano doblada.
-    eje = B._u(mano_d - codo_d)
-    pm = mano_d + eje * 1.2
-    m.viga(n_d, pm + np.array((0, -0.8, 0.6)), pm + np.array((0, -6.4, 2.4)), 1.0, h, ancho=1.8, extra=0.2)
-    m.mirar(('cabeza', 0.8))
-    anims_reptisaurio(m)
-    return m
+    from quiu.reptisaurio_guerrero import construir as c_guerrero
+    return c_guerrero()
 
 
 # ======================================================================================================================
@@ -1212,23 +1119,13 @@ CRESTA_AMARILLA = rampa('3a5404', '5a7a08', '86a010', 'c8c418', 'f0e040')
 
 
 def construir_dromoraptor_rojo():
-    m = B.Modelo('dromoraptor_rojo', K=2, ancho=128)
-    m.escala = 1.0
-    return dromoraptor(m, pix('piel_dromoraptor_rojo', ROJIZO, base=2.7, patron='manchas_grandes', ruido=0.3),
-                       pix('pata_dromoraptor_rojo', PATA_ROJA, base=1.6, patron='anillos', paso=3, claro=1.4),
-                       ROJIZO, (PLUMA_AZUL, CANON_NARANJA),
-                       (cresta_curva('cresta_naranja_raptor', CANON_NARANJA, base=1.4),
-                        aleta('cresta_amarilla_raptor', CRESTA_AMARILLA, translucida=True, recta=True)), HUESO)
+    from quiu.dromoraptor_rojo import construir as c_rojo
+    return c_rojo()
 
 
 def construir_dromoraptor_azul():
-    m = B.Modelo('dromoraptor_azul', K=2, ancho=128)
-    m.escala = 1.0
-    return dromoraptor(m, pix('piel_dromoraptor_azul', TURQUESA, base=2.7, patron='manchas_grandes', ruido=0.3),
-                       pix('pata_dromoraptor_azul', PATA_AZUL, base=1.6, patron='anillos', paso=3, claro=1.4),
-                       TURQUESA, (PLUMA_ROJA, CANON_TURQUESA),
-                       (cresta_curva('cresta_turquesa_raptor', TURQUESA, CANON_TURQUESA, base=2.0),
-                        aleta('cresta_amarilla_raptor', CRESTA_AMARILLA, translucida=True, recta=True)), HUESO)
+    from quiu.dromoraptor_azul import construir as c_azul
+    return c_azul()
 
 
 # ======================================================================================================================
@@ -1313,126 +1210,8 @@ def aleta_oreja(nombre, R):
 
 def construir_plumosaurio():
     """El Plumosaurio (día 2)."""
-    m = B.Modelo('plumosaurio', K=2, ancho=256)
-    m.escala = 1.0
-    plumon = pix('plumon_plumosaurio', MORADO, base=2.8, patron='hebras', ruido=0.2)
-    gris = pix('cuello_plumosaurio', GRIS_CUELLO, base=3.1, patron='anillos', paso=3, claro=0.0, ruido=0.4)
-    oscuro = pix('piel_oscura_plumosaurio', OSCURO, base=2.4, patron='piel', ruido=0.3)
-    m.parte('cuerpo', None, (0, 12, 0))
-    # El cuerpo: largo y bajo, de piel oscura (la que se ve en el hueco del plumón).
-    redondo(m, 'cuerpo', (0, 12.5, 0), (12, 11, 23), oscuro, bisel=2)
-    m.caja('cuerpo', (0, 18.4, -1.0), (4, 1.6, 20), gris)
-    # El plumón, en dos masas que caen: la de los hombros y la de las caderas, con los flecos largos abajo.
-    flecos = picos_capa('flecos_plumosaurio', MORADO, colgando=True, banda=1, largo=9, paso=3, v0=2.6)
-    canto = picos_capa('canto_plumosaurio', MORADO, colgando=False, banda=1, largo=4, paso=3, v0=2.9)
-    for zc, largo in ((6.8, 9.6), (-7.2, 9.0)):
-        redondo(m, 'cuerpo', (0, 12.0, zc), (13.6, 13.0, largo), plumon)
-        m.caja('cuerpo', (0, 4.2, zc), (14.0, 4.4, largo + 0.4), flecos)
-        m.caja('cuerpo', (0, 19.2, zc), (13.8, 2.0, largo + 0.4), canto, caras={'arriba': None})
-    # Las patas, gruesas y cortas, de pie negro.
-    pie = pix('pie_plumosaurio', OSCURO, base=1.4, patron='anillos', paso=3, claro=1.0)
-    for lado, ld in LADOS:
-        for z, nombre in ((7.2, 'del'), (-7.6, 'tra')):
-            n = m.parte(f'pata_{nombre}_{ld}', 'cuerpo', (lado * 4.0, 7.0, z))
-            m.caja(n, (lado * 4.0, 4.0, z), (4.6, 6.0, 4.6), oscuro)
-            m.caja(n, (lado * 4.0, 0.8, z), (5.0, 1.6, 5.0), pie)
-    # El cuello: adelantado, sale de lo alto del pecho hacia delante, sube y se curva; púas negras cortas detrás.
-    m.parte('cuello', 'cuerpo', (0, 15.0, 10.4))
-    plata = pix('cuello_plata_plumosaurio', PLATA, base=2.6, patron='anillos', paso=3, claro=0.0, ruido=0.4)
-    m.caja('cuello', (0, 13.4, 10.8), (9.4, 8.0, 4.4), gris, caras={'frente': plata})
-    puntos = ((0, 14.0, 11.0), (0, 19.6, 14.8), (0, 25.0, 16.6), (0, 29.4, 16.4), (0, 32.4, 17.2))
-    gruesos = (6.0, 5.4, 5.0, 4.6)
-    puas = picos_capa('puas_cuello_plumosaurio', OSCURO, colgando=False, banda=1, largo=4, paso=2, v0=1.6)
-    for k in range(4):
-        a_, b_ = np.asarray(puntos[k], float), np.asarray(puntos[k + 1], float)
-        g = gruesos[k]
-        m.viga('cuello', a_, b_, g, gris, extra=2.4 if k < 3 else 0.6, caras={'frente': plata})
-        if k == 3:
-            continue
-        eje = B._u(b_ - a_)
-        atras = np.cross(eje, np.array((1.0, 0, 0)))
-        atras = atras if atras[2] < 0 else -atras
-        c = (a_ + b_) / 2 + atras * (g / 2 + 0.2)
-        M = np.eye(4)
-        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = (1, 0, 0), atras, np.cross((1, 0, 0), atras), c
-        largo = float(np.linalg.norm(b_ - a_))
-        m._caja('cuello', M, -1.6, -0.6, -largo / 2 - 0.6, 3.2, 2.4, largo + 1.2, None,
-                {cc: (puas if cc in ('izq', 'der') else None) for cc in B.CARAS})
-    # La cabeza y el hocico, de una pieza (Juan, 20-10-2026: «la cabeza y el hocico son uno solo»), alta y más corta: el
-    # hocico gris rayado va pintado delante, con la nariz; el ojo, en el lado; y las dos orejas, arriba.
-    m.parte('cabeza', 'cuello', (0, 33.4, 17.2))
-    oscuro_c = pix('cabeza_plumosaurio', OSCURO, base=2.6, patron='piel', ruido=0.3)
-    colores = {'w': H('e8e6f0'), 'q': H('0a0a10'), 'm': L.color_continuo(OSCURO, np.array([0.6]))[0],
-               'g': L.color_continuo(PLATA, np.array([2.6]))[0], 'h': L.color_continuo(PLATA, np.array([1.2]))[0]}
-    lado_p, frente_p = mapas_plumosaurio(TAM['plumosaurio'])
-    cara = _con_cara('cara_plumosaurio', oscuro_c, {'izq': lado_p, 'der': lado_p, 'frente': frente_p}, colores,
-                     fino=True)
-    techo = 37.6
-    m.caja('cabeza', (0, techo - 2.9, 20.2), (5.4, 5.8, 10.4), oscuro_c,
-           caras={'izq': cara, 'der': cara, 'frente': cara})
-    for lado in (1, -1):
-        Me = T(lado * 1.9, techo, 17.4) @ B.girar((-25, 0, lado * 10))
-        caja_en(m, 'cabeza', Me, (0, 0.8, 0), (1.4, 1.8, 1.8), oscuro_c)
-        caja_en(m, 'cabeza', Me, (0, 2.1, -0.2), (0.9, 1.2, 1.1), oscuro_c)
-    # Las aletas moradas, una a cada lado de la parte de atrás de la cabeza, bien abiertas hacia fuera, como orejas
-    # (Juan, 20-10-2026: «no deben estar juntas con la cabeza sino abiertas a cada lado»), y en punta hacia abajo.
-    oreja = aleta_oreja('aleta_oreja_plumosaurio', MORADO)
-    for lado in (1, -1):
-        lamina(m, 'cabeza', T(lado * 2.7, 35.2, 18.6) @ B.girar((0, -90 - lado * 55, 0)), 5.0, 8.0, oreja,
-               abajo=True, x0=-5.0)
-    # La cresta, en escalera invertida y más grande: los escalones con el techo a la altura de la cabeza, cada uno más
-    # bajo y delgado hacia atrás; el primero baja hasta el cuello y una cuña lo une a él por detrás. Al final, la punta
-    # morada, maciza, que se dobla hacia abajo.
-    for (z0, z1, abajo, ancho) in ((12.2, 15.0, 31.0, 5.0), (9.6, 12.2, 33.0, 4.4), (7.2, 9.6, 34.6, 3.8),
-                                   (5.0, 7.2, 35.8, 3.2)):
-        m.caja('cabeza', (0, (techo + abajo) / 2, (z0 + z1) / 2), (ancho, techo - abajo, z1 - z0), oscuro_c)
-    m.viga('cabeza', (0, 31.8, 12.8), (0, 26.2, 14.4), 2.2, oscuro_c, ancho=4.4, extra=0.6)
-    morado = pix('punta_morada_plumosaurio', MORADO, base=3.0, ruido=0.4)
-    m.caja('cabeza', (0, techo - 1.0, 4.0), (3.0, 2.0, 2.0), morado)
-    m.caja('cabeza', (0, techo - 3.0, 3.7), (2.6, 2.0, 1.4), morado)
-    # La cola: gris oscura, tiesa y no muy larga, y el penacho morado de la punta, colgando.
-    m.parte('cola', 'cuerpo', (0, 15.0, -11.4))
-    cola = pix('cola_plumosaurio', OSCURO, base=2.6, patron='anillos', paso=3, claro=0.8)
-    m.caja('cola', (0, 15.0, -15.4), (5.0, 4.6, 9.0), cola)
-    m.caja('cola', (0, 15.2, -23.0), (4.0, 3.6, 7.0), cola)
-    punta = gajos('punta_cola_plumosaurio', MORADO, MORADO, n=8, abre=(-60, 60), base=2.6)
-    for giro in (0, 60, 120):
-        M = T(0, 15.0, -26.0) @ B.girar((-140, 0, 0)) @ B.girar((0, giro, 0))
-        m._caja('cola', M, -5.0, 0.0, 0.0, 10.0, 8.0, 0.0, None,
-                {c: (punta if c == 'frente' else None) for c in B.CARAS})
-    # La mirada, suave (Juan, 20-10-2026: al ver a un enemigo «gira bruscamente entre izquierda y derecha»): el cuello
-    # apenas sigue la mirada y la cabeza un poco más.
-    m.mirar(('cabeza', 0.35), ('cuello', 0.12))
-    r = m.anim('reposo', 6.0, bucle=True)
-    r.rot('cuello', [(0, 0, 0, 0), (1.5, -3, 8, 0), (2.6, -3, 8, 0), (3.6, 2, -8, 0), (4.8, 2, -8, 0), (6.0, 0, 0, 0)])
-    r.onda('cabeza', 'r', 0, 4, periodo=3.0, fase=0.2)
-    r.onda('cola', 'r', 1, 8, periodo=3.0)
-    r.onda('cuerpo', 'm', 1, 0.3, periodo=3.0)
-    s_ = m.anim('siempre', 3.0, bucle=True)
-    s_.onda('cola', 'r', 0, 2, periodo=3.0, fase=0.3)
-    # Al andar: las patas en diagonal, cada una se levanta al ir hacia delante y se apoya entera al ir hacia atrás
-    # (sin barrer el suelo ni hundirse); el cuerpo se mece de lado a lado, el cuello cabecea y la cola ondea.
-    a = m.anim('andar', 1.8, bucle=True)
-    for k, (lado, ld) in enumerate(LADOS):
-        for nombre, f in (('del', 0.5 * k), ('tra', 0.5 * (1 - k))):
-            a.onda(f'pata_{nombre}_{ld}', 'r', 0, 11, periodo=1.8, fase=f)
-            a.onda(f'pata_{nombre}_{ld}', 'm', 1, 1.4, periodo=1.8, fase=f + 0.75, forma=lambda v: max(0.0, v))
-    a.onda('cuerpo', 'r', 2, 2.0, periodo=1.8)
-    a.onda('cuerpo', 'm', 1, 0.35, periodo=0.9)
-    a.onda('cuello', 'r', 0, 3, periodo=0.9, fase=0.3)
-    a.onda('cuello', 'r', 2, -2.0, periodo=1.8)
-    a.onda('cola', 'r', 1, 7, periodo=1.8, fase=0.5)
-    # El golpe: se encabrita (levanta el pecho y las patas de delante) y descarga el cuello y las patas.
-    at = m.anim('ataque', 1.0)
-    at.rot('cuerpo', [(0, 0, 0, 0), (0.35, -9, 0, 0), (0.55, 4, 0, 0), (1.0, 0, 0, 0)])
-    at.rot('cuello', [(0, 0, 0, 0), (0.35, -22, 0, 0), (0.55, 28, 0, 0), (1.0, 0, 0, 0)])
-    at.rot('cabeza', [(0, 0, 0, 0), (0.35, -12, 0, 0), (0.55, 18, 0, 0), (1.0, 0, 0, 0)])
-    for lado, ld in LADOS:
-        at.rot(f'pata_del_{ld}', [(0, 0, 0, 0), (0.35, -28, 0, 0), (0.55, 6, 0, 0), (1.0, 0, 0, 0)])
-    d = m.anim('muerte', 1.4)
-    d.rot('cuerpo', [(0, 0, 0, 0), (1.4, 0, 0, 90)])
-    d.mov('cuerpo', [(0, 0, 0, 0), (1.4, 0, -7, 0)])
-    return m
+    from quiu.plumosaurio import construir as c_plumosaurio
+    return c_plumosaurio()
 
 
 # ======================================================================================================================
@@ -1528,76 +1307,9 @@ def prisma(nombre, R):
 
 
 def construir_molusco_rocoso():
-    """El Molusco Rocoso (día 4; el que el cartel llama también «Reptisaurio Salvaje» y nosotros «Cavador» hasta que
-    salió su nombre en el libro del juego, 20-10-2026)."""
-    m = B.Modelo('molusco_rocoso', K=2, ancho=128)
-    m.escala = 1.0
-    arena = pix('arena_cavador', ARENA, base=2.8, patron='piel', ruido=0.3)
-    pr = prisma('prisma_cavador', TERRACOTA)
-    m.parte('cuerpo', None, (0, 9, 0))
-    # El cuerpo, en el medio.
-    m.caja('cuerpo', (0, 9.0, 0.0), (12, 4, 12), arena)
-    # La cara: un bloque de arena delante, con los ojos y las cejas pintados, y los cuatro colmillos en una 2.ª capa.
-    m.parte('cabeza', 'cuerpo', (0, 9.0, 6.0))
-    mapa = CARA_CAVADOR_CHICO if TAM['molusco_rocoso'] < 0.75 else CARA_CAVADOR
-    cara = _con_cara('cara_cavador', arena, {'frente': mapa}, {'k': H('0c0806'), 'w': H('f4f0e8')}, fino=True)
-    m.caja('cabeza', (0, 8.2, 7.6), (7, 5, 3.6), arena, caras={'frente': cara})
-    m.caja('cabeza', (0, 3.9, 7.6), (6.6, 4.6, 3.8), colmillos('colmillos_cavador', COLMILLO))
-    # Los cuatro pilares, apartados, y las patas finas de arena que los unen al cuerpo.
-    pata = pix('pata_arena_cavador', ARENA, base=2.6, patron='piel', ruido=0.3, semilla=2)
-    for lado, ld in LADOS:
-        for z, nombre in ((8.6, 'del'), (-8.6, 'tra')):
-            n = m.parte(f'pata_{nombre}_{ld}', 'cuerpo', (lado * 5.0, 9.4, z * 0.5))
-            pilar = np.array((lado * 10.6, 0.0, z))
-            m.caja(n, (pilar[0], 5.6, z), (4.4, 11.2, 4.4), pr)
-            m.viga(n, (lado * 5.0, 9.4, z * 0.5), (lado * 8.6, 9.4, z * 0.95), 2.2, pata, ancho=2.2, extra=1.0)
-    # El manojo de prismas: uno alto en medio, un anillo de seis y otro de ocho, más bajos y abiertos hacia fuera.
-    m.parte('prismas', 'cuerpo', (0, 11.0, -1.0))
-    anillos = [(0.0, 0, 1, 20.0), (3.6, 6, 6, 15.5), (5.8, 13, 8, 10.0)]
-    for radio, abre, cuantos, alto in anillos:
-        for k in range(cuantos):
-            ang = 2 * math.pi * k / cuantos + (0.4 if cuantos == 8 else 0.0)
-            ox, oz = radio * math.cos(ang), radio * math.sin(ang) - 1.4
-            al = alto + ((k * 7) % 3 - 1) * 1.2
-            giro_x = abre * math.sin(ang)
-            giro_z = -abre * math.cos(ang)
-            M = T(ox, 10.6, oz) @ B.girar((giro_x - 4, 0, giro_z))
-            m._caja('prismas', M, -2.0, 0.0, -2.0, 4.0, al, 4.0, pr)
-    # Quieto: los prismas se mecen, la cara mira a un lado y a otro y el cuerpo respira.
-    r = m.anim('reposo', 3.0, bucle=True)
-    r.onda('prismas', 'r', 2, 3, periodo=3.0)
-    r.onda('prismas', 'r', 0, 2, periodo=1.5, fase=0.3)
-    r.rot('cabeza', [(0, 0, 0, 0), (0.3, 0, 10, 0), (1.2, 0, 10, 0), (1.5, 0, -10, 0), (2.5, 0, -10, 0), (3.0, 0, 0, 0)])
-    r.onda('cuerpo', 'm', 1, 0.25, periodo=1.5)
-    # Al andar: cada pilar se levanta y avanza, y luego pisa (en diagonal); el cuerpo se mece y los prismas tiemblan.
-    a = m.anim('andar', 0.6, bucle=True)
-    for k, (lado, ld) in enumerate(LADOS):
-        for nombre, f in (('del', 0.5 * k), ('tra', 0.5 * (1 - k))):
-            a.onda(f'pata_{nombre}_{ld}', 'm', 1, 2.2, periodo=0.6, fase=f, forma=lambda v: max(0.0, v))
-            a.onda(f'pata_{nombre}_{ld}', 'm', 2, 1.6, periodo=0.6, fase=f + 0.25)
-    a.onda('cuerpo', 'm', 1, 0.5, periodo=0.3)
-    a.onda('cuerpo', 'r', 2, 3, periodo=0.6)
-    a.onda('prismas', 'r', 2, 3, periodo=0.3, fase=0.2)
-    at = m.anim('ataque', 0.4)
-    at.mov('cabeza', [(0, 0, 0, 0), (0.15, 0, 0, -1.5), (0.25, 0, 0, 3), (0.4, 0, 0, 0)])
-    at.rot('cuerpo', [(0, 0, 0, 0), (0.15, -6, 0, 0), (0.25, 8, 0, 0), (0.4, 0, 0, 0)])
-    # Se entierra (especial): tiembla, escarba y se hunde en la tierra hasta que solo asoman las puntas de los prismas
-    # (y entonces sigue enterrado, el estado 1).
-    en = m.anim('especial', 0.6)
-    en.mov('cuerpo', [(0, 0, 0, 0), (0.15, 0, 0.8, 0), (0.6, 0, -21, 0)])
-    en.rot('cuerpo', [(0, 0, 0, 0), (0.1, 0, 0, 8), (0.2, 0, 0, -8), (0.3, 0, 0, 7), (0.4, 0, 0, -6), (0.5, 0, 0, 3),
-                      (0.6, 0, 0, 0)])
-    # Enterrado (el estado 1): bajo tierra, solo asoman las puntas de los prismas, que se mecen mientras te acecha.
-    e = m.anim('estado1', 1.0, bucle=True)
-    e.mov('cuerpo', [(0, 0, -21, 0), (0.5, 0, -20.2, 0), (1.0, 0, -21, 0)])
-    e.rot('cuerpo', [(0, 0, 0, -3), (0.5, 0, 0, 3), (1.0, 0, 0, -3)])
-    # Sale: de golpe, desde debajo de la tierra.
-    ap = m.anim('aparece', 0.5)
-    ap.mov('cuerpo', [(0, 0, -21, 0), (0.2, 0, 2.5, 0), (0.35, 0, -0.5, 0), (0.5, 0, 0, 0)])
-    d = m.anim('muerte', 1.0)
-    d.rot('cuerpo', [(0, 0, 0, 0), (1.0, 0, 0, 180)])
-    d.mov('cuerpo', [(0, 0, 0, 0), (1.0, 0, 8, 0)])
-    return m
+    """El Molusco Rocoso / Reptisaurio Cavador."""
+    from quiu.cavador import construir as c_cavador
+    return c_cavador()
 
 
 # ======================================================================================================================
@@ -1618,30 +1330,30 @@ def _puntos(lista):
 EN_JUEGO = {
     'reptisaurio_salvaje': (
         'Reptisaurio Salvaje', 'Wild Reptisaur',
-        (('465030', '22280e', '0c0f05'), ('a2c020', '3a4a06'),
-         _puntos([((5, 7), 'e6d21c'), ((6, 7), '0a0804'), ((9, 7), 'e6d21c'), ((10, 7), '0a0804'),
-                  ((6, 3), 'a2c020'), ((8, 3), 'c8e040'), ((7, 4), 'a2c020'), ((9, 4), '7e9a14'),
-                  ((6, 10), 'd0cabc'), ((9, 10), 'd0cabc')])),
+        (('165222', '0c3214', '061c0a'), ('42a42a', '0a2a08'),
+         _puntos([((5, 6), 'd4c440'), ((6, 6), '050403'), ((9, 6), 'd4c440'), ((10, 6), '050403'),
+                  ((7, 2), '6acd46'), ((8, 3), '42a42a'), ((6, 9), '420410'), ((9, 9), '420410'),
+                  ((4, 4), 'ded6c2'), ((11, 4), 'ded6c2')])),
         (('musgo', bc.esquirla((162, 192, 32))), ('hueso', bc.esquirla((208, 202, 188))))),
     'reptisaurio_guerrero': (
         'Reptisaurio Guerrero', 'Reptisaur Warrior',
-        (('784630', '45251a', '1e0e08'), ('e8961c', '5a3206'),
-         _puntos([((5, 7), 'e6d21c'), ((6, 7), '0a0804'), ((9, 7), 'e6d21c'), ((10, 7), '0a0804'),
-                  ((6, 3), 'f8b030'), ((7, 2), 'e8961c'), ((8, 3), 'f8b030'), ((9, 4), 'c87a12'),
-                  ((4, 11), 'e6dc30'), ((6, 11), 'e6dc30'), ((8, 11), 'e6dc30'), ((10, 11), 'e6dc30')])),
+        (('844824', '5c3018', '1c0e06'), ('e45c12', '7c2006'),
+         _puntos([((5, 6), 'd4c440'), ((6, 6), '050403'), ((9, 6), 'd4c440'), ((10, 6), '050403'),
+                  ((7, 2), 'f88e22'), ((8, 3), 'e45c12'), ((6, 9), '420410'), ((9, 9), '420410'),
+                  ((4, 4), 'ded6c2'), ((11, 4), 'ded6c2'), ((7, 10), 'e6dc30')])),
         (('veneno', bc.gota((120, 200, 60))), ('llama', bc.chispa((232, 150, 28))))),
     'dromoraptor_rojo': (
         'Dromoraptor Rojo', 'Red Dromoraptor',
-        (('d0682e', '8a2e1e', '3a0e18'), ('2c5ccc', '0c2266'),
-         _puntos([((9, 6), 'f0d020'), ((10, 6), '120a06'), ((5, 4), '1e48b4'), ((6, 3), '2c5ccc'),
-                  ((7, 4), '1e48b4'), ((10, 3), 'c8c418'), ((11, 3), 'f0e040')])),
-        (('pluma', bc.esquirla((30, 72, 180))), ('escama', bc.esquirla((176, 70, 32))))),
+        (('c63e20', '6e1a12', '3e0e0a'), ('263c8a', '0a122e'),
+         _puntos([((9, 6), 'f0c818'), ((10, 6), '120a06'), ((5, 4), '263c8a'), ((6, 3), '3852b4'),
+                  ((7, 4), '263c8a'), ((10, 3), 'c8c418'), ((11, 3), 'f0e040')])),
+        (('pluma', bc.esquirla((38, 82, 180))), ('escama', bc.esquirla((200, 62, 28))))),
     'dromoraptor_azul': (
         'Dromoraptor Azul', 'Blue Dromoraptor',
-        (('1a8cb0', '04495c', '04262a'), ('dc3a22', '6a100c'),
-         _puntos([((9, 6), 'f0d020'), ((10, 6), '120a06'), ((5, 4), 'ba2014'), ((6, 3), 'dc3a22'),
-                  ((7, 4), 'ba2014'), ((10, 3), 'c8c418'), ((11, 3), 'f0e040')])),
-        (('pluma', bc.esquirla((186, 32, 20))), ('escama', bc.esquirla((10, 106, 138))))),
+        (('1882a0', '0e5c74', '04222c'), ('ac1a22', '3a060a'),
+         _puntos([((9, 6), 'f0c818'), ((10, 6), '120a06'), ((5, 4), 'ac1a22'), ((6, 3), 'd62a34'),
+                  ((7, 4), 'ac1a22'), ((10, 3), 'c8c418'), ((11, 3), 'f0e040')])),
+        (('pluma', bc.esquirla((214, 42, 52))), ('escama', bc.esquirla((24, 130, 160))))),
     'plumosaurio': (
         'Plumosaurio', 'Plumosaur',
         (('403f54', '232230', '0c0c12'), ('6e22a0', '2d0942'),

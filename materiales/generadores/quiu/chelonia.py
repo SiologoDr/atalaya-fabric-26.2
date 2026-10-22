@@ -672,11 +672,12 @@ def anims_chelonia(m):
 
 def escondida_chelonia(a, t0, t1, hasta=None):
     """La postura de escondida, quieta de t0 a t1; con 'hasta', desde ahí vuelve a la de siempre (el 'aparece').
-    El cuello se mete recto hacia atrás con la cabeza (todo dentro de la caja de hojas), la cola se recoge, el cuerpo
-    baja hasta apoyar la panza y cada pata se pone horizontal, de lado, y se mete bajo la bandeja; la aleta se pliega
-    contra el codo (se encoge hacia él: dentro del caparazón no se ve)."""
+    El cuello se mete recto hacia atrás con la cabeza (todo dentro de la caja de hojas y encogido para que no asome),
+    la cola se recoge, el cuerpo baja hasta apoyar la panza y cada pata se pone horizontal, de lado, y se mete bajo la
+    bandeja; la aleta se pliega contra el codo (se encoge hacia él: dentro del caparazón no se ve)."""
     poses = {
-        ('cuello', 'm'): (0, -1.0, -13.0), ('cabeza', 'm'): (0, 0, -13.0), ('cola', 'm'): (0, 0, 11.0),
+        ('cuello', 'm'): (0, -1.0, -14.0), ('cabeza', 'm'): (0, 0, -14.0), ('cola', 'm'): (0, 0, 11.0),
+        ('cuello', 'e'): (0.02, 0.02, 0.02), ('cabeza', 'e'): (0.02, 0.02, 0.02), ('cola', 'e'): (0.05, 0.05, 0.05),
         ('cuerpo', 'm'): (0, -4.0, 0),
     }
     for nombre, lado, delante, z, abre, baja1, baja2 in geometria_patas_chelonia():

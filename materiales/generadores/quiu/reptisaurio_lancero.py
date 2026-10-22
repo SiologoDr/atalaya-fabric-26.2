@@ -617,19 +617,12 @@ def construir():
     garras = (garra_lancero('garra_mano_lancero', gancho=1, ancho=3), garra_lancero('garra_mano_b_lancero', gancho=-1,
                                                                                     ancho=3))
     for lado, ld, hombro in hombros:
-        if lado > 0:
-            # El brazo libre (el izquierdo): cuelga en arco suave, el codo 1,8 px hacia fuera, y la mano le llega al
-            # tobillo.
-            n, a, codo, muneca, puno = brazo_lancero(m, lado, ld, hombro, (2.0, -14.0, 0.6), (-1.5, -13.6, 0.8),
-                                                     piel_miembro, piel, brazalete, garras)
-        else:
-            # El de la lanza (el derecho), en guardia como en 1:18:27.30 y 28.58: hacia fuera, hacia abajo y algo
-            # hacia delante, con la lanza tendida hacia fuera, hacia arriba y hacia delante.
-            d1 = _u_lancero((-0.62, -0.74, 0.26)) * 13.6
-            d2 = _u_lancero((-0.45, -0.62, 0.64)) * 12.6
-            n, a, codo, muneca, puno = brazo_lancero(m, lado, ld, hombro, d1, d2, piel_miembro, piel, brazalete,
-                                                     garras)
-            lanza_lancero(m, a, puno, (-0.62, 0.42, 0.66))
+        # Ambos brazos caen en modo neutral a los costados, simétricos; la mano derecha sostiene la lanza.
+        d1 = (lado * 2.0, -14.0, 0.6)
+        d2 = (-lado * 1.5, -13.6, 0.8)
+        n, a, codo, muneca, puno = brazo_lancero(m, lado, ld, hombro, d1, d2, piel_miembro, piel, brazalete, garras)
+        if lado < 0:
+            lanza_lancero(m, a, puno, (0.0, 0.22, 0.975))
         hombrera_lancero(m, n, hombro, lado, hueso_b, hueso)
     m.mirar(('cabeza', 0.8))
     anims_lancero(m)
@@ -639,51 +632,98 @@ def construir():
 # ======================================================================================================================
 #  Las animaciones
 # ======================================================================================================================
+GUARDIA_LANCERO = {
+    'brazo_d': (-34.0, -6.0, -12.0),
+    'antebrazo_d': (-52.0, 6.0, 0.0),
+    'lanza': (72.0, 0.0, 0.0),
+    'brazo_i': (-14.0, 0.0, 10.0),
+    'antebrazo_i': (-22.0, 0.0, 0.0),
+}
+
+
 def anims_lancero(m):
-    """reposo: respira y mira; siempre: la boca y las hojas; andar y correr: las piernas con la rodilla que se dobla,
-    el brazo libre que se balancea colgando, el tronco y la cabeza; ataque: alza la lanza por encima de la cabeza y la
-    clava de arriba abajo; especial: el zarpazo con la mano libre; especial2: la arremetida con la lanza en ristre;
-    muerte: se desploma; aparece: se levanta encogido."""
+    """reposo y andar: ambos brazos caen en modo neutral a los costados; alerta y correr: al detectar a un jugador
+    levanta el brazo derecho poniendo la lanza en guardia; ataque: estocada realista hacia delante manteniendo la lanza
+    alineada; especial: al detectar al jugador ruge y alza la lanza a la postura de guardia; especial2: arremetida
+    cargando la lanza sobre el hombro y clavándola al frente."""
+    G = GUARDIA_LANCERO
     r = m.anim('reposo', 4.0, bucle=True)
     r.onda('tronco', 'r', 0, 1.5, periodo=4.0)
     r.rot('cabeza', [(0, 0, 0, 0), (0.8, 0, 12, 0), (1.6, 2, 12, 0), (2.0, 0, 0, 0), (2.8, 0, -12, 0),
                      (3.6, 2, -12, 0), (4.0, 0, 0, 0)])
-    r.onda('brazo_i', 'r', 2, 2.5, periodo=4.0)
-    r.onda('antebrazo_i', 'r', 0, 3.0, periodo=4.0, fase=0.25)
-    r.onda('brazo_d', 'r', 0, 2.0, periodo=4.0, fase=0.5)
+    for k, (lado, ld) in enumerate(LADOS_LANCERO):
+        r.onda(f'brazo_{ld}', 'r', 2, lado * 2.5, periodo=4.0, fase=0.5 * k)
+        r.onda(f'antebrazo_{ld}', 'r', 0, 3.0, periodo=4.0, fase=0.25 + 0.5 * k)
+
+    al = m.anim('alerta', 2.0, bucle=True)
+    for parte, (rx, ry, rz) in G.items():
+        al.rot(parte, [(0.0, rx, ry, rz), (1.0, rx - 2.0, ry, rz), (2.0, rx, ry, rz)])
+
     s_ = m.anim('siempre', 2.5, bucle=True)
     s_.onda('mandibula', 'r', 0, 2.5, periodo=2.5)
-    for nombre, largo, amp, inclina in (('andar', 1.3, 1.0, 0.0), ('correr', 0.75, 1.4, 14.0)):
+
+    for nombre, largo, amp, inclina in (('andar', 1.3, 1.0, 0.0), ('correr', 0.75, 1.35, 10.0)):
         a = m.anim(nombre, largo, bucle=True)
         for k, (lado, ld) in enumerate(LADOS_LANCERO):
             f = 0.5 * k
             a.onda(f'pierna_{ld}', 'r', 0, 22 * amp, periodo=largo, fase=f)
             a.onda(f'espinilla_{ld}', 'r', 0, 24 * amp, periodo=largo, fase=f - 0.25, forma=lambda v: max(0.0, v))
-        a.onda('brazo_i', 'r', 0, 18 * amp, periodo=largo, fase=0.0)
-        a.onda('antebrazo_i', 'r', 0, 10 * amp, periodo=largo, fase=0.25, base=-6 * amp)
-        a.onda('brazo_d', 'r', 0, 6 * amp, periodo=largo, fase=0.5, base=inclina * 0.5)
-        a.onda('faldon_del', 'r', 0, 8 * amp, periodo=largo / 2, fase=0.25, base=-4 * amp)
-        a.onda('faldon_tras', 'r', 0, 6 * amp, periodo=largo / 2, fase=0.75, base=4 * amp)
-        a.onda('tronco', 'r', 2, 3.0 * amp, periodo=largo)
-        a.onda('tronco', 'r', 1, 4.0 * amp, periodo=largo, fase=0.25)
+        a.onda('brazo_i', 'r', 0, 14 * amp, periodo=largo, fase=0.0)
+        a.onda('antebrazo_i', 'r', 0, 8 * amp, periodo=largo, fase=0.25, base=-5 * amp)
+        if nombre == 'andar':
+            # En modo neutral (andar sin objetivo), el brazo derecho se balancea abajo igual que el izquierdo.
+            a.onda('brazo_d', 'r', 0, 14 * amp, periodo=largo, fase=0.5)
+            a.onda('antebrazo_d', 'r', 0, 8 * amp, periodo=largo, fase=0.75, base=-5 * amp)
+        else:
+            # Al perseguir (correr), 'alerta' mantiene el brazo derecho levantado y aquí solo acompaña el paso.
+            a.onda('brazo_d', 'r', 0, 5.0, periodo=largo, fase=0.5)
+        a.onda('faldon_del', 'r', 0, 7 * amp, periodo=largo / 2, fase=0.25, base=-3 * amp)
+        a.onda('faldon_tras', 'r', 0, 5 * amp, periodo=largo / 2, fase=0.75, base=3 * amp)
+        a.onda('tronco', 'r', 2, 2.5 * amp, periodo=largo)
+        a.onda('tronco', 'r', 1, 3.5 * amp, periodo=largo, fase=0.25)
         a.onda('tronco', 'r', 0, 1.5 * amp, periodo=largo / 2, base=inclina)
-        a.onda('tronco', 'm', 1, 0.45 * amp, periodo=largo / 2)
-        a.onda('cabeza', 'r', 0, 3.0 * amp, periodo=largo / 2, fase=0.25, base=-inclina * 0.6)
-    at = m.anim('ataque', 0.9)
-    at.rot('brazo_d', [(0, 0, 0, 0), (0.3, -150, 10, 25), (0.42, -150, 10, 25), (0.58, -30, 0, 0), (0.9, 0, 0, 0)])
-    at.rot('antebrazo_d', [(0, 0, 0, 0), (0.3, -30, 0, 0), (0.42, -30, 0, 0), (0.58, 10, 0, 0), (0.9, 0, 0, 0)])
-    at.rot('tronco', [(0, 0, 0, 0), (0.3, -10, 8, 0), (0.42, -10, 8, 0), (0.58, 16, -6, 0), (0.9, 0, 0, 0)])
-    at.rot('cabeza', [(0, 0, 0, 0), (0.3, -10, 0, 0), (0.58, 8, 0, 0), (0.9, 0, 0, 0)])
-    at.rot('mandibula', [(0, 0, 0, 0), (0.3, 14, 0, 0), (0.58, 4, 0, 0), (0.9, 0, 0, 0)])
-    e = m.anim('especial', 0.7)
-    e.rot('brazo_i', [(0, 0, 0, 0), (0.25, -110, 0, 20), (0.4, -20, 0, -10), (0.7, 0, 0, 0)])
-    e.rot('antebrazo_i', [(0, 0, 0, 0), (0.25, -30, 0, 0), (0.4, 10, 0, 0), (0.7, 0, 0, 0)])
-    e.rot('tronco', [(0, 0, 0, 0), (0.25, -6, -12, 0), (0.4, 10, 10, 0), (0.7, 0, 0, 0)])
-    e.rot('mandibula', [(0, 0, 0, 0), (0.25, 18, 0, 0), (0.7, 0, 0, 0)])
-    e2 = m.anim('especial2', 1.0)
-    e2.rot('tronco', [(0, 0, 0, 0), (0.3, 24, 0, 0), (0.75, 24, 0, 0), (1.0, 0, 0, 0)])
-    e2.rot('brazo_d', [(0, 0, 0, 0), (0.3, -40, -20, 0), (0.5, -60, -20, 0), (0.75, -40, -20, 0), (1.0, 0, 0, 0)])
-    e2.mov('cuerpo', [(0, 0, 0, 0), (0.3, 0, -1, 0), (0.5, 0, -1, 4), (0.75, 0, -1, 2), (1.0, 0, 0, 0)])
+        a.onda('tronco', 'm', 1, 0.4 * amp, periodo=largo / 2)
+        a.onda('cabeza', 'r', 0, 2.5 * amp, periodo=largo / 2, fase=0.25, base=-inclina * 0.6)
+
+    # ataque: estocada frontal realista desde la guardia (carga el hombro atrás y lanza la punta recta hacia delante).
+    at = m.anim('ataque', 0.72)
+    at.mov('cuerpo', [(0, 0, 0, 0), (0.20, 0, 0.2, -1.2), (0.36, 0, -0.8, 3.2), (0.48, 0, -0.5, 2.0), (0.72, 0, 0, 0)])
+    at.rot('tronco', [(0, 0, 0, 0), (0.20, -6, -16, 0), (0.36, 14, 18, 0), (0.48, 10, 12, 0), (0.72, 0, 0, 0)])
+    at.rot('cabeza', [(0, 0, 0, 0), (0.20, 4, 14, 0), (0.36, -10, -14, 0), (0.48, -6, -8, 0), (0.72, 0, 0, 0)])
+    at.rot('mandibula', [(0, 0, 0, 0), (0.20, 6, 0, 0), (0.36, 18, 0, 0), (0.52, 8, 0, 0), (0.72, 0, 0, 0)])
+    at.rot('brazo_d', [(0, *G['brazo_d']), (0.20, 22, -10, -14), (0.36, -76, 8, -4), (0.48, -68, 6, -6),
+                       (0.72, *G['brazo_d'])])
+    at.rot('antebrazo_d', [(0, *G['antebrazo_d']), (0.20, -82, 8, 0), (0.36, -16, 0, 0), (0.48, -24, 2, 0),
+                           (0.72, *G['antebrazo_d'])])
+    at.rot('lanza', [(0, *G['lanza']), (0.20, 52, 0, 0), (0.36, 76, 0, 0), (0.48, 74, 0, 0), (0.72, *G['lanza'])])
+    at.rot('brazo_i', [(0, *G['brazo_i']), (0.20, -32, 0, 14), (0.36, 20, 0, 12), (0.72, *G['brazo_i'])])
+    at.rot('antebrazo_i', [(0, *G['antebrazo_i']), (0.20, -28, 0, 0), (0.36, -12, 0, 0), (0.72, *G['antebrazo_i'])])
+
+    # especial: al detectar a un jugador, pasa del modo neutral a levantar el arma rugiendo.
+    e = m.anim('especial', 0.85)
+    e.rot('tronco', [(0, 0, 0, 0), (0.32, -10, -8, 0), (0.58, -6, -4, 0), (0.85, 0, 0, 0)])
+    e.rot('cabeza', [(0, 0, 0, 0), (0.32, -18, 6, 0), (0.58, -12, -4, 0), (0.85, 0, 0, 0)])
+    e.rot('mandibula', [(0, 0, 0, 0), (0.28, 22, 0, 0), (0.62, 18, 0, 0), (0.85, 0, 0, 0)])
+    e.rot('brazo_d', [(0, 0, 0, 0), (0.35, -54, -8, -16), (0.62, -40, -6, -14), (0.85, *G['brazo_d'])])
+    e.rot('antebrazo_d', [(0, 0, 0, 0), (0.35, -58, 6, 0), (0.62, -54, 6, 0), (0.85, *G['antebrazo_d'])])
+    e.rot('lanza', [(0, 0, 0, 0), (0.35, 86, 0, 0), (0.62, 76, 0, 0), (0.85, *G['lanza'])])
+    e.rot('brazo_i', [(0, 0, 0, 0), (0.35, -24, 0, 18), (0.85, *G['brazo_i'])])
+    e.rot('antebrazo_i', [(0, 0, 0, 0), (0.35, -28, 0, 0), (0.85, *G['antebrazo_i'])])
+
+    # especial2: arremetida / lanzada potente (arma la lanza sobre el hombro y se abalanza clavándola hacia delante).
+    e2 = m.anim('especial2', 0.90)
+    e2.mov('cuerpo', [(0, 0, 0, 0), (0.26, 0, 0.5, -1.5), (0.48, 0, -1.8, 4.2), (0.65, 0, -1.0, 2.4), (0.90, 0, 0, 0)])
+    e2.rot('tronco', [(0, 0, 0, 0), (0.26, -12, -20, 0), (0.48, 20, 18, 0), (0.65, 12, 10, 0), (0.90, 0, 0, 0)])
+    e2.rot('cabeza', [(0, 0, 0, 0), (0.26, 8, 16, 0), (0.48, -14, -14, 0), (0.65, -8, -8, 0), (0.90, 0, 0, 0)])
+    e2.rot('mandibula', [(0, 0, 0, 0), (0.26, 10, 0, 0), (0.48, 22, 0, 0), (0.65, 10, 0, 0), (0.90, 0, 0, 0)])
+    e2.rot('brazo_d', [(0, *G['brazo_d']), (0.26, -102, -12, -14), (0.48, -72, 10, -4), (0.65, -56, 4, -8),
+                       (0.90, *G['brazo_d'])])
+    e2.rot('antebrazo_d', [(0, *G['antebrazo_d']), (0.26, -42, 0, 0), (0.48, -14, 0, 0), (0.65, -30, 2, 0),
+                           (0.90, *G['antebrazo_d'])])
+    e2.rot('lanza', [(0, *G['lanza']), (0.26, 138, 0, 0), (0.48, 70, 0, 0), (0.65, 72, 0, 0), (0.90, *G['lanza'])])
+    e2.rot('brazo_i', [(0, *G['brazo_i']), (0.26, -38, 0, 18), (0.48, 26, 0, 14), (0.90, *G['brazo_i'])])
+    e2.rot('antebrazo_i', [(0, *G['antebrazo_i']), (0.26, -30, 0, 0), (0.48, -10, 0, 0), (0.90, *G['antebrazo_i'])])
+
     d = m.anim('muerte', 1.0)
     d.rot('cuerpo', [(0, 0, 0, 0), (0.3, 6, 0, 0), (1.0, 0, 0, 90)])
     d.mov('cuerpo', [(0, 0, 0, 0), (1.0, 0, -10, 0)])

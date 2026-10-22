@@ -701,19 +701,34 @@ def _pose_arquero(lado, tronco_x, brazo, ante):
 # Cada fase: (tiempo, giro del tronco, giro de la cabeza, (brazo, antebrazo) derecho, (brazo, antebrazo) izquierdo),
 # las direcciones con +X hacia fuera del lado de cada brazo.
 DISPARO_ARQUERO = (
-    (0.0, None),
-    (0.28, (-20.0, 17.0, ((0.12, 0.05, 0.99), (0.03, 0.04, 1.0)), ((-0.62, 0.02, 0.78), (-0.62, 0.02, 0.78)))),
-    (0.55, (-22.0, 19.0, ((0.15, 0.02, 0.99), (0.02, 0.02, 1.0)), ((-0.3, 0.1, 0.95), (-0.96, -0.04, 0.28)))),
-    (0.68, (-22.0, 19.0, ((0.15, 0.02, 0.99), (0.02, 0.02, 1.0)), ((-0.3, 0.1, 0.95), (-0.96, -0.04, 0.28)))),
-    (0.74, (-24.0, 17.0, ((0.15, 0.06, 0.99), (0.02, 0.1, 1.0)), ((0.2, 0.25, 0.95), (-0.7, 0.3, -0.2)))),
-    (1.05, None),
+    (0.0, (-12.0, 10.0, ((0.18, -0.18, 0.96), (0.06, -0.08, 0.99)), ((-0.35, -0.35, 0.87), (-0.30, -0.20, 0.93)))),
+    (0.18, (-18.0, 15.0, ((0.12, 0.04, 0.99), (0.03, 0.04, 1.0)), ((-0.50, 0.02, 0.86), (-0.55, 0.02, 0.83)))),
+    (0.42, (-22.0, 19.0, ((0.14, 0.02, 0.99), (0.02, 0.02, 1.0)), ((-0.28, 0.08, 0.96), (-0.94, -0.04, 0.34)))),
+    (0.50, (-22.0, 19.0, ((0.14, 0.02, 0.99), (0.02, 0.02, 1.0)), ((-0.28, 0.08, 0.96), (-0.94, -0.04, 0.34)))),
+    (0.58, (-24.0, 17.0, ((0.15, 0.06, 0.99), (0.02, 0.08, 1.0)), ((0.18, 0.20, 0.96), (-0.65, 0.25, -0.15)))),
+    (0.88, (-12.0, 10.0, ((0.18, -0.18, 0.96), (0.06, -0.08, 0.99)), ((-0.35, -0.35, 0.87), (-0.30, -0.20, 0.93)))),
 )
+
+
+def anim_alerta_arquero(m):
+    """alerta: al detectar a un jugador, mantiene el arco levantado al frente en posición de guardia."""
+    al = m.anim('alerta', 2.0, bucle=True)
+    tx, cx, (bd, ad), (bi, ai) = DISPARO_ARQUERO[0][1]
+    gb_d, ga_d, cadena = _pose_arquero(-1, tx, bd, ad)
+    gb_i, ga_i, _ = _pose_arquero(1, tx, bi, ai)
+    garco = _euler_arquero(cadena.T)
+    _quieta_arquero(al, 'brazo_d', 'r', gb_d)
+    _quieta_arquero(al, 'antebrazo_d', 'r', ga_d)
+    if 'arco' in m.partes:
+        _quieta_arquero(al, 'arco', 'r', garco)
+    _quieta_arquero(al, 'brazo_i', 'r', gb_i)
+    _quieta_arquero(al, 'antebrazo_i', 'r', ga_i)
 
 
 def anim_disparo_arquero(m):
     """ataque: dispara con el arco. Se endereza, sube el arco de pie delante con la mano derecha (por el lado del
     hocico, para que no choque con la calavera), lleva la mano izquierda a la cuerda y la tensa hasta la mejilla;
-    aguanta, suelta (la mano se va hacia atrás y el tronco da un respingo) y vuelve a su postura."""
+    aguanta, suelta (la mano se va hacia atrás y el tronco da un respingo) y vuelve a su postura de guardia."""
     at = m.anim('ataque', DISPARO_ARQUERO[-1][0])
     canales = {n: [] for n in ('tronco', 'cabeza', 'brazo_d', 'antebrazo_d', 'brazo_i', 'antebrazo_i', 'arco')}
     for t, fase in DISPARO_ARQUERO:
@@ -734,7 +749,7 @@ def anim_disparo_arquero(m):
     for n, claves in canales.items():
         if n in m.partes:
             at.rot(n, claves)
-    at.rot('mandibula', [(0, 0, 0, 0), (0.55, -6, 0, 0), (0.74, 8, 0, 0), (1.05, 0, 0, 0)])
+    at.rot('mandibula', [(0, 0, 0, 0), (0.42, -6, 0, 0), (0.58, 10, 0, 0), (0.88, 0, 0, 0)])
 
 
 def anim_zarpazo_arquero(m):
@@ -809,8 +824,9 @@ def anims_arquero(m):
     # El arco, al andar y al correr, se lleva algo más abierto hacia fuera, para que la punta de abajo no toque el
     # suelo cuando la mano baja en el paso.
     if 'arco' in m.partes:
-        for nombre, abre in (('reposo', 6.0), ('andar', ABRE_ARCO_ANDAR_ARQUERO), ('correr', ABRE_ARCO_CORRER_ARQUERO)):
+        for nombre, abre in (('reposo', 6.0), ('andar', ABRE_ARCO_ANDAR_ARQUERO)):
             _quieta_arquero(m.anims[nombre], 'arco', 'r', (0, 0, -abre))
+    anim_alerta_arquero(m)
     anim_disparo_arquero(m)
     anim_zarpazo_arquero(m)
     anim_aparece_arquero(m)

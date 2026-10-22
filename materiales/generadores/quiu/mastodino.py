@@ -724,8 +724,103 @@ def construir_montado():
 
 
 # ======================================================================================================================
-#  Animaciones
+#  Animaciones serias de terópodo pesado (con cinemática de patas y apoyo en el suelo)
 # ======================================================================================================================
+LM_MASTODINO, LE_MASTODINO, LT_MASTODINO = 16.0, 13.5, 8.0
+PARTES_POSE_MASTODINO = ('cuerpo', 'cuello', 'cabeza', 'mandibula', 'cola', 'cola2', 'cola3',
+                         'pierna_i', 'cana_i', 'pie_i', 'dedos_i', 'pierna_d', 'cana_d', 'pie_d', 'dedos_d',
+                         'brazo_i', 'antebrazo_i', 'mano_i', 'brazo_d', 'antebrazo_d', 'mano_d')
+
+
+def _pierna_mastodino(a1, a2, a3):
+    r = math.radians
+    y = LM_MASTODINO * math.cos(r(a1)) + LE_MASTODINO * math.cos(r(a2)) + LT_MASTODINO * math.cos(r(a3))
+    z = LM_MASTODINO * math.sin(r(a1)) + LE_MASTODINO * math.sin(r(a2)) + LT_MASTODINO * math.sin(r(a3))
+    return y, z
+
+
+def pose_mastodino(destino):
+    R = POSTURA_MASTODINO
+
+    def v(k, ld=None):
+        if ld and f'{k}_{ld}' in destino:
+            return destino[f'{k}_{ld}']
+        return destino.get(k, R.get(k, 0.0))
+    rot = {}
+    dc = v('inc') - R['inc']
+    rot['cuerpo'] = dc
+    rot['cuello'] = v('cuello') - R['cuello'] - dc
+    rot['cabeza'] = (v('cabeza') - R['cabeza']) - (v('cuello') - R['cuello'])
+    rot['mandibula'] = v('abre') - R['abre']
+    rot['cola'] = v('cola1') - R['cola1'] - dc
+    rot['cola2'] = (v('cola2') - R['cola2']) - (v('cola1') - R['cola1'])
+    rot['cola3'] = (v('cola3') - R['cola3']) - (v('cola2') - R['cola2'])
+    patas = []
+    for ld in ('i', 'd'):
+        dp = R['muslo'] - v('muslo', ld) - dc
+        dk = R['espinilla'] - v('espinilla', ld) - dc - dp
+        df = R['metatarso'] - v('metatarso', ld) - dc - dp - dk
+        rot[f'pierna_{ld}'], rot[f'cana_{ld}'], rot[f'pie_{ld}'] = dp, dk, df
+        rot[f'dedos_{ld}'] = v('metatarso', ld) - R['metatarso'] + v('dedos', ld)
+        db = R['brazo'] - v('brazo', ld) - dc
+        da = R['antebrazo'] - v('antebrazo', ld) - dc - db
+        dm = R['mano'] - v('mano', ld) - dc - db - da
+        rot[f'brazo_{ld}'], rot[f'antebrazo_{ld}'], rot[f'mano_{ld}'] = db, da, dm
+        patas.append(_pierna_mastodino(v('muslo', ld), v('espinilla', ld), v('metatarso', ld)))
+    y0, _ = _pierna_mastodino(R['muslo'], R['espinilla'], R['metatarso'])
+    yy, _ = max(patas)
+    return rot, (0.0, yy - y0, 0.0)
+
+
+def claves_pose_mastodino(a, claves):
+    canales = {p: [] for p in PARTES_POSE_MASTODINO}
+    mov = []
+    for c in claves:
+        t, destino = c[0], c[1]
+        suave = c[2] if len(c) > 2 else 1
+        rot, (dx, dy, dz) = pose_mastodino(destino)
+        for p in PARTES_POSE_MASTODINO:
+            canales[p].append((t, round(rot[p], 2), 0.0, 0.0, suave))
+        mov.append((t, dx, round(dy, 3), round(dz, 3), suave))
+    for p, ks in canales.items():
+        if any(abs(k[1]) > 0.05 for k in ks):
+            a.rot(p, ks)
+    if any(abs(k[2]) > 0.01 or abs(k[3]) > 0.01 for k in mov):
+        a.mov('cuerpo', mov)
+
+
+def _paso_pose_mastodino(p, amp, rodilla, base):
+    p = p % 1.0
+    if p < 0.58:
+        f = p / 0.58
+        a1 = base['muslo'] + amp * math.cos(math.pi * f)
+        vuelo = 0.0
+    else:
+        f = (p - 0.58) / 0.42
+        a1 = base['muslo'] - amp * math.cos(math.pi * f)
+        vuelo = math.sin(math.pi * f)
+    a2 = base['espinilla'] - rodilla * vuelo - 0.25 * (a1 - base['muslo'])
+    a3 = base['metatarso'] + rodilla * 0.65 * vuelo + 0.22 * (base['muslo'] - a1)
+    return a1, a2, a3
+
+
+def ciclo_mastodino(a, largo, n, base, amp, rodilla, cuerpo=None):
+    claves = []
+    for k in range(n + 1):
+        ph = k / n
+        d = dict(base)
+        for ld, f0 in (('i', 0.0), ('d', 0.5)):
+            p_ld = (ph + f0) % 1.0
+            a1, a2, a3 = _paso_pose_mastodino(p_ld, amp, rodilla, base)
+            vuelo = 0.0 if p_ld < 0.58 else math.sin(math.pi * (p_ld - 0.58) / 0.42)
+            d[f'muslo_{ld}'], d[f'espinilla_{ld}'], d[f'metatarso_{ld}'] = a1, a2, a3
+            d[f'dedos_{ld}'] = 22.0 * vuelo
+        if cuerpo:
+            d.update(cuerpo(ph))
+        claves.append((largo * ph, d))
+    claves_pose_mastodino(a, claves)
+
+
 def _onda(largo, n, amp, fase=0.0, base=0.0, eje=1):
     out = []
     for k in range(n + 1):
@@ -737,73 +832,123 @@ def _onda(largo, n, amp, fase=0.0, base=0.0, eje=1):
     return out
 
 
+RUGIDO_MASTODINO = dict(inc=-13.0, cuello=-8.0, cabeza=12.0, abre=46.0, cola1=6.0, cola2=5.0, cola3=4.0,
+                        muslo=16.0, espinilla=-36.0, metatarso=45.0, brazo=24.0, antebrazo=82.0, mano=72.0)
+
+
 def anims_mastodino(m):
-    """Animaciones del Mastodino:
-      siempre   jadeo suave de la mandíbula y respiración del cuello;
-      reposo    balanceo del cuerpo, la cola en 3 tramos y mirada de la cabeza;
-      andar     marcha pesada con tronco casi horizontal y boca entreabierta;
-      correr    embestida rápida con el cuerpo inclinado hacia delante y zancadas largas;
-      ataque    se agacha con la cabeza baja y la mandíbula colgando (60°) y cierra de golpe;
-      especial  se yergue rugiendo como en los clips (tronco vertical, cabeza arriba, boca abierta del todo y brazos
-                abiertos con las garras hacia delante), impulsando hacia arriba a los que estén cerca;
-      muerte    se desploma de lado;
+    """Animaciones serias de terópodo pesado para el Mastodino:
+      siempre   jadeo pesado de la mandíbula y respiración del cuello;
+      reposo    respiración con peso, balanceo de la cola en 3 tramos y acecho de la cabeza;
+      andar     marcha pesada de dinosaurio: la rodilla se recoge hacia atrás en el vuelo, el pie apoya firme, el
+                tronco horizontal baja en cada paso y los brazos van recogidos junto al pecho (sin braceo humanoide);
+      correr    embestida pesada con el tronco, cuello y cabeza bajos en horizontal y zancadas largas;
+      ataque    mordisco brutal: retrae el cuello abriendo la bandeja de hueso y se abalanza cerrando de golpe;
+      especial2 cornada ascendente: baja el cráneo cornudo y embiste hacia delante y arriba levantando a la presa;
+      especial  rugido sísmico de terópodo: planta las patas con un pisotón, baja el pecho y proyecta la cabeza al
+                frente abriendo las fauces al máximo con los brazos recogidos contra las costillas;
+      muerte    se desploma pesadamente de lado;
       aparece   se levanta y ruge."""
     s_ = m.anim('siempre', 2.4, bucle=True)
-    s_.rot('mandibula', _onda(2.4, 8, 3.0, eje=0))
-    s_.rot('cuello', _onda(2.4, 8, 1.2, fase=0.25, eje=0))
+    s_.rot('mandibula', _onda(2.4, 8, 2.5, eje=0))
+    s_.rot('cuello', _onda(2.4, 8, 1.0, fase=0.25, eje=0))
 
     r = m.anim('reposo', 3.6, bucle=True)
     r.onda('cuerpo', 'm', 1, 0.4, periodo=1.8)
-    r.rot('cola', _onda(3.6, 8, 5.0))
-    r.rot('cola2', _onda(3.6, 8, 7.0, fase=-0.12))
-    r.rot('cola3', _onda(3.6, 8, 9.0, fase=-0.24))
-    r.rot('cabeza', [(0, 0, 0, 0), (0.6, 2, 12, 0), (1.5, 2, 12, 0), (1.8, 0, 0, 0),
-                     (2.4, 2, -12, 0), (3.2, 2, -12, 0), (3.6, 0, 0, 0)])
+    r.rot('cola', _onda(3.6, 8, 4.5))
+    r.rot('cola2', _onda(3.6, 8, 6.5, fase=-0.12))
+    r.rot('cola3', _onda(3.6, 8, 8.5, fase=-0.24))
+    r.rot('cabeza', [(0, 0, 0, 0), (0.6, 2, 10, -2), (1.5, 2, 10, -2), (1.8, 0, 0, 0),
+                     (2.4, 2, -10, 2), (3.2, 2, -10, 2), (3.6, 0, 0, 0)])
 
-    for nombre, largo, amp, inc in (('andar', 1.2, 1.0, 0.0), ('correr', 0.68, 1.45, 8.0)):
-        a = m.anim(nombre, largo, bucle=True)
-        for k, ld in enumerate(('i', 'd')):
-            f = 0.5 * k
-            a.onda(f'pierna_{ld}', 'r', 0, 24 * amp, periodo=largo, fase=f)
-            a.onda(f'cana_{ld}', 'r', 0, 20 * amp, periodo=largo, fase=f + 0.25, base=-8 * amp)
-            a.onda(f'pie_{ld}', 'r', 0, 14 * amp, periodo=largo, fase=f + 0.5)
-            a.onda(f'brazo_{ld}', 'r', 0, 10 * amp, periodo=largo, fase=f + 0.5, base=-inc)
-        a.onda('cuerpo', 'm', 1, 0.8 * amp, periodo=largo / 2)
-        a.onda('cuerpo', 'r', 0, 2.0 * amp, periodo=largo / 2, base=inc)
-        a.onda('cuerpo', 'r', 2, 2.5 * amp, periodo=largo)
-        a.onda('cuello', 'r', 0, -2.0 * amp, periodo=largo / 2, base=-inc * 0.5)
-        a.onda('cabeza', 'r', 0, 2.5 * amp, periodo=largo / 2, fase=0.5, base=-inc * 0.4)
-        a.onda('mandibula', 'r', 0, 5.0 * amp, periodo=largo / 2)
-        a.onda('cola', 'r', 1, 6.0 * amp, periodo=largo, fase=0.5)
-        a.onda('cola2', 'r', 1, 8.0 * amp, periodo=largo, fase=0.65)
-        a.onda('cola3', 'r', 1, 10.0 * amp, periodo=largo, fase=0.8)
+    # andar (marcha pesada de terópodo, brazos recogidos junto al pecho)
+    a = m.anim('andar', 1.35, bucle=True)
+    base_a = dict(POSTURA_MASTODINO, inc=-17.0, cuello=-14.0, cabeza=10.0, brazo=26.0, antebrazo=82.0, mano=70.0)
 
-    # ataque: mordisco agachado con la mandíbula muy abierta (4:56:23.55, 5:00:53.80)
-    at = m.anim('ataque', 0.8)
-    at.rot('cuerpo', [(0, 0, 0, 0), (0.18, -8, 0, 0), (0.36, 14, 0, 0), (0.55, 10, 0, 0), (0.8, 0, 0, 0)])
-    at.mov('cuerpo', [(0, 0, 0, 0), (0.18, 0, 1.0, -1.0), (0.36, 0, -3.0, 2.5), (0.55, 0, -2.0, 1.5), (0.8, 0, 0, 0)])
-    at.rot('cuello', [(0, 0, 0, 0), (0.18, -10, 0, 0), (0.36, 12, 0, 0), (0.8, 0, 0, 0)])
-    at.rot('cabeza', [(0, 0, 0, 0), (0.18, -12, 0, 0), (0.36, 10, 0, 0), (0.5, 16, 0, 0), (0.8, 0, 0, 0)])
-    at.rot('mandibula', [(0, 0, 0, 0), (0.18, 32, 0, 0), (0.34, 38, 0, 0), (0.48, -22, 0, 0), (0.8, 0, 0, 0)])
-    for ld in ('i', 'd'):
-        at.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.18, -20, 0, 0), (0.36, 28, 0, 0), (0.8, 0, 0, 0)])
-        at.rot(f'antebrazo_{ld}', [(0, 0, 0, 0), (0.18, -15, 0, 0), (0.36, 20, 0, 0), (0.8, 0, 0, 0)])
+    def cuerpo_andar(ph):
+        pulso = math.sin(4 * math.pi * ph)
+        return {'inc': base_a['inc'] + 1.8 * pulso,
+                'cuello': base_a['cuello'] - 2.2 * math.sin(4 * math.pi * ph + 0.8),
+                'cabeza': base_a['cabeza'] + 2.2 * math.sin(4 * math.pi * ph + 1.4),
+                'cola1': base_a['cola1'] + 2.0 * math.sin(4 * math.pi * ph + 0.6),
+                'brazo_i': base_a['brazo'] + 1.5 * pulso,
+                'brazo_d': base_a['brazo'] + 1.5 * pulso,
+                'antebrazo_i': base_a['antebrazo'] + 2.0 * pulso,
+                'antebrazo_d': base_a['antebrazo'] + 2.0 * pulso}
+    ciclo_mastodino(a, 1.35, 16, base_a, 18.0, 25.0, cuerpo_andar)
+    a.rot('cola', _onda(1.35, 16, 5.5, fase=0.5))
+    a.rot('cola2', _onda(1.35, 16, 7.5, fase=0.35))
+    a.rot('cola3', _onda(1.35, 16, 9.5, fase=0.2))
+    a.rot('cuerpo', _onda(1.35, 16, 2.2, fase=0.0, eje=2))
 
-    # especial: se yergue verticalmente rugiendo y abre los brazos (jamesaap 0:09.70-0:12.55), lanza hacia arriba
-    e = m.anim('especial', 1.6)
-    e.rot('cuerpo', [(0, 0, 0, 0), (0.35, -42, 0, 0), (1.1, -42, 0, 0), (1.35, 10, 0, 0), (1.6, 0, 0, 0)])
-    e.mov('cuerpo', [(0, 0, 0, 0), (0.35, 0, 3.5, -2.0), (1.1, 0, 3.5, -2.0), (1.35, 0, -2.0, 1.0), (1.6, 0, 0, 0)])
-    e.rot('cuello', [(0, 0, 0, 0), (0.35, 18, 0, 0), (1.1, 18, 0, 0), (1.6, 0, 0, 0)])
-    e.rot('cabeza', [(0, 0, 0, 0), (0.35, 22, 0, 0), (0.55, 18, 4, 0), (0.75, 22, -4, 0),
-                     (0.95, 18, 4, 0), (1.1, 22, 0, 0), (1.6, 0, 0, 0)])
-    e.rot('mandibula', [(0, 0, 0, 0), (0.35, 38, 0, 0), (1.1, 38, 0, 0), (1.35, -10, 0, 0), (1.6, 0, 0, 0)])
-    e.rot('cola', [(0, 0, 0, 0), (0.35, 24, 0, 0), (1.1, 24, 0, 0), (1.6, 0, 0, 0)])
-    e.rot('cola2', [(0, 0, 0, 0), (0.35, 12, 0, 0), (1.1, 12, 0, 0), (1.6, 0, 0, 0)])
-    for lado, ld in ((1, 'i'), (-1, 'd')):
-        e.rot(f'brazo_{ld}', [(0, 0, 0, 0), (0.35, -35, 0, lado * 42), (1.1, -35, 0, lado * 42), (1.6, 0, 0, 0)])
-        e.rot(f'antebrazo_{ld}', [(0, 0, 0, 0), (0.35, -20, -lado * 15, 0), (1.1, -20, -lado * 15, 0), (1.6, 0, 0, 0)])
-        e.rot(f'pierna_{ld}', [(0, 0, 0, 0), (0.35, 36, 0, 0), (1.1, 36, 0, 0), (1.6, 0, 0, 0)])
-        e.rot(f'cana_{ld}', [(0, 0, 0, 0), (0.35, -18, 0, 0), (1.1, -18, 0, 0), (1.6, 0, 0, 0)])
+    # correr (carga horizontal pesada de dinosaurio)
+    c = m.anim('correr', 0.78, bucle=True)
+    base_c = dict(POSTURA_MASTODINO, inc=-11.5, cuello=-8.0, cabeza=12.0, abre=30.0, cola1=4.0, cola2=3.0, cola3=2.0,
+                  muslo=18.0, espinilla=-36.0, metatarso=45.0, brazo=22.0, antebrazo=84.0, mano=74.0)
+
+    def cuerpo_correr(ph):
+        pulso = math.sin(4 * math.pi * ph)
+        return {'inc': base_c['inc'] + 2.5 * pulso,
+                'cuello': base_c['cuello'] - 3.0 * math.sin(4 * math.pi * ph + 0.8),
+                'cabeza': base_c['cabeza'] + 3.0 * math.sin(4 * math.pi * ph + 1.4),
+                'abre': base_c['abre'] + 4.0 * pulso,
+                'cola1': base_c['cola1'] + 2.8 * math.sin(4 * math.pi * ph + 0.6),
+                'brazo_i': base_c['brazo'] + 2.0 * pulso,
+                'brazo_d': base_c['brazo'] + 2.0 * pulso}
+    ciclo_mastodino(c, 0.78, 16, base_c, 23.0, 29.0, cuerpo_correr)
+    c.rot('cola', _onda(0.78, 16, 6.5, fase=0.5))
+    c.rot('cola2', _onda(0.78, 16, 9.0, fase=0.35))
+    c.rot('cola3', _onda(0.78, 16, 11.0, fase=0.2))
+    c.rot('cuerpo', _onda(0.78, 16, 2.8, fase=0.0, eje=2))
+
+    # ataque: mordisco feroz (retrae el cuello abriendo las fauces al máximo y lanza la cabeza cerrando de golpe)
+    at = m.anim('ataque', 0.78)
+    prep = dict(inc=-20.0, cuello=-24.0, cabeza=0.0, abre=48.0, cola1=-2.0, cola2=-1.0,
+                muslo_i=10.0, espinilla_i=-32.0, metatarso_i=43.0,
+                muslo_d=18.0, espinilla_d=-36.0, metatarso_d=45.0,
+                brazo=22.0, antebrazo=84.0, mano=74.0)
+    mordisco = dict(inc=-10.0, cuello=-2.0, cabeza=18.0, abre=50.0, cola1=6.0, cola2=5.0, cola3=4.0,
+                    muslo_i=22.0, espinilla_i=-38.0, metatarso_i=45.0,
+                    muslo_d=8.0, espinilla_d=-30.0, metatarso_d=41.0,
+                    brazo=24.0, antebrazo=82.0, mano=72.0)
+    cierre = dict(mordisco, abre=4.0, cabeza=22.0, cuello=2.0)
+    claves_pose_mastodino(at, [(0.0, {}), (0.18, prep), (0.32, mordisco), (0.44, cierre),
+                               (0.58, dict(cierre, abre=12.0, cabeza=16.0)), (0.78, {})])
+    at.mov('cuerpo', [(0.0, 0, 0, 0), (0.18, 0, 0.4, -1.8), (0.32, 0, -1.0, 4.0), (0.44, 0, -0.8, 3.4),
+                      (0.78, 0, 0, 0)])
+    at.rot('cabeza', [(0.0, 0, 0, 0), (0.18, 0, 6, -5), (0.32, 0, -4, 4), (0.44, 0, -10, 8), (0.58, 0, 5, -4),
+                      (0.78, 0, 0, 0)])
+
+    # especial2: cornada ascendente con los cuernos dorsales del cráneo (lanza a la presa hacia arriba)
+    e2 = m.anim('especial2', 0.85)
+    baja_cuernos = dict(inc=-8.0, cuello=6.0, cabeza=28.0, abre=14.0, cola1=8.0, cola2=6.0, cola3=4.0,
+                        muslo_i=22.0, espinilla_i=-38.0, metatarso_i=45.0,
+                        muslo_d=12.0, espinilla_d=-32.0, metatarso_d=43.0,
+                        brazo=22.0, antebrazo=84.0, mano=74.0)
+    embiste_arriba = dict(inc=-20.0, cuello=-26.0, cabeza=-6.0, abre=38.0, cola1=-4.0, cola2=-3.0, cola3=-2.0,
+                          muslo_i=12.0, espinilla_i=-30.0, metatarso_i=43.0,
+                          muslo_d=16.0, espinilla_d=-34.0, metatarso_d=44.0,
+                          brazo=24.0, antebrazo=82.0, mano=72.0)
+    claves_pose_mastodino(e2, [(0.0, {}), (0.24, baja_cuernos), (0.44, embiste_arriba), (0.60, embiste_arriba),
+                               (0.85, {})])
+    e2.mov('cuerpo', [(0.0, 0, 0, 0), (0.24, 0, -1.5, 1.5), (0.44, 0, 1.0, 4.2), (0.60, 0, 0.5, 2.5),
+                      (0.85, 0, 0, 0)])
+
+    # especial: rugido sísmico de terópodo con pisotón (sin ponerse vertical como humanoide ni abrir los brazos)
+    e = m.anim('especial', 1.8)
+    pisoton = dict(inc=-18.0, cuello=-18.0, cabeza=4.0, abre=16.0,
+                   muslo_i=26.0, espinilla_i=-42.0, metatarso_i=46.0,
+                   muslo_d=14.0, espinilla_d=-34.0, metatarso_d=44.0,
+                   brazo=22.0, antebrazo=84.0, mano=74.0)
+    claves_pose_mastodino(e, [(0.0, {}), (0.22, pisoton), (0.42, RUGIDO_MASTODINO), (1.35, RUGIDO_MASTODINO),
+                              (1.8, {})])
+    e.mov('cuerpo', [(0.0, 0, 0, 0), (0.22, 0, 1.2, -1.0), (0.42, 0, -1.2, 3.0), (1.35, 0, -1.0, 2.8),
+                     (1.8, 0, 0, 0)])
+    e.rot('cabeza', [(0.0, 0, 0, 0), (0.42, 0, 10, -4), (0.75, 0, -12, 5), (1.08, 0, 10, -4), (1.35, 0, 0, 0),
+                     (1.8, 0, 0, 0)])
+    e.rot('cola', [(0.0, 0, 0, 0), (0.42, 0, -10, 0), (0.9, 0, 12, 0), (1.35, 0, -8, 0), (1.8, 0, 0, 0)])
+    e.rot('cola2', [(0.0, 0, 0, 0), (0.48, 0, -14, 0), (0.95, 0, 16, 0), (1.4, 0, -12, 0), (1.8, 0, 0, 0)])
+    e.rot('cola3', [(0.0, 0, 0, 0), (0.54, 0, -18, 0), (1.0, 0, 20, 0), (1.45, 0, -14, 0), (1.8, 0, 0, 0)])
 
     d = m.anim('muerte', 1.3)
     d.rot('cuerpo', [(0, 0, 0, 0), (0.3, -8, 0, -5), (1.0, 6, 0, 90), (1.3, 6, 0, 90)])
@@ -811,7 +956,8 @@ def anims_mastodino(m):
     d.rot('mandibula', [(0, 0, 0, 0), (0.4, 24, 0, 0), (1.3, 12, 0, 0)])
     d.rot('cola', [(0, 0, 0, 0), (1.0, 0, 14, 0), (1.3, 0, 14, 0)])
 
-    ap = m.anim('aparece', 1.2)
-    ap.mov('cuerpo', [(0, 0, -6.0, 0), (0.4, 0, 1.0, 0), (1.2, 0, 0, 0)])
-    ap.rot('cuerpo', [(0, 16, 0, 0), (0.5, -18, 0, 0), (0.9, -18, 0, 0), (1.2, 0, 0, 0)])
-    ap.rot('mandibula', [(0, -10, 0, 0), (0.5, 28, 0, 0), (0.9, 28, 0, 0), (1.2, 0, 0, 0)])
+    ap = m.anim('aparece', 1.3)
+    agachado = dict(inc=-10.0, cuello=4.0, cabeza=18.0, abre=10.0, muslo=32.0, espinilla=-46.0, metatarso=38.0,
+                    brazo=24.0, antebrazo=84.0, mano=74.0)
+    claves_pose_mastodino(ap, [(0.0, agachado), (0.35, agachado), (0.75, RUGIDO_MASTODINO), (1.05, RUGIDO_MASTODINO),
+                               (1.3, {})])

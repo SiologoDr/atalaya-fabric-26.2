@@ -304,9 +304,9 @@ def ala_dactylo_adulto(nombre, lado, s0, largo, cuerda, s_garra, s_punta, anillo
     """La membrana de un tramo del ala (losa de 1 de grueso), pintada en las coordenadas del ala: s, del costado hacia
     la punta; c, del borde de ataque hacia atrás. Por arriba, azul marino con los anillos de fuego; por debajo, fuego
     (base naranja, vetas amarillas que salen del borde de ataque hacia atrás y afuera, rojo hacia el borde de salida);
-    el borde de salida, con muescas granate cada 3. La punta, cortada en oblicuo de la garra ('s_garra', c = 0) a la
-    esquina de atrás ('s_punta', c = cuerda). 'lado' 1: el ala izquierda (+X); -1: la derecha, cuya losa va girada media
-    vuelta sobre el eje de delante (su cara de arriba es la de abajo del mundo)."""
+    el borde de salida, con muescas granate cada 3. Hacia el extremo, los tramos se estrechan formando una punta
+    afilada ('punteaguda'). 'lado' 1: el ala izquierda (+X); -1: la derecha, cuya losa va girada media vuelta sobre el
+    eje de delante (su cara de arriba es la de abajo del mundo)."""
     def coords(tw, th, cara):
         xs, ys = _malla_dactylo_adulto(tw, th)
         x, y = xs + 0.5, ys + 0.5
@@ -323,9 +323,7 @@ def ala_dactylo_adulto(nombre, lado, s0, largo, cuerda, s_garra, s_punta, anillo
         return s0 + x, np.zeros_like(x)
 
     def dentro_de(S, C):
-        # Cuerda constante (en el juego la banda es casi igual de ancha hasta la punta; recortarla con transparencia
-        # borraría el canto naranja del borde de salida, que se ve en el icono).
-        return (S <= s_garra) | (C >= (S - s_garra) / max(0.1, s_punta - s_garra) * cuerda)
+        return np.ones_like(S, bool)
 
     def arriba_(S, C):
         # Azul marino, con vetas suaves algo más claras que salen del borde de ataque hacia atrás y afuera (las fibras
@@ -607,11 +605,19 @@ def construir():
 
     # ------------------------------------------------------------------ las alas
     cuerda = 15.0
-    s_brazo, s_mano = 15.0, 27.0
+    s_brazo, s_mano = 15.0, 30.2
     s_garra = 37.0
     s_punta = s_brazo + s_mano
     diedro_b, diedro_m, flecha = 10.0, -9.0, 6.0
-    anillos = ((2, 8), (12, 7), (21, 6), (29, 5), (35, 4))     # (dónde empieza, diámetro), en píxeles enteros
+    anillos = ((2, 8), (12, 7), (21, 6), (28, 5), (33.5, 4))    # (dónde empieza, diámetro), en píxeles enteros
+    tramos_mano = (
+        (15.0, 12.0, 15.0, 0.0),
+        (27.0, 6.0, 12.5, 0.0),
+        (33.0, 4.5, 9.5, 0.0),
+        (37.5, 3.0, 6.5, -0.4),
+        (40.5, 2.5, 4.0, -0.8),
+        (43.0, 2.2, 2.0, -1.2),
+    )
     hombro = en_tronco((3.0, 2.3, 6.6))
     for lado, ld in R.LADOS:
         O = hombro * np.array((lado, 1, 1))
@@ -631,12 +637,17 @@ def construir():
         else:
             Mm = T(*W) @ B.Rz(math.radians(-diedro_m)) @ B.Ry(math.radians(-flecha)) @ B.Rz(math.pi)
         m.parte(f'mano_{ld}', f'ala_{ld}', tuple(W))
-        R.caja_en(m, f'mano_{ld}', Mm, (s_mano / 2, 0, -cuerda / 2), (s_mano, 1, cuerda),
-                  ala_dactylo_adulto(f'ala2_{ld}_dactylo_adulto', lado, s_brazo, s_mano, cuerda, s_garra, s_punta,
-                                     anillos))
+        for idx_t, (s_ini, l_tramo, c_tramo, z_f) in enumerate(tramos_mano):
+            x_loc = (s_ini - s_brazo) + l_tramo / 2.0
+            R.caja_en(m, f'mano_{ld}', Mm, (x_loc, 0, z_f - c_tramo / 2.0), (l_tramo, 1, c_tramo),
+                      ala_dactylo_adulto(f'ala2_{idx_t}_{ld}_dactylo_adulto', lado, s_ini, l_tramo, c_tramo, s_garra,
+                                         s_punta, anillos))
         lb = s_garra - s_brazo
         R.caja_en(m, f'mano_{ld}', Mm, (lb / 2 - 0.5, 0, 0), (lb + 1, 2, 2),
                   barra_dactylo_adulto(f'barra2_{ld}_dactylo_adulto', lado))
+        # Punta afilada de la barra hacia el extremo del ala
+        R.caja_en(m, f'mano_{ld}', Mm @ T(lb + 4.2, 0, -0.8) @ Gx((0, -9 * lado, 0)), (0, 0, 0), (6.8, 1.4, 1.4),
+                  barra_dactylo_adulto(f'barra3_{ld}_dactylo_adulto', lado))
         # La garra: un nudo negro algo más gordo que la barra y un gancho que se curva hacia delante y abajo.
         Pg = (Mm @ np.array((lb + 0.3, 0, 0, 1.0)))[:3]
         R.caja_en(m, f'mano_{ld}', Mm, (lb + 0.3, 0, 0.1), (2.2, 2.5, 2.6),
@@ -767,14 +778,15 @@ def anims_dactylo_adulto(m):
         p2.rot(f'pata_{ld}', [(0, 0, 0, 0), (0.3, 30, 0, 0), (0.7, 34, 0, 0), (1.0, 0, 0, 0)])
     p2.rot('cuello', [(0, 0, 0, 0), (0.3, -16, 0, 0), (0.7, -18, 0, 0), (1.0, 0, 0, 0)])
     p2.rot('cola', [(0, 0, 0, 0), (0.3, 18, 0, 0), (0.7, 20, 0, 0), (1.0, 0, 0, 0)])
-    # estado1: lleva a la presa (se mantiene): los pies delante, apretando, y bate fuerte con el morro algo arriba.
+    # estado1: lleva a la presa sujetándola de los hombros con las garras mientras sube batiendo las alas.
     c = m.anim('estado1', 0.8, bucle=True)
-    c.onda('cuerpo', 'r', 0, 2.0, periodo=0.8, fase=0.75, base=-10.0)
-    c.onda('cuerpo', 'm', 1, 1.0, periodo=0.8, fase=0.5)
+    c.onda('cuerpo', 'r', 0, 2.0, periodo=0.8, fase=0.75, base=-16.0)
+    c.onda('cuerpo', 'm', 1, 0.8, periodo=0.8, fase=0.5)
     for lado, ld in lados:
         c.onda(f'ala_{ld}', 'r', 2, lado * 36.0, periodo=0.8, base=lado * 6.0)
         c.onda(f'mano_{ld}', 'r', 2, lado * 24.0, periodo=0.8, fase=-0.18, base=-lado * 6.0)
-        c.onda(f'pata_{ld}', 'r', 0, 3.0, periodo=0.8, fase=0.3, base=-40.0)
+        c.onda(f'pata_{ld}', 'r', 0, 2.5, periodo=0.8, fase=0.3, base=-16.0)
+        c.onda(f'pata_{ld}', 'r', 2, 0.0, periodo=0.8, base=-lado * 6.0)
     c.onda('cola', 'r', 0, 5.0, periodo=0.8, fase=0.6, base=-8.0)
     c.onda('cola2', 'r', 0, 6.0, periodo=0.8, fase=0.75)
     c.onda('cuello', 'r', 0, 3.0, periodo=0.8, fase=0.25, base=10.0)

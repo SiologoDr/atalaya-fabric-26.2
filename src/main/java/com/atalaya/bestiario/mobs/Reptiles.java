@@ -176,6 +176,25 @@ public final class Reptiles {
         protected String sonidoGolpe() {
             return "zarpazo";
         }
+
+        private int golpes;
+
+        @Override
+        public boolean doHurtTarget(ServerLevel nivel, Entity objetivo) {
+            golpes++;
+            if (golpes % 3 == 0) {
+                animar(EV_ESPECIAL2);
+                sonar("zarpazo", 1.15F);
+            } else {
+                animar(EV_ATAQUE);
+                sonar("zarpazo", 1.0F);
+            }
+            boolean dio = super.doHurtTarget(nivel, objetivo);
+            if (dio && objetivo instanceof LivingEntity v) {
+                alGolpear(nivel, v);
+            }
+            return dio;
+        }
     }
 
     public static class Guerrero extends Reptisaurio {
@@ -197,6 +216,25 @@ public final class Reptiles {
         @Override
         protected String sonidoGolpe() {
             return "zarpazo";
+        }
+
+        private int golpes;
+
+        @Override
+        public boolean doHurtTarget(ServerLevel nivel, Entity objetivo) {
+            golpes++;
+            if (golpes % 3 == 0) {
+                animar(EV_ESPECIAL2);
+                sonar("zarpazo", 1.15F);
+            } else {
+                animar(EV_ATAQUE);
+                sonar("zarpazo", 1.0F);
+            }
+            boolean dio = super.doHurtTarget(nivel, objetivo);
+            if (dio && objetivo instanceof LivingEntity v) {
+                alGolpear(nivel, v);
+            }
+            return dio;
         }
 
         /** El Veneno Primitivo: veneno II, ocho segundos, con sus gotas. */
@@ -470,6 +508,31 @@ public final class Reptiles {
         @Override
         protected String sonidoGolpe() {
             return "mordisco";
+        }
+
+        private int esperaSalto = 50;
+
+        @Override
+        public void tick() {
+            super.tick();
+            if (!(level() instanceof ServerLevel) || !isAlive()) {
+                return;
+            }
+            if (esperaSalto > 0) {
+                esperaSalto--;
+            } else {
+                LivingEntity t = presa();
+                if (t != null && onGround() && distanceToSqr(t) > 3.0 * 3.0 && distanceToSqr(t) < 7.0 * 7.0
+                        && getSensing().hasLineOfSight(t)) {
+                    esperaSalto = 80;
+                    animar(EV_ESPECIAL2);
+                    Vec3 dir = t.position().subtract(position()).multiply(1.0, 0.0, 1.0);
+                    if (dir.lengthSqr() > 1.0E-4) {
+                        dir = dir.normalize().scale(0.85);
+                        setDeltaMovement(dir.x, 0.30, dir.z);
+                    }
+                }
+            }
         }
 
         @Override
@@ -1635,19 +1698,27 @@ public final class Reptiles {
                 return;
             }
             Vec3 paso = dir.scale(1.4 / dist);
+            final boolean[] impacto = new boolean[]{false};
             for (int i = 1; i <= 14; i++) {
                 final int etapa = i;
                 luego(i, () -> {
-                    if (!(level() instanceof ServerLevel srv)) {
+                    if (impacto[0] || !(level() instanceof ServerLevel srv)) {
                         return;
                     }
+                    Vec3 pMedio = origen.add(paso.scale(etapa - 0.5));
                     Vec3 p = origen.add(paso.scale(etapa));
-                    particulas(srv, "cristal", p.x, p.y, p.z, 3, 0.14, 0.14, 0.04);
+                    particulas(srv, "cristal", pMedio.x, pMedio.y, pMedio.z, 5, 0.1, 0.1, 0.03);
+                    particulas(srv, "cristal", p.x, p.y, p.z, 6, 0.12, 0.12, 0.04);
+                    srv.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH,
+                            p.x, p.y, p.z, 6, 0.1, 0.1, 0.1, 0.05);
+                    srv.sendParticles(net.minecraft.core.particles.ParticleTypes.BUBBLE_POP,
+                            p.x, p.y, p.z, 4, 0.08, 0.08, 0.08, 0.02);
                     List<LivingEntity> tocados = srv.getEntitiesOfClass(LivingEntity.class,
-                            getBoundingBox().move(p.subtract(position())).inflate(0.4),
+                            getBoundingBox().move(p.subtract(position())).inflate(0.45),
                             v -> v != this && v.isAlive() && !(v instanceof Reptil)
-                                    && v.getBoundingBox().inflate(0.4).contains(p));
+                                    && v.getBoundingBox().inflate(0.45).contains(p));
                     if (!tocados.isEmpty()) {
+                        impacto[0] = true;
                         LivingEntity v = tocados.get(0);
                         if (v.hurtServer(srv, damageSources().mobProjectile(this, this), 8.0F)) {
                             Vec3 emp = paso.multiply(1.0, 0.0, 1.0);
@@ -1655,27 +1726,25 @@ public final class Reptiles {
                             v.setDeltaMovement(v.getDeltaMovement().add(emp.x, 0.22, emp.z));
                             v.hurtMarked = true;
                         }
-                        particulas(srv, "cristal", p.x, p.y, p.z, 12, 0.25, 0.25, 0.1);
-                        olvidarLoProgramado();
+                        particulas(srv, "cristal", p.x, p.y, p.z, 16, 0.28, 0.28, 0.1);
+                        srv.sendParticles(net.minecraft.core.particles.ParticleTypes.SPLASH,
+                                p.x, p.y, p.z, 16, 0.25, 0.25, 0.25, 0.12);
                     }
                 });
             }
         }
 
-        /** En su caparazon las flechas y proyectiles rebotan; solo el cuerpo a cuerpo la hiere. */
+        /** Escondida dentro de su caparazon no recibe dano (los golpes y proyectiles rebotan en el cristal). */
         @Override
         public boolean hurtServer(ServerLevel nivel, DamageSource fuente, float dano) {
-            if (getEstado() == ESCONDIDA) {
-                if (fuente.is(DamageTypeTags.IS_PROJECTILE)) {
-                    sonar("cristal", 0.95F, 1.35F);
-                    particulas(nivel, "cristal", getX(), getY() + 0.85, getZ(), 10, 0.55, 0.35, 0.08);
-                    return false;
-                }
-                return super.hurtServer(nivel, fuente, dano * 0.7F);
+            if (getEstado() == ESCONDIDA && !fuente.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+                sonar("cristal", 0.95F, 1.35F);
+                particulas(nivel, "cristal", getX(), getY() + 0.85, getZ(), 10, 0.55, 0.35, 0.08);
+                return false;
             }
             boolean herida = super.hurtServer(nivel, fuente, dano);
             if (herida && isAlive() && esperaCaparazon <= 0 && (fuente.is(DamageTypeTags.IS_PROJECTILE)
-                    || getHealth() < getMaxHealth() * 0.75F)) {
+                    || getHealth() < getMaxHealth() * 0.85F)) {
                 esconderse(nivel);
             }
             return herida;
