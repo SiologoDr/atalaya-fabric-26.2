@@ -104,3 +104,4 @@
 - [Buscar la imagen antes de descartar](buscar-imagen-antes-de-descartar.md) — 20-10: nada es «sin dibujo» sin mirar carteles, fans, el bestiario del evento en los directos, clips y VOD
 - [Revisión de imágenes del DEDsafío (oct 2026)](atalaya-revision-imagenes-2026-10.md) — 20-10: D2 24/48, D3 33/50, D4 67/71 con icono del libro del juego; registro en materiales/ideas/imagenes_mobs.md; Cavador = Molusco Rocoso
 - [Brazos de los reptisaurios en arco](reptisaurios-brazos-en-arco.md) — 20-10: su dibujo vale para todos los reptisaurios: en arco por fuera y las manos hacia dentro (BRAZO_REPTISAURIO)
+- [Familia de Quiu (oct 2026)](atalaya-quiu-2026-10.md) — 22-10: 12 mobs rehechos sobre fotogramas en `generadores/quiu/*.py` y metidos en el juego (`Reptiles.java`, `Fichas.java`, sonidos, huevos, animaciones) en la 1.2.4 (`develop`)

@@ -534,6 +534,32 @@ public final class Fichas {
             .muerte(20, "llama")
             .sombra(0.75F);
 
+    /** El Reptisaurio Arquero (DEDsafio 4). */
+    public static final Bestia REPTISAURIO_ARQUERO = Bestias.nueva("reptisaurio_arquero", Reptiles.Arquero::new)
+            .grupo("REPTILES")
+            .titulo("REPTISAURIO ARQUERO", "Atacante a distancia con cresta de plumas turquesa, hombreras de cráneo y un gran arco de hueso: te dispara flechas impregnadas en Veneno Primitivo (veneno II, ocho segundos), da zarpazos si te le acercas y puede ir montado sobre un Narval.")
+            .etiquetas("reptil reptisaurio arquero arco flecha veneno jinete quiu")
+            .medidas(1.2F, 2.75F, 2.3F)
+            .atributos(Reptiles.Arquero::atributos)
+            .sonidos("zarpazo", "rugido", "disparo", "veneno")
+            .particula("veneno", Bestia.Vuelo.CAE, true)
+            .particula("pluma", Bestia.Vuelo.DERIVA, false)
+            .muerte(22, "pluma")
+            .sombra(0.75F);
+
+    /** El Reptisaurio con Lanza (DEDsafio 4). */
+    public static final Bestia REPTISAURIO_LANCERO = Bestias.nueva("reptisaurio_lancero", Reptiles.Lancero::new)
+            .grupo("REPTILES")
+            .titulo("REPTISAURIO CON LANZA", "Combatiente de escamas verdes con cresta turquesa, hombreras de cráneo y una lanza de hueso de dos metros y medio: tiene más alcance que los demás, salta en embestida a dos manos y cada golpe deja Veneno Primitivo (veneno II, ocho segundos).")
+            .etiquetas("reptil reptisaurio lancero lanza veneno alcance quiu")
+            .medidas(1.2F, 2.65F, 2.2F)
+            .atributos(Reptiles.Lancero::atributos)
+            .sonidos("zarpazo", "rugido", "lanza", "veneno")
+            .particula("veneno", Bestia.Vuelo.CAE, true)
+            .particula("astilla", Bestia.Vuelo.CAE, false)
+            .muerte(22, "astilla")
+            .sombra(0.75F);
+
     /** El Dromoraptor Rojo (DEDsafio 2). */
     public static final Bestia DROMORAPTOR_ROJO = Bestias.nueva("dromoraptor_rojo", Reptiles.Rojo::new)
             .grupo("REPTILES")
@@ -555,6 +581,20 @@ public final class Fichas {
             .medidas(1.5F, 2.4F, 2.2F)
             .atributos(Reptiles.Azul::atributos)
             .sonidos("mordisco", "llamada")
+            .particula("pluma", Bestia.Vuelo.DERIVA, false)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(20, "pluma")
+            .sombra(0.95F);
+
+    /** El Dromoraptor Verde (DEDsafio 4). */
+    public static final Bestia DROMORAPTOR_VERDE = Bestias.nueva("dromoraptor_verde", Reptiles.Verde::new)
+            .grupo("REPTILES")
+            .titulo("DROMORAPTOR VERDE", "El dromoraptor verde selva con crestas de plumas magenta: caza en manada de tres avisando a los suyos y cada mordisco te envenena (veneno II, dos segundos).")
+            .etiquetas("reptil dromoraptor verde raptor manada veneno quiu")
+            .medidas(1.5F, 2.4F, 2.2F)
+            .atributos(Reptiles.Verde::atributos)
+            .sonidos("mordisco", "llamada", "veneno")
+            .particula("veneno", Bestia.Vuelo.CAE, true)
             .particula("pluma", Bestia.Vuelo.DERIVA, false)
             .particula("escama", Bestia.Vuelo.CAE, false)
             .muerte(20, "pluma")
@@ -586,6 +626,130 @@ public final class Fichas {
             .particula("astilla", Bestia.Vuelo.CAE, false)
             .muerte(20, "tierra")
             .sombra(0.4F);
+
+    /** El Narval (DEDsafio 4). */
+    public static final Bestia NARVAL = Bestias.nueva("narval", Reptiles.Narval::new)
+            .grupo("REPTILES")
+            .titulo("NARVAL", "Depredador acuático y anfibio azul índigo con un largo colmillo en espiral: nada a gran velocidad, embiste lanzándote por los aires y a menudo sale llevando un Reptisaurio Arquero sobre su montura.")
+            .etiquetas("reptil narval agua acuatico cuerno embiste montura quiu")
+            .medidas(1.8F, 1.6F, 1.1F)
+            .rastreo(10)
+            .atributos(Reptiles.Narval::atributos)
+            .sonidos("mordisco", "embiste")
+            .particula("espuma", Bestia.Vuelo.SUBE, false)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(24, "espuma")
+            .sombra(1.1F);
+
+    /** El Fluviosaurus (DEDsafio 4). */
+    public static final Bestia FLUVIOSAURUS = Bestias.nueva("fluviosaurus", Reptiles.Fluviosaurus::new)
+            .grupo("REPTILES")
+            .titulo("FLUVIOSAURUS", "Reptil anfibio azul cobalto con branquias fucsias: nada, trepa por las paredes en vertical como una salamandra y destroza los bloques que se interponen en su camino.")
+            .etiquetas("reptil fluviosaurus anfibio agua trepa paredes rompe bloques quiu")
+            .medidas(1.1F, 0.55F, 0.35F)
+            .atributos(Reptiles.Fluviosaurus::atributos)
+            .sonidos("mordisco", "rompe")
+            .particula("gota", Bestia.Vuelo.CAE, false)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(20, "gota")
+            .sombra(0.6F);
+
+    /** La Zarinosa Espigueya (DEDsafio 4). */
+    public static final Bestia ZARINOSA = Bestias.nueva("zarinosa", Reptiles.Zarinosa::new)
+            .grupo("REPTILES")
+            .titulo("ZARINOSA ESPIGÜEYA", "Depredador acorazado de cola espinosa: salta directamente a tu cabeza, se te aferra dejándote a ciegas y te muerde sin parar hasta que le den un golpe para despegarla.")
+            .etiquetas("reptil zarinosa espigueya salta cabeza ciega aferra quiu")
+            .medidas(0.95F, 0.9F, 0.65F)
+            .atributos(Reptiles.Zarinosa::atributos)
+            .sonidos("mordisco", "salta")
+            .particula("espora", Bestia.Vuelo.DERIVA, true)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(20, "espora")
+            .sombra(0.55F);
+
+    /** El Kragtops (DEDsafio 4). */
+    public static final Bestia KRAGTOPS = Bestias.nueva("kragtops", Reptiles.Kragtops::new)
+            .grupo("REPTILES")
+            .titulo("KRAGTOPS", "Coloso acorazado de gola ósea, tres cuernos y maza caudal de roca: es neutral y no ataca a menos que le pegues, pero si se enfada te embiste lanzándote hacia arriba y te barre con la maza de su cola.")
+            .etiquetas("reptil kragtops coloso neutral cuernos maza cola quiu")
+            .medidas(2.1F, 2.3F, 1.6F)
+            .rastreo(10)
+            .atributos(Reptiles.Kragtops::atributos)
+            .sonidos("embiste", "maza")
+            .particula("polvo", Bestia.Vuelo.FLOTA, false)
+            .particula("esquirla", Bestia.Vuelo.CAE, false)
+            .muerte(24, "polvo")
+            .sombra(1.3F);
+
+    /** El Dactylo Adulto (DEDsafio 4). */
+    public static final Bestia DACTYLO_ADULTO = Bestias.nueva("dactylo_adulto", Reptiles.DactyloAdulto::new)
+            .grupo("REPTILES")
+            .titulo("DÁCTYLO ADULTO", "Depredador alado carmesí de gran cresta amarilla: se lanza en picado desde el cielo para picotearte o te agarra con las patas, te sube por los aires durante tres segundos y te deja caer desde las alturas.")
+            .etiquetas("reptil dactylo adulto volador alas picado agarra altura quiu")
+            .medidas(1.6F, 1.5F, 1.1F)
+            .rastreo(10)
+            .atributos(Reptiles.DactyloAdulto::atributos)
+            .sonidos("picotazo", "agarra")
+            .particula("chispa", Bestia.Vuelo.DERIVA, true)
+            .particula("pluma", Bestia.Vuelo.DERIVA, false)
+            .muerte(20, "pluma")
+            .sombra(0.9F);
+
+    /** La Chelonia (DEDsafio 4). */
+    public static final Bestia CHELONIA = Bestias.nueva("chelonia", Reptiles.Chelonia::new)
+            .grupo("REPTILES")
+            .titulo("CHELONIA", "Tortuga acorazada con cristales luminosos en el caparazón: dispara ráfagas de cristal a distancia y, cuando la hieren, se esconde en su caparazón donde las flechas rebotan y solo el cuerpo a cuerpo le hace daño.")
+            .etiquetas("reptil chelonia tortuga caparazon cristales rebota flechas quiu")
+            .medidas(2.0F, 1.55F, 0.95F)
+            .rastreo(10)
+            .atributos(Reptiles.Chelonia::atributos)
+            .sonidos("mordisco", "cristal", "esconde")
+            .particula("cristal", Bestia.Vuelo.CAE, true)
+            .particula("hoja", Bestia.Vuelo.DERIVA, false)
+            .muerte(24, "cristal")
+            .sombra(1.2F);
+
+    /** El Tyrannok (DEDsafio 4). */
+    public static final Bestia TYRANNOK = Bestias.nueva("tyrannok", Reptiles.Tyrannok::new)
+            .grupo("REPTILES")
+            .titulo("TYRANNOK", "Gran depredador bípedo rojo carmesí cubierto de cicatrices: ruge al verte, destroza los bloques a su paso para alcanzarte y su mordisco te deja con Lentitud II.")
+            .etiquetas("reptil tyrannok dinosaurio coloso rugido rompe bloques lentitud quiu")
+            .medidas(2.4F, 4.8F, 4.1F)
+            .rastreo(12)
+            .atributos(Reptiles.Tyrannok::atributos)
+            .sonidos("mordisco", "rugido", "rompe")
+            .particula("polvo", Bestia.Vuelo.FLOTA, false)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(28, "polvo")
+            .sombra(1.6F);
+
+    /** El Mastodino (DEDsafio 4). */
+    public static final Bestia MASTODINO = Bestias.nueva("mastodino", Reptiles.Mastodino::new)
+            .grupo("REPTILES")
+            .titulo("MASTODINO", "Gran depredador bípedo verde musgo con cuernos de toro: arrasa los bloques en su camino y su rugido con pisotón lanza por los aires a todos los que estén cerca.")
+            .etiquetas("reptil mastodino dinosaurio coloso cuernos rugido impulsa rompe bloques quiu")
+            .medidas(2.4F, 4.5F, 3.8F)
+            .rastreo(12)
+            .atributos(Reptiles.Mastodino::atributos)
+            .sonidos("mordisco", "rugido", "rompe")
+            .particula("polvo", Bestia.Vuelo.FLOTA, false)
+            .particula("pua", Bestia.Vuelo.CAE, false)
+            .muerte(28, "polvo")
+            .sombra(1.6F);
+
+    /** El Espinosaurio (DEDsafio 4). */
+    public static final Bestia ESPINOSAURIO = Bestias.nueva("espinosaurio", Reptiles.Espinosaurio::new)
+            .grupo("REPTILES")
+            .titulo("ESPINOSAURIO", "Gran depredador bípedo semiacuático de alta vela dorsal: ruge, destroza los bloques a su paso y cada mordisco suyo te envenena con Veneno II.")
+            .etiquetas("reptil espinosaurio dinosaurio coloso vela agua veneno rompe bloques quiu")
+            .medidas(2.2F, 3.4F, 2.6F)
+            .rastreo(12)
+            .atributos(Reptiles.Espinosaurio::atributos)
+            .sonidos("mordisco", "rugido", "rompe", "veneno")
+            .particula("veneno", Bestia.Vuelo.CAE, true)
+            .particula("escama", Bestia.Vuelo.CAE, false)
+            .muerte(28, "escama")
+            .sombra(1.5F);
 
     /** Carga la clase (y con ella todas las fichas) y lo que van a necesitar: las lianas, la red y los corazones. */
     static void cargar() {

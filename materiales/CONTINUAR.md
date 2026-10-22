@@ -8,7 +8,7 @@ Claude no las tiene, así que conviene pedirle que las lea primero (empezando po
 
 - **Rama:** todo está en `develop` (Juan trabaja directamente en ella; no crear ramas aparte). En la otra máquina:
   `git checkout develop` y `git pull`.
-- **Versión:** 1.2.3 (20-10-2026, `entrega/atalaya-1.2.3.jar`, pedida por Juan). No se sube la versión ni se deja un jar
+- **Versión:** 1.2.4 (22-10-2026, `entrega/atalaya-1.2.4.jar`, pedida por Juan). No se sube la versión ni se deja un jar
   en `entrega/` hasta que Juan lo pida.
 
 ## Qué se hizo en esta tanda
@@ -169,9 +169,7 @@ Meter en el juego lo del DEDsafío 2, 3 y 4 (la investigación está en `materia
        - raptores con rodilla, cola en dos tramos y la llamada;
        - Plumosaurio con patas que se levantan y una mirada suave que ya no da bandazos;
        - Cavador con pilares que pisan y que se hunde antes de enterrarse.
-     - Sigue pendiente preguntarle por el nombre del Cavador. **Falta que la dé por buena**; después tocan la mejora, el Java, los sonidos y la
-     prueba. Los que no tienen dibujo (el Dromoraptor Verde, el Arquero, el de Lanza, el Dáctylo Adulto,
-     el Fluviosaurus y el Mastodino) no se recrean.
+     - Los seis están en el juego y probados (11 de 11 en `prueba_reptiles.py`).
    - **Revisión de imágenes (20-10):** `materiales/ideas/imagenes_mobs.md` dice, para cada mob del DEDsafío 2, 3 y 4,
      si hay imagen y de dónde sale.
      - En el D4, el libro del juego (el bestiario que abren los streamers) tiene el icono de casi todos. La página
@@ -180,6 +178,27 @@ Meter en el juego lo del DEDsafío 2, 3 y 4 (la investigación está en `materia
      - El «Reptisaurio Cavador» es el **Molusco Rocoso** del libro. Ya está renombrado (`molusco_rocoso`) y con la
        mecánica del original: se entierra si te alejas y te sigue bajo tierra.
      - Los brazos de todos los reptisaurios siguen el dibujo de Juan (`BRAZO_REPTISAURIO`).
+   - **Familia de Quiu (22-10):** los doce nuevos reptiles del DEDsafío 4, rehechos pieza a pieza sobre los fotogramas
+     reales de los directos y los iconos del libro en `materiales/generadores/quiu/*.py` y exportados con
+     `bestiario_quiu.py`: Reptisaurio Arquero, Reptisaurio con Lanza, Dromoraptor Verde, Narval (con montura visible
+     cuando lleva un Arquero de jinete), Fluviosaurus, Zarinosa Espigüeya, Kragtops, Dáctylo Adulto, Chelonia,
+     Tyrannok, Mastodino (con montura visible al ser montado) y Espinosaurio.
+     - **En el juego (`1.2.4`):** modelos, texturas, animaciones, huevos, retratos, partículas, sonidos propios
+       (`bestiario_sonidos_reptiles.py`), rótulos del catálogo (`catalogo.py`), mecánicas en `Reptiles.java`, soporte de
+       pieza `silla` en `BestiaModel.java` y fichas en `Fichas.java`.
+     - **Lo que hace cada uno:**
+       - Arquero: flechas de hueso propias con Veneno Primitivo, zarpazo de cerca y postura sentada (`estado1`) al ir en Narval;
+       - Lancero: cuerpo a cuerpo con alcance y embestida a dos manos con Veneno Primitivo;
+       - Dromoraptor Verde: manada de tres, Veneno II 2 s;
+       - Narval: agua y tierra, embiste y empuja, y sale a menudo con un Arquero montado;
+       - Fluviosaurus: semiacuático, trepa paredes (`estado1`) y rompe bloques;
+       - Zarinosa: salta a la cabeza (`estado1`), ciega y muerde hasta que un golpe la despega;
+       - Kragtops: gigante neutral que embiste con los cuernos y barre con la maza de la cola;
+       - Dáctylo Adulto: vuela, se lanza en picado, te agarra con las patas (`estado1`), te sube y te suelta;
+       - Chelonia: cuerpo a cuerpo y ráfagas de cristales; al herirla se esconde en el caparazón (`estado1`), donde rebotan las flechas;
+       - Tyrannok: ruge, rompe bloques a su paso y su mordisco aplica Lentitud II;
+       - Mastodino: ruge con pisotón que impulsa hacia arriba a los cercanos y rompe bloques a su paso;
+       - Espinosaurio: semiacuático, ruge, rompe bloques a su paso y su mordisco aplica Veneno II.
    - Momentos que dependen de mobs.
    - Cambios: el tótem con trampa, la perla nuclear, el sueño pesado, las flores con dientes y mirar la luna.
 5. **Al final:** el README, y la versión solo si Juan la pide.

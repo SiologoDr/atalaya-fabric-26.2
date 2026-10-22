@@ -558,7 +558,7 @@ def manojos(m, parte, M, puntos, pints, ancho, alto, inclina=-25.0):
 
 
 def reptisaurio(m, piel, anillos, R, RH, encorvado, y_cadera=19.0, grueso=1.0, cabeza=(9, 6, 8), cuello_y=14.4,
-                abre_boca=14, cuello_z=3.4, cara=None, cabeza_giro=4, muslo=None, vientre=None, k=1.0):
+                abre_boca=14, cuello_z=3.4, cara=None, cabeza_giro=4, muslo=None, vientre=None, k=1.0, ojos_lado=True):
     """El cuerpo de los reptisaurios. piel: el pintor del tronco y la cabeza; anillos: el de los brazos y las piernas;
     R: la rampa de la piel (para la ceja); RH: la del hueso (garras, dientes); encorvado: lo que se echa hacia delante el
     tronco (grados). Devuelve los marcos del tronco y de la cabeza, los hombros y los pintores de hueso."""
@@ -593,7 +593,7 @@ def reptisaurio(m, piel, anillos, R, RH, encorvado, y_cadera=19.0, grueso=1.0, c
     colores = {'y': H('e6d21c'), 'k': H('0a0804'), 'n': H('0a0804'),
                'd': L.color_continuo(R, np.array([0.0]))[0]}
     cw, ch, cd = cabeza
-    lado = lado_ojo(int(round(cd * 2 * k)), int(round(ch * 2 * k)), k)
+    lado = lado_ojo(int(round(cd * 2 * k)), int(round(ch * 2 * k)), k) if ojos_lado else None
     craneo = _con_cara(f'cara_{m.id}', piel, {'frente': cara or CARA_REPTISAURIO, 'izq': lado, 'der': lado}, colores,
                        fino=True)
     caja_en(m, 'cabeza', Mh, (0, ch / 2 - 1.4, cd / 2), (cw, ch, cd), piel,

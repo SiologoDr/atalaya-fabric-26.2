@@ -117,6 +117,18 @@ def comunes(ident, nombre_es, nombre_en, sala, extra):
     bs.subtitulos(ident, subs)
 
 
+def _veneno_sonido():
+    burbujas = ms.burbujas(0.8, 30, 300, 1400)
+    return reverb(mezclar(pico(siseo(0.8, 1800, 6000), 0.8), pico(burbujas, 0.6)), 0.25, 1.2)
+
+
+def _rompe_bloques():
+    golpe = boom(85, 34, 0.16)
+    roca = chasquidos(0.45, 180, 400, 4200)
+    polvo = pb(ruido(0.45, 'marron'), 1100) * caida(0.45, 0.12)
+    return reverb(saturar(mezclar(pico(golpe, 1.0), pico(roca, 0.7), pico(polvo, 0.6)), 1.3), 0.25, 1.5)
+
+
 def reptisaurio(ident, nombre_es, nombre_en, f0, extra):
     comunes(ident, nombre_es, nombre_en, ('plaza', 4800), extra)
     for k in range(3):
@@ -147,17 +159,42 @@ def reptisaurio_guerrero():
                 {'zarpazo': ('Zarpazo de un Reptisaurio Guerrero', 'Reptisaur Warrior slashes'),
                  'rugido': ('Ruge un Reptisaurio Guerrero', 'Reptisaur Warrior roars'),
                  'veneno': ('Te envenena un Reptisaurio Guerrero', 'Reptisaur Warrior poisons you')})
-    burbujas = ms.burbujas(0.8, 30, 300, 1400)
-    bs.guardar('veneno', reverb(mezclar(pico(siseo(0.8, 1800, 6000), 0.8), pico(burbujas, 0.6)), 0.25, 1.2),
-               alto=0.7)
+    bs.guardar('veneno', _veneno_sonido(), alto=0.7)
 
 
-def raptor(ident, nombre_es, nombre_en, f0, rapido):
-    comunes(ident, nombre_es, nombre_en, ('plaza', 6000), {
+def reptisaurio_arquero():
+    reptisaurio('reptisaurio_arquero', 'Reptisaurio Arquero', 'Reptisaur Archer', 88,
+                {'zarpazo': ('Zarpazo de un Reptisaurio Arquero', 'Reptisaur Archer slashes'),
+                 'rugido': ('Ruge un Reptisaurio Arquero', 'Reptisaur Archer roars'),
+                 'disparo': ('Dispara su arco un Reptisaurio Arquero', 'Reptisaur Archer shoots'),
+                 'veneno': ('Te envenena un Reptisaurio Arquero', 'Reptisaur Archer poisons you')})
+    cuerda = modos(210, 0.25, ((1, 1.0), (2.0, 0.5), (3.1, 0.25)), 0.05)
+    aire = soplo(0.28, 3200, 1100)
+    bs.guardar('disparo', reverb(mezclar(pico(cuerda, 0.9), en(0.03, pico(aire, 0.85))), 0.2, 1.1), alto=0.85)
+    bs.guardar('veneno', _veneno_sonido(), alto=0.7)
+
+
+def reptisaurio_lancero():
+    reptisaurio('reptisaurio_lancero', 'Reptisaurio con Lanza', 'Reptisaur Lancer', 84,
+                {'zarpazo': ('Zarpazo de un Reptisaurio con Lanza', 'Reptisaur Lancer slashes'),
+                 'rugido': ('Ruge un Reptisaurio con Lanza', 'Reptisaur Lancer roars'),
+                 'lanza': ('Estocada de un Reptisaurio con Lanza', 'Reptisaur Lancer thrusts'),
+                 'veneno': ('Te envenena un Reptisaurio con Lanza', 'Reptisaur Lancer poisons you')})
+    corte = mezclar(pico(soplo(0.3, 2800, 900), 0.9), en(0.14, pico(boom(125, 55, 0.07), 0.95)),
+                    en(0.14, pico(modos(780, 0.16, ((1, 1.0), (2.4, 0.5)), 0.03), 0.6)))
+    bs.guardar('lanza', reverb(corte, 0.2, 1.2), alto=0.88)
+    bs.guardar('veneno', _veneno_sonido(), alto=0.7)
+
+
+def raptor(ident, nombre_es, nombre_en, f0, rapido, extra_subs=None):
+    subs = {
         'ambiente': (f'Chilla un {nombre_es}', f'{nombre_en} screeches'),
         'mordisco': (f'Muerde un {nombre_es}', f'{nombre_en} bites'),
         'llamada': (f'Llama a su manada un {nombre_es}', f'{nombre_en} calls its pack'),
-    })
+    }
+    if extra_subs:
+        subs.update(extra_subs)
+    comunes(ident, nombre_es, nombre_en, ('plaza', 6000), subs)
     hueco = 0.2 if rapido else 0.26
     for k in range(3):
         x = mezclar(pico(ladridos(f0 * (1 + 0.05 * k), 2 + k % 2, hueco), 0.9), pico(siseo(0.5), 0.2))
@@ -178,6 +215,12 @@ def dromoraptor_rojo():
 
 def dromoraptor_azul():
     raptor('dromoraptor_azul', 'Dromoraptor Azul', 'Blue Dromoraptor', 340, True)
+
+
+def dromoraptor_verde():
+    raptor('dromoraptor_verde', 'Dromoraptor Verde', 'Green Dromoraptor', 300, True,
+           {'veneno': ('Te envenena un Dromoraptor Verde', 'Green Dromoraptor poisons you')})
+    bs.guardar('veneno', _veneno_sonido(), alto=0.7)
 
 
 def plumosaurio():
@@ -222,9 +265,224 @@ def molusco_rocoso():
                alto=0.95, limite=0.8)
 
 
-MOBS = {'reptisaurio_salvaje': reptisaurio_salvaje, 'reptisaurio_guerrero': reptisaurio_guerrero,
-        'dromoraptor_rojo': dromoraptor_rojo, 'dromoraptor_azul': dromoraptor_azul, 'plumosaurio': plumosaurio,
-        'molusco_rocoso': molusco_rocoso}
+def narval():
+    comunes('narval', 'Narval', 'Narwhal', ('abismo', 3800), {
+        'ambiente': ('Canta un Narval', 'Narwhal calls'),
+        'paso': ('Chapotea un Narval', 'Narwhal splashes'),
+        'mordisco': ('Muerde un Narval', 'Narwhal bites'),
+        'embiste': ('Embiste un Narval', 'Narwhal charges'),
+    })
+    for k in range(3):
+        d = 1.4 + 0.3 * k
+        canto = bramido(d, 110 + 12 * k, 72)
+        burb = ms.burbujas(d * 0.7, 22, 220, 950)
+        bs.guardar('ambiente', reverb(mezclar(pico(canto, 0.85), en(0.2, pico(burb, 0.45))), 0.4, 2.4), k + 1, alto=0.6)
+    for k in range(2):
+        x = mezclar(pico(grunido(0.45, 165 + 20 * k, 110, 'u', 0.8, 0.7), 1.0),
+                    pico(ms.burbujas(0.4, 28, 280, 1200), 0.4))
+        bs.guardar('herido', reverb(x, 0.3, 1.5), k + 1, alto=0.75)
+    x = mezclar(pico(bramido(1.8, 120, 48), 1.0), en(0.4, pico(ms.burbujas(1.2, 30, 180, 900), 0.55)))
+    bs.guardar('muerte', reverb(x, 0.45, 2.6), alto=0.82)
+    ola = mezclar(pico(soplo(0.25, 900, 320), 0.7), pico(ms.burbujas(0.25, 26, 260, 1100), 0.6))
+    bs.guardar('paso', ola, alto=0.4)
+    bs.guardar('mordisco', reverb(mezclar(pico(mordisco(0.85), 1.0), pico(ola, 0.5)), 0.25, 1.4), alto=0.85)
+    emb = mezclar(pico(soplo(0.55, 1400, 360), 0.85), pico(ms.burbujas(0.55, 40, 240, 1300), 0.7),
+                  en(0.18, pico(boom(95, 42, 0.14), 0.95)))
+    bs.guardar('embiste', reverb(saturar(emb, 1.25), 0.3, 1.8), alto=0.9)
+
+
+def fluviosaurus():
+    comunes('fluviosaurus', 'Fluviosaurus', 'Fluviosaurus', ('plaza', 5400), {
+        'ambiente': ('Gorgotea un Fluviosaurus', 'Fluviosaurus gurgles'),
+        'mordisco': ('Muerde un Fluviosaurus', 'Fluviosaurus bites'),
+        'rompe': ('Destroza bloques un Fluviosaurus', 'Fluviosaurus smashes blocks'),
+    })
+    for k in range(3):
+        d = 0.8 + 0.2 * k
+        x = mezclar(pico(grunido(d, 190 + 18 * k, 140, 'e', 1.0, 0.7), 0.85),
+                    pico(ms.burbujas(d, 26, 350, 1500), 0.55))
+        bs.guardar('ambiente', reverb(x, 0.3, 1.6), k + 1, alto=0.6)
+    for k in range(2):
+        x = mezclar(pico(chillido_raptor(0.32, 260 + 25 * k, 'e'), 0.95),
+                    pico(ms.burbujas(0.3, 30, 400, 1600), 0.45))
+        bs.guardar('herido', x, k + 1, alto=0.75)
+    x = mezclar(pico(grunido(1.1, 210, 85, 'o', 0.9, 0.8), 1.0), en(0.3, pico(ms.burbujas(0.8, 25, 250, 1100), 0.5)))
+    bs.guardar('muerte', reverb(x, 0.35, 1.8), alto=0.8)
+    bs.guardar('paso', mezclar(pico(paso(0.55, 115, 0.7), 0.8), pico(ms.burbujas(0.14, 18, 400, 1400), 0.35)), alto=0.35)
+    bs.guardar('mordisco', mezclar(pico(mordisco(1.15), 1.0), pico(grunido(0.22, 220, 150, 'e'), 0.5)), alto=0.85)
+    bs.guardar('rompe', _rompe_bloques(), alto=0.9)
+
+
+def zarinosa():
+    comunes('zarinosa', 'Zarinosa Espigüeya', 'Spiketail Zarinosa', ('plaza', 5800), {
+        'ambiente': ('Sisea una Zarinosa Espigüeya', 'Spiketail Zarinosa hisses'),
+        'mordisco': ('Muerde una Zarinosa Espigüeya', 'Spiketail Zarinosa bites'),
+        'salta': ('Salta una Zarinosa Espigüeya', 'Spiketail Zarinosa leaps'),
+    })
+    for k in range(3):
+        d = 0.75 + 0.2 * k
+        x = mezclar(pico(siseo(d, 2200, 7500), 0.85), pico(castaneteo(d * 0.7, 34 + 6 * k), 0.55),
+                    pico(grunido(d * 0.6, 210, 165, 'e', 1.1, 0.9), 0.45))
+        bs.guardar('ambiente', reverb(x, 0.25, 1.5), k + 1, alto=0.6)
+    for k in range(2):
+        x = mezclar(pico(chillido_raptor(0.28, 360 + 30 * k, 'e'), 1.0), pico(siseo(0.25, 2800, 8000), 0.45))
+        bs.guardar('herido', x, k + 1, alto=0.75)
+    x = mezclar(pico(chillido_raptor(0.85, 340, 'a'), 0.95), en(0.35, pico(siseo(0.65, 2000, 6500), 0.5)))
+    bs.guardar('muerte', reverb(x, 0.3, 1.8), alto=0.8)
+    bs.guardar('paso', paso(0.5, 130, 0.9), alto=0.35)
+    bs.guardar('mordisco', mezclar(pico(mordisco(1.3), 1.0), pico(siseo(0.2, 2600, 7500), 0.5)), alto=0.85)
+    salto = mezclar(pico(chillido_raptor(0.38, 410, 'e'), 0.95), pico(soplo(0.35, 2600, 900), 0.75),
+                    en(0.12, pico(castaneteo(0.25, 45), 0.5)))
+    bs.guardar('salta', reverb(salto, 0.25, 1.4), alto=0.9)
+
+
+def kragtops():
+    comunes('kragtops', 'Kragtops', 'Kragtops', ('cumbre', 3400), {
+        'ambiente': ('Resopla un Kragtops', 'Kragtops snorts'),
+        'paso': ('Pisada pesada de un Kragtops', 'Heavy Kragtops footsteps'),
+        'embiste': ('Embiste un Kragtops', 'Kragtops charges'),
+        'maza': ('Golpe de maza de un Kragtops', 'Kragtops slams its tail club'),
+    })
+    for k in range(3):
+        d = 1.4 + 0.3 * k
+        x = mezclar(pico(bramido(d, 74 + 6 * k, 54), 0.9), en(d * 0.5, pico(soplo(0.45, 1100, 350), 0.45)))
+        bs.guardar('ambiente', reverb(x, 0.35, 2.2), k + 1, alto=0.6)
+    for k in range(2):
+        x = mezclar(pico(bramido(0.55, 105 + 10 * k, 75), 1.0), pico(castaneteo(0.25, 30), 0.4))
+        bs.guardar('herido', reverb(x, 0.25, 1.6), k + 1, alto=0.75)
+    x = mezclar(pico(bramido(2.0, 88, 38), 1.0), en(1.2, pico(boom(62, 26, 0.35), 0.8)))
+    bs.guardar('muerte', reverb(x, 0.4, 2.6), alto=0.85)
+    bs.guardar('paso', mezclar(pico(boom(62, 30, 0.1), 1.0), pico(pb(ruido(0.22, 'marron'), 500) * caida(0.22, 0.06), 0.45)),
+               alto=0.45)
+    emb = mezclar(pico(bramido(0.65, 96, 68), 0.85), en(0.22, pico(boom(75, 30, 0.22), 1.0)),
+                  en(0.22, pico(chasquidos(0.2, 160, 500, 3500), 0.55)))
+    bs.guardar('embiste', reverb(saturar(emb, 1.35), 0.3, 1.8), alto=0.92)
+    maza = mezclar(pico(soplo(0.42, 1200, 320), 0.8), en(0.24, pico(boom(64, 24, 0.28), 1.0)),
+                   en(0.24, pico(modos(420, 0.22, ((1, 1.0), (2.2, 0.6), (3.5, 0.3)), 0.04), 0.65)))
+    bs.guardar('maza', reverb(saturar(maza, 1.4), 0.35, 2.0), alto=0.95, limite=0.78)
+
+
+def dactylo_adulto():
+    comunes('dactylo_adulto', 'Dáctylo Adulto', 'Adult Dactylo', ('cumbre', 5600), {
+        'ambiente': ('Chilla un Dáctylo Adulto', 'Adult Dactylo screeches'),
+        'paso': ('Aletea un Dáctylo Adulto', 'Adult Dactylo flaps'),
+        'picotazo': ('Picotazo de un Dáctylo Adulto', 'Adult Dactylo pecks'),
+        'agarra': ('Te agarra un Dáctylo Adulto', 'Adult Dactylo grabs you'),
+    })
+    for k in range(3):
+        d = 0.7 + 0.15 * k
+        x = mezclar(pico(chillido_raptor(d, 460 + 35 * k, 'a'), 0.95), en(0.2, pico(soplo(0.35, 1800, 600), 0.35)))
+        bs.guardar('ambiente', reverb(x, 0.4, 2.4), k + 1, alto=0.6)
+    for k in range(2):
+        bs.guardar('herido', reverb(pico(chillido_raptor(0.32, 560 + 40 * k, 'e'), 1.0), 0.25, 1.5), k + 1, alto=0.75)
+    x = mezclar(pico(chillido_raptor(1.1, 520, 'a'), 1.0), en(0.5, pico(soplo(0.6, 1400, 400), 0.5)))
+    bs.guardar('muerte', reverb(x, 0.4, 2.4), alto=0.8)
+    aleteo = mezclar(pico(soplo(0.28, 950, 280), 0.85), pico(boom(90, 45, 0.06), 0.4))
+    bs.guardar('paso', aleteo, alto=0.4)
+    bs.guardar('picotazo', mezclar(pico(mordisco(1.25), 1.0), pico(chillido_raptor(0.22, 500, 'e'), 0.55)), alto=0.85)
+    agarra = mezclar(pico(soplo(0.45, 2200, 650), 0.9), en(0.15, pico(chillido_raptor(0.4, 540, 'a'), 0.85)),
+                     en(0.18, pico(mordisco(1.1), 0.75)))
+    bs.guardar('agarra', reverb(agarra, 0.3, 1.8), alto=0.9)
+
+
+def chelonia():
+    comunes('chelonia', 'Chelonia', 'Chelonia', ('abismo', 4600), {
+        'ambiente': ('Resuena una Chelonia', 'Chelonia resonates'),
+        'mordisco': ('Muerde una Chelonia', 'Chelonia bites'),
+        'cristal': ('Dispara cristales una Chelonia', 'Chelonia shoots crystals'),
+        'esconde': ('Se esconde en su caparazón una Chelonia', 'Chelonia hides in its shell'),
+    })
+    for k in range(3):
+        d = 1.1 + 0.25 * k
+        voz = grunido(d, 105 + 8 * k, 78, 'o', 0.75, 0.6)
+        cris = modos(1320 + 140 * k, 0.45, ((1, 1.0), (1.5, 0.6), (2.4, 0.35)), 0.08)
+        bs.guardar('ambiente', reverb(mezclar(pico(voz, 0.85), en(0.25, pico(cris, 0.4))), 0.35, 2.0), k + 1, alto=0.6)
+    for k in range(2):
+        cris = modos(1600 + 180 * k, 0.25, ((1, 1.0), (1.8, 0.5)), 0.05)
+        x = mezclar(pico(grunido(0.38, 150 + 15 * k, 110, 'a', 0.85, 0.8), 0.9), pico(cris, 0.55))
+        bs.guardar('herido', reverb(x, 0.25, 1.4), k + 1, alto=0.75)
+    x = mezclar(pico(grunido(1.5, 130, 52, 'u', 0.75, 0.7), 1.0),
+                en(0.3, pico(chasquidos(0.7, 90, 1200, 6500), 0.55)))
+    bs.guardar('muerte', reverb(x, 0.35, 2.2), alto=0.8)
+    bs.guardar('paso', paso(0.85, 85, 0.5), alto=0.4)
+    bs.guardar('mordisco', pico(mordisco(0.95), 1.0), alto=0.85)
+    disp = mezclar(pico(modos(1480, 0.35, ((1, 1.0), (1.6, 0.7), (2.3, 0.45)), 0.06), 0.95),
+                   pico(soplo(0.28, 3400, 1200), 0.7), pico(chasquidos(0.18, 140, 2000, 8500), 0.55))
+    bs.guardar('cristal', reverb(disp, 0.3, 1.6), alto=0.88)
+    esc = mezclar(pico(boom(95, 42, 0.12), 0.9), pico(castaneteo(0.35, 36), 0.65),
+                  en(0.1, pico(modos(1100, 0.25, ((1, 1.0), (1.9, 0.5)), 0.04), 0.45)))
+    bs.guardar('esconde', reverb(esc, 0.25, 1.4), alto=0.85)
+
+
+def _coloso_bipedo(ident, nombre_es, nombre_en, f0, extra_subs=None):
+    subs = {
+        'ambiente': (f'Ruge un {nombre_es}', f'{nombre_en} growls'),
+        'paso': (f'Retumban las pisadas de un {nombre_es}', f'{nombre_en} stomps'),
+        'mordisco': (f'Fauces de un {nombre_es}', f'{nombre_en} snaps its jaws'),
+        'rugido': (f'Brama un {nombre_es}', f'{nombre_en} roars'),
+        'rompe': (f'Arrasa bloques un {nombre_es}', f'{nombre_en} smashes blocks'),
+    }
+    if extra_subs:
+        subs.update(extra_subs)
+    comunes(ident, nombre_es, nombre_en, ('cumbre', 3600), subs)
+    for k in range(3):
+        d = 1.4 + 0.3 * k
+        x = mezclar(pico(grunido(d, f0 * (1.05 + 0.06 * k), f0 * 0.72, 'o', 0.7, 0.85), 0.9),
+                    en(d * 0.55, pico(siseo(0.65, 1600, 5200), 0.35)))
+        bs.guardar('ambiente', reverb(x, 0.38, 2.4), k + 1, alto=0.65)
+    for k in range(2):
+        x = mezclar(pico(grunido(0.55, f0 * (1.55 + 0.15 * k), f0 * 1.05, 'a', 0.75, 0.95), 1.0),
+                    pico(boom(70, 35, 0.08), 0.4))
+        bs.guardar('herido', reverb(x, 0.28, 1.7), k + 1, alto=0.78)
+    x = mezclar(pico(bramido(2.2, f0 * 1.2, f0 * 0.45), 1.0), en(1.3, pico(boom(58, 24, 0.38), 0.85)))
+    bs.guardar('muerte', reverb(x, 0.45, 2.8), alto=0.88)
+    bs.guardar('paso', mezclar(pico(boom(60, 28, 0.11), 1.0),
+                               pico(pb(ruido(0.25, 'marron'), 450) * caida(0.25, 0.07), 0.45)), alto=0.5)
+    mord = mezclar(pico(mordisco(0.75), 1.0), pico(boom(95, 42, 0.09), 0.8),
+                   en(0.05, pico(grunido(0.35, f0 * 1.35, f0 * 0.9, 'a', 0.75, 0.9), 0.6)))
+    bs.guardar('mordisco', reverb(saturar(mord, 1.3), 0.25, 1.5), alto=0.9)
+    rug = mezclar(pico(bramido(1.7, f0 * 1.5, f0 * 0.75), 1.0),
+                  pico(grunido(1.6, f0 * 1.8, f0 * 0.9, 'a', 0.75, 1.0), 0.85),
+                  en(0.2, pico(boom(65, 26, 0.28), 0.75)),
+                  en(1.0, pico(siseo(0.7, 1500, 5500), 0.45)))
+    bs.guardar('rugido', reverb(saturar(rug, 1.45), 0.4, 2.6), alto=0.95, limite=0.78)
+    bs.guardar('rompe', _rompe_bloques(), alto=0.9)
+
+
+def tyrannok():
+    _coloso_bipedo('tyrannok', 'Tyrannok', 'Tyrannok', 68)
+
+
+def mastodino():
+    _coloso_bipedo('mastodino', 'Mastodino', 'Mastodino', 62)
+
+
+def espinosaurio():
+    _coloso_bipedo('espinosaurio', 'Espinosaurio', 'Spinosaurus', 74,
+                   {'veneno': ('Te envenena un Espinosaurio', 'Spinosaurus poisons you')})
+    bs.guardar('veneno', _veneno_sonido(), alto=0.75)
+
+
+MOBS = {
+    'reptisaurio_salvaje': reptisaurio_salvaje,
+    'reptisaurio_guerrero': reptisaurio_guerrero,
+    'reptisaurio_arquero': reptisaurio_arquero,
+    'reptisaurio_lancero': reptisaurio_lancero,
+    'dromoraptor_rojo': dromoraptor_rojo,
+    'dromoraptor_azul': dromoraptor_azul,
+    'dromoraptor_verde': dromoraptor_verde,
+    'plumosaurio': plumosaurio,
+    'molusco_rocoso': molusco_rocoso,
+    'narval': narval,
+    'fluviosaurus': fluviosaurus,
+    'zarinosa': zarinosa,
+    'kragtops': kragtops,
+    'dactylo_adulto': dactylo_adulto,
+    'chelonia': chelonia,
+    'tyrannok': tyrannok,
+    'mastodino': mastodino,
+    'espinosaurio': espinosaurio,
+}
 
 
 def main():

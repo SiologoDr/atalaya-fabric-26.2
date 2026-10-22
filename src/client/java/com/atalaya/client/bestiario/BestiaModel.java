@@ -32,6 +32,7 @@ public class BestiaModel extends EntityModel<BestiaRenderState> {
     private final List<ModelPart> mira = new ArrayList<>();
     private final List<Float> cuantoMira;
     private final float pasoTiempo;
+    private final @Nullable ModelPart silla;
 
     public BestiaModel(ModelPart raiz, BestiaDatos.Datos datos) {
         super(raiz);
@@ -42,6 +43,7 @@ public class BestiaModel extends EntityModel<BestiaRenderState> {
         }
         cuantoMira = datos.cuantoMira;
         pasoTiempo = datos.paso;
+        silla = buscar.apply("silla");
     }
 
     public @Nullable KeyframeAnimation animacion(String nombre) {
@@ -51,6 +53,9 @@ public class BestiaModel extends EntityModel<BestiaRenderState> {
     @Override
     public void setupAnim(BestiaRenderState s) {
         super.setupAnim(s);
+        if (silla != null) {
+            silla.visible = s.valor > 0.5F;
+        }
         float t = s.ageInTicks + s.fase * 40.0F;
         boolean muerto = s.deathTime > 0.0F;
         KeyframeAnimation enEstado = s.estado != 0 ? anim.get("estado" + s.estado) : null;
